@@ -1,0 +1,21 @@
+# version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    networks:
+      - web
+    # volumes:
+    #   - ./srcs/backend/data:/app/data
+    restart: always
+
+networks:
+  web:
+    name: transcendence
