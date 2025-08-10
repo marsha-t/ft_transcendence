@@ -16,6 +16,19 @@ services:
     #   - ./srcs/backend/data:/app/data
     restart: always
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - web
+
+
 networks:
   web:
     name: transcendence
