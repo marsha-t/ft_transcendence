@@ -1,5 +1,5 @@
 # Variables
-CONTAINERS = backend
+CONTAINERS = backend frontend
 # VOLUMES = 
 
 all: build up 
