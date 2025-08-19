@@ -6,6 +6,8 @@
     --color-background: #F2F1FA;
     --color-background-secondary: #F2F1FA;
     --color-text: #5D5A88;
+    --color-text-secondary: #afafaf;
+    --color-primary-dark: #423f6a;
 }
 
 body{
