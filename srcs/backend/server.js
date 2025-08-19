@@ -11,7 +11,7 @@ app.get('/api/ping', async (request, reply) => {
 });
 
 // Register auth routes
-authRoutes(app); // this will add /api/register (and any future auth routes /api/login) to the app
+authRoutes(app);
 
 const start = async () => {
   try {
