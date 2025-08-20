@@ -18,7 +18,6 @@ const App: React.FC = () =>{
   return(
     <Router>
       <Header />
-      {/* Optional simple navigation for testing */}
       <nav style={{ padding: "10px", backgroundColor: "#f0f0f0" }}>
         <Link to="/" style={{ margin: "0 10px" }}>Home</Link>
         <Link to="/register" style={{ margin: "0 10px" }}>Register</Link>
