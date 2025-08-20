@@ -17,6 +17,7 @@
     align-items: center; 
     padding: 32px;
     box-sizing: border-box;
+    border-radius: 30px;
   }
 
   .register_title {
