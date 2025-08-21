@@ -41,8 +41,7 @@ export const registerSchema = {
     409: {
       type: 'object',
       properties: {
-        error: { type: 'string' },
-        message : { type: 'string' }
+        error: { type: 'string' }
       }
     }
   }
