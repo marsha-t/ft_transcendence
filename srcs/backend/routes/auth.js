@@ -1,6 +1,7 @@
 // routes/auth.js
 
 import { registerSchema } from '../schemas/auth.js';
+import bcrypt from 'bcrypt';
 
 const users = []; // this is our temporary fake database
 
@@ -26,8 +27,17 @@ async function authRoutes(app, options) {
       return reply.code(409).send({ error: 'Email already exists' });
     }
 
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Log to check
+    // console.log('Username:', username);
+    // console.log('Email:', email);
+    // console.log('Password:', password);
+    // console.log('Hashed password:', hashedPassword);
+
     // Store user
-    users.push({ username, email, password });
+    users.push({ username, email, password: hashedPassword });
 
     return reply.code(201).send({ message: 'User registered successfully' });
   });

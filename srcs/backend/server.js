@@ -1,9 +1,9 @@
 // server.js
 
 import Fastify from 'fastify';
-import authRoutes from './routes/auth.js'; // import auth routes
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import authRoutes from './routes/auth.js'; // import auth routes
 
 const app = Fastify({ logger: true });
 
@@ -28,9 +28,6 @@ await app.register(swagger, {
       deepLinking: false,
     },
   });
-
-  // Register your routes
-  // app.register(authRoutes); ???????????
 // ------------------------------------------------------
 
 // Test route
