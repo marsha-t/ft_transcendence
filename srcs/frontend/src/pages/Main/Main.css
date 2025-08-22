@@ -1,0 +1,32 @@
+.main-content {
+    text-align: center;
+    padding: 2rem;
+    color: white;
+    background-color: #000;
+  }
+  
+  #playGameBtn {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #playGameBtn:hover {
+    background-color: #45a049;
+  }
+  
+  .game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #000;
+  }
+  
+  #pongCanvas {
+    border: 2px solid white;
+  }
