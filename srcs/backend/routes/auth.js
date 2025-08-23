@@ -1,11 +1,13 @@
 // routes/auth.js
 
-import { registerSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema } from '../schemas/auth.js';
 import bcrypt from 'bcrypt';
 
 const users = []; // this is our temporary fake database
 
 async function authRoutes(app, options) {
+
+  // Register route
   app.post('/api/register', { schema: registerSchema }, async (request, reply) => {
     const { username, email, password } = request.body;
 
@@ -30,16 +32,33 @@ async function authRoutes(app, options) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Log to check
-    // console.log('Username:', username);
-    // console.log('Email:', email);
-    // console.log('Password:', password);
-    // console.log('Hashed password:', hashedPassword);
-
     // Store user
     users.push({ username, email, password: hashedPassword });
 
     return reply.code(201).send({ message: 'User registered successfully' });
+  });
+
+
+  // Login Route
+  app.post('/api/login', { schema: loginSchema }, async (request, reply) => {
+    const { username, password } = request.body;
+
+    // Find user by username
+    const user = users.find((u) => u.username === username);
+
+    if (!user) {
+      return reply.code(401).send({ error: 'Invalid username or password' });
+    }
+
+    // Compare entered password with hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return reply.code(401).send({ error: 'Invalid username or password' });
+    }
+
+    // Success
+    return reply.code(200).send({ message: 'Login successful' });
   });
 }
 

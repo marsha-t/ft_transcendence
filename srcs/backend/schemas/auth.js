@@ -46,3 +46,35 @@ export const registerSchema = {
     }
   }
 };
+
+export const loginSchema = {
+  body: {
+    type: 'object',
+    required: ['username', 'password'],
+    properties: {
+      username: { type: 'string', minLength: 3 },
+      password: { type: 'string', minLength: 1 }
+    }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      }
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }, 
+        message: { type: 'string' }
+      }
+    },
+    401: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
+  }
+};
