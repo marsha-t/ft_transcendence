@@ -10,11 +10,11 @@ export class Header implements IComponent {
         const navLinks = document.createElement('ul');
 
         const links = [
-            { text: 'Main', href: '#main' },
-            { text: 'About', href: '#about' },
-            { text: 'Game', href: '#game' },
-            { text: 'Login', href: '#login' },
-            { text: 'Register', href: '#register' }
+            { text: 'Main', href: 'main' },
+            { text: 'About', href: 'about' },
+            { text: 'Game', href: 'game' },
+            { text: 'Login', href: 'login' },
+            { text: 'Register', href: 'register' }
         ];
 
         links.forEach(link => {

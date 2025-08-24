@@ -1,4 +1,4 @@
-/* @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
 :root{
     --color-primary: #ffff;
@@ -16,24 +16,4 @@ body{
     color: var(--color-text);
     margin: 0;
     padding: 0;
-} */
-
-
-/*
- * This file is where you will add your Tailwind directives.
- * These are required for Tailwind to process your utility classes
- * and generate the final CSS stylesheet.
- */
-
- @tailwind base;
- @tailwind components;
- @tailwind utilities;
- 
- /*
-  * You can add your own custom styles here.
-  * For example, this style ensures a smooth transition on all elements.
-  */
- * {
-     transition: all 0.3s ease-in-out;
- }
- 
+}

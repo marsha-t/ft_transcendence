@@ -21,6 +21,10 @@ RUN ls -la /app/src /app/src/components /app/src/pages || echo "Source directori
 # Build the TypeScript and check for errors
 RUN npx tsc --diagnostics || { echo "TypeScript compilation failed"; exit 1; }
 
+# Copy CSS files to public directory
+RUN mkdir -p /app/public/pages/Register && cp /app/src/pages/Register/Register.css /app/public/pages/Register/Register.css || echo "Failed to copy Register.css"
+RUN ls -la /app/public/pages/Register || echo "Register directory empty"
+
 # List compiled files to verify output
 RUN ls -la /app/public || echo "Public directory empty"
 
