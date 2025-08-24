@@ -1,21 +1,16 @@
 import { IComponent } from "../../components/IComponent";
-// import './pages/Register/Register.css'
 
 export class Register implements IComponent {
     public render(): HTMLElement {
-      if (!document.querySelector('link[href="/pages/Register/Register.css"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/pages/Register/Register.css';
-        document.head.appendChild(link);
-    }
         const container = document.createElement('div');
         container.className = 'register_page'; 
-        const registerCard = document.createElement('div');
-        registerCard.className = 'register_block';
+        
         const heading = document.createElement('h2');
         heading.className = 'register_title';
         heading.textContent = 'Create an Account';
+        
+        const registerCard = document.createElement('div');
+        registerCard.className = 'register_block';
 
         const form = document.createElement('form');
         form.className = 'register_form';
