@@ -1,16 +1,22 @@
-// main.ts
-document.getElementById("header")!.innerHTML = `
-  <h1>Pong Tournament</h1>
-  <nav>
-    <a href="/" data-link>Home</a>
-    <a href="/about" data-link>About</a>
-    <a href="/register" data-link>Register</a>
-    <a href="/login" data-link>Login</a>
-    <a href="/game" data-link>Game</a>
-  </nav>
-`;
+import { Router } from './Router.js';
+import { Header } from './components/Header.js';
+import { Footer } from './components/Footer.js';
 
-document.getElementById("footer")!.innerHTML = `
-  <p>© 2025 Pong Tournament</p>
-`;
-console.log("Hello from main.ts!");
+window.addEventListener('DOMContentLoaded', () => {
+    const headerContainer = document.getElementById('header-container');
+    const contentContainer = document.getElementById('content-container');
+    const footerContainer = document.getElementById('footer-container');
+
+    if (!headerContainer || !contentContainer || !footerContainer) {
+        console.error('One or more required container elements not found in the DOM.');
+        return;
+    }
+
+    const headerComponent = new Header();
+    headerContainer.appendChild(headerComponent.render());
+
+    const footerComponent = new Footer();
+    footerContainer.appendChild(footerComponent.render());
+
+    new Router(contentContainer);
+});

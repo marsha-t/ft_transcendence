@@ -1,12 +1,17 @@
 {
-  "name": "ft_transcendence_frontend",
+  "name": "transcendence-frontend",
   "version": "1.0.0",
+  "description": "A Single Page Application (SPA) frontend for the Transcendence project.",
+  "main": "src/main.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "lite-server --baseDir=./public --no-ui --no-open"
+    "start": "serve ./public -p 3000 --single",
+    "build": "npx tsc"
   },
+  "keywords": [],
+  "author": "bmakhama",
+  "license": "ISC",
   "devDependencies": {
-    "lite-server": "^2.6.1",
-    "typescript": "^5.0.0"
+    "serve": "^14.2.3",
+    "typescript": "^5.4.5"
   }
 }
