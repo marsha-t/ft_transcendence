@@ -1,7 +1,12 @@
-export function renderFooter(): string {
-    return `
-      <footer class="footer">
-        <p>&copy; 2025 ft_transcendence Team</p>
-      </footer>
-    `;
-  }
+import { IComponent } from "./IComponent";
+
+export class Footer implements IComponent {
+    public render(): HTMLElement {
+        const footer = document.createElement('footer');
+        const content = document.createElement('p');
+        content.innerHTML = `© ${new Date().getFullYear()} Transcendence. All rights reserved.`;
+        footer.appendChild(content);
+
+        return footer;
+    }
+}

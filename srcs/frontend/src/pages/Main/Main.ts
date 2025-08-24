@@ -1,10 +1,9 @@
-// src/pages/Main/Main.ts
-export function MainPage(): string {
-    return `
-      <section>
-        <h2>Welcome to Pong!</h2>
-        <p>This is the main page.</p>
-      </section>
-    `;
+import { IComponent } from '../../components/IComponent';
+
+export class Main implements IComponent {
+  public render(): HTMLElement {
+    const container = document.createElement('div');
+    container.textContent = 'Welcome to Transcendence';
+    return container;
   }
-  
+}
