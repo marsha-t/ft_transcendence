@@ -1,9 +1,10 @@
 // routes/auth.js
 
 import { registerSchema, loginSchema } from '../schemas/auth.js';
+import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 
-const users = []; // this is our temporary fake database
+// const users = []; // this is our temporary fake database
 
 async function authRoutes(app, options) {
 
@@ -12,28 +13,30 @@ async function authRoutes(app, options) {
     const { username, email, password } = request.body;
 
     // Check if username already exists
-    const userExists = users.find(
-      (user) => user.username === username
-    );
+     const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username: username },
+          { email: email }
+        ]
+      }
+    });
 
-    if (userExists) {
-      return reply.code(409).send({ error: 'Username already exists' });
-    }
-
-    // Check if email already exists
-    const emailExists = users.find(
-      (user) => user.email === email
-    );
-
-    if (emailExists) {
-      return reply.code(409).send({ error: 'Email already exists' });
+    if (existingUser) {
+      return reply.code(409).send({ error: 'Username or email already exists' });
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Store user
-    users.push({ username, email, password: hashedPassword });
+    // Save user to the database
+    await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+      },
+    });
 
     return reply.code(201).send({ message: 'User registered successfully' });
   });
@@ -43,14 +46,16 @@ async function authRoutes(app, options) {
   app.post('/api/login', { schema: loginSchema }, async (request, reply) => {
     const { username, password } = request.body;
 
-    // Find user by username
-    const user = users.find((u) => u.username === username);
+    // Find user in database
+    const user = await prisma.user.findUnique({
+      where: { username },
+    });
 
     if (!user) {
       return reply.code(401).send({ error: 'Invalid username or password' });
     }
 
-    // Compare entered password with hashed password
+    // Compare entered password with hashed password in DB
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
