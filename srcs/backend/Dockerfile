@@ -14,5 +14,9 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
+# Run Prisma migrate + generate during build
+RUN npx prisma migrate deploy
+RUN npx prisma generate
+
 # Start server
 CMD ["npm", "start"]
