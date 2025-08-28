@@ -3,9 +3,9 @@ import { Login } from './pages/Login/Login.js';
 import { About } from './pages/About/About.js';
 import { Game } from './pages/Game/Game.js';
 import { Main } from './pages/Main/Main.js';
-import { IComponent } from './components/IComponent.js';
 
 export class Router {
+
   constructor(container: HTMLElement) {
     const renderRoute = () => {
       container.innerHTML = ''; // Clear container

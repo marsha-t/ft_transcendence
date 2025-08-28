@@ -8,6 +8,7 @@ export class Register implements IComponent {
         const heading = document.createElement('h2');
         heading.className = 'register_title';
         heading.textContent = 'Create an Account';
+        container.appendChild(heading);
         
         const registerCard = document.createElement('div');
         registerCard.className = 'register_block';
@@ -60,7 +61,6 @@ export class Register implements IComponent {
         loginLink.className = 'login_text'; 
         loginLink.innerHTML = 'Already have an account? <a href="#login">Sign in here</a>';
         
-        registerCard.appendChild(heading);
         registerCard.appendChild(form);
         registerCard.appendChild(loginLink);
 
