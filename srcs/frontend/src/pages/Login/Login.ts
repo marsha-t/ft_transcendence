@@ -3,19 +3,35 @@ import { IComponent } from "../../components/IComponent";
 export class Login implements IComponent {
     public render(): HTMLElement {
         const container = document.createElement('div');
-        const loginCard = document.createElement('div');
-        const heading = document.createElement('h2');
-        heading.textContent = 'Sign In';
+        container.className = 'login_page';
 
+        // Heading stays above the card
+        const heading = document.createElement('h2');
+        heading.className = 'login_title';
+        heading.textContent = 'Welcome Back!';
+
+        
+        // Card containing form and register link
+        const loginCard = document.createElement('div');
+        loginCard.className = 'login_block';
+
+        // Register link
+        const registerLink = document.createElement('p');
+        registerLink.className = 'register_text';
+        registerLink.innerHTML = 'Don\'t have an account? <a href="#register">Sign up here</a>';
+
+        // Form
         const form = document.createElement('form');
+        form.className = 'login_form';
+
         const emailGroup = document.createElement('div');
         const emailLabel = document.createElement('label');
-        emailLabel.textContent = 'Email or Username';
+        emailLabel.textContent = 'Nickname';
         emailLabel.htmlFor = 'email';
         const emailInput = document.createElement('input');
         emailInput.type = 'text';
         emailInput.id = 'email';
-        emailInput.placeholder = 'you@example.com';
+        emailInput.placeholder = 'nickname';
         emailGroup.appendChild(emailLabel);
         emailGroup.appendChild(emailInput);
 
@@ -32,19 +48,19 @@ export class Login implements IComponent {
 
         const submitButton = document.createElement('button');
         submitButton.type = 'submit';
-        submitButton.textContent = 'Sign In';
-        
+        submitButton.textContent = 'Login';
+
         form.appendChild(emailGroup);
         form.appendChild(passwordGroup);
         form.appendChild(submitButton);
 
-        const registerLink = document.createElement('p');
-        registerLink.innerHTML = 'Don\'t have an account? <a href="#register">Sign up here</a>';
         
-        loginCard.appendChild(heading);
-        loginCard.appendChild(form);
+        // Append form and register link inside the card
         loginCard.appendChild(registerLink);
+        loginCard.appendChild(form);
 
+        // Append heading and card to main container
+        container.appendChild(heading);
         container.appendChild(loginCard);
 
         return container;

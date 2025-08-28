@@ -22,8 +22,15 @@ RUN ls -la /app/src /app/src/components /app/src/pages || echo "Source directori
 RUN npx tsc --diagnostics || { echo "TypeScript compilation failed"; exit 1; }
 
 # Copy CSS files to public directory
-RUN mkdir -p /app/public/pages/Register && cp /app/src/pages/Register/Register.css /app/public/pages/Register/Register.css || echo "Failed to copy Register.css"
+# RUN mkdir -p /app/public/pages/Register && cp /app/src/pages/Register/Register.css /app/public/pages/Register/Register.css || echo "Failed to copy Register.css"
+RUN find /app/src/pages -name "*.css" | while read file; do \
+      dest="/app/public/$(echo $file | sed 's|/app/src/||')"; \
+      mkdir -p "$(dirname "$dest")"; \
+      cp "$file" "$dest"; \
+    done
+# Verify CSS files copied
 RUN ls -la /app/public/pages/Register || echo "Register directory empty"
+
 
 # List compiled files to verify output
 RUN ls -la /app/public || echo "Public directory empty"
