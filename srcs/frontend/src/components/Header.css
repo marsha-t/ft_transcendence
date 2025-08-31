@@ -1,57 +1,99 @@
-/* Header container */
+
+
 .header {
     width: 100%;
-    background-color: white;
-    padding: 16px 32px; /* spacing from top/bottom and sides */
-    box-sizing: border-box;
+    background-color: var(--color-background);
+    padding: 10px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    /* margin-bottom: 20px; space below header */
 }
-
-/* Navbar flex: logo left, links right */
+    
 .navbar {
     display: flex;
-    justify-content: space-between; /* push logo left, links right */
-    align-items: center; /* vertical center */
+    justify-content: space-between; 
+    align-items: center;
+    padding: 0 20px;
+    margin-left: 0%;
+    margin-right: 60px;
 }
 
-/* Logo container: icon + text */
-.logo {
+.nav_links {
     display: flex;
     align-items: center;
-    gap: 8px; /* spacing between icon and text */
+    gap: 32px;
+}
+
+.logo{
+    display: flex;
+    align-items: center;
+    gap: 6px;
     text-decoration: none;
 }
 
-/* Logo image */
-.logo_icon {
-    width: 40px; /* adjust size */
+.logo_icon{
+    width: 40px;
     height: 40px;
 }
 
-/* Logo text */
-.logo_text {
+.logo_text{
     font-size: 24px;
     font-weight: bold;
     color: var(--color-secondary);
-    text-decoration: none;
 }
 
-/* Navigation links container */
-.nav_links {
-    list-style: none;
+.nav_links{
     display: flex;
-    gap: 24px; /* spacing between links */
-    margin: 0;
-    padding: 0;
+    align-items: center;
+    gap: 24px;
 }
 
-/* Individual nav links */
-.nav_links a {
-    text-decoration: none;
-    color: var(--color-text);
-    font-weight: 500;
-    transition: color 0.3s ease;
+.nav_links_group a {
+    text-decoration: none; /* remove underline */
+    color: var(--color-text); /* keep your text color */
 }
 
-.nav_links a:hover {
-    color: var(--color-primary);
+.nav_links_group{
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.nav_links_buttons{
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.login_btn{
+    width: 87px;
+    height: 54px;
+    padding: 0 16px;
+    border-radius: 50px;
+    color: var(--color-text);              
+    font-size: 16px;
+    cursor: pointer;
+    background-color: var(--color-background);
+    border: 0.2px solid var(--button-border-light);
+}
+
+.register_btn{
+    width: 138px;
+    height: 54px;
+    padding: 0 16px;
+    border-radius: 50px;
+    color: var(--color-primary);              
+    font-size: 16px;
+    cursor: pointer;
+    background-color: var(--button-bg-dark);
+    border: none;
+}
+
+.login_btn:hover {
+    background-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}
+
+.register_btn:hover {
+    background-color: var(--color-primary-dark);
+    color: var(--color-background);
 }
