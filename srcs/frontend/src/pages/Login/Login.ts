@@ -18,7 +18,7 @@ export class Login implements IComponent {
         // Register link
         const registerLink = document.createElement('p');
         registerLink.className = 'register_text';
-        registerLink.innerHTML = 'Don\'t have an account? <a href="#register">Sign up here</a>';
+        registerLink.innerHTML = 'Don\'t have an account? <a href="register">Register</a>';
 
         // Form
         const form = document.createElement('form');

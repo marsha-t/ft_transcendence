@@ -59,7 +59,7 @@ export class Register implements IComponent {
 
         const loginLink = document.createElement('p');
         loginLink.className = 'login_text'; 
-        loginLink.innerHTML = 'Already have an account? <a href="#login">Sign in here</a>';
+        loginLink.innerHTML = 'Already have an account? <a href="login">Login</a>';
         
         registerCard.appendChild(form);
         registerCard.appendChild(loginLink);

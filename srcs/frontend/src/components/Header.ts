@@ -1,6 +1,6 @@
 import { IComponent } from "./IComponent";
 
-export class Header implements IComponent{
+export class Header implements IComponent {
     
     public render(): HTMLElement {
         const header = document.createElement('header');
@@ -9,50 +9,62 @@ export class Header implements IComponent{
         const nav = document.createElement('nav');
         nav.className = 'navbar';
 
-        //logo
+        // Logo
         const logo = document.createElement('a');
         logo.href = 'main';
         logo.className = 'logo';
 
-        //logo has two elements 1) text
-        const logoText = document.createElement('a');
+        const logoText = document.createElement('span');
         logoText.className = 'logo_text';
         logoText.textContent = 'PONG';
 
-        //logo icon
         const logoIcon = document.createElement('img');
         logoIcon.src = '/assets/logo.png'; 
         logoIcon.alt = 'Pong Logo';
         logoIcon.className = 'logo_icon';
 
-
-        //Navigation links
-        const navLinks = document.createElement('ul');
-        navLinks.className = 'nav_links';
-
-        const links = [
-            {text: 'Home', href: '/main'},
-            {text: 'Creators', href: '/about'},
-            {text: 'Login', href: '/login'},
-            {text: 'Register', href: '/register'},
-        ];
-
-        links.forEach(link => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-
-            a.href = link.href;
-            a.textContent = link.text;
-            li.appendChild(a);
-            navLinks.appendChild(li);
-        });
-
         logo.appendChild(logoIcon);
         logo.appendChild(logoText);
 
+        // Right-side navigation container
+        const rightNav = document.createElement('div');
+        rightNav.className = 'nav_links';
+
+        const linksGroup = document.createElement('div');
+        linksGroup.className = 'nav_links_group';
+
+        const buttonsGroup = document.createElement('div');
+        buttonsGroup.className = 'nav_links_buttons';
+
+        const links = [
+            {text: 'Home', href: '/main', type: 'link'},
+            {text: 'Creators', href: '/about', type: 'link'},
+            {text: 'Login', href: '/login', type: 'button', className: 'login_btn'},
+            {text: 'Register', href: '/register', type: 'button', className: 'register_btn'},
+        ];
+
+        links.forEach(link => {
+            if (link.type === 'button') {
+                const btn = document.createElement('button');
+                btn.textContent = link.text;
+                btn.className = link.className || '';
+                btn.addEventListener('click', () => window.location.href = link.href);
+                buttonsGroup.appendChild(btn);
+            } else {
+                const a = document.createElement('a');
+                a.href = link.href;
+                a.textContent = link.text;
+                linksGroup.appendChild(a);
+            }
+        });
+
+        rightNav.appendChild(linksGroup);
+        rightNav.appendChild(buttonsGroup);
+
         nav.appendChild(logo);
-        nav.appendChild(navLinks);
-        header.appendChild(nav);
+        nav.appendChild(rightNav);
+        header.appendChild(nav); // ← THIS WAS MISSING
+
         return header;
     }
 }
