@@ -11,8 +11,13 @@ export class Header implements IComponent {
 
         // Logo
         const logo = document.createElement('a');
-        logo.href = 'main';
+        logo.href = '/main';
         logo.className = 'logo';
+        logo.addEventListener('click', (e) => {
+            e.preventDefault();
+            history.pushState(null, '', '/main');
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        })
 
         const logoText = document.createElement('span');
         logoText.className = 'logo_text';
@@ -39,23 +44,16 @@ export class Header implements IComponent {
         const links = [
             {text: 'Home', href: '/main', type: 'link'},
             {text: 'Creators', href: '/about', type: 'link'},
-            {text: 'Login', href: '/login', type: 'button', className: 'login_btn'},
-            {text: 'Register', href: '/register', type: 'button', className: 'register_btn'},
+            {text: 'Login', href: '/login', type: 'link', className: 'login_btn'},
+            {text: 'Register', href: '/register', type: 'link', className: 'register_btn'},
         ];
 
         links.forEach(link => {
-            if (link.type === 'button') {
-                const btn = document.createElement('button');
-                btn.textContent = link.text;
-                btn.className = link.className || '';
-                btn.addEventListener('click', () => window.location.href = link.href);
-                buttonsGroup.appendChild(btn);
-            } else {
-                const a = document.createElement('a');
-                a.href = link.href;
-                a.textContent = link.text;
-                linksGroup.appendChild(a);
-            }
+            const a = document.createElement('a');
+            a.href = link.href;
+            a.textContent = link.text;
+            a.className = link.className || '';
+            (link.type === 'link' ? linksGroup : buttonsGroup).appendChild(a);
         });
 
         rightNav.appendChild(linksGroup);
@@ -63,7 +61,7 @@ export class Header implements IComponent {
 
         nav.appendChild(logo);
         nav.appendChild(rightNav);
-        header.appendChild(nav); // ← THIS WAS MISSING
+        header.appendChild(nav);
 
         return header;
     }

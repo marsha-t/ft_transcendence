@@ -18,5 +18,16 @@
         <footer id="footer-container"></footer>
     </div>
     <script type="module" src="/main.js"></script>
+    <script>
+        document.body.addEventListener('click', (e) => {
+            const target = e.target.closest('a');
+            if(target.tagName === 'A' 
+                && target.href.startsWith(window.location.origin)){
+                    e.preventDefault();
+                    history.pushState(null, '', target.href);
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+        } );
+    </script>
 </body>
 </html>
