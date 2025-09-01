@@ -16,6 +16,7 @@ await app.register(swagger, {
         version: '1.0.0',
       },
       servers: [
+        { url: 'http://localhost:5000' },
         { url: 'https://congenial-space-winner-x5544j4rjr4ph9v9r-5000.app.github.dev/' },
       ],
     },
