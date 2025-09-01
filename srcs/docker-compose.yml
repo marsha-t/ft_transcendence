@@ -9,11 +9,11 @@ services:
     ports:
       - 5000:5000
     env_file:
-      - .env
+      - ./backend/.env
     networks:
       - web
-    # volumes:
-    #   - ./srcs/backend/data:/app/data
+    volumes:
+      - ./backend/prisma:/app/prisma
     restart: always
 
   frontend:
@@ -32,7 +32,6 @@ services:
       - /app/node_modules
     environment:
     - HOST=0.0.0.0
-
 
 networks:
   web:
