@@ -3,7 +3,8 @@
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import authRoutes from './routes/auth.js'; // import auth routes
+import authRoutes from './routes/auth.js';
+import gameSessionRoutes from './routes/gameSession.js' 
 
 const app = Fastify({ logger: true });
 
@@ -38,6 +39,7 @@ app.get('/api/ping', async (request, reply) => {
 
 // Register auth routes
 authRoutes(app);
+gameSessionRoutes(app);
 
 const start = async () => {
   try {

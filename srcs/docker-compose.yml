@@ -13,7 +13,8 @@ services:
     networks:
       - web
     volumes:
-      - ./backend/prisma:/app/prisma
+      - ./backend/prisma/migrations:/app/prisma/migrations   # bind mount migrations
+      - db-data:/app/prisma/data # database is in a docker volume
     restart: always
 
   backend-dev:
@@ -23,6 +24,7 @@ services:
     container_name: backend-dev
     ports:
       - 5000:5000
+      - 5555:5555
     env_file:
       - ./backend/.env
     networks:
@@ -30,9 +32,9 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - db-data:/app/prisma/data
     command: sh -c "npx prisma migrate deploy && npm run dev"
     restart: always
-    profiles: ["dev"]
     
   frontend:
     build:
@@ -54,3 +56,6 @@ services:
 networks:
   web:
     name: transcendence
+
+volumes:
+  db-data:

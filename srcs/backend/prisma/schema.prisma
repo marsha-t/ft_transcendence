@@ -9,10 +9,62 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+// ---------------------
+// Enums 
+// ---------------------
+enum GameStatus {
+  CREATED
+  READY
+  PLAYING
+  PAUSED
+  FINISHED
+  ABORTED
+}
 
+enum PlayerSide {
+  LEFT
+  RIGHT
+}
+
+// ---------------------
+// Models
+// ---------------------
 model User {
   id       Int     @id @default(autoincrement())
   username String  @unique
   email    String  @unique
   password String
+
+  // relations
+  gameSessionsWon GameSession[] @relation("GameWinner")
+  gameSessions    GameSessionPlayer[]
+}
+
+model GameSession {
+  id     Int         @id @default(autoincrement())
+  status        GameStatus  @default(CREATED)
+  maxScore      Int         @default(5)
+  createdAt     DateTime    @default(now())
+  startedAt     DateTime?
+  endedAt       DateTime?
+  winnerUserId  Int?
+
+  // relations
+  winner        User?        @relation("GameWinner", fields: [winnerUserId], references: [id])
+  players       GameSessionPlayer[]
+}
+
+model GameSessionPlayer {
+  id            Int         @id @default(autoincrement())
+  sessionId     Int
+  userId        Int
+  side          PlayerSide
+  isReady       Boolean     @default(false)
+  score         Int         @default(0)
+  
+  // relations
+  session GameSession @relation(fields: [sessionId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, side])
 }
