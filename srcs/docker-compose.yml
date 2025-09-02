@@ -16,6 +16,24 @@ services:
       - ./backend/prisma:/app/prisma
     restart: always
 
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-dev
+    ports:
+      - 5000:5000
+    env_file:
+      - ./backend/.env
+    networks:
+      - web
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    restart: always
+    profiles: ["dev"]
+    
   frontend:
     build:
       context: ./frontend
