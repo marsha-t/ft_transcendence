@@ -2,7 +2,7 @@ import { createGameSessionSchema, getAllGameSessionsSchema, getGameSessionByIdSc
 import prisma from '../prisma/prismaClient.js';
 import { isValidTransition, buildUpdateData, runChecks } from '../services/gameSessionService.js';
 
-async function gameSessionRoutes(app, options) {
+async function gameSessionRoutes(app, options) {    
 
   // Create new game session
   app.post('/api/game-sessions', {schema: createGameSessionSchema }, async (request, reply) => {
@@ -59,6 +59,13 @@ async function gameSessionRoutes(app, options) {
     const { id } = request.params;
 
     try {
+        const session = await prisma.gameSession.findUnique({
+          where: { id: Number(id) },
+        });
+
+        if (!session) {
+          return reply.code(404).send({ error: 'Game session not found' });
+        }
       await prisma.gameSession.delete({
         where: { id: Number(id) },
       });

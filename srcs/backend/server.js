@@ -5,6 +5,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import authRoutes from './routes/auth.js';
 import gameSessionRoutes from './routes/gameSession.js' 
+import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
 
 const app = Fastify({ logger: true });
 
@@ -37,9 +38,10 @@ app.get('/api/ping', async (request, reply) => {
   return { msg: 'pong' };
 });
 
-// Register auth routes
+// Register routes
 authRoutes(app);
 gameSessionRoutes(app);
+gameSessionPlayersRoutes(app);
 
 const start = async () => {
   try {

@@ -66,5 +66,7 @@ model GameSessionPlayer {
   session GameSession @relation(fields: [sessionId], references: [id])
   user    User        @relation(fields: [userId], references: [id])
 
+  @@unique([sessionId, userId])
   @@unique([sessionId, side])
+
 }
