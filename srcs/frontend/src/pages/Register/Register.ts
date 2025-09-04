@@ -15,6 +15,7 @@ export class Register implements IComponent {
 
         const form = document.createElement('form');
         form.className = 'register_form';
+        
         const usernameGroup = document.createElement('div');
         const usernameLabel = document.createElement('label');
         usernameLabel.textContent = 'Username';

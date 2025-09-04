@@ -2,16 +2,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* width: 100%; */
   min-height: 80vh;
-  padding: 20px 60px;
-  max-width: 1200px;
-  /* margin: 0 auto; */
+  background-color:var(--color-primary);
 }
 
 .text_section{
   flex: 1;
   max-width: 600px;
-  margin-left: 40px;
+  margin-right: auto;
+  margin-left: 100px;
 }
 
 
@@ -28,8 +28,11 @@
 
 .right_section{
   display: flex;
-  align-items: center;
+  /* align-items: center; */
+  justify-content: center;
+  flex: 1;
 }
+
 .play_btn{
   display: flex;
   justify-content: center;
