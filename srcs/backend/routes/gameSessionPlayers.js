@@ -1,4 +1,5 @@
 import prisma from '../prisma/prismaClient.js';
+import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
 
 async function gameSessionPlayersRoutes(app, options) {
 
@@ -70,12 +71,13 @@ async function gameSessionPlayersRoutes(app, options) {
 		const { id } = request.params;
 		
 		try {
-			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
-			});
-			if (!session) {
-				return reply.code(404).send({ error: 'Game session not found '});
-			}
+			const session = await checkSession(prisma, id);
+			// const session = await prisma.gameSession.findUnique({
+			// 	where: { id: Number(id) },
+			// });
+			// if (!session) {
+			// 	return reply.code(404).send({ error: 'Game session not found '});
+			// }
 			const players = await prisma.gameSessionPlayer.findMany({
 				where: { sessionId: Number(id) }, 
 				include: { 
@@ -103,29 +105,32 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.send(formatted);
 		} catch (err) {
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Failed to fetch players in session'});
+			// return reply.code(500).send({ error: 'Failed to fetch players in session'});
+		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to fetch players in session' });
 		}
 	});
 
 	// Update player as ready
-	app.patch('/api/game-sessions/:id/players/:playerId/ready', async (request, reply) => {
-		const { id, playerId } = request.params;
+	app.patch('/api/game-sessions/:id/players/:userId/ready', async (request, reply) => {
+		const { id, userId } = request.params;
 
 		try {
-			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
-			});
-			if (!session) {
-				return reply.code(404).send({ error: 'Game session not found '});
-			}
-			const player = await prisma.gameSessionPlayer.findUnique({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(playerId) } }, 
-			});
-			if (!player) {
-				return reply.code(404).send({ error: 'Player cannot be found' });
-			}
+			const session = await checkSession(prisma, id);
+			// const session = await prisma.gameSession.findUnique({
+			// 	where: { id: Number(id) },
+			// });
+			// if (!session) {
+			// 	return reply.code(404).send({ error: 'Game session not found '});
+			// }
+			await checkPlayer(prisma, id, userId);
+			// const player = await prisma.gameSessionPlayer.findUnique({
+			// 	where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
+			// });
+			// if (!player) {
+			// 	return reply.code(404).send({ error: 'Player cannot be found' });
+			// }
 			const updatedPlayer = await prisma.gameSessionPlayer.update({ 
-				where: { id: Number(playerId) }, 
+				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
 				data: { isReady: true },
 			});
 			if (session.status !== 'READY') {
@@ -137,28 +142,31 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.send(updatedPlayer);
 		} catch (err) {
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Failed to update player as ready'});
+			// return reply.code(500).send({ error: 'Failed to update player as ready'});
+		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player as ready' });
 		}
 	});
 
 	// Update player score
-	app.patch('/api/game-sessions/:id/players/:playerId/score', { schema: updateScoreSchema }, async (request, reply) => {
-		const { id, playerId } = request.params;
+	app.patch('/api/game-sessions/:id/players/:userId/score', { schema: updateScoreSchema }, async (request, reply) => {
+		const { id, userId } = request.params;
 		try {
-			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
-			});
-			if (!session) {
-				return reply.code(404).send({ error: 'Game session not found '});
-			}
-			const player = await prisma.gameSessionPlayer.findUnique({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(playerId) } }, 
-			});
-			if (!player) {
-				return reply.code(404).send({ error: 'Player cannot be found' });
-			}
+			const session = await checkSession(prisma, id);
+			// const session = await prisma.gameSession.findUnique({
+			// 	where: { id: Number(id) },
+			// });
+			// if (!session) {
+			// 	return reply.code(404).send({ error: 'Game session not found '});
+			// }
+			await checkPlayer(prisma, id, userId);
+			// const player = await prisma.gameSessionPlayer.findUnique({
+			// 	where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
+			// });
+			// if (!player) {
+			// 	return reply.code(404).send({ error: 'Player cannot be found' });
+			// }
 			const updatedPlayer = await prisma.gameSessionPlayer.update({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(playerId)}, },
+				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId)}, },
 				data: { score: { increment: 1 }, },
 			});
 
@@ -175,33 +183,37 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.send(updatedPlayer);
 		} catch (err) {
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Failed to update player score'});
+			// return reply.code(500).send({ error: 'Failed to update player score'});
+		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player score' });
 		}
 	});
 
 	// Delete player
-	app.delete('/api/game-sessions/:id/players/:playerId', async (request, reply) => {
-		const { id, playerId } = request.params;
+	app.delete('/api/game-sessions/:id/players/:userId', async (request, reply) => {
+		const { id, userId } = request.params;
 		try {
-			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
-			});
-			if (!session) {
-				return reply.code(404).send({ error: 'Game session not found '});
-			}
-			const player = await prisma.gameSessionPlayer.findUnique({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(playerId) } }, 
-			});
-			if (!player) {
-				return reply.code(404).send({ error: 'Player cannot be found' });
-			}
+			await checkSession(prisma, id);
+			// const session = await prisma.gameSession.findUnique({
+			// 	where: { id: Number(id) },
+			// });
+			// if (!session) {
+			// 	return reply.code(404).send({ error: 'Game session not found '});
+			// }
+			await checkPlayer(prisma, id, userId);
+			// const player = await prisma.gameSessionPlayer.findUnique({
+			// 	where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
+			// });
+			// if (!player) {
+			// 	return reply.code(404).send({ error: 'Player cannot be found' });
+			// }
 			await prisma.gameSessionPlayer.delete({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(playerId) }, },
+				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) }, },
 			});
       return reply.code(200).send({ message: 'Game session deleted' });
 		} catch (err) {
 			request.log.error(err);
-      		return reply.code(500).send({ error: 'Failed to delete player from game session' });
+      		// return reply.code(500).send({ error: 'Failed to delete player from game session' });
+		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to delete player from game session' });
 		}
 	});
 }
