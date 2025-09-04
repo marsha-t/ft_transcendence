@@ -84,7 +84,7 @@ async function gameSessionRoutes(app, options) {
     try {
       const session = await prisma.gameSession.findUnique({
         where: { id: Number(id) },
-        include: {players: true}
+        include: { players: true }
       });
       if (!session) {
         return reply.code(404).send({ error: 'Game session not found' });
