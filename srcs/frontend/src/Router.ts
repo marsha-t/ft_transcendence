@@ -1,6 +1,6 @@
 import { Register } from './pages/Register/Register.js';
 import { Login } from './pages/Login/Login.js';
-import { About } from './pages/About/About.js';
+import { Creators } from './pages/Creators/Creators.js';
 import { Game } from './pages/Game/Game.js';
 import { Main } from './pages/Main/Main.js';
 
@@ -19,9 +19,9 @@ export class Router {
           const login = new Login();
           container.appendChild(login.render());
           break;
-        case '/about':
-          const about = new About();
-          container.appendChild(about.render());
+        case '/creators':
+          const creators = new Creators();
+          container.appendChild(creators.render());
           break;
         case '/game':
           const game = new Game();
