@@ -2,33 +2,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* width: 100%; */
+  flex-wrap: wrap;
   min-height: 80vh;
+  padding: 0 5% 0 5%;
   background-color:var(--color-primary);
 }
 
 .text_section{
-  flex: 1;
+  flex: 1 1 400px;
   max-width: 600px;
-  margin-right: auto;
-  margin-left: 100px;
+  margin-bottom: 60px 0 40px 0;
 }
 
-
-.main_title{
-  font-size: 46px;
+.main_title {
+  font-size: clamp(32px, 4vw, 46px); /* scales on smaller screens */
   font-weight: bold;
-  margin-bottom: 20px;
+  margin-bottom: 1rem; /* 16px spacing */
 }
+
 
 .description{
-  font-size: 16px;
+  font-size: clamp(14px, 1.2vw, 16px);
   line-height: 1.5;
 }
 
 .right_section{
   display: flex;
-  /* align-items: center; */
   justify-content: center;
   flex: 1;
 }
