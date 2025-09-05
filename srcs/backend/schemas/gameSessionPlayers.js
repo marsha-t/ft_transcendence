@@ -3,14 +3,15 @@ export const joinSessionSchema = {
 		type: 'object',
 		properties: {
 			id: { type: 'integer' },
-			playerId: { type: 'integer' },
 		},
-		required: ['id', 'playerId'],
+		required: ['id'],
 	},
 	body: {
 		type: 'object',
 		required: ['userId', 'side'],
 		properties: {
+			userId: { type: 'integer' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT']},
 		},
 		additionalProperties: false,
 	},
@@ -99,14 +100,55 @@ export const listPlayersSessionSchema = {
 	}
 }
 
+export const readyPlayerSchema = {
+  params: {
+    type: 'object',
+    properties: {
+      id: { type: 'integer' },
+      userId: { type: 'integer' },
+    },
+    required: ['id', 'userId'],
+  },
+  response: {
+	200: {
+		type: 'object',
+		properties: {
+			id: { type: 'integer' },
+			sessionId: { type: 'integer' },
+			userId: { type: 'integer' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+			isReady: { type: 'boolean' },
+			score: { type: 'integer' },
+		},
+		required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score'],
+    },
+	400: {
+			type: 'object', 
+			properties: {
+				error: { type: 'string' },
+        		message : { type: 'string' }
+			},
+			additionalProperties: false,
+		},
+	404: {
+		type: 'object', 
+		properties: {
+			error: { type: 'string' },
+			message : { type: 'string' }
+		},
+		additionalProperties: false,
+	},	
+  },
+};
+
 export const updateScoreSchema = {
 	params: {
 		type: 'object',
 		properties: {
 			id: { type: 'integer' },
-			playerId: { type: 'integer' },
+			userId: { type: 'integer' },
 		},
-		required: ['id', 'playerId'],
+		required: ['id', 'userId'],
 	},
 	response: {
 		200: {
