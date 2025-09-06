@@ -1,54 +1,34 @@
-# Use a Node.js base image
 FROM node:18
 
-# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json and install dependencies
+# Copy package files for better layer caching
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Clean the output directory to prevent old files from persisting
-RUN rm -rf ./public
-RUN mkdir ./public
+# Install a better static server that handles MIME types correctly
+RUN npm install -g http-server
 
-# Copy all application source code
-COPY . .
+# Copy configuration files
+COPY tsconfig.json ./
 
-# List source files to debug
-RUN ls -la /app/src /app/src/components /app/src/pages || echo "Source directories missing"
+# Copy source code
+COPY src/ ./src/
+COPY public/ ./public/
 
-# Build the TypeScript and check for errors
-RUN npx tsc --diagnostics || { echo "TypeScript compilation failed"; exit 1; }
+# Create output directory
+RUN mkdir -p ./public/js
 
-# Copy CSS files to public directory
-# RUN mkdir -p /app/public/pages/Register && cp /app/src/pages/Register/Register.css /app/public/pages/Register/Register.css || echo "Failed to copy Register.css"
-# Copy CSS files from pages to public
-RUN find /app/src/pages -name "*.css" | while read file; do \
-      dest="/app/public/$(echo $file | sed 's|/app/src/||')"; \
-      mkdir -p "$(dirname "$dest")"; \
-      cp "$file" "$dest"; \
-    done
+# Compile TypeScript
+RUN npx tsc
 
-# Copy CSS files from components to public
-RUN find /app/src/components -name "*.css" | while read file; do \
-      dest="/app/public/$(echo $file | sed 's|/app/src/||')"; \
-      mkdir -p "$(dirname "$dest")"; \
-      cp "$file" "$dest"; \
-    done
+# Debug: Show what files were created
+RUN echo "=== Files in public/ ===" && ls -la ./public/ && echo "=== Files in public/js/ ===" && ls -la ./public/js/ 2>/dev/null || echo "No js directory found"
 
-# Verify CSS files copied
-RUN ls -la /app/public/pages/Register || echo "Register directory empty"
-
-
-# List compiled files to verify output
-RUN ls -la /app/public || echo "Public directory empty"
-
-# Inspect main.js content
-RUN cat /app/public/main.js || echo "main.js not found"
-
-# Expose the port for the web server
+# Expose port 3000 (matches your docker-compose)
 EXPOSE 3000
 
-# Start the application server
-CMD ["npx", "serve", "./public", "-p", "3000", "--single"]
+# Use http-server instead of serve (better MIME type handling)
+CMD ["http-server", "./public", "-p", "3000", "-a", "0.0.0.0", "--cors", "-c-1"]

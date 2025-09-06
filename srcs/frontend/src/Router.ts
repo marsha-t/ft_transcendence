@@ -1,8 +1,8 @@
-import { Register } from './pages/Register/Register.js';
-import { Login } from './pages/Login/Login.js';
-import { Creators } from './pages/Creators/Creators.js';
-import { Game } from './pages/Game/Game.js';
-import { Main } from './pages/Main/Main.js';
+import { Register } from './pages/Register.js';
+import { Login } from './pages/Login.js';
+import { Creators } from './pages/Creators.js';
+import { Game } from './pages/Game.js';
+import { Main } from './pages/Main.js';
 
 export class Router {
 
