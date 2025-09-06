@@ -1,17 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
-    "module": "es2020",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "outDir": "./public",
+    "target": "ES2020",
+    "module": "ES2020",
+    "outDir": "./public/js",
+    "rootDir": "./src",
     "strict": true,
-    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "declaration": false,
+    "removeComments": true,
+    "noEmitOnError": true
   },
   "include": [
-    "./src/**/*.ts"
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "public",
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

@@ -112,3 +112,9 @@
     background-color: var(--color-primary-dark);  
     color: var(--color-background);               
 }
+
+
+/* ===== footer  ===== */
+footer {
+    margin-top: 20px; /* space above footer */
+}

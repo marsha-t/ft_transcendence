@@ -1,4 +1,4 @@
-import { IComponent } from '../../components/IComponent';
+import { IComponent } from "../components/IComponent";
 
 export class Game implements IComponent {
     private canvas: HTMLCanvasElement;
