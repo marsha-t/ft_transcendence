@@ -3,7 +3,16 @@
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import authRoutes from './routes/auth.js'; // import auth routes
+
+// needed imports for the avatar
+import path from 'path';
+import fastifyStatic from '@fastify/static';
+import fastifyMultipart from '@fastify/multipart';
+
+// import routes
+import authRoutes from './routes/auth.js';
+import profileRoutes from './routes/profile.js';
+
 
 const app = Fastify({ logger: true });
 
@@ -30,13 +39,22 @@ await app.register(swagger, {
   });
 // ------------------------------------------------------
 
+// Register fastifyStatic and fastifyMultipart -> needed for saving and serving the uploaded avatars to the frontend
+app.register(fastifyStatic, {
+  root: path.join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
+});
+
+app.register(fastifyMultipart);
+
 // Test route
 app.get('/api/ping', async (request, reply) => {
   return { msg: 'pong' };
 });
 
-// Register auth routes
-authRoutes(app);
+// Register our routes in the server
+app.register(authRoutes);
+app.register(profileRoutes);
 
 const start = async () => {
   try {
