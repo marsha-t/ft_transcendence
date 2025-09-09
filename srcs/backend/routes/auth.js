@@ -4,15 +4,13 @@ import { registerSchema, loginSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 
-// const users = []; // this is our temporary fake database
-
 async function authRoutes(app, options) {
 
   // Register route
   app.post('/api/register', { schema: registerSchema }, async (request, reply) => {
     const { username, email, password } = request.body;
 
-    // Check if username already exists
+    // Check if username/email already exists
      const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -32,8 +30,8 @@ async function authRoutes(app, options) {
     // Save user to the database
     await prisma.user.create({
       data: {
-        username,
-        email,
+        username: username,
+        email: email,
         password: hashedPassword,
       },
     });
