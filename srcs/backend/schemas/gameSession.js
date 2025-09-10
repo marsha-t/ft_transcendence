@@ -14,12 +14,13 @@ const gameSessionObject = {
 
 // Create session
 export const createGameSessionSchema = {
+  tags: ['Game Session'],
+  summary: 'Create game session', 
 	body: {
 		type: 'object',
 		properties: {
 			maxScore: { type: 'integer', minimum: 1},
 		},
-		required: [],
 	},
 	response: {
 		201: gameSessionObject,
@@ -28,6 +29,8 @@ export const createGameSessionSchema = {
 
 // Get all sessions
 export const getAllGameSessionsSchema = {
+  tags: ['Game Session'],
+  summary: 'Get all sessions', 
   response: {
     200: {
       type: 'array',
@@ -38,6 +41,8 @@ export const getAllGameSessionsSchema = {
 
 // Get one session by ID
 export const getGameSessionByIdSchema = {
+  tags: ['Game Session'],
+  summary: 'Create one session by ID', 
   params: {
     type: 'object',
     properties: {
@@ -58,6 +63,8 @@ export const getGameSessionByIdSchema = {
 
 // Delete session
 export const deleteGameSessionSchema = {
+  tags: ['Game Session'],
+  summary: 'Delete game session', 
   params: {
     type: 'object',
     properties: {
@@ -82,6 +89,8 @@ export const deleteGameSessionSchema = {
 };
 
 export const updateSessionStatusSchema = {
+  tags: ['Game Session'],
+  summary: 'Update game session status', 
 	params: {
 		type: 'object',
 		required: ['id'],

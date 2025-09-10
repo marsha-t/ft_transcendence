@@ -1,6 +1,8 @@
 // schemas/auth.js
 
 export const registerSchema = {
+  tags: ['Authentication'],
+  
   body: {
     type: 'object',
     required: ['username', 'email', 'password'],
@@ -48,6 +50,8 @@ export const registerSchema = {
 };
 
 export const loginSchema = {
+  tags: ['Authentication'],
+
   body: {
     type: 'object',
     required: ['username', 'password'],

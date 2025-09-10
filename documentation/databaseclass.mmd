@@ -1,0 +1,30 @@
+classDiagram
+  class User {
+    Int id
+    String username
+    String email
+    String password
+  }
+
+  class GameSession {
+    Int id
+    GameStatus status
+    Int maxScore
+    DateTime createdAt
+    DateTime startedAt
+    DateTime endedAt
+    Int winnerUserId 
+  }
+
+  class GameSessionPlayer {
+    Int id
+    Int sessionId
+    Int userId
+    PlayerSide side
+    Boolean isReady
+    Int score
+  }
+
+  User "1" --> "0..*" GameSessionPlayer : id → userId
+  GameSession "1" --> "0..*" GameSessionPlayer : id → sessionId
+  User "1" --> "0..*" GameSession : id → winnerUserId
