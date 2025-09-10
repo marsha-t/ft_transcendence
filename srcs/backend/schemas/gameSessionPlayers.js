@@ -1,4 +1,7 @@
+// Player joins a session
 export const joinSessionSchema = {
+  	tags: ['Game Session'],
+	summary: 'Player joins a session', 
 	params: {
 		type: 'object',
 		properties: {
@@ -42,7 +45,7 @@ export const joinSessionSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
@@ -50,14 +53,17 @@ export const joinSessionSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
 	}
 }
 
+// List players in session
 export const listPlayersSessionSchema = {
+	tags: ['Game Session'],
+	summary: 'List players in session', 
 	params: {
 		type: 'object',
 		properties: {
@@ -85,7 +91,7 @@ export const listPlayersSessionSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
@@ -93,55 +99,61 @@ export const listPlayersSessionSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
 	}
 }
 
+// Update player as ready
 export const readyPlayerSchema = {
-  params: {
-    type: 'object',
-    properties: {
-      id: { type: 'integer' },
-      userId: { type: 'integer' },
-    },
-    required: ['id', 'userId'],
-  },
-  response: {
-	200: {
+	tags: ['Game Session'],
+	summary: 'Update player as ready', 
+  	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
-			sessionId: { type: 'integer' },
-			userId: { type: 'integer' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-			isReady: { type: 'boolean' },
-			score: { type: 'integer' },
+		id: { type: 'integer' },
+		userId: { type: 'integer' },
 		},
-		required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score'],
-    },
-	400: {
+		required: ['id', 'userId'],
+	},
+	response: {
+		200: {
+			type: 'object',
+			properties: {
+				id: { type: 'integer' },
+				sessionId: { type: 'integer' },
+				userId: { type: 'integer' },
+				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+				isReady: { type: 'boolean' },
+				score: { type: 'integer' },
+			},
+			required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score'],
+		},
+		400: {
+				type: 'object', 
+				properties: {
+					error: { type: 'string' },
+					message : { type: 'string' }
+				},
+				additionalProperties: false,
+			},
+		404: {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
-		},
-	404: {
-		type: 'object', 
-		properties: {
-			error: { type: 'string' },
-			message : { type: 'string' }
-		},
-		additionalProperties: false,
-	},	
-  },
+		},	
+	},
 };
 
+// Update player score
 export const updateScoreSchema = {
+	tags: ['Game Session'],
+	summary: 'Update player score', 
 	params: {
 		type: 'object',
 		properties: {
@@ -166,7 +178,7 @@ export const updateScoreSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
@@ -174,16 +186,19 @@ export const updateScoreSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},
 	},
 };
 
+// Delete player
 export const deletePlayerSchema = {
+	tags: ['Game Session'],
+	summary: 'Delete player', 
 	params: {
-    	type: 'object',
+		type: 'object',
 		properties: {
 			id: { type: 'integer'},
 			playerId: { type: 'integer' },
@@ -201,7 +216,7 @@ export const deletePlayerSchema = {
 			type: 'object', 
 			properties: {
 				error: { type: 'string' },
-        		message : { type: 'string' }
+				message : { type: 'string' }
 			},
 			additionalProperties: false,
 		},

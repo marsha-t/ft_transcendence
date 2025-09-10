@@ -6,12 +6,14 @@ import swaggerUi from '@fastify/swagger-ui';
 import authRoutes from './routes/auth.js';
 import gameSessionRoutes from './routes/gameSession.js' 
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
+import fs from 'fs';
 
 const app = Fastify({ logger: true });
 
 // Swagger ------------------------------------------
 await app.register(swagger, {
     openapi: {
+      openapi: '3.0.3',
       info: {
         title: 'ft_transcendence Backend',
         description: 'API docs for our backend routes',
@@ -42,6 +44,10 @@ app.get('/api/ping', async (request, reply) => {
 authRoutes(app);
 gameSessionRoutes(app);
 gameSessionPlayersRoutes(app);
+
+// after app.register(...) and before app.listen
+await app.ready(); // wait until all routes are registered
+// fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
 
 const start = async () => {
   try {
