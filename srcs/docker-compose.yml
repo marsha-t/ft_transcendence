@@ -15,6 +15,7 @@ services:
     volumes:
       - ./backend/prisma/migrations:/app/prisma/migrations   # bind mount migrations
       - db-data:/app/prisma/data # database is in a docker volume
+      - ./backend/uploads:/app/uploads
     restart: always
 
   backend-dev:
@@ -33,6 +34,7 @@ services:
       - ./backend:/app
       - /app/node_modules
       - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
     command: sh -c "npx prisma migrate deploy && npm run dev"
     restart: always
     
@@ -59,3 +61,4 @@ networks:
 
 volumes:
   db-data:
+  avatars-data:
