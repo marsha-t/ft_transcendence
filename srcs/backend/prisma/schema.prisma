@@ -15,6 +15,20 @@ model User {
   username String  @unique
   email    String  @unique
   password String
-
   avatar   String   @default("/uploads/avatars/default.png")
+  sentRequests     FriendRequest[]  @relation("sentRequests")
+  receivedRequests FriendRequest[]  @relation("receivedRequests")
+}
+
+model FriendRequest {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     String   @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt  DateTime @default(now()) // is it needed????????????
+
+  sender   User @relation("sentRequests", fields: [senderId], references: [id])
+  receiver User @relation("receivedRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
 }

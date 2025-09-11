@@ -12,6 +12,7 @@ import fastifyMultipart from '@fastify/multipart';
 // import routes
 import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
+import friendsRoutes from './routes/friends.js';
 
 
 const app = Fastify({ logger: true });
@@ -25,7 +26,7 @@ await app.register(swagger, {
         version: '1.0.0',
       },
       servers: [
-        { url: 'https://congenial-space-winner-x5544j4rjr4ph9v9r-5000.app.github.dev/' },
+        { url: 'https://congenial-space-winner-x5544j4rjr4ph9v9r-5001.app.github.dev/' },
       ],
     },
   });
@@ -55,11 +56,12 @@ app.get('/api/ping', async (request, reply) => {
 // Register our routes in the server
 app.register(authRoutes);
 app.register(profileRoutes);
+app.register(friendsRoutes);
 
 const start = async () => {
   try {
-    await app.listen({ port: 5000, host: '0.0.0.0' });
-    console.log('Server running at http://localhost:5000');
+    await app.listen({ port: 5001, host: '0.0.0.0' });
+    console.log('Server running at http://localhost:5001');
   } catch (err) {
     app.log.error(err);
     process.exit(1);
