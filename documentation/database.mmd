@@ -1,0 +1,28 @@
+erDiagram
+  USER {
+    INT id 
+    STRING username 
+    STRING email
+    STRING password
+  }
+
+  GAMESESSION {
+    INT id 
+    STRING status  
+    INT maxScore
+    DATETIME createdAt
+    DATETIME startedAt
+    DATETIME endedAt
+    INT winnerUserId "USER.id" 
+  }
+
+  GAMESESSIONPLAYER {
+    INT id 
+    INT sessionId "GAMESESSION.id"
+    INT userId "USER.id"
+    STRING side        
+    BOOLEAN isReady
+    INT score
+  }
+
+  

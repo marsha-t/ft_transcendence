@@ -1,0 +1,60 @@
+sequenceDiagram
+    participant U as User
+    participant FE as Frontend
+    participant BE as Backend
+
+    U->>FE: Click "Play Game" on Home Page
+    FE->>BE: GET /api/auth/me
+
+    alt Logged in
+        BE->>FE: 200 (User is logged in) { userId }
+    else Not logged in
+        BE->>FE: 401 Unauthorized
+        FE->>U: Redirect to Register Page
+        U->>FE: Submit register { username, email, password }
+        FE->>BE: POST /api/register
+        BE->>FE: 200 (User has been registered) { userId }
+    end
+    
+    FE->>U: Redirect to user profile page with 'Play Game with AI' and 'Play Game with 'Human'
+    U->>FE: Clicks 'Play Game with Human'
+    FE->>BE: POST /api/game-sessions { userId, side = RIGHT}
+    BE->>FE: 201 (Game created and user added to game ) { id }
+    
+    FE->>U: Sets player 1 on the right with username displayed    
+    FE->>U: Prompt second player to type username
+    U->>FE: User types a username
+    FE->>BE: PATCH /api/game-sessions/:id/players { username }
+    BE->>FE: 201 (User added to game)
+    
+    FE->>U: Prompts 'Ready' button for players
+    U->>FE: Player clicks 'Ready'
+    FE->>BE: PATCH /api/game-sessions/:id/status { status: "STARTED" }
+    BE->>FE: 200 (Game status updated)
+
+    FE->>U: Game starts
+    U->>FE: Player scores
+    FE->>BE: PATCH /api/game-sessions/:id/players/:side/score
+    BE->>FE: 200 (User's score incremented by 1) { gameStatus = PLAYING }
+
+    U->>FE: Player pauses game
+    FE->>BE: PATCH /api/game-sessions/:id/status { status: "PAUSED" }
+    BE->>FE: 200 (Game status updated)
+    FE->>U: Paused screen
+
+    U->>FE: Player unpauses game
+    FE->>BE: PATCH /api/game-sessions/:id/status { status: "PLAYING" }
+    BE->>FE: 200 (Game status updated)
+    FE->>U: Game continues
+
+    alt Game finishes
+        U->>FE: Player scores (and reaches winning score)
+        FE->>BE: PATCH /api/game-sessions/:id/players/:side/score
+        BE->>FE: 200 (User's score incremented by 1) { gameStatus = FINISHED, winnerUserId }
+        FE->>U: Game ended 
+    else Game aborted
+        U->>FE: User clicks 'Quit Match' button (or navigates to another page)
+        FE->>BE: PATCH /api/game-sessions/:id/status { status: "ABORTED" }
+        BE->>FE: 200 (Game status updated)
+    end
+

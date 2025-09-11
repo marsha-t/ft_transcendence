@@ -14,9 +14,9 @@ COPY . .
 # Expose port
 EXPOSE 5000
 
-# Run Prisma migrate + generate during build
-RUN npx prisma migrate deploy
+# Run Prisma generate during build
 RUN npx prisma generate
 
-# Start server
-CMD ["npm", "start"]
+# Apply migrations at container startup
+CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]
