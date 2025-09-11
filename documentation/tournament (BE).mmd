@@ -11,12 +11,12 @@ sequenceDiagram
 
     FE->>U: Prompt for guest username or login credentials for 2nd player
 	U->>FE: Provides login credentials
-	FE->>BE: POST /api/tournaments/:id/players { userId }
+	FE->>BE: POST /api/tournaments/:id/players { username, password }
 	BE->>FE: 200 Player added
     
 	FE->>U: Prompt for guest username or login credentials for 3rd player
 	U->>FE: Provides login credentials
-	FE->>BE: POST /api/tournaments/:id/players { userId }
+	FE->>BE: POST /api/tournaments/:id/players { username, password }
 	BE->>FE: 200 Player added
 	
 	FE->>U: Prompt for guest username or login credentials for 4th player
