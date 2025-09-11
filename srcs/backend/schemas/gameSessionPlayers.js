@@ -1,7 +1,7 @@
-// Player joins a session
+// Add player to game session
 export const joinSessionSchema = {
   	tags: ['Game Session'],
-	summary: 'Player joins a session', 
+	summary: 'Add player to game session', 
 	params: {
 		type: 'object',
 		properties: {

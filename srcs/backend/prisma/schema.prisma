@@ -26,6 +26,12 @@ enum PlayerSide {
   RIGHT
 }
 
+enum TournamentStatus {
+  CREATED
+  STARTED
+  FINISHED
+  ABORTED
+}
 // ---------------------
 // Models
 // ---------------------
@@ -69,4 +75,49 @@ model GameSessionPlayer {
   @@unique([sessionId, userId])
   @@unique([sessionId, side])
 
+}
+
+model Tournament {
+  id              Int               @id @default(autoincrement())
+  status          TournamentStatus  @default(CREATED)
+  createdAt       DateTime          @default(now())
+  startedAt       DateTime?
+  endedAt         DateTime?
+  numberOfPlayers Int               // planned/actual participants
+  bracketSize     Int               // nearest power of 2 for seeding
+
+  players         TournamentPlayer[]
+  matches         TournamentMatch[]
+}
+
+model TournamentPlayer {
+  id            Int        @id @default(autoincrement())
+  tournamentId  Int
+  userId        Int?
+  guestName     String?
+  displayName   String
+
+  // relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id])
+
+  @@unique([tournamentId, displayName])
+}
+
+model TournamentMatch {
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int
+  matchIndex    Int
+  gameSessionId Int?
+  winnerUserId  Int?
+  player1Id     Int?
+  player2Id     Int?
+
+  // relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  gameSession GameSession? @relation(fields: [gameSessionId], references: [id])
+  winner      User?        @relation(fields: [winnerUserId], references: [id])
+  
+
+  @@unique([tournamentId, matchIndex])
 }

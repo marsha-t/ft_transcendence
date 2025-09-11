@@ -12,10 +12,10 @@ const gameSessionObject = {
   }
 };
 
-// Create session
+// Create a game session
 export const createGameSessionSchema = {
   tags: ['Game Session'],
-  summary: 'Create game session', 
+  summary: 'Create a game session', 
 	body: {
 		type: 'object',
 		properties: {
@@ -88,6 +88,7 @@ export const deleteGameSessionSchema = {
   },
 };
 
+// Update session status
 export const updateSessionStatusSchema = {
   tags: ['Game Session'],
   summary: 'Update game session status', 
