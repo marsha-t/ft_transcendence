@@ -1,50 +1,62 @@
 import prisma from '../prisma/prismaClient.js';
 import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
-import { joinSessionSchema, listPlayersSessionSchema, readyPlayerSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
+import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
 
 async function gameSessionPlayersRoutes(app, options) {
 
 	// Player joins a session
-	app.post('/api/game-sessions/:id/players', { schema: joinSessionSchema }, async (request, reply) => {
-		const { id } = request.params;
-		const { userId, side } = request.body;
+	app.post('/api/game-sessions/:sessionId/players', { schema: joinSessionSchema }, async (request, reply) => {
+		const { sessionId } = request.params;
+		const { userId, guestName, side } = request.body;
 
 		try {
 			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
+				where: { id: Number(sessionId) },
 				include: { players: true },
 			});
 			if (!session) {
 				throw { code: 404, message: 'Game session not found' };
 			}
-			if (![ 'CREATED', 'READY' ].includes(session.status)) {
+		    if (session.status !== 'CREATED') {
 				throw { code: 400, message: 'Session cannot accept new players' };
 			}
 			if (session.players.some(p => p.side === side)) {
 				throw { code: 409, message: 'Side already taken' };
 			}
-			if (session.players.some(p => p.userId === Number(userId))) {
-				throw { code: 409, message: 'Player is already in session' };
-			}
 			if (session.players.length >= 2) {
 				throw { code: 409, message: 'Session already full' };
+			}
+			
+			let displayName;
+			if (userId) {
+				const user = await prisma.user.findUnique({
+					where: { id: Number(userId) },
+					select: { username: true },
+				});
+				if (!user) {
+					throw { code: 404, message: 'User not found' };
+				}
+				displayName = user.username;
+			} else if (guestName) {
+				displayName = guestName;
+			} else {
+				throw { code: 400, message: 'Guest must provide a guestName' };
+			}
+			
+			if (session.players.some(p => p.displayName === displayName)) {
+				throw { code: 409, message: 'Display name is already taken in this session' };
 			}
 
 			const newPlayer = await prisma.gameSessionPlayer.create({
 				data: {
-					sessionId: Number(id),
-					userId: Number(userId),
-					side: side,
+					sessionId: Number(sessionId),
+					userId: userId ? Number(userId) : null,
+					isGuest: !userId,
+					displayName,
+					side,
 				},
 				include: { user: { select: { id: true, username: true } }, },
 			});
-
-			if (session.players.length === 1 && session.status === 'CREATED') {
-				await prisma.gameSession.update({
-				where: { id: Number(id) },
-				data: { status: 'READY' },
-				});
-			}
 
 			return reply.code(201).send(newPlayer);
 		} catch (err) {
@@ -59,21 +71,13 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// List players in session
-	app.get('/api/game-sessions/:id/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
-		const { id } = request.params;
+	app.get('/api/game-sessions/:sessionId/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
+		const { sessionId } = request.params;
 		
 		try {
-			await checkSession(prisma, id);
+			await checkSession(prisma, sessionId);
 			const players = await prisma.gameSessionPlayer.findMany({
-				where: { sessionId: Number(id) }, 
-				include: { 
-					user: {
-						select : {
-							id: true, 
-							username: true,
-						},
-					}, 
-				},
+				where: { sessionId: Number(sessionId) }, 
 				orderBy: { side: 'asc' },
 			});
 			if (players.length === 0) {
@@ -81,10 +85,9 @@ async function gameSessionPlayersRoutes(app, options) {
 			}
 			const formatted = players.map((p) => ({
 				playerId: p.id,
-				userId: p.user.id,
-				username: p.user.username,
+				displayName: p.displayName,
 				side: p.side,
-				isReady: p.isReady,
+				isGuest: p.isGuest,
 				score: p.score,
 			}));
 
@@ -95,52 +98,33 @@ async function gameSessionPlayersRoutes(app, options) {
 		}
 	});
 
-	// Update player as ready
-	app.patch('/api/game-sessions/:id/players/:userId/ready', { schema: readyPlayerSchema} , async (request, reply) => {
-		const { id, userId } = request.params;
-
-		try {
-			const session = await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
-			const updatedPlayer = await prisma.gameSessionPlayer.update({ 
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
-				data: { isReady: true },
-			});
-			if (session.status !== 'READY') {
-				await prisma.gameSession.update({
-					where: { id: Number(id)},
-					data: { status: 'READY' },
-				});
-			}
-			return reply.send(updatedPlayer);
-		} catch (err) {
-			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player as ready' });
-		}
-	});
-
 	// Update player score
-	app.patch('/api/game-sessions/:id/players/:userId/score', { schema: updateScoreSchema }, async (request, reply) => {
-		const { id, userId } = request.params;
+	app.patch('/api/game-sessions/:sessionId/players/:side/score', { schema: updateScoreSchema }, async (request, reply) => {
+		const { sessionId, side } = request.params;
 		try {
-			const session = await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
-			const updatedPlayer = await prisma.gameSessionPlayer.update({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId)}, },
+			const session = await checkSession(prisma, sessionId);
+			const player = await prisma.gameSessionPlayer.update({
+				where: { sessionId_side: { sessionId: Number(sessionId), side } },
 				data: { score: { increment: 1 }, },
 			});
 
-			if (updatedPlayer.score >= session.maxScore) {
+			if (player.score >= 5) {
 				await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
 						status: 'FINISHED',
 						endedAt: new Date(),
-						winnerUserId: updatedPlayer.userId,
+						winnerUserId: player.userId ?? null,
+						winnerPlayerId: player.id,
 					},
 				});
 			}
-			return reply.send(updatedPlayer);
+
+			const updatedSession = await prisma.gameSession.findUnique({
+				where: { id: Number(sessionId) },
+				include: {players: true},
+			});
+			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);
 		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player score' });
@@ -148,13 +132,13 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// Delete player
-	app.delete('/api/game-sessions/:id/players/:userId', { schema: deletePlayerSchema }, async (request, reply) => {
-		const { id, userId } = request.params;
+	app.delete('/api/game-sessions/:sessionId/players/:side', { schema: deletePlayerSchema }, async (request, reply) => {
+		const { sessionId, side } = request.params;
 		try {
-			await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
+			await checkSession(prisma, sessionId);
+			await checkPlayer(prisma, sessionId, side);
 			await prisma.gameSessionPlayer.delete({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) }, },
+				where: { sessionId_side: { sessionId: Number(id), side }, },
 			});
       return reply.code(200).send({ message: 'Game session deleted' });
 		} catch (err) {

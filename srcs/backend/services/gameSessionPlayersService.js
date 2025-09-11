@@ -12,9 +12,9 @@ export async function checkSession(client, sessionId) {
   return session;
 }
 
-export async function checkPlayer(client, sessionId, userId) {
+export async function checkPlayer(client, sessionId, side) {
   const player = await client.gameSessionPlayer.findUnique({
-    where: { sessionId_userId: { sessionId: Number(sessionId), userId: Number(userId) }, }
+    where: { sessionId_side: { sessionId: Number(sessionId), side }, }
   });
 
   if (!player) {
