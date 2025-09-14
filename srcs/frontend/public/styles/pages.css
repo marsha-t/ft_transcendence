@@ -1,0 +1,435 @@
+/* ===== Main PAGE ===== */
+
+.main_page {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 80vh;
+  padding: 0 5% 0 5%;
+  background-color:var(--color-primary);
+}
+
+.text_section{
+  flex: 1 1 400px;
+  max-width: 600px;
+  margin-bottom: 60px 0 40px 0;
+}
+
+.main_title {
+  font-size: clamp(32px, 4vw, 46px); /* scales on smaller screens */
+  font-weight: bold;
+  margin-bottom: 1rem; /* 16px spacing */
+}
+
+
+.description{
+  font-size: clamp(14px, 1.2vw, 16px);
+  line-height: 1.5;
+}
+
+.right_section{
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+.play_btn{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+    width: 260px;
+    height: 82px;
+    padding: 0 46px;
+    border-radius: 50px;
+    color: white;              
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--color-secondary);
+    transition: background-color 0.3s ease;
+    border: none;                          
+    padding: 0 46px;
+    text-decoration: none;
+    gap: 8px;
+}
+
+.arrow{
+  width: 30px;
+  height: 30px;
+}
+
+.play_btn:hover{
+  background-color: var(--color-primary-dark);
+}
+
+
+
+/* ===== LOGIN PAGE ===== */
+/* styles here */
+.login_page{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: var(--color-primary);
+    flex-direction: column;
+    min-height: 80vh;
+    padding-top: 20px;
+    padding-bottom: 0px;
+    
+}
+
+.login_title{
+    width: 596px;
+    text-align: left;
+    margin-bottom: 16px;
+    font-size: 28px;
+    font-weight: bold;    
+}
+
+.login_block{
+    width: 596px;
+    height: 571px;
+    background-color: var(--color-background-secondary);
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center; 
+    padding: 32px;
+    box-sizing: border-box;
+    border-radius: 30px;
+  }
+
+
+.login_form{
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    align-items: center;
+    /* margin-top: 20px; */
+    width: 100%;
+    margin-bottom: 0;
+    padding: 0;
+    line-height: normal;
+}
+
+.login_form input{
+    width: 312px;
+    height: 72px;
+    padding: 0 16px;
+    border-radius: 50px;
+    border: 1px solid var(--color-primary);
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.login_form input::placeholder{
+    color: var(--color-text-secondary);
+    font-family: 'DM sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.login_form div{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.login_form label{
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.login_block h1{
+    align-self: flex-start;
+    margin-bottom: 24px;
+}
+
+.login_block button{
+    width: 312px;
+    height: 72px;
+    padding: 0 16px;
+    border-radius: 50px;
+    color: white;              
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--color-secondary);
+    transition: background-color 0.3s ease;
+    border: none;                          
+    outline: none;
+}
+
+
+.login_block button:hover {
+    background-color: var(--color-primary-dark); 
+}
+
+.register_text{
+    /* margin-bottom: 8px; */
+    /* margin-top: 8px; */
+    font-size: 14px;
+    color: var(--color-secondary);  
+    text-align: center;
+    display: inline-flex;   
+    gap: 96px; 
+}
+
+.register_text a:hover {
+    text-decoration: underline;
+  }
+
+.register_text a {
+    font-weight: bold;          /* make the link bold */
+    color: var(--color-text); /* different color for link */
+    margin-left: 4px;           /* small space between question and link */
+}
+
+
+
+/* ===== CREATORS PAGE ===== */
+
+.creators_page {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5% 0 5%;
+    /* padding: 40px 60px; */
+    min-height: 80vh;
+    background-color: var(--color-primary);
+    gap: 40px;
+  }
+  
+  .text_section {
+    /* margin-top: -200px; */
+    flex: 1;
+    max-width: 600px;
+    margin: 60px 0 40px 0;
+  }
+  
+  .main_title {
+    font-size: 46px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .description {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-text, white);
+  }
+  
+  .image_section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .avatars_grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 per row */
+    gap: 80px ;
+    margin-top: 20px;
+  }
+  
+  .avatar_card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .avatar_img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border-radius: 50;
+  }
+  
+  .avatar_name {
+    font-weight: bold;
+    font-size: 14px;
+    margin-top: 8px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    text-align: center;
+    max-width: 160px;
+    word-wrap: break-word;
+    /* color: rgb(119, 51, 51); */
+  }
+  
+  .avatar_role {
+    font-size: 14px;
+    text-align: left;
+    /* color: #0a0909; */
+    text-decoration: none;
+  }
+  
+
+
+  /* ===== GAME PAGE  ===== */
+  .game_page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 80vh;
+    padding: 20px;
+    background-color: #1a1a1a;
+}
+
+.game_canvas {
+    background-color: #000;
+    border: 2px solid #fff;
+    max-width: 100%;
+    height: auto;
+}
+
+.start_btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    background-color: var(--color-secondary, #5D5A88);
+    color: #fff;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.start_btn:hover {
+    background-color: var(--color-secondary-hover, #4a4670);
+}
+
+@media (max-width: 800px) {
+    .game_canvas {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 8/5; /* Matches 800x500 canvas */
+    }
+}
+
+/* ===== REGISTER PAGE  ===== */
+
+.register_page {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: var(--color-primary);
+    flex-direction: column;
+    min-height: 80vh;
+    padding-top: 20px;
+    padding-bottom: 0px;
+    
+  }
+  
+  .register_block {
+    width: 596px;
+    height: 571px;
+    background-color: var(--color-background-secondary);
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    align-items: center; 
+    padding: 32px 0;
+    box-sizing: border-box;
+    border-radius: 30px;
+    margin-bottom: 40px;
+  }
+
+  .register_title {
+    width: 596px;              
+    text-align: left;          
+    margin-bottom: 16px;       
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 32px;
+  }
+
+  .register_form {
+    display: flex;
+    flex-direction: column; 
+    gap: 26px;             
+    align-items: center;     
+    margin-top: 20px;       
+    width: 100%;  
+    margin-bottom: 0;
+    padding: 0;
+    line-height: normal;          
+  }
+
+  .register_form input{
+    width: 312px;
+    height: 72px;
+    padding: 0 16px;
+    border-radius: 50px;
+    border: 1px solid var(--color-primary);
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .register_form input::placeholder {
+    color: var(--color-text-secondary);
+    font-family: 'DM Sans', sans-serif; 
+    font-size: 14px;
+    font-weight: 400;
+  }
+  
+  .register_form div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .register_form label {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .register_block h1 {
+    align-self: flex-start;      
+    margin-bottom: 24px;         
+  }
+  
+  .register_block button{
+    width: 312px;
+    height: 72px;
+    padding: 0 16px;
+    border-radius: 50px;
+    color: white;              
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--color-secondary);
+    transition: background-color 0.3s ease;
+    border: none;                          
+    outline: none; 
+    
+  }
+
+  .register_form button:hover {
+    background-color: var(--color-primary-dark); 
+  }
+
+  .login_text {
+    margin-bottom: 16px;
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--color-secondary);  
+    text-align: center;
+    display: inline-flex;   
+    gap: 76px; 
+  }
+
+  .login_text a {
+    font-weight: bold;          /* make the link bold */
+    color: var(--color-text); /* different color for link */
+    margin-left: 4px;           /* small space between question and link */
+}
+  
+  .login_text a:hover {
+    text-decoration: underline;
+  }
+  
+
+  

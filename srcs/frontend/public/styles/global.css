@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root{
+    --color-primary: #fff;
+    --color-secondary: #5D5A88;
+    --color-background: #F2F1FA;
+    --color-background-secondary: #F2F1FA;
+    --color-text: #5D5A88;
+    --color-text-secondary: #afafaf;
+    --color-primary-dark: #423f6a;
+
+    --button-bg-light: #F2F1FA;       /* light button background */
+    --button-bg-dark: #5D5A88;        /* dark button background */
+    --button-text-light: #5D5A88;     /* text color for light button */
+    --button-text-dark: #fff;         /* text color for dark button */
+    --button-border-light: rgba(103, 99, 152, 0.3); /* subtle border */
+    --button-border-dark: rgba(93, 90, 136, 0.8);  /* stronger border */
+
+}
+
+body{
+    font-family: 'DM Sans', sans-serif ;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    margin: 0;
+    /* padding: 0; */
+}
