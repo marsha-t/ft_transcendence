@@ -4,12 +4,12 @@ import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
-import { changeUsernameSchema, changePasswordSchema, changeEmailSchema, avatarUploadSchema } from '../schemas/profile.js';
+import { getCurrentUserSchema, changeUsernameSchema, changePasswordSchema, changeEmailSchema, avatarUploadSchema, removeAvatarSchema, getAvatarSchema  } from '../schemas/profile.js';
 
 async function profileRoutes(app, options) {
 
   // 1- Get current user's profile by ID (temporary: expects userId in body)
-  app.get('/api/profile/:id', async (request, reply) => {
+  app.get('/api/profile/:id', { schema: getCurrentUserSchema }, async (request, reply) => {
     const { id } = request.params;
 
     const user = await prisma.user.findUnique({
@@ -119,7 +119,7 @@ async function profileRoutes(app, options) {
   });
 
   // 6- Remove avatar (reset to default)
-  app.delete('/api/profile/:id/avatar', async (request, reply) => {
+  app.delete('/api/profile/:id/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
     const { id } = request.params;
 
     // Find the user
@@ -140,7 +140,7 @@ async function profileRoutes(app, options) {
   });
 
   // 7- Get avatar only (optional helper route)
-  app.get('/api/profile/:id/avatar', async (request, reply) => {
+  app.get('/api/profile/:id/avatar', { schema: getAvatarSchema }, async (request, reply) => {
     const { id } = request.params;
 
     // Find the user
@@ -158,4 +158,4 @@ async function profileRoutes(app, options) {
 export default profileRoutes;
 
 // To test avatar uploads using CURL:
-// curl -X PUT http://localhost:5001/api/profile/2/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"
+// curl -X PUT http://localhost:5000/api/profile/2/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"
