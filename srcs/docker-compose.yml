@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - 5001:5000
+      - 5001:5001
     env_file:
       - ./backend/.env
     networks:
@@ -18,25 +18,25 @@ services:
       - ./backend/uploads:/app/uploads
     restart: always
 
-  backend-dev:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend-dev
-    ports:
-      - 5000:5000
-      - 5555:5555
-    env_file:
-      - ./backend/.env
-    networks:
-      - web
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - db-data:/app/prisma/data
-      - ./backend/uploads:/app/uploads
-    command: sh -c "npx prisma migrate deploy && npm run dev"
-    restart: always
+  # backend-dev:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend-dev
+  #   ports:
+  #     - 5001:5001
+  #     - 5555:5555
+  #   env_file:
+  #     - ./backend/.env
+  #   networks:
+  #     - web
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #     - db-data:/app/prisma/data
+  #     - ./backend/uploads:/app/uploads
+  #   command: sh -c "npx prisma migrate deploy && npm run dev"
+  #   restart: always
     
   frontend:
     build:

@@ -158,4 +158,4 @@ async function profileRoutes(app, options) {
 export default profileRoutes;
 
 // To test avatar uploads using CURL:
-// curl -X PUT http://localhost:5000/api/profile/2/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"
+// curl -X PUT http://localhost:5001/api/profile/2/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"
