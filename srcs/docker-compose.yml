@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - 5000:5000
+      - 5001:5000
     env_file:
       - ./backend/.env
     networks:
@@ -41,7 +41,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: frontend
     ports:
       - 3000:3000
@@ -49,9 +49,9 @@ services:
       - backend
     networks:
       - web
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    # volumes:
+    #   - ./frontend:/app
+    #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
 
