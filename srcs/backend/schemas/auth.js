@@ -2,7 +2,7 @@
 
 export const registerSchema = {
   tags: ['Authentication'],
-  
+  summary: 'Register a new user',
   body: {
     type: 'object',
     required: ['username', 'email', 'password'],
@@ -51,7 +51,7 @@ export const registerSchema = {
 
 export const loginSchema = {
   tags: ['Authentication'],
-
+  summary: 'Log in a user',
   body: {
     type: 'object',
     required: ['username', 'password'],
