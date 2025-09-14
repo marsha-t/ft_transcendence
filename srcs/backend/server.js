@@ -3,6 +3,7 @@
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import fastifyCors from '@fastify/cors';
 
 // needed imports for the avatar
 import path from 'path';
@@ -16,7 +17,6 @@ import friendsRoutes from './routes/friends.js';
 import gameSessionRoutes from './routes/gameSession.js' 
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
 import fs from 'fs';
-
 
 const app = Fastify({ logger: true });
 
@@ -52,11 +52,15 @@ app.register(fastifyStatic, {
 
 app.register(fastifyMultipart);
 
+app.register(fastifyCors, {
+  origin: "http://localhost:3000", // frontend origin during dev
+  methods: ["GET", "POST", "PUT", "DELETE"]
+});
+
 // Test route
 app.get('/api/ping', async (request, reply) => {
   return { msg: 'pong' };
 });
-
 
 // Register our routes in the server
 app.register(authRoutes);
@@ -68,7 +72,6 @@ app.register(gameSessionPlayersRoutes);
 // after app.register(...) and before app.listen
 await app.ready(); // wait until all routes are registered
 // fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
-
 
 const start = async () => {
   try {
