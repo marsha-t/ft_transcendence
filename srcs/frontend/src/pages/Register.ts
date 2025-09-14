@@ -166,7 +166,7 @@ export class Register implements IComponent {
         if (type === 'success') {
             setTimeout(() => {
                 this.messageContainer.style.display = 'none';
-            }, 5000);
+            }, 5001);
         }
         
         // Scroll to top to show message

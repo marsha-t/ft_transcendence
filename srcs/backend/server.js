@@ -3,7 +3,7 @@
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import fastifyCors from '@fastify/cors';
+import cors from '@fastify/cors';
 
 // needed imports for the avatar
 import path from 'path';
@@ -20,6 +20,11 @@ import fs from 'fs';
 
 const app = Fastify({ logger: true });
 
+await app.register(cors, {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+});
+
 // Swagger ------------------------------------------
 await app.register(swagger, {
     openapi: {
@@ -30,7 +35,7 @@ await app.register(swagger, {
         version: '1.0.0',
       },
       servers: [
-        { url: 'http://localhost:5000' },
+        { url: 'http://localhost:5001/' },
       ],
     },
   });
@@ -52,11 +57,6 @@ app.register(fastifyStatic, {
 
 app.register(fastifyMultipart);
 
-app.register(fastifyCors, {
-  origin: "http://localhost:3000", // frontend origin during dev
-  methods: ["GET", "POST", "PUT", "DELETE"]
-});
-
 // Test route
 app.get('/api/ping', async (request, reply) => {
   return { msg: 'pong' };
@@ -75,8 +75,8 @@ await app.ready(); // wait until all routes are registered
 
 const start = async () => {
   try {
-    await app.listen({ port: 5000, host: '0.0.0.0' });
-    console.log('Server running at http://localhost:5000');
+    await app.listen({ port: 5001, host: '0.0.0.0' });
+    console.log('Server running at http://localhost:5001');
   } catch (err) {
     app.log.error(err);
     process.exit(1);
