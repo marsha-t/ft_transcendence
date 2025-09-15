@@ -1,8 +1,10 @@
 import { IComponent } from "../components/IComponent";
-import { apiServices, RegisterData } from "../services/ApiServices.js";
+import { apiServices } from '../services/auth/AuthServices.js';
+import { RegisterData } from "../services/auth/types";
 
 export class Register implements IComponent {
 
+    
     private container!: HTMLElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
@@ -12,6 +14,9 @@ export class Register implements IComponent {
     public render(): HTMLElement {
         this.container = document.createElement('div');
         this.container.className = 'register_page'; 
+        // Dynamically load page CSS
+        this.loadPageStyles();
+
         
         const heading = document.createElement('h2');
         heading.className = 'register_title';
@@ -100,6 +105,15 @@ export class Register implements IComponent {
 
         return this.container;
     }
+    private loadPageStyles(): void {
+        if (document.getElementById('register-styles')) return;
+        
+        const link = document.createElement('link');
+        link.id = 'register-styles';
+        link.rel = 'stylesheet';
+        link.href = '/styles/Register.css';
+        document.head.appendChild(link);
+    }
 
     private attachEventListener(): void{
         this.form.addEventListener('submit', this.handleRegister.bind(this));
@@ -116,15 +130,10 @@ export class Register implements IComponent {
             password: formData.get('password') as string
         }; 
 
-        // Client-side validation
-        // const validationError = this.validateForm(userData);
-        // if(validationError){
-        //     this.showMessage(validationError, 'error');
-        //     return;
-        // }
-
         //set loading state
         this.setLoadingState(true);
+
+        //send data to API
         try{
             console.log('Sending registration data', userData);
             const response = await apiServices.register(userData);
@@ -137,17 +146,21 @@ export class Register implements IComponent {
                 // Redirect to login page after successful registration
                 setTimeout(() => {
                     // You can use your router here instead
-                    window.location.hash = 'login';
-                    // or if you have a router: this.router.navigate('/login');
+                    window.location.hash = '/login';
                 }, 2000);
             } else{
-                const errorMessage = response.errors && response.errors.length > 0
-                        ? response.errors.join(', ')
-                        : response.message || 'Registration failed';
-                
-                this.showMessage(errorMessage, 'error');
+                const statusCode = (response as any).status;
+
+                if(statusCode === 400) {
+                    this.showMessage('Password is invalid or does not meet requirements.', 'error');
+                } else if(statusCode === 409) {
+                    this.showMessage('User already exists. Please choose a different username or email.', 'error');
+                } else {
+                    this.showMessage(response.message || 'Registration failed', 'error');
+                }
+
             }
-        } catch (error){
+    } catch (error){
             console.error('Registration error:', error);
             this.showMessage('Network error. Please check your connection and try again.', 'error');
             } finally {
@@ -155,7 +168,6 @@ export class Register implements IComponent {
             this.setLoadingState(false);
             }
     }
-
 
     private showMessage(message: string, type: 'success' | 'error'): void {
         this.messageContainer.style.display = 'block';
