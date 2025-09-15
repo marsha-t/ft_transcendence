@@ -5,6 +5,8 @@ export class Creators implements IComponent {
         const container = document.createElement('div');
         container.className = "creators_page";
 
+        this.loadPageStyles();
+
         //left half
         const text_section = document.createElement('div');
         text_section.className = "text_section";
@@ -135,4 +137,15 @@ export class Creators implements IComponent {
         container.appendChild(image_section);
         return container;
     }
+
+    private loadPageStyles(): void {
+        if (document.getElementById('creators-styles')) return;
+        
+        const link = document.createElement('link');
+        link.id = 'creators-styles';
+        link.rel = 'stylesheet';
+        link.href = '/styles/Creators.css';
+        document.head.appendChild(link);
+    }
+
 }

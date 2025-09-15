@@ -5,6 +5,9 @@ export class Login implements IComponent {
         const container = document.createElement('div');
         container.className = 'login_page';
 
+        //Load css
+        this.loadPageStyles();
+
         // Heading stays above the card
         const heading = document.createElement('h2');
         heading.className = 'login_title';
@@ -64,5 +67,15 @@ export class Login implements IComponent {
         container.appendChild(loginCard);
 
         return container;
+    }
+
+    private loadPageStyles(): void {
+        if (document.getElementById('login-styles')) return;
+        
+        const link = document.createElement('link');
+        link.id = 'login-styles';
+        link.rel = 'stylesheet';
+        link.href = '/styles/Login.css';
+        document.head.appendChild(link);
     }
 }

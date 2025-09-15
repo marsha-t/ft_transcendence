@@ -15,6 +15,9 @@ export class Game implements IComponent {
         const container = document.createElement('div');
         container.className = 'game_page';
 
+        //Load css
+        this.loadPageStyles();
+
         // Game title
         const title = document.createElement('h1');
         title.textContent = 'Pong Game';
@@ -63,6 +66,16 @@ export class Game implements IComponent {
         this.initGame();
 
         return container;
+    }
+
+    private loadPageStyles(): void {
+        if (document.getElementById('game-styles')) return;
+        
+        const link = document.createElement('link');
+        link.id = 'game-styles';
+        link.rel = 'stylesheet';
+        link.href = '/styles/Game.css';
+        document.head.appendChild(link);
     }
 
     private initGame(): void {

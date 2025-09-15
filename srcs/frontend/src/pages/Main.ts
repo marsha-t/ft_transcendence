@@ -5,6 +5,9 @@ export class Main implements IComponent {
     const container = document.createElement('div');
     container.className = "main_page";
 
+    // Load CSS
+    this.loadPageStyles();
+    
     // Left side (title + description)
     const textSection = document.createElement('div');
     textSection.className = "text_section";
@@ -50,4 +53,14 @@ export class Main implements IComponent {
 
     return container;
   }
+  private loadPageStyles(): void {
+      if (document.getElementById('main-styles')) return;
+      
+      const link = document.createElement('link');
+      link.id = 'main-styles';
+      link.rel = 'stylesheet';
+      link.href = '/styles/Main.css';
+      document.head.appendChild(link);
+  }
+
 }
