@@ -1,0 +1,28 @@
+graph TD
+
+  %% Round 1
+  P1["P1"] --> M1["Match 1"]
+  P2["P2"] --> M1
+
+  P3["P3"] --> M2["Match 2"]
+  P4["P4"] --> M2
+
+  P5["P5"] --> M3["Match 3"]
+  BYE1["BYE"] --> M3
+
+  BYE2["BYE"] --> M4["Match 4"]
+  BYE3["BYE"] --> M4
+
+  %% Round 2
+  M1 --> M5["Semi 1"]
+  M2 --> M5
+
+  M3 --> M6["Semi 2"]
+  M4 --> M6
+
+  %% Final
+  M5 --> F["Final"]
+  M6 --> F
+
+  %% Champion
+  F --> C["🏆 Champion"]
