@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+// ---------------------
+// Enums 
+// ---------------------
+enum GameStatus {
+  CREATED
+  READY
+  PLAYING
+  PAUSED
+  FINISHED
+  ABORTED
+}
+
+enum PlayerSide {
+  LEFT
+  RIGHT
+}
+
+// ---------------------
+// Models
+// ---------------------
+model User {
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  email    String  @unique
+  password String
+  avatar   String   @default("/uploads/avatars/default.png")
+  
+  // relations
+  sentRequests     FriendRequest[]  @relation("sentRequests")
+  receivedRequests FriendRequest[]  @relation("receivedRequests")
+  gameSessionsWon GameSession[] @relation("GameWinner")
+  gameSessions    GameSessionPlayer[]
+}
+
+model FriendRequest {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  status     String   @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt  DateTime @default(now()) // is it needed????????????
+
+  sender   User @relation("sentRequests", fields: [senderId], references: [id])
+  receiver User @relation("receivedRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+
+model GameSession {
+  id     Int         @id @default(autoincrement())
+  status        GameStatus  @default(CREATED)
+  maxScore      Int         @default(5)
+  createdAt     DateTime    @default(now())
+  startedAt     DateTime?
+  endedAt       DateTime?
+  winnerUserId  Int?
+
+  // relations
+  winner        User?        @relation("GameWinner", fields: [winnerUserId], references: [id])
+  players       GameSessionPlayer[]
+}
+
+model GameSessionPlayer {
+  id            Int         @id @default(autoincrement())
+  sessionId     Int
+  userId        Int
+  side          PlayerSide
+  isReady       Boolean     @default(false)
+  score         Int         @default(0)
+  
+  // relations
+  session GameSession @relation(fields: [sessionId], references: [id])
+  user    User        @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@unique([sessionId, side])
+
+}

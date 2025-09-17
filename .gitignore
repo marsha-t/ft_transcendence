@@ -1,0 +1,10 @@
+# Prisma
+srcs/backend/prisma/dev.db
+
+# Environment files
+# srcs/.env
+
+# Dependency directories
+srcs/backend/node_modules/
+
+# Docker
