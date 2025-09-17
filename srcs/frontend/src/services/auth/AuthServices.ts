@@ -1,17 +1,13 @@
 import { RegisterData, ApiResponse } from './types';
-
-
-export class AuthServices{
+export class AuthServices {
     private baseUrl: string;
-
-    //class constructor
-    constructor(){
+    // Class constructor
+    constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
-
-    //method
-    async register(userData: RegisterData): Promise<ApiResponse<any>>{
-        try{
+    // Method
+    async register(userData: RegisterData): Promise<ApiResponse<any>> {
+        try {
             const response = await fetch(`${this.baseUrl}/register`, {
                 method: 'POST',
                 headers: {
@@ -23,28 +19,29 @@ export class AuthServices{
                     password: userData.password
                 })
             });
-
             const data = await response.json();
-            if(!response.ok){
+            console.log('Backend response:', data); // Debug log here
+            if (!response.ok) {
+                // Extract message from various possible locations
                 let msg = data.message || data.errors || data.msg;
                 if (!msg && data.validation?.length) {
-                msg = data.validation[0].message;
-            }
+                    msg = data.validation[0].message;
+                }
+                console.log('Extracted message:', msg); // Debug log
                 return {
                     success: false,
                     status: response.status,
-                    message: data.message || 'Registration failed',
+                    message: msg || 'Registration hererererer', // Use the extracted message
                     errors: data.errors || []
                 };
             }
-
             return {
                 success: true,
                 status: response.status,
                 data: data,
-                message: data.message || 'Registration successfull'
+                message: data.message || 'Registration successful'
             };
-        }catch (error){
+        } catch (error) {
             console.error('API error', error);
             return {
                 success: false,
