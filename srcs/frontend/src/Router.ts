@@ -3,6 +3,7 @@ import { Login } from './pages/Login.js';
 import { Creators } from './pages/Creators.js';
 import { Game } from './pages/Game.js';
 import { Main } from './pages/Main.js';
+import { Profile } from './pages/Profile.js';
 
 export class Router {
 
@@ -31,6 +32,10 @@ export class Router {
         case '/main':
           const main = new Main();
           container.appendChild(main.render());
+          break;
+        case '/profile':
+          const profile = new Profile();
+          container.appendChild(profile.render());
           break;
         default:
           container.textContent = '404 - Page Not Found';
