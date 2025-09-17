@@ -44,6 +44,7 @@ export class Header implements IComponent {
         const links = [
             {text: 'Home', href: '/main', type: 'link'},
             {text: 'Creators', href: '/creators', type: 'link'},
+            {text: 'Profile', href: '/profile', type: 'link'},
             {text: 'Login', href: '/login', type: 'link', className: 'login_btn'},
             {text: 'Register', href: '/register', type: 'link', className: 'register_btn'},
         ];
