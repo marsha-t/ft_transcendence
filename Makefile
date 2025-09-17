@@ -5,13 +5,13 @@ CONTAINERS = backend frontend
 all: build up 
 
 up:
-	cd srcs && docker compose up  -d
+	cd srcs && docker-compose up -d
 
 down:
-	cd srcs && docker compose down
+	cd srcs && docker-compose down
 
 build:
-	cd srcs && docker compose build
+	cd srcs && docker-compose build
 
 clean: down
 	-docker rmi -f $(shell docker images -q)
