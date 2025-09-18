@@ -114,6 +114,7 @@ export class Register implements IComponent {
     }
     private async handleRegister(event: Event): Promise<void>{
         event.preventDefault();
+        
         //Get form data
         const formData = new FormData(this.form);
         const userData: RegisterData = {
@@ -186,10 +187,10 @@ export class Register implements IComponent {
         });
     }
     // Optional: Clean up method if needed
-    public destroy(): void {
-        // Remove event listeners if component is destroyed
-        if (this.form) {
-            this.form.removeEventListener('submit', this.handleRegister.bind(this));
-        }
-    }
+    // public destroy(): void {
+    //     // Remove event listeners if component is destroyed
+    //     if (this.form) {
+    //         this.form.removeEventListener('submit', this.handleRegister.bind(this));
+    //     }
+    // }
 }
