@@ -9,7 +9,7 @@
   /* Profile Card */
   .profile-card {
     text-align: center;
-    background: #fff;
+    background: #f2f1fa;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     padding: 2rem;
@@ -21,7 +21,8 @@
     height: 80px;
     margin: 0 auto 1rem auto;
     border-radius: 50%;
-    background: #6d28d9;
+    /* background: #6d28d9; */
+    background: var (--color-secondary);
     color: #fff;
     display: flex;
     align-items: center;
