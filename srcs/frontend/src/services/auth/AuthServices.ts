@@ -1,11 +1,14 @@
-import { RegisterData, ApiResponse } from './types';
+import { RegisterData, ApiResponse, LoginData } from './types';
+
+
 export class AuthServices {
     private baseUrl: string;
+
     // Class constructor
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
-    // Method
+    // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {
         try {
             const response = await fetch(`${this.baseUrl}/register`, {
@@ -51,5 +54,63 @@ export class AuthServices {
             };
         }
     }
+
+     // Method for register
+
+    async login(userData: LoginData): Promise<ApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: userData.username,
+                    password: userData.password,
+                }),
+            });
+    
+            // Try to parse JSON safely to get backend data
+            let data: any = {};
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
+    
+            //if response is not correct
+            if (!response.ok) {
+                let msg = data.message || data.msg || data.error;
+                if (!msg && Array.isArray(data.errors)) {
+                    msg = data.errors[0]?.message || 'Login Unknown error';
+                }
+    
+                return {
+                    success: false,
+                    status: response.status,
+                    message: msg,
+                    errors: data.errors || [],
+                };
+            }
+    
+            // Success case
+            return {
+                success: true,
+                status: response.status,
+                data,
+                message: data.message || 'Login success return',
+                errors: [],
+            };
+        } catch (error) {
+            console.error('Login API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Login API, network error',
+                errors: [],
+            };
+        }
+    }
+    
 }
 export const apiServices = new AuthServices();
