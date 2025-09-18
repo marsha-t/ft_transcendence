@@ -23,18 +23,12 @@ export class AuthServices {
                 })
             });
             const data = await response.json();
-            console.log('Backend response:', data); // Debug log here
-            if (!response.ok) {
-                // Extract message from various possible locations
-                let msg = data.message || data.errors || data.msg;
-                if (!msg && data.validation?.length) {
-                    msg = data.validation[0].message;
-                }
-                console.log('Extracted message:', msg); // Debug log
+            if(!response.ok){
+                let msg = data.validation?.[0]?.message || data.error;
                 return {
                     success: false,
                     status: response.status,
-                    message: msg || 'Registration hererererer', // Use the extracted message
+                    message: msg || 'Registration failed',
                     errors: data.errors || []
                 };
             }
