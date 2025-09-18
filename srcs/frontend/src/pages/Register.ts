@@ -149,16 +149,7 @@ export class Register implements IComponent {
                     window.location.hash = '/login';
                 }, 2000);
             } else{
-                const statusCode = (response as any).status;
-
-                if(statusCode === 400) {
-                    this.showMessage('Password is invalid or does not meet requirements.', 'error');
-                } else if(statusCode === 409) {
-                    this.showMessage('User already exists. Please choose a different username or email.', 'error');
-                } else {
                     this.showMessage(response.message || 'Registration failed', 'error');
-                }
-
             }
     } catch (error){
             console.error('Registration error:', error);
