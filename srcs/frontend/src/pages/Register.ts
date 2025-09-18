@@ -129,7 +129,8 @@ export class Register implements IComponent {
             console.log('Sending registration data', userData);
             const response = await apiServices.register(userData);
             if(response.success){
-                this.showMessage(response.message || 'Registration successful!', 'success');
+                this.showMessage(response.message, 'success');
+                
                 this.form.reset();// Clear form
 
                 // Redirect to login page after successful registration
@@ -152,7 +153,7 @@ export class Register implements IComponent {
 
                 }, 2000);
             } else{
-                    this.showMessage(response.message || 'Registration failed', 'error');
+                    this.showMessage(response.message, 'error');
             }
     } catch (error: any){
             // console.error('Registration error:', error);
