@@ -12,7 +12,7 @@ export interface LoginData {
 export interface ApiResponse<T> {
     success: boolean;
     status?: number;      // HTTP status code
-    message?: string;     // friendly message
+    message: string;     // friendly message
     errors?: string[];    // validation errors
     data?: T;             // any data returned
 }

@@ -1,6 +1,7 @@
 # Variables
 CONTAINERS = backend frontend
-# VOLUMES = 
+VOLUMES = db-data
+# BIND_MOUNTS = ./backend/uploads
 
 all: build up 
 
@@ -22,5 +23,5 @@ fclean:
 	- docker rm $(CONTAINERS) -f 
 	- docker volume rm $(VOLUMES)
 	- yes | docker system prune -a --volumes
-
+	- rm -rf $(BIND_MOUNTS)
 .PHONY: all up down build clean re fclean
