@@ -26,14 +26,11 @@ export class AuthServices{
 
             const data = await response.json();
             if(!response.ok){
-                let msg = data.message || data.errors || data.msg;
-                if (!msg && data.validation?.length) {
-                msg = data.validation[0].message;
-            }
+                let msg = data.validation?.[0]?.message || data.error || data.message;
                 return {
                     success: false,
                     status: response.status,
-                    message: data.message || 'Registration failed',
+                    message: msg || 'Registration failed',
                     errors: data.errors || []
                 };
             }
@@ -42,7 +39,7 @@ export class AuthServices{
                 success: true,
                 status: response.status,
                 data: data,
-                message: data.message || 'Registration successfull'
+                message: data.message || 'Registration successful'
             };
         }catch (error){
             console.error('API error', error);
