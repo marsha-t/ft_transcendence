@@ -35,7 +35,7 @@ export class Login implements IComponent {
         // Register link
         const registerLink = document.createElement('p');
         registerLink.className = 'register_text';
-        registerLink.innerHTML = 'Don\'t have an account? <a href="register">Register</a>';
+        registerLink.innerHTML = 'Don\'t have an account? <a href="/register">Register</a>';
         
         // Form - Initialize the form property here
         this.form = document.createElement('form');
@@ -131,8 +131,24 @@ export class Login implements IComponent {
                 this.form.reset(); //I need to clean th form after getting data
                 
                 //here i redirect login page to userprofile
-                setTimeout(()=> {
-                    window.location.hash = '/main'; //for now only to test
+                setTimeout(() => {
+                    console.log("Current URL before navigation:", window.location.href);
+                    console.log("Current pathname:", window.location.pathname);
+                    console.log("Current hash:", window.location.hash);
+                    
+                    // Clear any existing hash first
+                    if (window.location.hash) {
+                        history.replaceState(null, '', window.location.pathname);
+                    }
+                    
+                    // Navigate to main
+                    history.pushState(null, '', '/main');
+                    console.log("URL after pushState:", window.location.href);
+                    
+                    // Trigger router update
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+                    
+                    console.log("PopState event dispatched");
                 }, 2000);
             } else {
                 this.showMessage(response.message || 'Login failed.ts: ', 'error');

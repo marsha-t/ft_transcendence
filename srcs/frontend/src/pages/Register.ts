@@ -131,10 +131,25 @@ export class Register implements IComponent {
             if(response.success){
                 this.showMessage(response.message || 'Registration successful!', 'success');
                 this.form.reset();// Clear form
+
                 // Redirect to login page after successful registration
                 setTimeout(() => {
-                    // You can use your router here instead
-                    window.location.hash = '/login';
+
+                    console.log("Current URL before navigation:", window.location.href);
+                    console.log("Current pathname:", window.location.pathname);
+                    console.log("Current hash:", window.location.hash);
+                    
+                    //i need to check and clear the path first
+                    if(window.location.hash)
+                        history.replaceState(null, '', window.location.pathname);
+                    
+                    //then navigate to destination
+                    history.pushState(null, '', '/login');
+                    // Trigger router update
+                    window.dispatchEvent(new PopStateEvent('popstate'));
+
+                    console.log("PopState event dispatched");
+
                 }, 2000);
             } else{
                     this.showMessage(response.message || 'Registration failed', 'error');
