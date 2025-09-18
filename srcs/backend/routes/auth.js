@@ -50,14 +50,14 @@ async function authRoutes(app, options) {
     });
 
     if (!user) {
-      return reply.code(401).send({ error: 'Invalid username or password' });
+      return reply.code(401).send({ error: 'Invalid username' });
     }
 
     // Compare entered password with hashed password in DB
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      return reply.code(401).send({ error: 'Invalid username or password' });
+      return reply.code(401).send({ error: 'Invalid password' });
     }
 
     // Success
