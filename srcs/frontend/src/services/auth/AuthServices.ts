@@ -49,7 +49,7 @@ export class AuthServices {
         }
     }
 
-     // Method for register
+     // Method for login
 
     async login(userData: LoginData): Promise<ApiResponse<any>> {
         try {
@@ -74,15 +74,15 @@ export class AuthServices {
     
             //if response is not correct
             if (!response.ok) {
-                let msg = data.message || data.msg || data.error;
-                if (!msg && Array.isArray(data.errors)) {
-                    msg = data.errors[0]?.message || 'Login Unknown error';
-                }
+                let msg = data.validation?.[0]?.message || data.error;
+                // if (!msg && Array.isArray(data.errors)) {
+                //     msg = data.errors[0]?.message || 'Login Unknown error';
+                // }
     
                 return {
                     success: false,
                     status: response.status,
-                    message: msg,
+                    message: msg || 'Login failed',
                     errors: data.errors || [],
                 };
             }
@@ -91,9 +91,8 @@ export class AuthServices {
             return {
                 success: true,
                 status: response.status,
-                data,
-                message: data.message || 'Login success return',
-                errors: [],
+                data: data,
+                message: data.message || 'Login successful'
             };
         } catch (error) {
             console.error('Login API error', error);

@@ -126,7 +126,7 @@ export class Login implements IComponent {
             
             //recieved successfully 
             if(response.success){
-                this.showMessage(response.message || ' Login!',  'success');
+                this.showMessage(response.message,  'success');
 
                 this.form.reset(); //I need to clean th form after getting data
                 
@@ -151,7 +151,7 @@ export class Login implements IComponent {
                     console.log("PopState event dispatched");
                 }, 2000);
             } else {
-                this.showMessage(response.message || 'Login failed.ts: ', 'error');
+                this.showMessage(response.message, 'error');
             }
         }catch(error: any){
             console.log('Login failed', error);
