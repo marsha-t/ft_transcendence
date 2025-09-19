@@ -4,19 +4,21 @@
     align-items: center;
     min-height: 80vh;
     padding: 20px;
-    background-color: #1a1a1a;
+    background-color: #fff;
 }
 
 .game_canvas {
-    background-color: #000;
+    /* background-color: var(--color-secondary); */
     border: 2px solid #fff;
     max-width: 100%;
     height: auto;
+    border-radius: 30px;
+    border-color:var(--color-secondary) ;
 }
 
 .start_btn {
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 50px;
     background-color: var(--color-secondary, #5D5A88);
     color: #fff;
     font-size: 16px;
@@ -36,4 +38,12 @@
         height: auto;
         aspect-ratio: 8/5; /* Matches 800x500 canvas */
     }
+}
+
+.title_container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 800px;
 }
