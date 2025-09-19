@@ -107,7 +107,7 @@ export const getAllGameSessionsSchema = {
 // Get one session by ID
 export const getGameSessionByIdSchema = {
 	tags: ['Game Session'],
-	summary: 'Create one session by ID', 
+	summary: 'Get one session by ID', 
 	params: {
 		type: 'object',
 		properties: {

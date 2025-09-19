@@ -1,64 +1,58 @@
 // Add player to game session
 export const joinSessionSchema = {
-  	tags: ['Game Session'],
-	summary: 'Add player to game session', 
+	tags: ['Game Session'],
+	summary: 'Add player to game session',
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
+			sessionId: { type: 'integer' },
 		},
-		required: ['id'],
+		required: ['sessionId'],
 	},
 	body: {
 		type: 'object',
-		required: ['userId', 'side'],
+		required: ['side'],
+		oneOf: [
+			{ required: ['userId'] },
+			{ required: ['guestName'] }
+		],
 		properties: {
 			userId: { type: 'integer' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT']},
+			guestName: { type: 'string' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
 		additionalProperties: false,
 	},
 	response: {
 		201: {
 			type: 'object',
-			required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score', 'user'],
 			properties: {
 				id: { type: 'integer' },
 				sessionId: { type: 'integer' },
-				userId: { type: 'integer' },
+				userId: { type: ['integer', 'null'] },
 				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 				isReady: { type: 'boolean' },
 				score: { type: 'integer' },
+				displayName: { type: 'string' },
+				isGuest: { type: 'boolean' },
 				user: {
-					type: 'object',
-					required: ['id', 'username'],
-					properties: {
-						id: { type: 'integer' },
-						username: { type: 'string' },
-					},
-					additionalProperties: false,
+				type: ['object', 'null'],
+				properties: {
+					id: { type: 'integer' },
+					username: { type: 'string' },
 				},
-			additionalProperties: false,
-			},
-		},
-		400: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
+				additionalProperties: false,
+	},
 			},
 			additionalProperties: false,
 		},
-		409: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
-		},
-	}
-}
+		400: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		404: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		409: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		500: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+	},
+};
+
 
 // List players in session
 export const listPlayersSessionSchema = {
