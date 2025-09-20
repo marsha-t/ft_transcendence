@@ -1,6 +1,6 @@
 // routes/auth.js
 
-import { registerSchema, loginSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema, logoutSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 
@@ -72,6 +72,12 @@ async function authRoutes(app, options) {
         throw { code: 401, message: 'Invalid password' };
       }
 
+      // Update user status to online
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { status: "ONLINE" },
+      });
+
       // Success
       return reply.code(200).send({ message: 'Login successful' });
 
@@ -83,6 +89,43 @@ async function authRoutes(app, options) {
       }
 
       return reply.code(500).send({ error: 'Login failed' });
+    }
+  });
+
+  // Logout Route
+  app.post('/api/logout', { schema: logoutSchema }, async (request, reply) => {
+    try {
+      const { id } = request.body; // temporary: expects userId in body
+
+      // Find user in database
+      const user = await prisma.user.findUnique({
+        where: { id: Number(id) },
+      });
+
+      if (!user) {
+        throw { code: 404, message: 'User not found' };
+      }
+
+      // Check if user is already offline
+      if (user.status === "OFFLINE") {
+        throw { code: 400, message: 'User is already offline' };
+      }
+
+      // Update user status to offline
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { status: "OFFLINE" },
+      });
+
+      return reply.code(200).send({ message: 'Logout successful' });
+    } catch (err) {
+      request.log.error(err);
+
+      if (err.code && err.message) {
+        throw err;
+      }
+
+      throw { code: 500, message: 'Internal server error' };
     }
   });
 }
