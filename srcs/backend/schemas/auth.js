@@ -87,8 +87,20 @@ export const loginSchema = {
     type: 'object',
     required: ['username', 'password'],
     properties: {
-      username: { type: 'string', minLength: 3 },
-      password: { type: 'string', minLength: 1 }
+      username: {
+        type: 'string',
+        minLength: 3,
+        errorMessage: {
+          minLength: 'Username must be at least 3 characters'
+        }
+      },
+      password: {
+        type: 'string',
+        minLength: 1,
+        errorMessage: {
+          minLength: 'Password is required'
+        }
+      }
     }
   },
   response: {
