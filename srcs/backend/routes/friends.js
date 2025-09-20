@@ -1,22 +1,27 @@
 // routes/friends.js
 
 import prisma from '../prisma/prismaClient.js';
-import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequestSchema, removeFriendSchema, getFriendsSchema, getIncomingRequestsSchema, getOutgoingRequestsSchema } from '../schemas/friends.js';
+import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequestSchema, removeFriendSchema, getFriendsSchema, getIncomingRequestsSchema, getOutgoingRequestsSchema, searchFriendsSchema } from '../schemas/friends.js';
 
 async function friendsRoutes(app, options) {
 
-  // 1- Send a friend request
-  app.post('/api/friends/:id', { schema: sendFriendRequestSchema }, async (request, reply) => {
+  // 1- Send a friend request by username
+  app.post('/api/friends/send', { schema: sendFriendRequestSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;           // target user ID
-      const { currentUserId } = request.body;  // temporary: sender ID from body
+      const { username } = request.body;       // target user's username
+      const { currentUserId } = request.body;  // temporary: sender ID
 
-      if (Number(id) === currentUserId) {
+      // Check if user is trying to add themselves
+      const currentUser = await prisma.user.findUnique({ where: { id: Number(currentUserId) } });
+      if (!currentUser) {
+        throw { code: 404, message: 'Current user not found' };
+      }
+      if (currentUser.username === username) {
         throw { code: 400, message: 'You cannot send a friend request to yourself' };
       }
 
       // Check if target user exists
-      const targetUser = await prisma.user.findUnique({ where: { id: Number(id) } });
+      const targetUser = await prisma.user.findUnique({ where: { username } });
       if (!targetUser) {
         throw { code: 404, message: 'User not found' };
       }
@@ -25,8 +30,8 @@ async function friendsRoutes(app, options) {
       const existing = await prisma.friendRequest.findFirst({
         where: {
           OR: [
-            { senderId: currentUserId, receiverId: Number(id) },
-            { senderId: Number(id), receiverId: currentUserId }
+            { senderId: currentUserId, receiverId: targetUser.id },
+            { senderId: targetUser.id, receiverId: currentUserId }
           ]
         }
       });
@@ -39,7 +44,7 @@ async function friendsRoutes(app, options) {
       const requestRecord = await prisma.friendRequest.create({
         data: {
           senderId: currentUserId,
-          receiverId: Number(id),
+          receiverId: targetUser.id,
           status: 'PENDING'
         }
       });
@@ -256,6 +261,47 @@ async function friendsRoutes(app, options) {
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: 'Failed to fetch outgoing friend requests' });
+    }
+  });
+
+  // 8- Search users by username
+  app.get('/api/friends/search', { schema: searchFriendsSchema }, async (request, reply) => {
+    try {
+      const { query, currentUserId } = request.query; // search term and your user ID
+
+      if (!query || query.trim() === '') {
+        throw { code: 400, message: 'Search query is required' };
+      }
+
+      // Find users whose username contains the search query (case-insensitive as Prisma 6 .contain is "sensitive")
+      // Sort it exact matches first, then usernames starting with the query, then any other partial match in ascending order
+      const users = await prisma.$queryRaw`
+        SELECT id, username, avatar
+        FROM User
+        WHERE LOWER(username) LIKE LOWER(${`%${query}%`})
+          AND id != ${currentUserId}
+        ORDER BY
+          CASE
+            WHEN LOWER(username) = LOWER(${query}) THEN 1
+            WHEN LOWER(username) LIKE LOWER(${query} || '%') THEN 2
+            ELSE 3
+          END,
+          username ASC;
+      `;
+
+      if (users.length === 0) {
+      throw { code: 404, message: 'No users found matching your search' };
+    }
+
+      return reply.code(200).send(users);
+    } catch (err) {
+      request.log.error(err);
+
+      if (err.code && err.message) {
+        throw err;
+      }
+
+      throw { code: 500, message: 'Failed to search users' };
     }
   });
 }
