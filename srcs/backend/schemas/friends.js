@@ -47,7 +47,7 @@ export const acceptFriendRequestSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     },
   },
   response: {
@@ -76,7 +76,7 @@ export const rejectFriendRequestSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     },
   },
   response: {
@@ -92,7 +92,7 @@ export const removeFriendSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     }
   },
   params: {
@@ -115,7 +115,7 @@ export const getFriendsSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     }
   },
   response: {
@@ -139,7 +139,7 @@ export const getIncomingRequestsSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     }
   },
   response: {
@@ -170,7 +170,7 @@ export const getOutgoingRequestsSchema = {
     type: 'object',
     required: ['currentUserId'],
     properties: {
-      currentUserId: { type: 'integer' }
+      currentUserId: { type: 'integer', minimum: 1 }
     }
   },
   response: {

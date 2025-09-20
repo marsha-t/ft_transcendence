@@ -85,5 +85,4 @@ model GameSessionPlayer {
 
   @@unique([sessionId, userId])
   @@unique([sessionId, side])
-
 }

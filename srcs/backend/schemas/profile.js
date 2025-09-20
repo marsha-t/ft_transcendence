@@ -31,7 +31,12 @@ export const changeUsernameSchema = {
         type: 'string',
         minLength: 3,
         maxLength: 20,
-        pattern: '^[a-zA-Z0-9_]+$'
+        pattern: '^[a-zA-Z0-9_]+$',
+        errorMessage: {
+          minLength: 'Username must be at least 3 characters',
+          maxLength: 'Username must not exceed 20 characters',
+          pattern: 'Username can only contain letters, numbers, and underscores'
+        }
       },
     },
   },
@@ -69,11 +74,21 @@ export const changePasswordSchema = {
     type: 'object',
     required: ['oldPassword', 'newPassword'],
     properties: {
-      oldPassword: { type: 'string', minLength: 1 },
+      oldPassword: {
+        type: 'string',
+        minLength: 1,
+        errorMessage: {
+          minLength: 'Old password is required'
+        }
+      },
       newPassword: { 
         type: 'string',
         minLength: 12,
-        pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{12,}$'
+        pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{12,}$',
+        errorMessage: {
+          minLength: 'New password must be at least 12 characters',
+          pattern: 'New password must include uppercase, lowercase, number, and symbol'
+        }
       },
     },
   },
@@ -92,8 +107,22 @@ export const changeEmailSchema = {
     type: 'object',
     required: ['newEmail', 'password'],
     properties: {
-      newEmail: { type: 'string', format: 'email' },
-      password: { type: 'string', minLength: 1 },
+      newEmail: { 
+        type: 'string', 
+        format: 'email',
+        maxLength: 255,
+        errorMessage: {
+          format: 'Invalid email format',
+          maxLength: 'Email must not exceed 255 characters'
+        }
+      },
+      password: {
+        type: 'string',
+        minLength: 1,
+        errorMessage: {
+          minLength: 'Password is required'
+        }
+      },
     },
   },
   response: {
