@@ -2,21 +2,15 @@
 
 export const sendFriendRequestSchema = {
   tags: ['Friends'],
-  summary: 'Send a friend request to another user',
+  summary: 'Send a friend request to another user by username',
   body: {
     type: 'object',
-    required: ['currentUserId'], // temporary until JWT is added
+    required: ['currentUserId', 'username'], // temporary until JWT is added
     properties: {
-      currentUserId: { type: 'integer', minimum: 1 }
+      currentUserId: { type: 'integer', minimum: 1 },
+      username: { type: 'string', minLength: 3 }
     },
     additionalProperties: false
-  },
-  params: {
-    type: 'object',
-    required: ['id'],
-    properties: {
-      id: { type: 'integer', minimum: 1 } // target user ID
-    }
   },
   response: {
     201: {
@@ -34,7 +28,13 @@ export const sendFriendRequestSchema = {
         }
       }
     },
-    400: { type: 'object', properties: { error: { type: 'string' } } },
+    400: { 
+      type: 'object', 
+      properties: { 
+        error: { type: 'string' },
+        message: { type: 'string' }
+      }
+    },
     404: { type: 'object', properties: { error: { type: 'string' } } },
     409: { type: 'object', properties: { error: { type: 'string' } } }
   }
@@ -191,5 +191,46 @@ export const getOutgoingRequestsSchema = {
         }
       }
     }
+  }
+};
+
+export const searchFriendsSchema = {
+  tags: ['Friends'],
+  summary: 'Search for users by username',
+  querystring: {
+    type: 'object',
+    required: ['currentUserId', 'query'],
+    properties: {
+      currentUserId: { type: 'integer', minimum: 1 },
+      query: { 
+        type: 'string', 
+        minLength: 1,
+        errorMessage: {
+          minLength: 'Query must have at least 1 character'
+        }
+      }
+    },
+    additionalProperties: false
+  },
+  response: {
+    200: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          username: { type: 'string' },
+          avatar: { type: 'string' }
+        }
+      }
+    },
+    400: { 
+      type: 'object', 
+      properties: { 
+        error: { type: 'string' },
+        message: { type: 'string' }
+      }
+    },
+    404: { type: 'object', properties: { error: { type: 'string' } } }
   }
 };
