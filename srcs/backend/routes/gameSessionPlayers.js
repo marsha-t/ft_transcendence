@@ -1,10 +1,19 @@
 import prisma from '../prisma/prismaClient.js';
+import { createGameSession } from '../services/gameSessionService.js';
 import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
 import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
+import { getParentMatchIndex } from '../services/tournamentService.js';
 
 async function gameSessionPlayersRoutes(app, options) {
 
 	// Player joins a session
+	/*
+		Route allows for user as well as guest to be added to session
+		- Checks session exists and is of 'CREATED' status
+		- Checks that side is not already taken and session isn't already full
+		- Check that player in session doesn't already use the same displayname
+		- Add player to GameSessionPlayer table
+	*/
 	app.post('/api/game-sessions/:sessionId/players', { schema: joinSessionSchema }, async (request, reply) => {
 		const { sessionId } = request.params;
 		const { userId, guestName, side } = request.body;
@@ -71,6 +80,11 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// List players in session
+	/*
+		- Check session exists
+		- If no players found, rturns empty array 
+		- Otherwise, returns array of player objects
+	*/
 	app.get('/api/game-sessions/:sessionId/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
 		const { sessionId } = request.params;
 		
@@ -99,6 +113,19 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// Update player score
+	/* 
+		- Checks session exists
+		- Updates player's score
+		- If score reaches win condition (score = 5)
+			- Mark session as FINISHED and records winner in GameSession table (id = GameSessionPlayer.id)
+				- If session is from a tournament, 
+					- update winner in TournamentMatch table (id = TournamentPlayer.id)
+					- If session is last match in tournament, mark tournament as FINISHED
+					- Else
+						- place winner in next round's match (parent match)
+						- if parent match has two players, create new game session
+		- returns updated session 
+	*/
 	app.patch('/api/game-sessions/:sessionId/players/:side/score', { schema: updateScoreSchema }, async (request, reply) => {
 		const { sessionId, side } = request.params;
 		try {
@@ -106,10 +133,13 @@ async function gameSessionPlayersRoutes(app, options) {
 			const player = await prisma.gameSessionPlayer.update({
 				where: { sessionId_side: { sessionId: Number(sessionId), side } },
 				data: { score: { increment: 1 }, },
+				include: { tournamentPlayer: { select: { id: true } } },
 			});
 
+			let finishedGame = null;
+			
 			if (player.score >= 5) {
-				await prisma.gameSession.update({
+				finishedGame = await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
 						status: 'FINISHED',
@@ -117,13 +147,75 @@ async function gameSessionPlayersRoutes(app, options) {
 						winnerUserId: player.userId ?? null,
 						winnerPlayerId: player.id,
 					},
+					include: { players: true },
 				});
+			}
+
+			if (finishedGame) {
+				const match = await prisma.tournamentMatch.findFirst({
+					where: { gameSessionId: finishedGame.id },
+					include: { tournament: true },
+				});
+			
+
+				if (match) {
+					await prisma.tournamentMatch.update({
+						where: { id: match.id },
+						data: {
+							winnerUserId: player.userId ?? null, 
+							winnerPlayerId: player.tournamentPlayerId,
+						},
+					});
+					
+					if (match.matchIndex === match.tournament.bracketSize - 1) {
+						await prisma.tournament.update({
+							where: { id: match.tournamentId },
+							data: { status: 'FINISHED', endedAt: new Date() },
+						});
+					} else {
+						const parentIndex = getParentMatchIndex(match.matchIndex, match.tournament.bracketSize);
+						
+						const parentMatch = await prisma.tournamentMatch.findUnique({
+							where: { tournamentId_matchIndex: { tournamentId: match.tournamentId, matchIndex: parentIndex, } }
+						});
+		
+						if (parentMatch) {
+							let updateData = {};
+							if (!parentMatch.player1Id) {
+								updateData.player1Id = player.tournamentPlayerId;
+							} else if (!parentMatch.player2Id) {
+								updateData.player2Id = player.tournamentPlayerId;
+							}
+		
+							const updatedParent = await prisma.tournamentMatch.update({
+								where: { id: parentMatch.id },
+								data: updateData,
+							});
+		
+							if (updatedParent.player1Id && updatedParent.player2Id && !updatedParent.gameSessionId) {
+								const parentPlayers = await prisma.tournamentPlayer.findMany({
+									where: { id: { in: [updatedParent.player1Id, updatedParent.player2Id ] } },
+								});
+		
+								await createGameSession(prisma, {
+									tournamentId: match.tournamentId,
+									matchIndex: updatedParent.matchIndex,
+									players: [
+										{ userId: parentPlayers[0].userId, guestName: parentPlayers[0].isGuest ? parentPlayers[0].displayName : null, side: 'LEFT' },
+										{ userId: parentPlayers[1].userId, guestName: parentPlayers[1].isGuest ? parentPlayers[1].displayName : null, side: 'RIGHT' },
+									]
+								});
+							}
+						}
+					}
+				}
 			}
 
 			const updatedSession = await prisma.gameSession.findUnique({
 				where: { id: Number(sessionId) },
 				include: {players: true},
 			});
+
 			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);
@@ -132,6 +224,10 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// Delete player
+	/*
+		- Checks session and player exists
+		- Delete from GameSessionPlayer
+	*/
 	app.delete('/api/game-sessions/:sessionId/players/:side', { schema: deletePlayerSchema }, async (request, reply) => {
 		const { sessionId, side } = request.params;
 		try {
