@@ -6,5 +6,6 @@ srcs/backend/prisma/dev.db
 
 # Dependency directories
 srcs/backend/node_modules/
+srcs/frontend/node_modules/
 
 # Docker

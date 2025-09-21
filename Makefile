@@ -1,5 +1,5 @@
 # Variables
-CONTAINERS = backend frontend
+CONTAINERS = backend frontend nginx
 # VOLUMES = 
 
 all: build up 
@@ -20,6 +20,8 @@ re: clean all
 
 fclean:
 	- docker rm $(CONTAINERS) -f 
+# 	docker stop $(docker  ps/)
+	- docker rm $(docker container ls -q) -f 
 	- docker volume rm $(VOLUMES)
 	- yes | docker system prune -a --volumes
 
