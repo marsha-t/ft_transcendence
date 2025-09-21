@@ -1,6 +1,6 @@
-import { createGameSessionSchema, getAllGameSessionsSchema, getGameSessionByIdSchema, deleteGameSessionSchema, updateSessionStatusSchema } from '../schemas/gameSession.js';
+import { createGameSessionSchema, getAllGameSessionsSchema, getGameSessionByIdSchema, updateSessionStatusSchema } from '../schemas/gameSession.js';
 import prisma from '../prisma/prismaClient.js';
-import { isValidTransition, buildUpdateData, runChecks } from '../services/gameSessionService.js';
+import { createGameSession, isValidTransition, buildUpdateData, runChecks } from '../services/gameSessionService.js';
 
 async function gameSessionRoutes(app, options) {    
 
@@ -9,37 +9,40 @@ async function gameSessionRoutes(app, options) {
     const { userId, guestName, side } = request.body ?? {};
 
     try {
-      let finalDisplayName; 
-
-      if (userId) {
-        const user = await prisma.user.findUnique({
-          where: { id: Number(userId) },
-          select: { username: true},
-        });
-        if (!user) {
-          return reply.code(404).send({ error: 'User not found' });
-        }
-        finalDisplayName = user.username;
-      } else {
-        if (!guestName) {
-          return reply.code(400).send({ error: 'Guest must provide a guestName' });
-        }
-        finalDisplayName = guestName;
-      }
-
-      const session = await prisma.gameSession.create({
-        data: {
-          players: {
-            create: {
-              userId: userId ? Number(userId) : null,
-              isGuest: !userId,
-              displayName: finalDisplayName,
-              side,
-            }
-          }
-        },
-        include: { players: true },
+      const session = await createGameSession(prisma, {
+        players: [{ userId, guestName, side }]
       });
+      // let finalDisplayName; 
+
+      // if (userId) {
+      //   const user = await prisma.user.findUnique({
+      //     where: { id: Number(userId) },
+      //     select: { username: true},
+      //   });
+      //   if (!user) {
+      //     return reply.code(404).send({ error: 'User not found' });
+      //   }
+      //   finalDisplayName = user.username;
+      // } else {
+      //   if (!guestName) {
+      //     return reply.code(400).send({ error: 'Guest must provide a guestName' });
+      //   }
+      //   finalDisplayName = guestName;
+      // }
+
+      // const session = await prisma.gameSession.create({
+      //   data: {
+      //     players: {
+      //       create: {
+      //         userId: userId ? Number(userId) : null,
+      //         isGuest: !userId,
+      //         displayName: finalDisplayName,
+      //         side,
+      //       }
+      //     }
+      //   },
+      //   include: { players: true },
+      // });
 
       return reply.code(201).send(session);
     }
@@ -83,6 +86,14 @@ async function gameSessionRoutes(app, options) {
   });
 
   // Update game session status
+  /*
+    - Check session exists
+    - Check that status transition is allowed (via isValidTransition())
+    - Run additional checks specific to transition (via runChecks())
+    - Update timestamps where appropriate
+    - Update GameSession
+    - Return updated session object 
+  */
   app.patch('/api/game-sessions/:sessionId/status', {schema: updateSessionStatusSchema }, async (request, reply) => {
     const { sessionId } = request.params;
     const { status: nextStatus } = request.body; 

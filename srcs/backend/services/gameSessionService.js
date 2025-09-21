@@ -1,6 +1,82 @@
+// Create a game with any number of players
+export async function createGameSession(prisma, { players, tournamentId, matchIndex }) {
+  if (!players || players.length === 0) {
+    throw { code: 400, message: 'At least one player is required to create a session' };
+  }
+
+  const playerData = [];
+  for (const p of players) {
+    let displayName;
+    if (p.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: Number(p.userId) },
+        select: { username: true },
+      });
+      if (!user) {
+        throw { code: 404, message: `User not found for id ${p.userId}` };
+      }
+      displayName = user.username;
+    } else {
+      if (!p.guestName?.trim()) {
+        throw { code: 400, message: 'Guest must provide a guestName' };
+      }
+      displayName = p.guestName;
+    }
+
+    let tournamentPlayerId = null;
+    if (tournamentId) {
+      const tp = await prisma.tournamentPlayer.findFirst({
+        where: {
+          tournamentId: Number(tournamentId),
+          displayName: displayName,
+        },
+      });
+      if (!tp) {
+        throw { code: 404, message: `Tournament player not found for ${displayName}` };
+      }
+      tournamentPlayerId = tp.id;
+    }
+
+    playerData.push({
+      userId: p.userId ? Number(p.userId) : null,
+      isGuest: !p.userId,
+      displayName,
+      side: p.side,
+      tournamentPlayerId,
+    });
+  }
+
+  const session = await prisma.gameSession.create({
+    data: {
+      tournamentId: tournamentId ?? null,
+      players: {
+        create: playerData,
+      },
+    },
+    include: { players: true },
+  });
+
+  if (tournamentId && matchIndex) {
+    await prisma.tournamentMatch.updateMany({
+      where: { tournamentId: Number(tournamentId), matchIndex: Number(matchIndex) },
+      data: { gameSessionId: session.id },
+    });
+  }
+
+  return session;
+}
+
+/*
+	- Only these transitions are allowed:
+		- CREATED → PLAYING | ABORTED
+		- PLAYING → PAUSED | ABORTED
+		- PAUSED  → PLAYING | ABORTED
+		- FINISHED, ABORTED → no further transitions
+	Returns true if transition is valid, false otherwise
+*/
 export function isValidTransition(fromStatus, toStatus) {
 	const allowedTransitions = {
-		CREATED: new Set(['PLAYING', 'ABORTED']),
+		  CREATED: new Set(['PLAYING', 'ABORTED']),
     	PLAYING: new Set(['PAUSED', 'ABORTED']),
     	PAUSED: new Set(['PLAYING', 'ABORTED']),
     	FINISHED: new Set([]),
@@ -15,6 +91,12 @@ export function isValidTransition(fromStatus, toStatus) {
   	return allowedNextStates.has(toStatus);
 }
 
+/*
+	Builds update data for Prisma based on next status:
+		- Sets 'status' to nextStatus
+		- Adds 'startedAt' timestamp if transitioning to PLAYING (and not already set)
+		- Adds 'endedAt' timestamp if transitioning to ABORTED
+*/
 export function buildUpdateData(session, nextStatus) {
 	let data = { status: nextStatus };
 	if (nextStatus === 'PLAYING' && !session.startedAt) {
@@ -26,6 +108,11 @@ export function buildUpdateData(session, nextStatus) {
 	return data;
 }
 
+/*
+	- Not allowed to manually set FINISHED (must be via scoring)
+	- For PLAYING: requires exactly 2 players, one LEFT and one RIGHT
+	- For PAUSED: requires session to have started (startedAt not null)
+*/
 export function runChecks(session, nextStatus) {
 	if (nextStatus === 'FINISHED') {
 		const err = new Error('FINISHED status must be set via scoring, not manually');

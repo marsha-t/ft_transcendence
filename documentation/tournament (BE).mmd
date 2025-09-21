@@ -9,16 +9,19 @@ sequenceDiagram
 	FE->>BE: POST /api/tournaments 
     BE->>FE: 201 Tournament created { id }
 
+    %% Add player 2
     FE->>U: Prompt for guest username or login credentials for 2nd player
 	U->>FE: Provides login credentials
 	FE->>BE: POST /api/tournaments/:id/players { username, password }
 	BE->>FE: 200 Player added
     
+    %% Add player 3
 	FE->>U: Prompt for guest username or login credentials for 3rd player
 	U->>FE: Provides login credentials
 	FE->>BE: POST /api/tournaments/:id/players { username, password }
 	BE->>FE: 200 Player added
 	
+    %% Add player 4
 	FE->>U: Prompt for guest username or login credentials for 4th player
 	U->>FE: Provides guest username
 	FE->>BE: POST /api/tournaments/:id/players { guestName }
@@ -27,44 +30,43 @@ sequenceDiagram
 	FE->>U: Show lineup of matches with 'Start Tournament' button
 	U->>FE: Click 'Start Tournament'
 	FE->>BE: PATCH /api/tournaments/:id { status: "started" }
-    BE->>FE: 200 Tournament started
+    BE->>FE: 200 Tournament started { matches with gameSessionIds for round 1}
 	
-    %% First game session
-	FE->>BE: POST /api/game-sessions { tournamentId, matchIndex: 1 }
-    BE->>FE: 201 GameSession created { id }
-	FE->>U: Show Match 1 Players with 'Ready' button
-	U->>FE: Click 'Ready'
+    %% Match 1 
+    FE->>BE: GET /api/tournaments/:id/next-match
+	BE->>FE: 200 { matchIndex: 1, gameSessionId }
+    FE->>U: Show Match 1 Players with 'Ready' button
+    U->>FE: Click 'Ready'
 	FE->>BE: PATCH /api/game-sessions/:id/status { status: "STARTED" }
 	BE->>FE: 200 Game started
-	
-	FE->>U: Starts Game
 	U<<-->>FE: (Gameplay)
+
+	%% Scoring & advancing
 	U->>FE: Player scores (and reaches winning score)
     FE->>BE: PATCH /api/game-sessions/:id/players/:side/score
 	BE->>FE: 200 (User's score incremented by 1) { gameStatus = FINISHED, winnerUserId }
-	FE->>U: End of game with button for 'Next Match'
+	FE->>U: End of game with button for 'Next'
 
-
-    %% Second game session
-	U->>FE: Click 'Next Match'
-	FE->>BE: POST /api/game-sessions { tournamentId, matchIndex: 2 }
-    BE->>FE: 201 GameSession created { id }
+    %% Match 2
+	U->>FE: Click 'Next'
+	FE->>BE: GET /api/tournaments/:id/next-match
+	BE->>FE: 200 { matchIndex: 2, gameSessionId }
 	FE->>U: Show Match 2 Players with 'Ready' button
 	U<<-->>FE: (Gameplay)
-	FE->>U: End of game with button for 'Next Match'
+	FE->>U: End of game with button for 'Next'
 	
-	
-	%% Final game session
-	U->>FE: Click 'Next Match'
-	FE->>BE: POST /api/game-sessions { tournamentId, matchIndex: 3 }
-    BE->>FE: 201 GameSession created { id }
+	%% Match 3
+	U->>FE: Click 'Next'
+	FE->>BE: GET /api/tournaments/:id/next-match
+	BE->>FE: 200 { matchIndex: 3, gameSessionId }
 	FE->>U: Show Match 3 Players with 'Ready' button
 	U<<-->>FE: (Gameplay)
-	FE->>U: End of game with button for 'Show Results'
+	FE->>U: End of game with button for 'Next'
 	
-	U->>FE: Clicks 'Show Results'
-	FE->>BE: GET /api/tournaments/:id/results
-    BE->>FE: 200 Results { bracket, stats, champion }
+	%% Final match ends
+	U->>FE: Clicks 'Next'
+	FE->>BE: GET /api/tournaments/:id/next-match
+	BE->>FE: 200 { nextMatch: null, status: "FINISHED", results }
 	FE->>U: Shows Tournament Results (Winner, Bracket, Stats)
 	FE->>U: Display 'Play Again'
 
