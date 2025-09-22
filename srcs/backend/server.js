@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import cors from '@fastify/cors';
+import AjvErrors from 'ajv-errors';
 
 // needed imports for the avatar
 import path from 'path';
@@ -16,9 +17,20 @@ import profileRoutes from './routes/profile.js';
 import friendsRoutes from './routes/friends.js';
 import gameSessionRoutes from './routes/gameSession.js' 
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
+import tournamentRoutes from './routes/tournament.js';
+
+// import to download openapi.json
 import fs from 'fs';
 
-const app = Fastify({ logger: true });
+
+const app = Fastify({ logger: true, 
+  ajv: {
+    customOptions: {
+      allErrors: true
+    },
+    plugins: [AjvErrors] 
+  }
+});
 
 await app.register(cors, {
   origin: '*',
@@ -57,19 +69,16 @@ app.register(fastifyStatic, {
 
 app.register(fastifyMultipart);
 
-// Test route
-app.get('/api/ping', async (request, reply) => {
-  return { msg: 'pong' };
-});
-
 // Register our routes in the server
 app.register(authRoutes);
 app.register(profileRoutes);
 app.register(friendsRoutes);
 app.register(gameSessionRoutes);
 app.register(gameSessionPlayersRoutes);
+app.register(tournamentRoutes);
 
-// after app.register(...) and before app.listen
+// To save openapi.json file (needs to be after registering routes and before app.listen)
+// To save, uncomment the code
 await app.ready(); // wait until all routes are registered
 // fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
 
