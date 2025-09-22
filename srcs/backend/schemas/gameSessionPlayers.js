@@ -1,64 +1,58 @@
 // Add player to game session
 export const joinSessionSchema = {
-  	tags: ['Game Session'],
-	summary: 'Add player to game session', 
+	tags: ['Game Session'],
+	summary: 'Add player to game session',
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
+			sessionId: { type: 'integer' },
 		},
-		required: ['id'],
+		required: ['sessionId'],
 	},
 	body: {
 		type: 'object',
-		required: ['userId', 'side'],
+		required: ['side'],
+		oneOf: [
+			{ required: ['userId'] },
+			{ required: ['guestName'] }
+		],
 		properties: {
 			userId: { type: 'integer' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT']},
+			guestName: { type: 'string' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
 		additionalProperties: false,
 	},
 	response: {
 		201: {
 			type: 'object',
-			required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score', 'user'],
 			properties: {
 				id: { type: 'integer' },
 				sessionId: { type: 'integer' },
-				userId: { type: 'integer' },
+				userId: { type: ['integer', 'null'] },
 				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 				isReady: { type: 'boolean' },
 				score: { type: 'integer' },
+				displayName: { type: 'string' },
+				isGuest: { type: 'boolean' },
 				user: {
-					type: 'object',
-					required: ['id', 'username'],
-					properties: {
-						id: { type: 'integer' },
-						username: { type: 'string' },
-					},
-					additionalProperties: false,
+				type: ['object', 'null'],
+				properties: {
+					id: { type: 'integer' },
+					username: { type: 'string' },
 				},
-			additionalProperties: false,
-			},
-		},
-		400: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
+				additionalProperties: false,
+	},
 			},
 			additionalProperties: false,
 		},
-		409: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
-		},
-	}
-}
+		400: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		404: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		409: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+		500: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
+	},
+};
+
 
 // List players in session
 export const listPlayersSessionSchema = {
@@ -67,9 +61,9 @@ export const listPlayersSessionSchema = {
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
+			sessionId: { type: 'integer' },
 		},
-		required: ['id'],
+		required: ['sessionId'],
 	},
 	response: {
 		200: {
@@ -78,13 +72,12 @@ export const listPlayersSessionSchema = {
 				type: 'object',
 				properties: {
 					playerId: { type: 'integer' },
-					userId: { type: 'integer' },
-					username: { type: 'string' },
+					displayName: { type: 'string' },
 					side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-					isReady: { type: 'boolean' },
+					isGuest: { type: 'boolean' },
 					score: { type: 'integer' },
 				},
-			required: ['playerId', 'userId', 'username', 'side', 'isReady', 'score'],
+			required: ['playerId', 'displayName', 'side', 'isGuest', 'score'],
 			},
 		},
 		400: {
@@ -106,61 +99,17 @@ export const listPlayersSessionSchema = {
 	}
 }
 
-// Update player as ready
-export const readyPlayerSchema = {
-	tags: ['Game Session'],
-	summary: 'Update player as ready', 
-  	params: {
-		type: 'object',
-		properties: {
-		id: { type: 'integer' },
-		userId: { type: 'integer' },
-		},
-		required: ['id', 'userId'],
-	},
-	response: {
-		200: {
-			type: 'object',
-			properties: {
-				id: { type: 'integer' },
-				sessionId: { type: 'integer' },
-				userId: { type: 'integer' },
-				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-				isReady: { type: 'boolean' },
-				score: { type: 'integer' },
-			},
-			required: ['id', 'sessionId', 'userId', 'side', 'isReady', 'score'],
-		},
-		400: {
-				type: 'object', 
-				properties: {
-					error: { type: 'string' },
-					message : { type: 'string' }
-				},
-				additionalProperties: false,
-			},
-		404: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
-		},	
-	},
-};
-
 // Update player score
 export const updateScoreSchema = {
 	tags: ['Game Session'],
-	summary: 'Update player score', 
+	summary: 'Update player score',
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
-			userId: { type: 'integer' },
+			sessionId: { type: 'integer' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['id', 'userId'],
+		required: ['sessionId', 'side'],
 	},
 	response: {
 		200: {
@@ -168,25 +117,26 @@ export const updateScoreSchema = {
 			properties: {
 				id: { type: 'integer' },
 				sessionId: { type: 'integer' },
-				userId: { type: 'integer' },
+				userId: { type: ['integer', 'null'] },
+				displayName: { type: 'string' },
 				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-				isReady: { type: 'boolean' },
+				isGuest: { type: 'boolean' },
 				score: { type: 'integer' },
 			},
 		},
 		400: {
-			type: 'object', 
+			type: 'object',
 			properties: {
 				error: { type: 'string' },
-				message : { type: 'string' }
+				message: { type: 'string' },
 			},
 			additionalProperties: false,
 		},
 		404: {
-			type: 'object', 
+			type: 'object',
 			properties: {
 				error: { type: 'string' },
-				message : { type: 'string' }
+				message: { type: 'string' },
 			},
 			additionalProperties: false,
 		},
@@ -200,10 +150,10 @@ export const deletePlayerSchema = {
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer'},
-			playerId: { type: 'integer' },
+			sessionId: { type: 'integer'},
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['id', 'playerId'],
+		required: ['sessionId', 'side'],
   	},
 	response: {
 		200: {

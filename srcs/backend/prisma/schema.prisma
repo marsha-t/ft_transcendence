@@ -14,7 +14,6 @@ datasource db {
 // ---------------------
 enum GameStatus {
   CREATED
-  READY
   PLAYING
   PAUSED
   FINISHED
@@ -24,6 +23,13 @@ enum GameStatus {
 enum PlayerSide {
   LEFT
   RIGHT
+}
+
+enum TournamentStatus {
+  CREATED
+  STARTED
+  FINISHED
+  ABORTED
 }
 
 // ---------------------
@@ -39,8 +45,12 @@ model User {
   // relations
   sentRequests     FriendRequest[]  @relation("sentRequests")
   receivedRequests FriendRequest[]  @relation("receivedRequests")
-  gameSessionsWon GameSession[] @relation("GameWinner")
+  gameSessionsWon GameSession[] @relation("GameUserWinner")
   gameSessions    GameSessionPlayer[]
+  tournamentPlayers TournamentPlayer[]
+  tournamentMatchesWon TournamentMatch[]
+
+
 }
 
 model FriendRequest {
@@ -56,34 +66,93 @@ model FriendRequest {
   @@unique([senderId, receiverId])
 }
 
-
 model GameSession {
   id     Int         @id @default(autoincrement())
   status        GameStatus  @default(CREATED)
-  maxScore      Int         @default(5)
   createdAt     DateTime    @default(now())
   startedAt     DateTime?
   endedAt       DateTime?
-  winnerUserId  Int?
+  winnerUserId   Int? // stores id of User (may not be present even if game is finished - if winner is guest)
+  winnerPlayerId Int? @unique // stores id of GameSessionPlayer (always present if game is finished)
 
   // relations
-  winner        User?        @relation("GameWinner", fields: [winnerUserId], references: [id])
+  winnerUser    User?               @relation("GameUserWinner", fields: [winnerUserId], references: [id])
+  winnerPlayer  GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
   players       GameSessionPlayer[]
+  tournamentMatch TournamentMatch?
+
 }
 
 model GameSessionPlayer {
-  id            Int         @id @default(autoincrement())
-  sessionId     Int
-  userId        Int
-  side          PlayerSide
-  isReady       Boolean     @default(false)
-  score         Int         @default(0)
+  id                  Int         @id @default(autoincrement())
+  sessionId           Int
+  userId              Int?
+  tournamentPlayerId  Int?        
+  isGuest             Boolean     @default(false)
+  displayName         String
+  side                PlayerSide
+  score               Int         @default(0)
   
   // relations
-  session GameSession @relation(fields: [sessionId], references: [id])
-  user    User        @relation(fields: [userId], references: [id])
+  session           GameSession       @relation(fields: [sessionId], references: [id])
+  user              User?             @relation(fields: [userId], references: [id])
+  winnerOfGame      GameSession?      @relation("GamePlayerWinner")
+  tournamentPlayer  TournamentPlayer? @relation(fields: [tournamentPlayerId], references: [id])
 
-  @@unique([sessionId, userId])
   @@unique([sessionId, side])
+  @@unique([sessionId, displayName])
+}
 
+
+model Tournament {
+  id              Int               @id @default(autoincrement())
+  status          TournamentStatus  @default(CREATED)
+  createdAt       DateTime          @default(now())
+  startedAt       DateTime?
+  endedAt         DateTime?
+  numberOfPlayers Int
+  bracketSize     Int
+
+  players         TournamentPlayer[]
+  matches         TournamentMatch[]
+}
+
+model TournamentPlayer {
+  id            Int         @id @default(autoincrement())
+  tournamentId  Int
+  userId        Int?
+  isGuest       Boolean     @default(false)
+  displayName   String
+
+  // relations
+  tournament Tournament @relation(fields: [tournamentId], references: [id])
+  user       User?      @relation(fields: [userId], references: [id])
+  gameSessionPlayers GameSessionPlayer[]
+  matchesWon TournamentMatch[] @relation("MatchWinner")
+  matchesAsPlayer1 TournamentMatch[] @relation("MatchPlayer1")
+  matchesAsPlayer2 TournamentMatch[] @relation("MatchPlayer2")
+
+  @@unique([tournamentId, displayName])
+}
+
+
+model TournamentMatch {
+  id             Int         @id @default(autoincrement())
+  tournamentId   Int
+  matchIndex     Int
+  gameSessionId  Int? @unique
+  winnerUserId   Int?
+  winnerPlayerId Int?
+  player1Id      Int?
+  player2Id      Int?
+
+  // relations
+  tournament     Tournament        @relation(fields: [tournamentId], references: [id])
+  gameSession    GameSession?      @relation(fields: [gameSessionId], references: [id])
+  winnerUser     User?             @relation(fields: [winnerUserId], references: [id])
+  winnerPlayer   TournamentPlayer? @relation("MatchWinner", fields: [winnerPlayerId], references: [id])
+  player1        TournamentPlayer? @relation("MatchPlayer1", fields: [player1Id], references: [id])
+  player2        TournamentPlayer? @relation("MatchPlayer2", fields: [player2Id], references: [id])
+
+  @@unique([tournamentId, matchIndex])
 }
