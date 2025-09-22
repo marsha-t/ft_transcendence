@@ -19,4 +19,3 @@ RUN npx prisma generate
 
 # Apply migrations at container startup
 CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
-# CMD ["sh", "-c", "npx prisma migrate deploy && npm run dev"]

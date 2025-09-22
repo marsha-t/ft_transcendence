@@ -7,9 +7,10 @@ services:
       dockerfile: Dockerfile
     container_name: backend
     ports:
-      - 5001:5001
+      - 5001:5001 
+      - 5555:5555 # remove when submitting - this is used for prisma studio
     env_file:
-      - ./backend/.env
+      - ./.env
     networks:
       - web
     volumes:
@@ -27,7 +28,7 @@ services:
   #     - 5001:5001
   #     - 5555:5555
   #   env_file:
-  #     - ./backend/.env
+  #     - .env
   #   networks:
   #     - web
   #   volumes:
@@ -72,4 +73,5 @@ networks:
 
 volumes:
   db-data:
+    name: db-data
   avatars-data:

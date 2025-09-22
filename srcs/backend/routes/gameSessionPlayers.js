@@ -1,50 +1,71 @@
 import prisma from '../prisma/prismaClient.js';
+import { createGameSession } from '../services/gameSessionService.js';
 import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
-import { joinSessionSchema, listPlayersSessionSchema, readyPlayerSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
+import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
+import { getParentMatchIndex } from '../services/tournamentService.js';
 
 async function gameSessionPlayersRoutes(app, options) {
 
 	// Player joins a session
-	app.post('/api/game-sessions/:id/players', { schema: joinSessionSchema }, async (request, reply) => {
-		const { id } = request.params;
-		const { userId, side } = request.body;
+	/*
+		Route allows for user as well as guest to be added to session
+		- Checks session exists and is of 'CREATED' status
+		- Checks that side is not already taken and session isn't already full
+		- Check that player in session doesn't already use the same displayname
+		- Add player to GameSessionPlayer table
+	*/
+	app.post('/api/game-sessions/:sessionId/players', { schema: joinSessionSchema }, async (request, reply) => {
+		const { sessionId } = request.params;
+		const { userId, guestName, side } = request.body;
 
 		try {
 			const session = await prisma.gameSession.findUnique({
-				where: { id: Number(id) },
+				where: { id: Number(sessionId) },
 				include: { players: true },
 			});
 			if (!session) {
 				throw { code: 404, message: 'Game session not found' };
 			}
-			if (![ 'CREATED', 'READY' ].includes(session.status)) {
+		    if (session.status !== 'CREATED') {
 				throw { code: 400, message: 'Session cannot accept new players' };
 			}
 			if (session.players.some(p => p.side === side)) {
 				throw { code: 409, message: 'Side already taken' };
 			}
-			if (session.players.some(p => p.userId === Number(userId))) {
-				throw { code: 409, message: 'Player is already in session' };
-			}
 			if (session.players.length >= 2) {
 				throw { code: 409, message: 'Session already full' };
+			}
+			
+			let displayName;
+			if (userId) {
+				const user = await prisma.user.findUnique({
+					where: { id: Number(userId) },
+					select: { username: true },
+				});
+				if (!user) {
+					throw { code: 404, message: 'User not found' };
+				}
+				displayName = user.username;
+			} else if (guestName) {
+				displayName = guestName;
+			} else {
+				throw { code: 400, message: 'Guest must provide a guestName' };
+			}
+			
+			if (session.players.some(p => p.displayName === displayName)) {
+				throw { code: 409, message: 'Display name is already taken in this session' };
 			}
 
 			const newPlayer = await prisma.gameSessionPlayer.create({
 				data: {
-					sessionId: Number(id),
-					userId: Number(userId),
-					side: side,
+					sessionId: Number(sessionId),
+					userId: userId ? Number(userId) : null,
+					isGuest: !userId,
+					displayName,
+					side,
 				},
 				include: { user: { select: { id: true, username: true } }, },
 			});
-
-			if (session.players.length === 1 && session.status === 'CREATED') {
-				await prisma.gameSession.update({
-				where: { id: Number(id) },
-				data: { status: 'READY' },
-				});
-			}
 
 			return reply.code(201).send(newPlayer);
 		} catch (err) {
@@ -59,21 +80,18 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// List players in session
-	app.get('/api/game-sessions/:id/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
-		const { id } = request.params;
+	/*
+		- Check session exists
+		- If no players found, rturns empty array 
+		- Otherwise, returns array of player objects
+	*/
+	app.get('/api/game-sessions/:sessionId/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
+		const { sessionId } = request.params;
 		
 		try {
-			await checkSession(prisma, id);
+			await checkSession(prisma, sessionId);
 			const players = await prisma.gameSessionPlayer.findMany({
-				where: { sessionId: Number(id) }, 
-				include: { 
-					user: {
-						select : {
-							id: true, 
-							username: true,
-						},
-					}, 
-				},
+				where: { sessionId: Number(sessionId) }, 
 				orderBy: { side: 'asc' },
 			});
 			if (players.length === 0) {
@@ -81,10 +99,9 @@ async function gameSessionPlayersRoutes(app, options) {
 			}
 			const formatted = players.map((p) => ({
 				playerId: p.id,
-				userId: p.user.id,
-				username: p.user.username,
+				displayName: p.displayName,
 				side: p.side,
-				isReady: p.isReady,
+				isGuest: p.isGuest,
 				score: p.score,
 			}));
 
@@ -95,52 +112,111 @@ async function gameSessionPlayersRoutes(app, options) {
 		}
 	});
 
-	// Update player as ready
-	app.patch('/api/game-sessions/:id/players/:userId/ready', { schema: readyPlayerSchema} , async (request, reply) => {
-		const { id, userId } = request.params;
-
-		try {
-			const session = await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
-			const updatedPlayer = await prisma.gameSessionPlayer.update({ 
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) } }, 
-				data: { isReady: true },
-			});
-			if (session.status !== 'READY') {
-				await prisma.gameSession.update({
-					where: { id: Number(id)},
-					data: { status: 'READY' },
-				});
-			}
-			return reply.send(updatedPlayer);
-		} catch (err) {
-			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player as ready' });
-		}
-	});
-
 	// Update player score
-	app.patch('/api/game-sessions/:id/players/:userId/score', { schema: updateScoreSchema }, async (request, reply) => {
-		const { id, userId } = request.params;
+	/* 
+		- Checks session exists
+		- Updates player's score
+		- If score reaches win condition (score = 5)
+			- Mark session as FINISHED and records winner in GameSession table (id = GameSessionPlayer.id)
+				- If session is from a tournament, 
+					- update winner in TournamentMatch table (id = TournamentPlayer.id)
+					- If session is last match in tournament, mark tournament as FINISHED
+					- Else
+						- place winner in next round's match (parent match)
+						- if parent match has two players, create new game session
+		- returns updated session 
+	*/
+	app.patch('/api/game-sessions/:sessionId/players/:side/score', { schema: updateScoreSchema }, async (request, reply) => {
+		const { sessionId, side } = request.params;
 		try {
-			const session = await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
-			const updatedPlayer = await prisma.gameSessionPlayer.update({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId)}, },
+			const session = await checkSession(prisma, sessionId);
+			const player = await prisma.gameSessionPlayer.update({
+				where: { sessionId_side: { sessionId: Number(sessionId), side } },
 				data: { score: { increment: 1 }, },
+				include: { tournamentPlayer: { select: { id: true } } },
 			});
 
-			if (updatedPlayer.score >= session.maxScore) {
-				await prisma.gameSession.update({
+			let finishedGame = null;
+			
+			if (player.score >= 5) {
+				finishedGame = await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
 						status: 'FINISHED',
 						endedAt: new Date(),
-						winnerUserId: updatedPlayer.userId,
+						winnerUserId: player.userId ?? null,
+						winnerPlayerId: player.id,
 					},
+					include: { players: true },
 				});
 			}
-			return reply.send(updatedPlayer);
+
+			if (finishedGame) {
+				const match = await prisma.tournamentMatch.findFirst({
+					where: { gameSessionId: finishedGame.id },
+					include: { tournament: true },
+				});
+			
+
+				if (match) {
+					await prisma.tournamentMatch.update({
+						where: { id: match.id },
+						data: {
+							winnerUserId: player.userId ?? null, 
+							winnerPlayerId: player.tournamentPlayerId,
+						},
+					});
+					
+					if (match.matchIndex === match.tournament.bracketSize - 1) {
+						await prisma.tournament.update({
+							where: { id: match.tournamentId },
+							data: { status: 'FINISHED', endedAt: new Date() },
+						});
+					} else {
+						const parentIndex = getParentMatchIndex(match.matchIndex, match.tournament.bracketSize);
+						
+						const parentMatch = await prisma.tournamentMatch.findUnique({
+							where: { tournamentId_matchIndex: { tournamentId: match.tournamentId, matchIndex: parentIndex, } }
+						});
+		
+						if (parentMatch) {
+							let updateData = {};
+							if (!parentMatch.player1Id) {
+								updateData.player1Id = player.tournamentPlayerId;
+							} else if (!parentMatch.player2Id) {
+								updateData.player2Id = player.tournamentPlayerId;
+							}
+		
+							const updatedParent = await prisma.tournamentMatch.update({
+								where: { id: parentMatch.id },
+								data: updateData,
+							});
+		
+							if (updatedParent.player1Id && updatedParent.player2Id && !updatedParent.gameSessionId) {
+								const parentPlayers = await prisma.tournamentPlayer.findMany({
+									where: { id: { in: [updatedParent.player1Id, updatedParent.player2Id ] } },
+								});
+		
+								await createGameSession(prisma, {
+									tournamentId: match.tournamentId,
+									matchIndex: updatedParent.matchIndex,
+									players: [
+										{ userId: parentPlayers[0].userId, guestName: parentPlayers[0].isGuest ? parentPlayers[0].displayName : null, side: 'LEFT' },
+										{ userId: parentPlayers[1].userId, guestName: parentPlayers[1].isGuest ? parentPlayers[1].displayName : null, side: 'RIGHT' },
+									]
+								});
+							}
+						}
+					}
+				}
+			}
+
+			const updatedSession = await prisma.gameSession.findUnique({
+				where: { id: Number(sessionId) },
+				include: {players: true},
+			});
+
+			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);
 		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player score' });
@@ -148,13 +224,17 @@ async function gameSessionPlayersRoutes(app, options) {
 	});
 
 	// Delete player
-	app.delete('/api/game-sessions/:id/players/:userId', { schema: deletePlayerSchema }, async (request, reply) => {
-		const { id, userId } = request.params;
+	/*
+		- Checks session and player exists
+		- Delete from GameSessionPlayer
+	*/
+	app.delete('/api/game-sessions/:sessionId/players/:side', { schema: deletePlayerSchema }, async (request, reply) => {
+		const { sessionId, side } = request.params;
 		try {
-			await checkSession(prisma, id);
-			await checkPlayer(prisma, id, userId);
+			await checkSession(prisma, sessionId);
+			await checkPlayer(prisma, sessionId, side);
 			await prisma.gameSessionPlayer.delete({
-				where: { sessionId_userId: { sessionId: Number(id), userId: Number(userId) }, },
+				where: { sessionId_side: { sessionId: Number(id), side }, },
 			});
       return reply.code(200).send({ message: 'Game session deleted' });
 		} catch (err) {
