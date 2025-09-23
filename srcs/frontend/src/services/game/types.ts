@@ -1,0 +1,40 @@
+export type PlayerSide = "LEFT" | "RIGHT";
+
+export type GameStatus =
+    | "CREATED"    // Initial state when session is created
+    | "PLAYING"    // Game is active
+    | "PAUSED"     // Game is temporarily paused
+    | "FINISHED"   // Game completed normally
+    | "ABORTED";   // Game was terminated early;
+
+export interface Player{
+    userId?: string;
+    guestName?: string;
+    side: PlayerSide;
+    score: number;
+    displayName: string;
+}
+
+export interface GameSession{
+    sessionId: string;
+    status: GameStatus;
+    players: Player[];
+    winner?: PlayerSide;
+    createdAt?: string;
+    startedAt?: string;
+    endedAt?: string;
+}
+
+export interface CreateGameSessionRequest{
+    userId: number;
+    side: PlayerSide;
+}
+
+export interface AddPlayerRequest{
+    guestName: string;
+    side: PlayerSide;
+}
+
+export interface UpdateStatusRequest{
+    status: GameStatus;
+}
