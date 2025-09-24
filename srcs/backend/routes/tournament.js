@@ -277,10 +277,9 @@ async function tournamentRoutes(app, options) {
 				nextMatch: null,
 				results: {
 					champion: finalMatch?.winnerPlayerId 
-					? { displayName: finalMatch.player1?.id === finalMatch.winnerPlayerId 
+					? (finalMatch.player1?.id === finalMatch.winnerPlayerId 
 						? finalMatch.player1.displayName
-						: finalMatch.player2.displayName,
-					}
+						: finalMatch.player2.displayName)
 					: null,
 					bracket: tournament.matches.map(m => ({
 					matchIndex: m.matchIndex,
