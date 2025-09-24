@@ -4,6 +4,7 @@ import { Creators } from './pages/Creators.js';
 import { Game } from './pages/Game.js';
 import { Main } from './pages/Main.js';
 import { Profile } from './pages/Profile.js';
+import { Tournament } from './pages/Tournament.js';
 
 export class Router {
 
@@ -37,6 +38,14 @@ export class Router {
           const profile = new Profile();
           container.appendChild(profile.render());
           break;
+        case '/tournament':
+          console.log("here");
+          const tournament = new Tournament();
+          console.log("done2");
+          container.appendChild(tournament.render());
+          console.log("done");
+          break;
+
         default:
           container.textContent = '404 - Page Not Found';
       }
