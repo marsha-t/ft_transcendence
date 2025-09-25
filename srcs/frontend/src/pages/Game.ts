@@ -51,12 +51,12 @@ export class Game implements IComponent {
         
         const VS = document.createElement('h1');
         VS.textContent = 'VS';
-        userLeft.className = 'VS';
+        VS.className = 'VS';
         
         const userRight = document.createElement('h2');
         userRight.textContent = 'User 2';
-        userLeft.className = 'user';
-        userLeft.id = 'right-player';
+        userRight.className = 'user';
+        userRight.id = 'right-player';
 
         titleContainer.appendChild(userLeft);
         titleContainer.appendChild(VS);
@@ -174,7 +174,7 @@ export class Game implements IComponent {
 
     private async initializeGame():Promise<void>{
         try{
-            const userId = 12 // For test case only, later i need to replace with actual id from backend;
+            const userId = 1 // For test case only, later i need to replace with actual id from backend;
 
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
 
