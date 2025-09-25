@@ -13,26 +13,28 @@ export class Profile implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
-    avatar.textContent = "AV"; // Replace with initials or image
-
+    // avatar.textContent = "AV"; // Replace with initials or image
+    // Placeholder for image/icon, class will handle the design from CSS
+    // Replace with actual image URL or SVG if available
     const name = document.createElement("h2");
     name.className = "profile-name";
-    name.textContent = "username";
+    // name.textContent = "Hi Test!";
 
     const status = document.createElement("p");
     status.className = "profile-status online"; // or offline
     status.textContent = "● Online";
 
-    const editBtn = document.createElement("button");
-    editBtn.className = "edit-btn";
-    editBtn.textContent = "Edit Profile";
+    const settingsBtn = document.createElement("button");
+    settingsBtn.className = "settings-btn";
+    settingsBtn.innerHTML = "&#9881;"; // Gear icon using HTML entity
 
     card.appendChild(avatar);
     card.appendChild(name);
     card.appendChild(status);
-    card.appendChild(editBtn);
+    card.appendChild(settingsBtn);
 
     // Stats
+  
     const stats = document.createElement("div");
     stats.className = "stats";
 

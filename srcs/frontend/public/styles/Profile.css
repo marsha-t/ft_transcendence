@@ -1,119 +1,225 @@
 .profile-page {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: "Inter", Arial, sans-serif;
-    color: #333;
-  }
-  
-  /* Profile Card */
-  .profile-card {
-    text-align: center;
-    background: #f2f1fa;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
-  
-  .profile-avatar {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 1rem auto;
-    border-radius: 50%;
-    /* background: #6d28d9; */
-    background: var (--color-secondary);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 1.8rem;
-  }
-  
-  .profile-name {
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-  
-  .profile-status {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  .profile-status.online { color: #22c55e; }
-  .profile-status.offline { color: #9ca3af; }
-  
-  .edit-btn {
-    margin-top: 1rem;
-    padding: 0.5rem 1.2rem;
-    border: none;
-    border-radius: 6px;
-    background: #e5e7eb;
-    cursor: pointer;
-  }
-  .edit-btn:hover { background: #d1d5db; }
-  
-  /* Stats */
-  .stats {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-around;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 1rem;
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-  
-  .stat-number { font-size: 1.5rem; font-weight: bold; }
-  .stat-wins { color: #4f46e5; }
-  .stat-losses { color: #ef4444; }
-  .stat-rank { color: #22c55e; }
-  
-  /* Friends */
-  .friends {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 1rem;
-    margin-bottom: 2rem;
-  }
-  .friends-header {
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .add-friend-btn {
-    background: #6366f1; color: white; border: none;
-    border-radius: 6px; padding: 0.4rem 0.8rem;
-  }
-  .add-friend-btn:hover { background: #4f46e5; }
-  .friend-item {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.6rem 0; border-bottom: 1px solid #e5e7eb;
-  }
-  .friend-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: #d1d5db; display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: bold; margin-right: 0.6rem;
-  }
-  .friend-status.online { color: #22c55e; }
-  .friend-status.offline { color: #9ca3af; }
-  
-  /* Match History */
-  .match-history {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    padding: 1rem;
-  }
-  .match-history table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-  .match-history th {
-    text-align: left; padding: 0.5rem 0.3rem; color: #6b7280; font-weight: 500;
-  }
-  .match-history td {
-    padding: 0.5rem 0.3rem; border-top: 1px solid #e5e7eb;
-  }
-  .match-result.win { color: #22c55e; font-weight: 600; }
-  .match-result.loss { color: #ef4444; font-weight: 600; }
-  
+  width: 1280px;
+  height: 1041px;
+
+  opacity: 1;
+  background-color: #FFFFFF;
+}
+
+/* Profile Card */
+.profile-card {
+  width: 1084px;
+  height: 207px;
+  position: absolute; /* since you have top/left */
+  top: 161px;
+  left: 84px;
+
+  border-radius: 30px;
+  opacity: 1;
+  background-color: #F2F1FA;
+
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.16);
+}
+
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  position: absolute; /* since top/left are specified */
+  top: 28px;
+  left: 28px;
+
+  opacity: 0.98;
+
+  border: 2px solid #5D5A88;
+  border-radius: 50%;
+}
+
+profile-name {
+  width: 114px;
+  height: 36px;
+  position: absolute; /* since top/left are specified */
+  top: 225px;
+  left: 316px;
+
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;       /* bold */
+  font-style: normal;     /* CSS doesn’t allow 'Bold' here */
+  font-size: 34px;
+  line-height: 36px;
+  letter-spacing: 0;
+  text-align: center;
+
+  /* background-color: var(--Labels---Vibrant---Controls-Primary, #404040); */
+  /* color: #fff; ensures text is readable on dark background */
+  /* opacity: 1; optional, default is 1 */
+
+  /* display: flex;           centers text inside */
+  /* align-items: center; */
+  /* justify-content: center; */
+}
+
+.profile-status {
+  /* width: 53px;
+  height: 36px; */
+  position: absolute;   /* needed because you gave left without top */
+  top: 111px;
+  left: 256px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;     /* Light */
+  font-style: normal;   /* "Light" is weight, not style */
+  font-size: 18px;
+  line-height: 36px;    /* vertically aligns text in the 36px box */
+  letter-spacing: 0;
+  text-align: center;
+
+  /* background: var(--Labels---Vibrant---Controls-Primary, #404040); */
+  /* color: #404040;          added for readability */
+  opacity: 1;
+}
+
+.profile-status.online::before {
+  /* content: "●"; */
+  color: #4caf50;
+  margin-right: 5px;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 47px;
+  color: #5D5A88;
+  cursor: pointer;
+  width: 47px;
+  height: 47px;
+  position: absolute; /* because top/left are specified */
+  top: 28px;
+  left: 1009px;
+
+  opacity: 1; 
+}
+
+.settings-btn:hover {
+  color: #4a406e;
+}
+
+/* Stats */
+.stats {
+  width: 524px;
+  height: 207px;
+  position: absolute; /* needed because top/left are used */
+  top: 396px;
+  left: 84px;
+
+  border-radius: 30px;
+  background-color: #F2F1FA;
+  opacity: 1;
+
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
+}
+
+
+.stat-number { font-size: 1.5rem; font-weight: bold; 
+  width: 412px;
+  height: 69px;
+  position: absolute; /* because top/left are specified */
+  top: 79px;
+  left: 56px;
+
+  opacity: 1; /* default, optional */
+
+  display: flex;   /* needed for gap */
+  gap: 83px;}
+.stat-wins {
+  width: 82px;
+  height: 69px;
+
+  border-radius: 10px;
+  opacity: 1;
+  color: #4f46e5;
+}
+.stat-losses { color: #ef4444; }
+.stat-rank { color: #22c55e; }
+
+/* Friends */
+.friends {
+  width: 524px;
+  height: 207px;
+  position: absolute; /* required for top/left */
+  top: 396px;
+  left: 640px;
+
+  border-radius: 30px;
+  background-color: #F2F1FA;
+  opacity: 1;
+
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
+}
+.friends-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.add-friend-btn {
+  width: 130px;
+  height: 34px;
+  position: absolute; /* since top/left are given */
+  top: 10px;
+  left: 354px;
+
+  border-radius: 30px;
+  background-color: #5D5A88;
+  opacity: 1;
+
+  padding: 18px 24px; /* shorthand for top/bottom + left/right */
+  display: flex;      /* needed if you want gap to work */
+  gap: 6px;
+  color: white; border: none;
+}
+.add-friend-btn:hover { background: #4f46e5; }
+.friend-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 0; border-bottom: 1px solid #e5e7eb;
+}
+.friend-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #d1d5db; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: bold; margin-right: 0.6rem;
+}
+.friend-status.online { color: #22c55e; }
+.friend-status.offline { color: #9ca3af; }
+
+/* Match History */
+.match-history {
+  width: 1072px;
+  height: 361px;
+  position: absolute; /* needed because top/left are given */
+  top: 631px;
+  left: 92px;
+
+  border-radius: 30px;
+  background-color: #F2F1FA;
+  opacity: 1;
+
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
+}
+.match-history table {
+  width: 1014px;
+  height: 282px;
+  position: absolute; /* required because top/left are given */
+  top: 70px;
+  left: 20px;
+
+  opacity: 1; 
+}
+.match-history th {
+  text-align: left; padding: 0.5rem 0.3rem; color: #6b7280; font-weight: 500;
+}
+.match-history td {
+  padding: 0.5rem 0.3rem; border-top: 1px solid #e5e7eb;
+}
+.match-result.win {
+  width: 82px;
+height: 69px;
+
+border-radius: 10px;
+opacity: 1;
+ color: #22c55e; font-weight: 600; }
+.match-result.loss { color: #ef4444; font-weight: 600; }
