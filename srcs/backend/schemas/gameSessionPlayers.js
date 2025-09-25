@@ -115,14 +115,31 @@ export const updateScoreSchema = {
 		200: {
 			type: 'object',
 			properties: {
-				id: { type: 'integer' },
-				sessionId: { type: 'integer' },
-				userId: { type: ['integer', 'null'] },
-				displayName: { type: 'string' },
-				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-				isGuest: { type: 'boolean' },
-				score: { type: 'integer' },
+				sessionId: { type: 'string' },                // stringified ID
+				status: { type: 'string', enum: ['PLAYING', 'PAUSED', 'FINISHED', 'ABORTED'] },
+				createdAt: { type: ['string', 'null'], format: 'date-time' },
+				startedAt: { type: ['string', 'null'], format: 'date-time' },
+				endedAt: { type: ['string', 'null'], format: 'date-time' },
+				winner: { type: ['string', 'null'], enum: ['LEFT', 'RIGHT', null] },
+				winnerName: { type: ['string', 'null'] },
+				players: {
+					type: 'array',
+					items: {
+					type: 'object',
+					properties: {
+						userId: { type: ['string', 'null'] },
+						guestName: { type: ['string', 'null'] },
+						displayName: { type: 'string' },
+						side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+						score: { type: 'integer' },
+					},
+					required: ['displayName', 'side', 'score'],
+					additionalProperties: false,
+					},
+				},
 			},
+			required: ['sessionId', 'status', 'players'],
+			additionalProperties: false,
 		},
 		400: {
 			type: 'object',

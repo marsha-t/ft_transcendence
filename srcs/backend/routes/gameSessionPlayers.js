@@ -216,6 +216,34 @@ async function gameSessionPlayersRoutes(app, options) {
 				include: {players: true},
 			});
 
+			if (!updatedSession) {
+				return reply.code(404).send({ error: "Game session not found" });
+			 }
+			  
+			 const response = {
+					sessionId: String(updatedSession.id),
+					status: updatedSession.status,
+					createdAt: updatedSession.createdAt,
+					startedAt: updatedSession.startedAt,
+					endedAt: updatedSession.endedAt,
+					players: updatedSession.players.map(p => ({
+						userId: p.userId ? String(p.userId) : undefined,
+						guestName: p.isGuest ? p.displayName : undefined,
+						displayName: p.displayName,
+						side: p.side,
+						score: p.score,
+					})),
+					winner: updatedSession.winnerPlayerId
+						? updatedSession.players.find(p => p.id === updatedSession.winnerPlayerId)?.side
+						: undefined,
+					winnerName: updatedSession.winnerPlayerId
+						? updatedSession.players.find(p => p.id === updatedSession.winnerPlayerId)?.displayName
+						: undefined,
+			  };
+			  
+			  
+			  return reply.send(response);
+			  
 			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);

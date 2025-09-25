@@ -20,6 +20,7 @@ export interface GameSession{
     status: GameStatus;
     players: Player[];
     winner?: PlayerSide;
+    winnerName?: string;
     createdAt?: string;
     startedAt?: string;
     endedAt?: string;

@@ -83,16 +83,18 @@ export class GameService{
         }
     }
     // 4- uptade player score
-    async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<void>{
+    async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<GameSession>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players${scoringSide}/score`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players/${scoringSide}/score`, {
                method: 'PATCH',
-               headers: {
-                    'Content-Type': 'application/json',
-               } 
+            //    headers: {
+                    // 'Content-Type': 'application/json',
+            //    } 
             });
             if(!response.ok)
                 throw new Error(`Failed to update player score: ${response.status}`);
+            const data = await response.json();
+            return data;
         }catch(error){
             console.log("Error updating player score"), console.error();
                 throw error
@@ -132,9 +134,9 @@ export class GameService{
         return this.updateGameStatus(sessionId, "ABORTED");
     }
     // 9- Finish game
-    async finishGame(sessionId: string): Promise<GameSession> {
-        return this.updateGameStatus(sessionId, "FINISHED");
-    }
+    // async finishGame(sessionId: string): Promise<GameSession> {
+    //     return this.updateGameStatus(sessionId, "FINISHED");
+    // }
     // 10- Transform API response to match our GameSession interface
     private transformApiResponseToGameSession(apiResponse: any){
         return {

@@ -179,7 +179,7 @@ export class Game implements IComponent {
 
             //Ask backend to create a new game session
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
-
+            console.log(`current Session: ${this.currentSession}`);
             //show the user one the right
             const rightPlayerElement = document.getElementById('right-player');
             if(rightPlayerElement && this.currentSession?.players[0])
@@ -426,9 +426,12 @@ export class Game implements IComponent {
 
         try{
             if(this.currentSession){
-                await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
-                this.currentSession = await this.gameService.getGameSession(this.currentSession.sessionId);
+                this.currentSession = await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
+                if (this.currentSession.status === "FINISHED") {
+                    this.endGame();
+                }
             }
+
         }catch(error){
             console.error('Failed to update score:', error);
         }
@@ -436,36 +439,14 @@ export class Game implements IComponent {
         this.ball.x = this.canvas.width / 2;
         this.ball.y = this.canvas.height / 2;
         this.ball.dx = -this.ball.dx; // Change direction
-        
-        // Check for game end (example: first to 5 points wins)
-        this.checkGameEnd();
     }
 
-    private async checkGameEnd(): Promise<void> {
-        if (!this.currentSession) return;
-
-        const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
-        const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
-
-        const winningScore = 5; // Set winning score or get from the backend
-
-        if (leftPlayer && leftPlayer.score >= winningScore) {
-            await this.endGame("LEFT");
-        } else if (rightPlayer && rightPlayer.score >= winningScore) {
-            await this.endGame("RIGHT");
-        }
-    }
-
-    private async endGame(winner: PlayerSide): Promise<void> {
+    private async endGame(): Promise<void> {
         try {
             if (this.currentSession) {
-                await this.gameService.finishGame(this.currentSession.sessionId);
                 this.stopGameLoop();
                 
-                const winnerName = winner === "LEFT" ? 
-                    this.currentSession.players.find(p => p.side === "LEFT")?.displayName :
-                    this.currentSession.players.find(p => p.side === "RIGHT")?.displayName;
-                
+                const winnerName = this.currentSession.winnerName ?? "Unknown";
                 alert(`Game Over! ${winnerName} wins!`);
                 this.resetGame();
             }
