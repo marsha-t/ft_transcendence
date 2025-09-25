@@ -12,6 +12,8 @@ export class Router {
     const renderRoute = () => {
       container.innerHTML = ''; // Clear container
       const path = window.location.pathname;
+      // console.log("Path:", window.location.pathname);
+
       switch (path) {
         case '/register':
           const register = new Register();
