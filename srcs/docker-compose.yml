@@ -45,7 +45,8 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - 3000:3000
+      # - 3000:3000
+      - 443:443
     depends_on:
       - backend
     networks:
@@ -55,17 +56,17 @@ services:
     #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
-  nginx:
-    build:
-      context: ../
-      dockerfile: srcs/nginx/Dockerfile
-    container_name: nginx
-    ports:
-      - "443:443"
-    depends_on:
-      - backend
-      - frontend
-    restart: always
+  # nginx:
+  #   build:
+  #     context: ../
+  #     dockerfile: srcs/nginx/Dockerfile
+  #   container_name: nginx
+  #   ports:
+  #     - "443:443"
+  #   depends_on:
+  #     - backend
+  #     - frontend
+  #   restart: always
 
 networks: 
   web:

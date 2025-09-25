@@ -1,6 +1,6 @@
 import { resourceLimits } from "worker_threads";
 import { IComponent } from "../components/IComponent";
-import { apiServices } from "../services/ApiServices";
+import { apiServices } from "../services/ApiServices.js";
 import { Player } from "../services/tournament/types";
 
 export class Tournament implements IComponent {
