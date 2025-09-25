@@ -10,6 +10,7 @@ export class GameService{
     // 1- Create a new game session
     async createGameSession(userId: number, side: PlayerSide): Promise<GameSession>{
         try{
+            //Send POST request to backend with user + side
             const response = await fetch(`${this.baseUrl}/game-sessions`, {
                 method: 'POST',
                 headers: {
@@ -24,9 +25,9 @@ export class GameService{
             if(!response.ok)
                 throw new Error(`Failed to create game session: ${response.status}`);
 
-            //get data from backend
+            //get data from backend and  Parse JSON response
             const data = await response.json();
-            //transform data into game session
+            //transform data into game session, Convert raw API data → GameSession object
             return this.transformApiResponseToGameSession(data);
         }catch(error){
             console.error('Error creating game session:', error);
@@ -37,7 +38,7 @@ export class GameService{
     // 2- add a guest player to an existing session
     async addGuestPlayer(sessionId: string, guestName: string, side: PlayerSide): Promise<void>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/player`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -81,7 +82,19 @@ export class GameService{
     }
     // 4- uptade player score
     async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<void>{
-        
+        try{
+            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players${scoringSide}/score`, {
+               method: 'PATCH',
+               headers: {
+                    'Content-Type': 'application/json',
+               } 
+            });
+            if(!response.ok)
+                throw new Error(`Failed to update player score: ${response.status}`);
+        }catch(error){
+            console.log("Error updating player score"), console.error();
+                throw error
+        }
     }
     // 5- Get game session by ID
     async getGameSession(sessionId: string): Promise<GameSession> {
@@ -121,7 +134,7 @@ export class GameService{
         return this.updateGameStatus(sessionId, "FINISHED");
     }
     // 10- Transform API response to match our GameSession interface
-    async transformApiResponseToGameSession(apiResponse: any){
+    private transformApiResponseToGameSession(apiResponse: any){
         return {
             sessionId: apiResponse.id.toString(),
             status: apiResponse.status as GameStatus,
@@ -134,8 +147,25 @@ export class GameService{
             })),
             winner: apiResponse.winnerPlayerId ? 
                 apiResponse.players.find((p: any) => p.id === apiResponse.winnerPlayerId)?.side : 
-                undefined
+                undefined,
+            createdAt: apiResponse.createdAt,
+            startedAt: apiResponse.startedAt,
+            endedAt: apiResponse.endedAt
         };
     }
     // helper fun to handel API errors
+    private handleApiError(response: Response, context: string): never {
+        switch (response.status) {
+            case 400:
+                throw new Error(`${context}: Invalid request data`);
+            case 404:
+                throw new Error(`${context}: Resource not found`);
+            case 409:
+                throw new Error(`${context}: Conflict (e.g., side already taken)`);
+            case 500:
+                throw new Error(`${context}: Server error`);
+            default:
+                throw new Error(`${context}: Unexpected error (${response.status})`);
+        }
+    }
 }
