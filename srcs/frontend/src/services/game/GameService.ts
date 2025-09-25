@@ -22,8 +22,10 @@ export class GameService{
                 })
             });
 
-            if(!response.ok)
+            if(!response.ok) {
+                console.log(`Failed to create game session: ${response.status}`);
                 throw new Error(`Failed to create game session: ${response.status}`);
+            }
 
             //get data from backend and  Parse JSON response
             const data = await response.json();

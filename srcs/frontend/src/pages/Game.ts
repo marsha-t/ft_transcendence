@@ -175,7 +175,7 @@ export class Game implements IComponent {
 
     private async initializeGame():Promise<void>{
         try{
-            const userId = 12 // For test case only, later i need to replace with actual id from backend;
+            const userId = 1 // For test case only, later i need to replace with actual id from backend;
 
             //Ask backend to create a new game session
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");

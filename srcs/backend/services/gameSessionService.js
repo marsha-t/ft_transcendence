@@ -24,7 +24,10 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
     }
 
     let tournamentPlayerId = null;
+    console.log("tournamentId in service:", tournamentId, typeof tournamentId);
+
     if (tournamentId) {
+    // if (typeof tournamentId === 'number' && !isNaN(tournamentId)) {
       const tp = await prisma.tournamentPlayer.findFirst({
         where: {
           tournamentId: Number(tournamentId),
@@ -48,7 +51,7 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
 
   const session = await prisma.gameSession.create({
     data: {
-      tournamentId: tournamentId ?? null,
+      // tournamentId: tournamentId ?? null,
       players: {
         create: playerData,
       },
