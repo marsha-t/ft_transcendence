@@ -205,6 +205,7 @@ export class Game implements IComponent {
         }
         try{
             await this.gameService.addGuestPlayer(this.currentSession.sessionId, guestName, "LEFT");
+            
 
             //ui
             const leftPlayerElement = document.getElementById('left-player');
@@ -214,12 +215,12 @@ export class Game implements IComponent {
 
             //hide setup
             const setupSection = document.getElementById('setup-section');
-            const startBtn = document.getElementById('start-btn');
+            // const startBtn = document.getElementById('start-btn');
 
             if(setupSection)
                 setupSection.style.display = 'none';
-            if(startBtn)
-                startBtn.style.display = 'block';
+            // if(startBtn)
+            //     startBtn.style.display = 'block';
 
             guestInput.value = '';
         }catch(error){
