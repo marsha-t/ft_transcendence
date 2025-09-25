@@ -15,11 +15,9 @@ async function gameSessionRoutes(app, options) {
       });
 
       return reply.code(201).send(session);
-    }
-    catch (err) {
+    } catch (err) {
       request.log.error(err);
       return reply.code(err.code || 500).send({ error: err.message || "Failed to create game session" });
-
     }
   });
 
