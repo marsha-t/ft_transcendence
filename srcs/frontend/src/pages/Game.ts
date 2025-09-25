@@ -223,9 +223,14 @@ export class Game implements IComponent {
             //     startBtn.style.display = 'block';
 
             guestInput.value = '';
-        }catch(error){
+        } catch (error:any) {
             console.log("Error adding guest player", error);
-            alert("Error adding guest player");
+             if (error.status === 409) {
+                // Custom handling for duplicate display name
+                alert(error.message);
+            } else {
+                alert("Error adding guest player");
+            }
         }
     }
 

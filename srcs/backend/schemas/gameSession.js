@@ -180,7 +180,7 @@ export const updateSessionStatusSchema = {
 		type: 'object',
 		required: ['sessionId'],
 		properties: {
-		id: { type: 'integer' },
+			sessionId: { type: 'integer' },
 		},
 	},
 	body: {
