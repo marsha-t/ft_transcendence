@@ -51,10 +51,24 @@ export class GameService{
                 })
             });
 
-            if(!response.ok)
-                throw new Error(`Error to add guest player: ${response.status}`);
+            if(!response.ok) {
+                let message = `Error to add guest player: ${response.status}`;
+                if (response.status === 409) {
+                    try {
+                        const data = await response.json();
+                        if (data?.error) {
+                            message = data.error;
+                        }
+                    } catch { // keep generic message
+                    }
+                }
+                // Create error object with extra status field
+                const err = new Error(message) as Error & { status?: number }; 
+                err.status = response.status;
+                throw err;
+            }
         }catch(error){
-            console.log('error adding guest player:', error);
+            console.log('Error adding guest player:', error);
             throw error;
         }
     }
