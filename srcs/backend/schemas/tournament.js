@@ -1,3 +1,4 @@
+
 // Create new tournament
 export const createTournamentSchema = {
 	tags: ['Tournament'],
@@ -14,7 +15,7 @@ export const createTournamentSchema = {
 			type: 'object',
 			properties: {
 				id: { type: 'integer' },
-				status: { type: 'string' },
+				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
         		createdAt: { type: 'string', format: 'date-time' },
       		}
 		}
@@ -79,7 +80,7 @@ export const updateTournamentStatusSchema = {
 			type: 'object',
 			properties: {
 				id: { type: 'integer' },
-				status: { type: 'string' },
+				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
 				startedAt: { type: ['string', 'null'], format: 'date-time' },
 				endedAt: { type: ['string', 'null'], format: 'date-time' }
 			}
@@ -132,9 +133,7 @@ export const getNextMatchSchema = {
 				results: {
 					type: ['object', 'null'],
 					properties: { 
-						champion: { anyOf: [ { type: 'object', properties: { displayName: { type: 'string' }, }, required: ['displayName'], },
-												{ type: 'null' }, ],
-						},
+						champion: { type: ['string', 'null'] },
 						bracket: {
 							type: 'array',
 							items: {
