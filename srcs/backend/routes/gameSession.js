@@ -7,48 +7,18 @@ async function gameSessionRoutes(app, options) {
   // Create game session with first player
   app.post('/api/game-sessions', {schema: createGameSessionSchema }, async (request, reply) => {
     const { userId, guestName, side } = request.body ?? {};
+    request.log.info({ body: request.body }, 'Incoming createGameSession request');
 
     try {
       const session = await createGameSession(prisma, {
-        players: [{ userId, guestName, side }]
+        players: [{ userId, guestName, side }], tournamentId: null, matchIndex: null
       });
-      // let finalDisplayName; 
-
-      // if (userId) {
-      //   const user = await prisma.user.findUnique({
-      //     where: { id: Number(userId) },
-      //     select: { username: true},
-      //   });
-      //   if (!user) {
-      //     return reply.code(404).send({ error: 'User not found' });
-      //   }
-      //   finalDisplayName = user.username;
-      // } else {
-      //   if (!guestName) {
-      //     return reply.code(400).send({ error: 'Guest must provide a guestName' });
-      //   }
-      //   finalDisplayName = guestName;
-      // }
-
-      // const session = await prisma.gameSession.create({
-      //   data: {
-      //     players: {
-      //       create: {
-      //         userId: userId ? Number(userId) : null,
-      //         isGuest: !userId,
-      //         displayName: finalDisplayName,
-      //         side,
-      //       }
-      //     }
-      //   },
-      //   include: { players: true },
-      // });
 
       return reply.code(201).send(session);
     }
     catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to create game session' });
+      return reply.code(err.code || 500 ).send({ error: err.message });
     }
   });
 
