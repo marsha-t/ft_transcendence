@@ -1,12 +1,12 @@
 export const matchHistorySchema = {
 	tags: ['Dashboard'],
 	summary: 'Return match history for given user',
-	params: {
+	headers: {
 		type: 'object',
-		required: ['id'],
 		properties: {
-			id: { type: 'integer' }
-		}
+			'x-current-user-id': { type: 'integer' },
+		},
+		required: ['x-current-user-id'],
 	},
 	response: {
 		200: {

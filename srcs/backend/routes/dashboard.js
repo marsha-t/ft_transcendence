@@ -8,8 +8,9 @@ async function dashboardRoutes(app, options) {
 		- Check that user exists
 		- Get matches from GameSessionPlayer and organise it into a match history
 	*/
-	app.get('/api/stats/users/:id/match-history', { schema: matchHistorySchema }, async(request, reply) => {
-		const { id } = request.params;
+	app.get('/api/stats/users/match-history', { schema: matchHistorySchema }, async(request, reply) => {
+		const userIdHeader = request.headers['x-current-user-id'];
+  		const id = userIdHeader ? Number(userIdHeader) : null;
 
 		try {
 			const user = await prisma.user.findUnique({ where: { id: Number(id) } });
