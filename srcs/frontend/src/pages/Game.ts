@@ -51,12 +51,12 @@ export class Game implements IComponent {
         
         const VS = document.createElement('h1');
         VS.textContent = 'VS';
-        userLeft.className = 'VS';
+        VS.className = 'VS';
         
         const userRight = document.createElement('h2');
         userRight.textContent = 'User 2';
-        userLeft.className = 'user';
-        userLeft.id = 'right-player';
+        userRight.className = 'user';
+        userRight.id = 'right-player';
 
         titleContainer.appendChild(userLeft);
         titleContainer.appendChild(VS);
@@ -98,6 +98,7 @@ export class Game implements IComponent {
         startBtn.className = 'start_btn';
         startBtn.textContent = 'Start Game';
         startBtn.id = 'start-btn';
+        // startBtn.style.display = 'none';
         startBtn.addEventListener('click', () => this.toggleGame());
 
         const pauseBtn = document.createElement('button');
@@ -108,9 +109,9 @@ export class Game implements IComponent {
         pauseBtn.style.display = 'none';
 
         const quitBtn = document.createElement('button');
-        quitBtn.className = 'pause_btn';
-        quitBtn.textContent = 'Quite Game';
-        quitBtn.id = 'pause-btn';
+        quitBtn.className = 'quit_btn';
+        quitBtn.textContent = 'Quit Game';
+        quitBtn.id = 'quit-btn';
         quitBtn.addEventListener('click', () => this.quitGame());
         quitBtn.style.display = 'none';
 
@@ -176,6 +177,7 @@ export class Game implements IComponent {
         try{
             const userId = 12 // For test case only, later i need to replace with actual id from backend;
 
+            //Ask backend to create a new game session
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
 
             //show the user one the right
@@ -185,7 +187,7 @@ export class Game implements IComponent {
 
         }catch(error){
             console.error('Failed to initialize game:', error);
-            alert('Failed to initialize game. Please try again.');
+            alert('Failed to initialize game from: initializeGame()');
         }
     }
 
@@ -228,7 +230,7 @@ export class Game implements IComponent {
 
     private async toggleGame(): Promise<void> {
         if (!this.currentSession) {
-            alert('Game session not initialized');
+            alert('Game session not initialized, toggleGame()');
             return;
         }
 
@@ -373,10 +375,22 @@ export class Game implements IComponent {
         const setupSection = document.getElementById('setup-section');
         const startBtn = document.getElementById('start-btn');
         const pauseBtn = document.getElementById('pause-btn');
+        const quitBtn = document.getElementById('quit-btn');
         
         if (setupSection) setupSection.style.display = 'block';
         if (startBtn) startBtn.style.display = 'none';
         if (pauseBtn) pauseBtn.style.display = 'none';
+        if (quitBtn) quitBtn.style.display = 'block';
+
+        // Reset player names
+        const leftPlayerElement = document.getElementById('left-player');
+        const rightPlayerElement = document.getElementById('right-player');
+        if (leftPlayerElement) leftPlayerElement.textContent = 'Player 1';
+        if (rightPlayerElement) rightPlayerElement.textContent = 'Player 2';
+        
+        // Reset session
+        this.currentSession = null;
+        this.initializeGame();
     }
 
     private updateGame(): void {
@@ -408,13 +422,54 @@ export class Game implements IComponent {
     }
 
     private async scorePoint(scoringSide: PlayerSide): Promise<void>{
+
         try{
             if(this.currentSession){
                 await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
                 this.currentSession = await this.gameService.getGameSession(this.currentSession.sessionId);
             }
         }catch(error){
+            console.error('Failed to update score:', error);
+        }
+        // Reset ball position
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.dx = -this.ball.dx; // Change direction
+        
+        // Check for game end (example: first to 5 points wins)
+        this.checkGameEnd();
+    }
 
+    private async checkGameEnd(): Promise<void> {
+        if (!this.currentSession) return;
+
+        const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
+        const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
+
+        const winningScore = 5; // Set winning score or get from the backend
+
+        if (leftPlayer && leftPlayer.score >= winningScore) {
+            await this.endGame("LEFT");
+        } else if (rightPlayer && rightPlayer.score >= winningScore) {
+            await this.endGame("RIGHT");
+        }
+    }
+
+    private async endGame(winner: PlayerSide): Promise<void> {
+        try {
+            if (this.currentSession) {
+                await this.gameService.finishGame(this.currentSession.sessionId);
+                this.stopGameLoop();
+                
+                const winnerName = winner === "LEFT" ? 
+                    this.currentSession.players.find(p => p.side === "LEFT")?.displayName :
+                    this.currentSession.players.find(p => p.side === "RIGHT")?.displayName;
+                
+                alert(`Game Over! ${winnerName} wins!`);
+                this.resetGame();
+            }
+        } catch (error) {
+            console.error('Failed to finish game:', error);
         }
     }
 
@@ -438,8 +493,13 @@ export class Game implements IComponent {
     }
 
     private async quitGame(): Promise<void> {
-        if (!this.currentSession) return;
-
+        if (!this.currentSession) 
+            return;
+        
+        const confirmed = confirm('Are you sure you want to quit the game?');
+        
+        if (!confirmed)
+            return;
         try {
             await this.gameService.abortGame(this.currentSession.sessionId);
             this.stopGameLoop();
