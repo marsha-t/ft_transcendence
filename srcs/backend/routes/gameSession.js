@@ -67,7 +67,6 @@ async function gameSessionRoutes(app, options) {
   app.patch('/api/game-sessions/:sessionId/status', {schema: updateSessionStatusSchema }, async (request, reply) => {
     const { sessionId } = request.params;
     const { status: nextStatus } = request.body; 
-    console.log(request.body, session.status)
     try {
       const session = await prisma.gameSession.findUnique({
         where: { id: Number(sessionId) },
@@ -81,7 +80,7 @@ async function gameSessionRoutes(app, options) {
       }
       runChecks(session, nextStatus);
       const data = buildUpdateData(session, nextStatus);
-      const updated = await prisma.gameSession.update({ where: { id: Number(sessionId) }, data});
+      const updated = await prisma.gameSession.update({ where: { id: Number(sessionId) }, data, include: { players: true }});
       return reply.send(updated);
     } catch (err) {
       request.log.error(err);

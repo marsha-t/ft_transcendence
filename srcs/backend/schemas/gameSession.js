@@ -111,9 +111,9 @@ export const getGameSessionByIdSchema = {
 	params: {
 		type: 'object',
 		properties: {
-			id: { type: 'integer' },
+			sessionId: { type: 'integer' },
 		},
-		required: ['id'],
+		required: ['sessionId'],
 	},
   	response: {
 		200: {
@@ -198,26 +198,29 @@ export const updateSessionStatusSchema = {
 		200: {
 			type: 'object',
 			properties: {
-				id: { type: 'integer' },
-				status: { type: 'string' },
-				startedAt: { type: 'string', format: 'date-time', nullable: true },
-				endedAt: { type: 'string', format: 'date-time', nullable: true },
-				createdAt: { type: 'string', format: 'date-time' },
-				players: {
-					type: 'array',
-					items: {
-						type: 'object',
-						properties: {
-							id: { type: 'integer' },
-							userId: { type: ['integer', 'null'] },
-							isGuest: { type: 'boolean' },
-							displayName: { type: 'string' },
-							side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-							score: { type: 'integer' },
-						},
-					},
+			  id: { type: 'integer' },
+			  status: { type: 'string' },
+			  endedAt: { type: ['string', 'null'], format: 'date-time' },
+			  winnerUserId: { type: ['integer', 'null'] },
+			  winnerPlayerId: { type: ['integer', 'null'] },
+			  players: {
+				type: 'array',
+				items: {
+				  type: 'object',
+				  properties: {
+					id: { type: 'integer' },
+					sessionId: { type: 'integer' },
+					userId: { type: ['integer', 'null'] },
+					displayName: { type: 'string' },
+					side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+					isGuest: { type: 'boolean' },
+					score: { type: 'integer' },
+				  },
+				  required: ['id', 'sessionId', 'side', 'isGuest', 'score'],
 				},
+			  },
 			},
+			required: ['id', 'status', 'players'],
 		},
 		400: {
 			type: 'object',
