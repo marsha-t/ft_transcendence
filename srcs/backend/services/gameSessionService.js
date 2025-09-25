@@ -1,4 +1,13 @@
 // Create a game with any number of players
+/*
+  - Creates a new game session with any number of players to start with
+    - Starting a normal game would mean creating a game session with 1 player
+    - In tournaments, a game session can be created with 1 player or with 2
+  - Checks that player(s) was provided
+  - Checks that user/guestName was provided (and user exists)
+  - If it is a tournament, check that player is in the tournament
+  - Create game session linking it to players and tournament (if applicable)
+*/
 export async function createGameSession(prisma, { players, tournamentId, matchIndex }) {
   if (!players || players.length === 0) {
     throw { code: 400, message: 'At least one player is required to create a session' };
@@ -27,7 +36,6 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
     console.log("tournamentId in service:", tournamentId, typeof tournamentId);
 
     if (tournamentId) {
-    // if (typeof tournamentId === 'number' && !isNaN(tournamentId)) {
       const tp = await prisma.tournamentPlayer.findFirst({
         where: {
           tournamentId: Number(tournamentId),
@@ -51,7 +59,6 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
 
   const session = await prisma.gameSession.create({
     data: {
-      // tournamentId: tournamentId ?? null,
       players: {
         create: playerData,
       },
@@ -65,12 +72,12 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
       data: { gameSessionId: session.id },
     });
   }
-
   return session;
 }
 
 /*
-	- Only these transitions are allowed:
+	- Validates whether a status transition is allowed
+  - Only these transitions are allowed:
 		- CREATED → PLAYING | ABORTED
 		- PLAYING → PAUSED | ABORTED
 		- PAUSED  → PLAYING | ABORTED

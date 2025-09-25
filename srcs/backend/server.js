@@ -18,6 +18,7 @@ import friendsRoutes from './routes/friends.js';
 import gameSessionRoutes from './routes/gameSession.js' 
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
 import tournamentRoutes from './routes/tournament.js';
+import dashboardRoutes from './routes/dashboard.js';
 
 // import to download openapi.json
 import fs from 'fs';
@@ -76,6 +77,7 @@ app.register(friendsRoutes);
 app.register(gameSessionRoutes);
 app.register(gameSessionPlayersRoutes);
 app.register(tournamentRoutes);
+app.register(dashboardRoutes);
 
 // To save openapi.json file (needs to be after registering routes and before app.listen)
 // To save, uncomment the code

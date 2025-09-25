@@ -1,0 +1,58 @@
+import prisma from '../prisma/prismaClient.js';
+import { matchHistorySchema } from '../schemas/dashboard.js';
+
+async function dashboardRoutes(app, options) {
+
+	// Update game session status
+	/*
+		- Check that user exists
+		- Get matches from GameSessionPlayer and organise it into a match history
+	*/
+	app.get('/api/stats/users/:id/match-history', { schema: matchHistorySchema }, async(request, reply) => {
+		const { id } = request.params;
+
+		try {
+			const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+			if (!user) {
+				return reply.code(404).send({ error: "User not found" });
+			}
+			const matches = await prisma.gameSessionPlayer.findMany({
+				where: { 
+					userId: Number(id), 
+					session: { status: 'FINISHED' },
+				},
+				include: {
+					session: {
+						include: { 
+							players: true,
+							tournamentMatch: true,
+						 },
+					},
+				},
+				orderBy: {
+					session: { createdAt: 'desc' },
+				}
+			});
+
+			const matchHistory = matches
+				.filter(m=> m.session.winnerPlayerId !== null)
+				.map(m => {
+					const opponent = m.session.players.find(p => p.id !== m.id );
+					return {
+						date: m.session.createdAt,
+						opponent: opponent?.displayName ?? "Unknown",
+						userScore: m.score,
+						opponentScore: opponent?.score ?? 0,
+						result: m.session.winnerPlayerId === m.id ? "WIN" : "LOSS",
+						isTournament: m.session.tournamentMatch !== null
+					};
+			});
+			return reply.send(matchHistory);
+		} catch (err) {
+			request.log.error(err);
+      		return reply.code(500).send({ error: err.message || "Failed to fetch match history" });
+		}
+	});
+}
+
+export default dashboardRoutes;
