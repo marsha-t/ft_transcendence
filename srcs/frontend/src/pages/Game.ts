@@ -9,7 +9,7 @@ export class Game implements IComponent {
     private gameService: GameService;
     private currentSession: GameSession | null = null;
     private isGameRunning: boolean = false;
-
+    private isScoring: boolean = false; 
     private animationId: number | null = null;
 
     private ball = { x: 450, y: 300, dx: 5, dy: 3, radius: 12 };
@@ -223,9 +223,14 @@ export class Game implements IComponent {
             //     startBtn.style.display = 'block';
 
             guestInput.value = '';
-        }catch(error){
+        } catch (error:any) {
             console.log("Error adding guest player", error);
-            alert("Error adding guest player");
+             if (error.status === 409) {
+                // Custom handling for duplicate display name
+                alert(error.message);
+            } else {
+                alert("Error adding guest player");
+            }
         }
     }
 
@@ -253,10 +258,10 @@ export class Game implements IComponent {
         this.gameLoop();
     }
 
-    private gameLoop(): void {
+    private async gameLoop(): Promise<void> {
         if(!this.isGameRunning)
             return;
-        this.updateGame();
+        await this.updateGame();
         this.drawGame();
 
         this.animationId = requestAnimationFrame(() => this.gameLoop());
@@ -394,7 +399,7 @@ export class Game implements IComponent {
         this.initializeGame();
     }
 
-    private updateGame(): void {
+    private async updateGame(): Promise<void> {
         this.ball.x += this.ball.dx;
         this.ball.y += this.ball.dy;
 
@@ -414,16 +419,28 @@ export class Game implements IComponent {
             this.ball.dx = -this.ball.dx;
         }
 
-        // Scoring
-        if (this.ball.x < 0) {
-            this.scorePoint("RIGHT");
-        } else if (this.ball.x > this.canvas.width) {
-            this.scorePoint("LEFT");
+        // Scoring (with lock to prevent double calls)
+        if (!this.isScoring) {
+            if (this.ball.x < 0) {
+                this.isScoring = true;
+                await this.scorePoint("RIGHT");
+                return ;
+            } else if (this.ball.x > this.canvas.width) {
+                this.isScoring = true;
+                await this.scorePoint("LEFT");
+                return ;
+            }
+        }
+        const safeZone = this.canvas.width / 4; // 25% away from center
+        if (this.isScoring) {
+            const centerX = this.canvas.width / 2;
+            if (Math.abs(this.ball.x - centerX) > safeZone) {
+                this.isScoring = false;
+            }
         }
     }
 
     private async scorePoint(scoringSide: PlayerSide): Promise<void>{
-
         try{
             if(this.currentSession){
                 this.currentSession = await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);

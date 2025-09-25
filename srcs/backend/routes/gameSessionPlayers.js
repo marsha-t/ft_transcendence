@@ -14,10 +14,21 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Check that player in session doesn't already use the same displayname
 		- Add player to GameSessionPlayer table
 	*/
-	app.post('/api/game-sessions/:sessionId/players', { schema: joinSessionSchema }, async (request, reply) => {
-		const { sessionId } = request.params;
-		const { userId, guestName, side } = request.body;
+	app.post('/api/game-sessions/players', { schema: joinSessionSchema }, async (request, reply) => {
+		const sessionIdHeader = request.headers['x-current-session-id'];
+		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
+		const { guestName, side } = request.body ?? {};
+		const userIdHeader = request.headers['x-current-user-id'];
+		const userId = userIdHeader ? Number(userIdHeader) : null;
+
+		if (!sessionId) {
+			return reply.code(400).send({ error: "X-Current-Session-Id header is required" });
+		}
+
+		if (!userId && !guestName) {
+			return reply.code(400).send({ error: "Either X-Current-User-Id header or guestName is required" });
+		}
 		try {
 			const session = await prisma.gameSession.findUnique({
 				where: { id: Number(sessionId) },
@@ -70,12 +81,7 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.code(201).send(newPlayer);
 		} catch (err) {
 			request.log.error(err);
-
-			if (err.code && err.message) {
-				return reply.code(err.code).send({ error: err.message });
-			}
-
-			return reply.code(500).send({ error: 'Player failed to join session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Player failed to join session" });
 		}
 	});
 
@@ -85,9 +91,10 @@ async function gameSessionPlayersRoutes(app, options) {
 		- If no players found, rturns empty array 
 		- Otherwise, returns array of player objects
 	*/
-	app.get('/api/game-sessions/:sessionId/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
-		const { sessionId } = request.params;
-		
+	app.get('/api/game-sessions/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
+		const sessionIdHeader = request.headers['x-current-session-id'];
+		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
+
 		try {
 			await checkSession(prisma, sessionId);
 			const players = await prisma.gameSessionPlayer.findMany({
@@ -108,7 +115,7 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.send(formatted);
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to fetch players in session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to fetch players in session" });
 		}
 	});
 
@@ -126,8 +133,11 @@ async function gameSessionPlayersRoutes(app, options) {
 						- if parent match has two players, create new game session
 		- returns updated session 
 	*/
-	app.patch('/api/game-sessions/:sessionId/players/:side/score', { schema: updateScoreSchema }, async (request, reply) => {
-		const { sessionId, side } = request.params;
+	app.patch('/api/game-sessions/players/score', { schema: updateScoreSchema }, async (request, reply) => {
+		const sessionIdHeader = request.headers['x-current-session-id'];
+		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
+		const side = request.headers['x-player-side'];
+
 		try {
 			const session = await checkSession(prisma, sessionId);
 			const player = await prisma.gameSessionPlayer.update({
@@ -243,11 +253,9 @@ async function gameSessionPlayersRoutes(app, options) {
 			  
 			  
 			  return reply.send(response);
-			  
-			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player score' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to update player score" });
 		}
 	});
 
@@ -256,8 +264,11 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Checks session and player exists
 		- Delete from GameSessionPlayer
 	*/
-	app.delete('/api/game-sessions/:sessionId/players/:side', { schema: deletePlayerSchema }, async (request, reply) => {
-		const { sessionId, side } = request.params;
+	app.delete('/api/game-sessions/players', { schema: deletePlayerSchema }, async (request, reply) => {
+		const sessionIdHeader = request.headers['x-current-session-id'];
+		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
+		const side = request.headers['x-player-side'];
+	
 		try {
 			await checkSession(prisma, sessionId);
 			await checkPlayer(prisma, sessionId, side);
@@ -267,7 +278,7 @@ async function gameSessionPlayersRoutes(app, options) {
       return reply.code(200).send({ message: 'Game session deleted' });
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to delete player from game session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to delete player from game session" });
 		}
 	});
 }

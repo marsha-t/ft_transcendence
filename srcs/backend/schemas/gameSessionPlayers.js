@@ -2,26 +2,21 @@
 export const joinSessionSchema = {
 	tags: ['Game Session'],
 	summary: 'Add player to game session',
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
+			'x-current-user-id': { type: 'string' },
 		},
-		required: ['sessionId'],
+		required: ['x-current-session-id'],
 	},
 	body: {
 		type: 'object',
 		required: ['side'],
-		oneOf: [
-			{ required: ['userId'] },
-			{ required: ['guestName'] }
-		],
 		properties: {
-			userId: { type: 'integer' },
-			guestName: { type: 'string' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+		guestName: { type: 'string' },
+		side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		additionalProperties: false,
 	},
 	response: {
 		201: {
@@ -58,12 +53,12 @@ export const joinSessionSchema = {
 export const listPlayersSessionSchema = {
 	tags: ['Game Session'],
 	summary: 'List players in session', 
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
 		},
-		required: ['sessionId'],
+		required: ['x-current-session-id'],
 	},
 	response: {
 		200: {
@@ -103,13 +98,13 @@ export const listPlayersSessionSchema = {
 export const updateScoreSchema = {
 	tags: ['Game Session'],
 	summary: 'Update player score',
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+			'x-current-session-id': { type: 'string' },
+			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['sessionId', 'side'],
+		required: ['x-current-session-id', 'x-player-side'],
 	},
 	response: {
 		200: {
@@ -164,14 +159,14 @@ export const updateScoreSchema = {
 export const deletePlayerSchema = {
 	tags: ['Game Session'],
 	summary: 'Delete player', 
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer'},
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+			'x-current-session-id': { type: 'string' },
+			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['sessionId', 'side'],
-  	},
+		required: ['x-current-session-id', 'x-player-side'],
+	},
 	response: {
 		200: {
 			type: 'object',
