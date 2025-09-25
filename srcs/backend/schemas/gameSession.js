@@ -178,7 +178,7 @@ export const updateSessionStatusSchema = {
 	summary: 'Update game session status',
 	params: {
 		type: 'object',
-		required: ['id'],
+		required: ['sessionId'],
 		properties: {
 		id: { type: 'integer' },
 		},
