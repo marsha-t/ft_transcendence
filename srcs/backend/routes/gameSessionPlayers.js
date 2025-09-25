@@ -70,12 +70,7 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.code(201).send(newPlayer);
 		} catch (err) {
 			request.log.error(err);
-
-			if (err.code && err.message) {
-				return reply.code(err.code).send({ error: err.message });
-			}
-
-			return reply.code(500).send({ error: 'Player failed to join session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Player failed to join session" });
 		}
 	});
 
@@ -108,7 +103,7 @@ async function gameSessionPlayersRoutes(app, options) {
 			return reply.send(formatted);
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to fetch players in session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to fetch players in session" });
 		}
 	});
 
@@ -243,11 +238,9 @@ async function gameSessionPlayersRoutes(app, options) {
 			  
 			  
 			  return reply.send(response);
-			  
-			return reply.send(updatedSession);
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to update player score' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to update player score" });
 		}
 	});
 
@@ -267,7 +260,7 @@ async function gameSessionPlayersRoutes(app, options) {
       return reply.code(200).send({ message: 'Game session deleted' });
 		} catch (err) {
 			request.log.error(err);
-		    return reply.code(err.code ?? 500).send({ error: err.message ?? 'Failed to delete player from game session' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to delete player from game session" });
 		}
 	});
 }

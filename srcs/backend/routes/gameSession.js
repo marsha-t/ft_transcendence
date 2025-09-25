@@ -18,7 +18,8 @@ async function gameSessionRoutes(app, options) {
     }
     catch (err) {
       request.log.error(err);
-      return reply.code(err.code || 500 ).send({ error: err.message });
+      return reply.code(err.code || 500).send({ error: err.message || "Failed to create game session" });
+
     }
   });
 
@@ -31,7 +32,7 @@ async function gameSessionRoutes(app, options) {
       return reply.send(sessions);
     } catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to fetch game sessions' });
+      return reply.code(err.code || 500).send({ error: err.message || "Failed to fetch game sessions" });
     }
   });
 
@@ -51,7 +52,7 @@ async function gameSessionRoutes(app, options) {
       return reply.send(session);
     } catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to fetch game session' });
+      return reply.code(err.code || 500).send({ error: err.message || "Failed to fetch game session" });
     }
   });
 
@@ -87,7 +88,8 @@ async function gameSessionRoutes(app, options) {
       if (err.statusCode) {
         return reply.code(err.statusCode).send({ error: err.message });
       }
-      return reply.code(500).send({ error: 'Failed to update session status' });
+      return reply.code(err.code || 500).send({ error: err.message || "Failed to update game session status" });
+
     }
   });
 }
