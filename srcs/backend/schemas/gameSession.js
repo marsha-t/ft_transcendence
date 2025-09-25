@@ -1,18 +1,19 @@
 // Create a game session
 export const createGameSessionSchema = {
-  tags: ['Game Session'],
-  summary: 'Create game session with first player', 
+	tags: ['Game Session'],
+	summary: 'Create game session with first player', 
+	headers: {
+		type: 'object',
+		properties: {
+			'x-current-user-id': { type: 'string' }, 
+		},
+	},	
 	body: {
 		type: 'object',
 		required: ['side'],
-		oneOf: [
-			{ required: ['userId'] },
-			{ required: ['guestName'] },
-		],
-			properties: {
-			userId: { type: 'integer' },
+		properties: {
 			guestName: { type: 'string' },
-			side: { type: 'string', enum: ['LEFT','RIGHT'] },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
 	},
 	response: {
@@ -45,75 +46,16 @@ export const createGameSessionSchema = {
   	},
 };
 
-// Get all sessions
-export const getAllGameSessionsSchema = {
-	tags: ['Game Session'],
-	summary: 'Get all sessions', 
-	response: {
-		200: {
-			type: 'array',
-			items: {
-				type: 'object',
-				properties: {
-					id: { type: 'integer' },
-					status: { type: 'string', enum: ['CREATED', 'PLAYING', 'PAUSED', 'FINISHED', 'ABORTED'] },
-					createdAt: { type: 'string', format: 'date-time' },
-					startedAt: { type: 'string', format: 'date-time', nullable: true },
-					endedAt: { type: 'string', format: 'date-time', nullable: true },
-					winnerUserId: { type: 'integer', nullable: true },
-					winnerPlayerId: { type: 'integer', nullable: true },
-					players: {
-						type: 'array',
-						items: {
-							type: 'object',
-							properties: {
-								id: { type: 'integer' },
-								sessionId: { type: 'integer' },
-								userId: { type: 'integer', nullable: true },
-								isGuest: { type: 'boolean' },
-								displayName: { type: 'string' },
-								side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-								score: { type: 'integer' },
-							},
-						},
-					},
-					winnerUser: {
-						type: 'object',
-						nullable: true,
-						properties: {
-							id: { type: 'integer' },
-							username: { type: 'string' },
-							email: { type: 'string' },
-							avatar: { type: 'string' },
-						},
-					},
-					winnerPlayer: {
-						type: 'object',
-						nullable: true,
-						properties: {
-							id: { type: 'integer' },
-							displayName: { type: 'string' },
-							side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-							score: { type: 'integer' },
-						},
-					},
-				},
-			},
-		},
-	},
-};
-
-
 // Get one session by ID
 export const getGameSessionByIdSchema = {
 	tags: ['Game Session'],
 	summary: 'Get one session by ID', 
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
 		},
-		required: ['sessionId'],
+		required: ['x-current-session-id'],
 	},
   	response: {
 		200: {
@@ -176,21 +118,21 @@ export const getGameSessionByIdSchema = {
 export const updateSessionStatusSchema = {
 	tags: ['Game Session'],
 	summary: 'Update game session status',
-	params: {
+	headers: {
 		type: 'object',
-		required: ['sessionId'],
 		properties: {
-		id: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
 		},
+		required: ['x-current-session-id'],
 	},
 	body: {
 		type: 'object',
 		required: ['status'],
 		properties: {
-		status: {
-			type: 'string',
-			enum: ['PLAYING', 'PAUSED', 'ABORTED'],
-		},
+			status: {
+				type: 'string',
+				enum: ['PLAYING', 'PAUSED', 'ABORTED'],
+			},
 		},
 		additionalProperties: false,
 	},

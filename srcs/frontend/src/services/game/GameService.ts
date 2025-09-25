@@ -15,9 +15,9 @@ export class GameService{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Current-User-Id': String(userId),
                 },
                 body: JSON.stringify({
-                    userId,
                     side
                 })
             });
@@ -40,10 +40,11 @@ export class GameService{
     // 2- add a guest player to an existing session
     async addGuestPlayer(sessionId: string, guestName: string, side: PlayerSide): Promise<void>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/players`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Current-Session-Id': String(sessionId),
                 },
                 body: JSON.stringify({
                     guestName,
@@ -51,20 +52,35 @@ export class GameService{
                 })
             });
 
-            if(!response.ok)
-                throw new Error(`Error to add guest player: ${response.status}`);
+            if(!response.ok) {
+                let message = `Error to add guest player: ${response.status}`;
+                if (response.status === 409) {
+                    try {
+                        const data = await response.json();
+                        if (data?.error) {
+                            message = data.error;
+                        }
+                    } catch { // keep generic message
+                    }
+                }
+                // Create error object with extra status field
+                const err = new Error(message) as Error & { status?: number }; 
+                err.status = response.status;
+                throw err;
+            }
         }catch(error){
-            console.log('error adding guest player:', error);
+            console.log('Error adding guest player:', error);
             throw error;
         }
     }
     // 3- uptade game session status
     async updateGameStatus(sessionId: string, status: GameStatus): Promise<GameSession> {
         try {
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/status`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Current-Session-Id': String(sessionId),
                 },
                 body: JSON.stringify({
                     status
@@ -85,11 +101,12 @@ export class GameService{
     // 4- uptade player score
     async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<GameSession>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}/players/${scoringSide}/score`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/players/score`, {
                method: 'PATCH',
-            //    headers: {
-                    // 'Content-Type': 'application/json',
-            //    } 
+               headers: {
+                    'X-Current-Session-Id': String(sessionId),
+                    'X-Player-Side': scoringSide,
+               } 
             });
             if(!response.ok)
                 throw new Error(`Failed to update player score: ${response.status}`);
@@ -103,10 +120,10 @@ export class GameService{
     // 5- Get game session by ID
     async getGameSession(sessionId: string): Promise<GameSession> {
         try {
-            const response = await fetch(`${this.baseUrl}/game-sessions/${sessionId}`, {
+            const response = await fetch(`${this.baseUrl}/game-sessions/`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'X-Current-Session-Id': String(sessionId),
                 }
             });
 

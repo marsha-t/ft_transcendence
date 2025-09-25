@@ -38,7 +38,7 @@ async function tournamentRoutes(app, options) {
 			});
 		} catch (err) {
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Failed to create tournament'});
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to create tournament" });
 		}
 	});
 
@@ -113,7 +113,7 @@ async function tournamentRoutes(app, options) {
 				return reply.code(409).send({ error: 'User/Display name already in tournament' });
 			}
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Player failed to join tournament'});
+      		return reply.code(err.code || 500).send({ error: err.message || "Player failed to join tournament" });
 		}
 	});
 
@@ -212,7 +212,7 @@ async function tournamentRoutes(app, options) {
 		});
 	  } catch (err) {
 		request.log.error(err);
-		return reply.code(500).send({ error: 'Failed to update tournament status' });
+      	return reply.code(err.code || 500).send({ error: err.message || "Failed to update tournament status" });
 	  }
 	});
 	
@@ -295,7 +295,7 @@ async function tournamentRoutes(app, options) {
 			});
 		} catch (err) {
 			request.log.error(err);
-			return reply.code(500).send({ error: 'Failed to get next match in tournament' });
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to get next match in tournament" });
 		}
 	});
 
