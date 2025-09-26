@@ -8,12 +8,13 @@ export class TournamentService {
 		this.baseUrl = 'http://localhost:5001/api';
 	}
 
-	async createTournament(numberOfPlayers: number): Promise<ApiResponse<Tournament>> {
+	async createTournament(userId: number, numberOfPlayers: number): Promise<ApiResponse<any>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/tournaments`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'x-current-user-id': String(userId),
 				}, 
 				body: JSON.stringify({
 					numberOfPlayers,
@@ -43,10 +44,11 @@ export class TournamentService {
 
 	async addTournamentPlayer(tournamentId: number, player: PlayerJoin): Promise<ApiResponse<Player>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/${tournamentId}/players`, {
+			const response = await fetch(`${this.baseUrl}/tournaments/players`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
+					'X-Current-Tournament-Id': String(tournamentId),
 				},
 				body: JSON.stringify(player)
 			});
@@ -74,10 +76,12 @@ export class TournamentService {
 
 	async updateTournamentStatus(tournamentId: number, status: TournamentStatus): Promise<ApiResponse<Tournament>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/${tournamentId}`, {
+			const response = await fetch(`${this.baseUrl}/tournaments/status`, {
 				method: 'PATCH',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'X-Current-Tournament-Id': String(tournamentId),
+
 				},
 				body: JSON.stringify({ status })
 			});
@@ -105,10 +109,10 @@ export class TournamentService {
 
 	async getNextMatch(tournamentId: number): Promise<ApiResponse<GetNextMatchResponse>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/${tournamentId}/next-match`, {
+			const response = await fetch(`${this.baseUrl}/tournaments/next-match`, {
 				method: 'GET',
 				headers: {
-					'Content-Type': 'application/json'
+					'X-Current-Tournament-Id': String(tournamentId),
 				},
 			});
 			const data = await response.json();
