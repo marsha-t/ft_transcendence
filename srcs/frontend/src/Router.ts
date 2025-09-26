@@ -41,11 +41,8 @@ export class Router {
           container.appendChild(profile.render());
           break;
         case '/tournament':
-          console.log("here");
           const tournament = new Tournament();
-          console.log("done2");
           container.appendChild(tournament.render());
-          console.log("done");
           break;
 
         default:

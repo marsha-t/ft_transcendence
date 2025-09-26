@@ -6,9 +6,21 @@ export const joinSessionSchema = {
 		type: 'object',
 		properties: {
 			'x-current-session-id': { type: 'string' },
-			'x-current-user-id': { type: 'string' },
 		},
 		required: ['x-current-session-id'],
+	},
+	body: {
+		type: 'object',
+		properties: {
+			userId: { type: 'integer' },
+			guestName: { type: 'string' },
+			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+		},
+		required: ['side'],
+		anyOf: [
+			{ required: ['userId'] },
+			{ required: ['guestName'] },
+		],
 	},
 	body: {
 		type: 'object',
