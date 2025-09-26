@@ -13,16 +13,14 @@ export class Profile implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
-    // avatar.textContent = "AV"; // Replace with initials or image
-    // Placeholder for image/icon, class will handle the design from CSS
-    // Replace with actual image URL or SVG if available
+
     const name = document.createElement("h2");
     name.className = "profile-name";
-    // name.textContent = "Hi Test!";
+    name.textContent = "Hi Test!";
 
     const status = document.createElement("p");
-    status.className = "profile-status online"; // or offline
-    status.textContent = "● Online";
+    status.className = "profile-status online";
+    status.innerHTML = "Online"; // Using innerHTML for the dot
 
     const settingsBtn = document.createElement("button");
     settingsBtn.className = "settings-btn";
@@ -33,18 +31,24 @@ export class Profile implements IComponent {
     card.appendChild(status);
     card.appendChild(settingsBtn);
 
+
+// ----------------------------------------------------------------------------------------------
+
     // Stats
-  
     const stats = document.createElement("div");
     stats.className = "stats";
+    // stats.textContent = "stat"
 
-    const wins = this.createStat("??", "Wins", "stat-wins"); // replace ?? from database
-    const losses = this.createStat("??", "Losses", "stat-losses"); // replace ?? from database
-    const rank = this.createStat("??", "Rank", "stat-rank"); // replace ?? from database
+    // add vars to hold the numbers and tqake it from backend
+    const wins = this.createStat("12", "Wins", "stat-wins"); // backend
+    const losses = this.createStat("10", "Losses", "stat-losses"); // backend
+    const rank = this.createStat("3", "Rank", "stat-rank"); // backend
 
     stats.appendChild(wins);
     stats.appendChild(losses);
     stats.appendChild(rank);
+
+// ----------------------------------------------------------------------------------------------
 
     // Friends
     const friends = document.createElement("div");
@@ -65,6 +69,8 @@ export class Profile implements IComponent {
     friends.appendChild(friendsHeader);
 
     // friends.appendChild(this.createFriend("JD", "John Doe", true));
+
+// ----------------------------------------------------------------------------------------------
 
     // Match history
     const matchHistory = document.createElement("div");
@@ -100,6 +106,8 @@ export class Profile implements IComponent {
     return container;
   }
 
+  // ----------------------------------------------------------------------------------------------
+
   private loadPageStyles(): void {
     if (document.getElementById("profile-styles")) return;
 
@@ -109,6 +117,9 @@ export class Profile implements IComponent {
     link.href = "/styles/Profile.css";
     document.head.appendChild(link);
   }
+
+  // ----------------------------------------------------------------------------------------------
+
 
   private createStat(value: string, label: string, extraClass: string): HTMLElement {
     const box = document.createElement("div");
@@ -125,6 +136,9 @@ export class Profile implements IComponent {
     box.appendChild(text);
     return box;
   }
+
+  // ----------------------------------------------------------------------------------------------
+
 
   private createFriend(initials: string, name: string, online: boolean): HTMLElement {
     const item = document.createElement("div");
@@ -148,6 +162,9 @@ export class Profile implements IComponent {
 
     return item;
   }
+
+  // ----------------------------------------------------------------------------------------------
+
 
   private createMatch(opponent: string, result: "Win" | "Loss", score: string, date: string): HTMLElement {
     const row = document.createElement("tr");
