@@ -1,225 +1,223 @@
-.profile-page {
-  width: 1280px;
-  height: 1041px;
-
-  opacity: 1;
-  background-color: #FFFFFF;
+.profile-page
+{
+    width: 1280px;
+    height: 1041px;
+  
+    background: #FFFFFF;
+    position: relative; /* so child absolute elements (cards) are positioned relative to this page */
+  
+    /* optional defaults */
+    overflow: hidden;
+    margin: 0 auto; /* center page if viewport is wider */
 }
 
-/* Profile Card */
 .profile-card {
   width: 1084px;
   height: 207px;
-  position: absolute; /* since you have top/left */
+  position: absolute; /* because you’re using top/left */
   top: 161px;
   left: 84px;
 
   border-radius: 30px;
-  opacity: 1;
-  background-color: #F2F1FA;
+  background: #F2F1FA;
+  box-shadow: 0px 4px 4px 0px #00000029;
 
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.16);
+  display: flex;
+  align-items: center;
+  padding: 20px 40px; /* gives space inside for avatar + info */
+  box-sizing: border-box;
 }
 
+
 .profile-avatar {
-  width: 150px;
-  height: 150px;
-  position: absolute; /* since top/left are specified */
+  width: 151px;
+  height: 151px;
+  position: absolute;
   top: 28px;
   left: 28px;
 
+  border-radius: 50%;
+  border: 2px solid #5D5A88;
   opacity: 0.98;
 
-  border: 2px solid #5D5A88;
-  border-radius: 50%;
+  overflow: hidden; /* makes sure the image stays inside circle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent; /* no fill */
 }
 
-profile-name {
+.profile-name {
+  position: absolute;
+  top: 64px;
+  left: 232px;
+
   width: 114px;
   height: 36px;
-  position: absolute; /* since top/left are specified */
-  top: 225px;
-  left: 316px;
 
   font-family: 'DM Sans', sans-serif;
-  font-weight: 700;       /* bold */
-  font-style: normal;     /* CSS doesn’t allow 'Bold' here */
+  font-weight: 700;  /* Bold */
   font-size: 34px;
   line-height: 36px;
   letter-spacing: 0;
-  text-align: center;
+  text-align: left;
+  white-space: nowrap;
 
-  /* background-color: var(--Labels---Vibrant---Controls-Primary, #404040); */
-  /* color: #fff; ensures text is readable on dark background */
-  /* opacity: 1; optional, default is 1 */
-
-  /* display: flex;           centers text inside */
-  /* align-items: center; */
-  /* justify-content: center; */
+  color: #404040;
 }
 
 .profile-status {
-  /* width: 53px;
-  height: 36px; */
-  position: absolute;   /* needed because you gave left without top */
+  width: 79px;
+  height: 36px;
+
+  position: absolute;
   top: 111px;
-  left: 256px;
+  left: 232px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   font-family: 'DM Sans', sans-serif;
-  font-weight: 300;     /* Light */
-  font-style: normal;   /* "Light" is weight, not style */
+  font-weight: 700; /* bold */
   font-size: 18px;
-  line-height: 36px;    /* vertically aligns text in the 36px box */
-  letter-spacing: 0;
+  line-height: 36px;
   text-align: center;
 
-  /* background: var(--Labels---Vibrant---Controls-Primary, #404040); */
-  /* color: #404040;          added for readability */
+  background: none;
+  color: #404040;
+
+  border-radius: 6px; /* keeps nice rounded look */
   opacity: 1;
 }
 
 .profile-status.online::before {
-  /* content: "●"; */
+  content: "●";
   color: #4caf50;
   margin-right: 5px;
 }
 
 .settings-btn {
-  background: none;
-  border: none;
-  font-size: 47px;
-  color: #5D5A88;
-  cursor: pointer;
-  width: 47px;
-  height: 47px;
-  position: absolute; /* because top/left are specified */
+  position: absolute;
   top: 28px;
   left: 1009px;
 
-  opacity: 1; 
+  color: #5D5A88;   /* gear symbol color */
+  font-size: 50px;   /* adjust size of gear */
+  cursor: pointer;
+  opacity: 1;
+
+  background: none;  /* no background */
+  border: none;      /* no border */
+  width: auto;       /* let the symbol size define width */
+  height: auto;      /* let the symbol size define height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .settings-btn:hover {
   color: #4a406e;
 }
 
-/* Stats */
-.stats {
+/* #--------------------------------------------------- */
+.stats  {
   width: 524px;
   height: 207px;
-  position: absolute; /* needed because top/left are used */
+  position: absolute;
   top: 396px;
   left: 84px;
-
   border-radius: 30px;
-  background-color: #F2F1FA;
-  opacity: 1;
-
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
+  background: #F2F1FA;
+  box-shadow: 0px 4px 4px 0px #00000029;
+  display: flex;
+  justify-content: flex-start; /* space between the boxes handled by margin */
+  align-items: flex-start;
+  padding: 79px 56px 0 56px; /* top padding = 79px, left/right = 56px */
+  gap: 83px; /* spacing between boxes */
+  box-sizing: border-box;
 }
 
-
-.stat-number { font-size: 1.5rem; font-weight: bold; 
-  width: 412px;
-  height: 69px;
-  position: absolute; /* because top/left are specified */
-  top: 79px;
-  left: 56px;
-
-  opacity: 1; /* default, optional */
-
-  display: flex;   /* needed for gap */
-  gap: 83px;}
-.stat-wins {
+.stat-box {
   width: 82px;
   height: 69px;
-
   border-radius: 10px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 38px 18px; /* internal padding from Figma */
+  box-sizing: border-box;
+  text-align: center;
   opacity: 1;
-  color: #4f46e5;
 }
-.stat-losses { color: #ef4444; }
-.stat-rank { color: #22c55e; }
 
-/* Friends */
-.friends {
+.stat-number {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 22px;
+  margin: 0 0 4px 0; /* space between number and label */
+}
+
+.stat-wins .stat-number {
+  color: #4caf50; /* Green for wins */
+}
+
+.stat-losses .stat-number {
+  color: #f44336; /* Red for losses */
+}
+
+.stat-rank .stat-number {
+  color: #6b5b95; /* Purple for rank */
+}
+
+.stat-box p:last-child {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 18px;
+  color: #808080;
+  margin: 0;
+}
+
+/* -------------------------------------------------- */
+
+.friends{
   width: 524px;
   height: 207px;
-  position: absolute; /* required for top/left */
+  position: absolute;
   top: 396px;
   left: 640px;
 
   border-radius: 30px;
-  background-color: #F2F1FA;
-  opacity: 1;
+  background: #F2F1FA;
+  box-shadow: 0px 4px 4px 0px #00000029;
 
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
-}
-.friends-header {
-  display: flex; justify-content: space-between; align-items: center;
-}
-.add-friend-btn {
-  width: 130px;
-  height: 34px;
-  position: absolute; /* since top/left are given */
-  top: 10px;
-  left: 354px;
+  padding: 20px;
+  box-sizing: border-box;
 
-  border-radius: 30px;
-  background-color: #5D5A88;
-  opacity: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* spacing between friends list items */
+}
 
-  padding: 18px 24px; /* shorthand for top/bottom + left/right */
-  display: flex;      /* needed if you want gap to work */
-  gap: 6px;
-  color: white; border: none;
-}
-.add-friend-btn:hover { background: #4f46e5; }
-.friend-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.6rem 0; border-bottom: 1px solid #e5e7eb;
-}
-.friend-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: #d1d5db; display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; font-weight: bold; margin-right: 0.6rem;
-}
-.friend-status.online { color: #22c55e; }
-.friend-status.offline { color: #9ca3af; }
-
-/* Match History */
-.match-history {
+.match-history{
   width: 1072px;
   height: 361px;
-  position: absolute; /* needed because top/left are given */
+  position: absolute;
   top: 631px;
   left: 92px;
 
   border-radius: 30px;
-  background-color: #F2F1FA;
-  opacity: 1;
+  background: #F2F1FA;
+  box-shadow: 0px 4px 4px 0px #00000029;
 
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.16);
-}
-.match-history table {
-  width: 1014px;
-  height: 282px;
-  position: absolute; /* required because top/left are given */
-  top: 70px;
-  left: 20px;
+  padding: 20px 30px;
+  box-sizing: border-box;
 
-  opacity: 1; 
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* spacing between history items */
 }
-.match-history th {
-  text-align: left; padding: 0.5rem 0.3rem; color: #6b7280; font-weight: 500;
-}
-.match-history td {
-  padding: 0.5rem 0.3rem; border-top: 1px solid #e5e7eb;
-}
-.match-result.win {
-  width: 82px;
-height: 69px;
-
-border-radius: 10px;
-opacity: 1;
- color: #22c55e; font-weight: 600; }
-.match-result.loss { color: #ef4444; font-weight: 600; }
