@@ -8,7 +8,7 @@ async function gameSessionPlayersRoutes(app, options) {
 
 	// Player joins a session
 	/*
-		Route allows for user as well as guest to be added to session
+		Route allows for user (via userId) as well as guest to be added to session
 		- Checks session exists and is of 'CREATED' status
 		- Checks that side is not already taken and session isn't already full
 		- Check that player in session doesn't already use the same displayname
@@ -18,9 +18,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
-		const { guestName, side } = request.body ?? {};
-		const userIdHeader = request.headers['x-current-user-id'];
-		const userId = userIdHeader ? Number(userIdHeader) : null;
+		const { userId, guestName, side } = request.body ?? {};
 
 		if (!sessionId) {
 			return reply.code(400).send({ error: "X-Current-Session-Id header is required" });
