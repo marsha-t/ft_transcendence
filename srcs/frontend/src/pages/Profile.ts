@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 
 export class Profile implements IComponent {
+   private isFriendsActive: boolean = true;
   public render(): HTMLElement {
     const container = document.createElement("div");
     container.className = "profile-page";
@@ -55,7 +56,7 @@ export class Profile implements IComponent {
 
 // ----------------------------------------------------------------------------------------------
 
-    // Friends
+  // Friends
     const friends = document.createElement("div");
     friends.className = "friends";
 
@@ -63,14 +64,36 @@ export class Profile implements IComponent {
     friendsHeader.className = "friends-header";
 
     const friendsTitle = document.createElement("h3");
+    friendsTitle.className = this.isFriendsActive ? "active" : "";
     friendsTitle.textContent = "Friends";
+    friendsTitle.addEventListener("click", () => this.switchToFriends());
+
+    const requestTitle = document.createElement("h4");
+    requestTitle.className = !this.isFriendsActive ? "active" : "";
+    requestTitle.textContent = "Request";
+    requestTitle.addEventListener("click", () => this.switchToRequests());
 
     const addFriendBtn = document.createElement("button");
     addFriendBtn.className = "add-friend-btn";
-    addFriendBtn.textContent = "Add Friend";
+    const addFriendText = document.createElement("span");
+    addFriendText.textContent = "Add Friend";
+    addFriendBtn.appendChild(addFriendText);
 
     friendsHeader.appendChild(friendsTitle);
+    friendsHeader.appendChild(requestTitle);
     friendsHeader.appendChild(addFriendBtn);
+
+    // Conditionally render friends or requests list
+    const friendsList = document.createElement("div");
+    friendsList.className = "friends-list";
+    if (this.isFriendsActive) {
+      friendsList.appendChild(this.createFriend("TF", "Test's friend", true));
+      friendsList.appendChild(this.createFriend("JD", "John Doe", false));
+    } else {
+      friendsList.appendChild(this.createRequest("RF", "Random Friend", "Pending"));
+      friendsList.appendChild(this.createRequest("AF", "Another Friend", "Accepted"));
+    }
+    friends.appendChild(friendsList);
     friends.appendChild(friendsHeader);
 
     // friends.appendChild(this.createFriend("JD", "John Doe", true));
@@ -111,6 +134,7 @@ export class Profile implements IComponent {
     return container;
   }
 
+
   // ----------------------------------------------------------------------------------------------
 
   private loadPageStyles(): void {
@@ -145,29 +169,35 @@ export class Profile implements IComponent {
   // ----------------------------------------------------------------------------------------------
 
 
-  private createFriend(initials: string, name: string, online: boolean): HTMLElement {
-    const item = document.createElement("div");
-    item.className = "friend-item";
+ private createFriend(initials: string, name: string, online: boolean): HTMLElement {
+  const item = document.createElement("div");
+  item.className = "friend-item";
 
-    const avatar = document.createElement("div");
-    avatar.className = "friend-avatar";
-    avatar.textContent = initials;
+  const inner = document.createElement("div");
+  inner.className = "friend-item-inner";
 
-    const friendName = document.createElement("span");
-    friendName.className = "friend-name";
-    friendName.textContent = name;
+  const profileText = document.createElement("div");
+  profileText.className = "friend-profile-text";
 
-    const status = document.createElement("span");
-    status.className = `friend-status ${online ? "online" : "offline"}`;
-    status.textContent = "●";
+  const avatar = document.createElement("div");
+  avatar.className = "friend-avatar";
+  avatar.textContent = initials;
 
-    item.appendChild(avatar);
-    item.appendChild(friendName);
-    item.appendChild(status);
+  const friendName = document.createElement("span");
+  friendName.className = "friend-name";
+  friendName.textContent = name;
 
-    return item;
-  }
+  const status = document.createElement("span");
+  status.className = `friend-status ${online ? "online" : "offline"}`;
 
+  profileText.appendChild(avatar);
+  profileText.appendChild(friendName);
+  profileText.appendChild(status);
+  inner.appendChild(profileText);
+  item.appendChild(inner);
+
+  return item;
+}
   // ----------------------------------------------------------------------------------------------
 
 
@@ -193,5 +223,50 @@ export class Profile implements IComponent {
     row.appendChild(dateCell);
 
     return row;
+  }
+
+
+
+// --------------------------------------------------------------------------
+
+private createRequest(initials: string, name: string, status: string): HTMLElement {
+    const item = document.createElement("div");
+    item.className = "request-item";
+
+    const avatar = document.createElement("div");
+    avatar.className = "request-avatar";
+    avatar.textContent = initials;
+
+    const requestName = document.createElement("span");
+    requestName.className = "request-name";
+    requestName.textContent = name;
+
+    const requestStatus = document.createElement("span");
+    requestStatus.className = "request-status";
+    requestStatus.textContent = status;
+
+    item.appendChild(avatar);
+    item.appendChild(requestName);
+    item.appendChild(requestStatus);
+
+    return item;
+  }
+
+    private switchToFriends(): void {
+    this.isFriendsActive = true;
+    this.rerender();
+  }
+
+  private switchToRequests(): void {
+    this.isFriendsActive = false;
+    this.rerender();
+  }
+
+   private rerender(): void {
+    const parent = document.querySelector(".profile-page");
+    if (parent) {
+      const newContainer = this.render();
+      parent.replaceWith(newContainer);
+    }
   }
 }

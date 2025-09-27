@@ -224,6 +224,239 @@
   gap: 15px; /* spacing between friends list items */
 }
 
+.friends-header {
+  width: 246px;
+  height: 36px;
+  top: 10px;
+  left: 20px;
+  background: none;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  opacity: 1;
+}
+
+.friends-header h3 {
+  width: 80px;
+  height: 36px;
+  top: 10px;
+  left: 43px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 36px;
+  letter-spacing: 0%;
+  text-align: center;
+  margin: 0;
+  background: none;
+  color: #404040; /* Assuming white text on dark background */
+  padding: 0;
+  position: absolute;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.friends-header h3.active {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.friends-header h4 {
+  width: 82px;
+  height: 36px;
+  top: 10px;
+  left: 207px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 36px;
+  letter-spacing: 0%;
+  text-align: center;
+  margin: 0;
+  background: none;
+  color: #404040; /* Assuming white text on dark background */
+  padding: 0;
+  position: absolute;
+  cursor: pointer;
+  opacity: 1;
+}
+
+.friends-header h4.active {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.add-friend-btn {
+  width: 130px;
+  height: 34px;
+  top: 10px;
+  left: 354px;
+  border-radius: 30px;
+  background: #5D5A88;
+  border: none;
+  cursor: pointer;
+  position: absolute;
+  padding: 18px 24px;
+  box-sizing: border-box; /* Ensures padding is included in width/height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  opacity: 1;
+}
+
+.add-friend-btn:hover {
+  background: #4a406e;
+}
+
+.add-friend-btn span {
+  width: 83px;
+  height: 18px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 18px;
+  letter-spacing: 0%;
+  text-align: center;
+  color: #ffffff; /* Updated to white for contrast with button background */
+  margin: 0;
+  padding: 0;
+  white-space: nowrap; /* Ensures text stays on one line */
+  background: transparent; /* Removed background as per Figma (was #FFFFFF) */
+}
+
+.friends-list {
+  width: 464px;
+  height: 147px;
+  top: 60px;
+  left: 20px;
+  opacity: 1;
+  gap: 6px;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Enables scrolling if content exceeds height */
+}
+
+.friend-item {
+  width: 464px;
+  height: 47px;
+  border-radius: 10px;
+  opacity: 1;
+  padding: 38px 18px 38px 14px; /* Adjusted padding to fit within 47px height */
+  gap: 254px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: #FFFFFF;
+  box-sizing: border-box; /* Ensures padding is included in layout */
+}
+
+.friend-item-inner {
+  width: 464px;
+  height: 47px;
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  gap: 254px; /* Matches friend-item gap */
+}
+
+.friend-profile-text {
+  width: 147px;
+  height: 34px;
+  opacity: 1;
+  gap: 23px;
+  display: flex;
+  align-items: center;
+}
+.friend-avatar {
+  width: 34px;
+  height: 34px;
+  opacity: 0.98;
+  background: #6b5b95;
+  border-radius: 50%; /* Ensures circular shape */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 0; /* Removed margin to use gap instead */
+}
+
+.friend-name {
+  width: 90px;
+  height: 18px;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 16px;
+  line-height: 18px;
+  letter-spacing: 0%;
+  text-align: center;
+  background: none;
+  color: #2F2B62;
+; /* Assuming white text on dark background */
+  margin: 0;
+  padding: 0;
+  white-space: nowrap; /* Ensures text stays on one line */
+  overflow: hidden; /* Prevents overflow */
+  text-overflow: ellipsis; /* Adds ellipsis if text exceeds width */
+}
+
+.friend-status {
+  width: 18px;
+  height: 18px;
+  opacity: 0.98;
+  border-radius: 50%; /* Makes it a circle for the dot */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+}
+
+.friend-status.online {
+  color: #4caf50;
+}
+
+.friend-status.offline {
+  color: #666;
+}
+
+.request-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  background: #e0e3eb;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.request-avatar {
+  width: 30px;
+  height: 30px;
+  background: #6b5b95;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 10px;
+}
+
+.request-name {
+  font-size: 14px;
+  color: #333;
+  margin-right: 10px;
+}
+
+.request-status {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
 /* --------------------------------------------------------- */
 
 .match-history{
