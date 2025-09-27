@@ -35,14 +35,19 @@ export class Profile implements IComponent {
 // ----------------------------------------------------------------------------------------------
 
     // Stats
+    const winsValue = "15";  //backend
+    const lossesValue = "10"; //backend
+    const rankValue = "3"; //backend
     const stats = document.createElement("div");
     stats.className = "stats";
-    // stats.textContent = "stat"
+    const label = document.createElement("div");
+    label.className = "stats-label";
+    label.textContent = "Stats";
+    stats.appendChild(label);
 
-    // add vars to hold the numbers and tqake it from backend
-    const wins = this.createStat("12", "Wins", "stat-wins"); // backend
-    const losses = this.createStat("10", "Losses", "stat-losses"); // backend
-    const rank = this.createStat("3", "Rank", "stat-rank"); // backend
+    const wins = this.createStat(winsValue, "Wins", "stat-wins");
+    const losses = this.createStat(lossesValue, "Losses", "stat-losses");
+    const rank = this.createStat(rankValue, "Rank", "stat-rank");
 
     stats.appendChild(wins);
     stats.appendChild(losses);
