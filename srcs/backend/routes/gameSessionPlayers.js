@@ -146,7 +146,10 @@ async function gameSessionPlayersRoutes(app, options) {
 
 			let finishedGame = null;
 			
+			// console.log(`Player ${side} scored! New score: ${player.score}`); //for testing why it ends at 4
+
 			if (player.score >= 5) {
+				// console.log('Game finished - winning condition met!');
 				finishedGame = await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
