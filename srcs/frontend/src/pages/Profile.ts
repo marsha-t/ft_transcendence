@@ -1,11 +1,24 @@
 import { IComponent } from "../components/IComponent";
-
+import { ProfileServices } from '../services/profile/ProfileServices.js';
+// import { apiServices } from '../services/ApiServices';
+import { ProfileData, ApiResponse } from "../services/profile/types";
 export class Profile implements IComponent {
    private isFriendsActive: boolean = true;
-  public render(): HTMLElement {
-    const container = document.createElement("div");
-    container.className = "profile-page";
+   private username: string = "";
+  private avatar: string = "";
+  private isLoading: boolean = false;
+  private profileService: ProfileServices;
+  private container!: HTMLElement;
 
+  constructor() {
+      this.profileService = new ProfileServices();
+  }
+
+  public render():  HTMLElement {
+    this.container = document.createElement("div");
+    this.container.className = "profile-page";
+
+    // await this.fetchProfileData();
     this.loadPageStyles();
 
     // Profile card
@@ -14,10 +27,17 @@ export class Profile implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
-
+    if (this.avatar) {
+      const backendUrl = "http://localhost:5001"; // put this in a config file ideally
+      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
+    } else {
+      avatar.textContent = this.username.charAt(0) || "AV"; // Fallback to initials
+    }
     const name = document.createElement("h2");
     name.className = "profile-name";
-    name.textContent = "Hi Test!";
+    name.textContent = this.username  || "Hi Test!";
 
     const status = document.createElement("p");
     status.className = "profile-status online";
@@ -126,12 +146,22 @@ export class Profile implements IComponent {
     matchHistory.appendChild(table);
 
     // Append everything
-    container.appendChild(card);
-    container.appendChild(stats);
-    container.appendChild(friends);
-    container.appendChild(matchHistory);
+    this.container.appendChild(card);
+    this.container.appendChild(stats);
+    this.container.appendChild(friends);
+    this.container.appendChild(matchHistory);
 
-    return container;
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+          if (mutation.addedNodes.length && this.container.parentElement) {
+              console.log("Component added to DOM, fetching profile data...");
+              this.fetchProfileData();
+              observer.disconnect(); // Stop observing after the first fetch
+          }
+      });
+   });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return this.container;
   }
 
 
@@ -268,5 +298,39 @@ private createRequest(initials: string, name: string, status: string): HTMLEleme
       const newContainer = this.render();
       parent.replaceWith(newContainer);
     }
+  }
+
+
+//-----------------------
+
+private async fetchProfileData(): Promise<void> {
+  this.setLoadingState(true);
+  try {
+      const response: ApiResponse<ProfileData> = await this.profileService.getProfile();
+      if (response.success) {
+          this.username = response.data?.username || "Hi Test!";
+          this.avatar = response.data?.avatar || "";
+          this.rerender(); // Re-render to reflect updated data
+      } else {
+          this.username = response.data?.username || "Hi Test!";
+          this.avatar = response.data?.avatar || "";
+          this.rerender(); // Re-render to reflect updated data
+          // throw new Error(response.message || "Failed to load profile data");
+      }
+  } catch (error: any) {
+      console.error('Error fetching profile data:', error);
+      this.username = "Hi Test!"; // Fallback username
+      this.avatar = ""; // No avatar on error
+      this.rerender(); // Re-render with fallback data
+  } finally {
+      this.setLoadingState(false);
+  }
+}
+
+  private setLoadingState(loading: boolean): void {
+    this.isLoading = loading;
+    const card = this.container.querySelector('.profile-card');
+    if (card) card.classList.toggle('loading', loading);
+    console.log(`Loading state: ${loading}`);
   }
 }
