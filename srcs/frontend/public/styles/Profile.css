@@ -346,7 +346,7 @@
   height: 47px;
   border-radius: 10px;
   opacity: 1;
-  padding: 38px 18px 38px 14px; /* Adjusted padding to fit within 47px height */
+  padding: 38px 18px 38px 18px; /* Adjusted padding to fit within 47px height */
   gap: 254px;
   display: flex;
   align-items: center;
@@ -375,7 +375,7 @@
 .friend-avatar {
   width: 34px;
   height: 34px;
-  opacity: 0.98;
+  /* opacity: 0.98; */
   background: #6b5b95;
   border-radius: 50%; /* Ensures circular shape */
   display: flex;
