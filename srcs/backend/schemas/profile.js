@@ -3,22 +3,40 @@
 export const getCurrentUserSchema = {
   tags: ['Profile'],
   summary: 'Fetch currently authenticated user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
   response: {
     200: {
       type: 'object',
       properties: {
-        id: { type: 'integer' },
         username: { type: 'string' },
-        email: { type: 'string' }
-      }
+        avatar: { type: 'string' }, // must always be present
+      },
+      required: ['username', 'avatar'],
+    },
+    400: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
     },
     401: {
       type: 'object',
-      properties: { error: { type: 'string' } }
-    }
-  }
+      properties: { error: { type: 'string' } },
+    },
+    404: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
+    500: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
+  },
 };
-
 
 export const changeUsernameSchema = {
   tags: ['Profile'],

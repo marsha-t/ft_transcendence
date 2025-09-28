@@ -11,14 +11,14 @@ async function profileRoutes(app, options) {
   // 1- Get current user's profile by ID (temporary: expects userId in body)
   app.get('/api/profile/:id', { schema: getCurrentUserSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
 
       const user = await prisma.user.findUnique({
-        where: { id: Number(id) },
+        where: { id: userId },
         select: {
-          id: true,
           username: true,
-          email: true,
           avatar: true,
         },
       });
