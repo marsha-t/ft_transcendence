@@ -60,18 +60,11 @@ async function authRoutes(app, options) {
       const user = await prisma.user.findUnique({
         where: { username },
       });
-
-      if (!user) {
-        throw { code: 401, message: 'Invalid username' };
+//////////////////////////////
+      if (!user || !await bcrypt.compare(password, user.password)) {
+        throw { code: 401, message: 'Invalid credentials' };
       }
-
-      // Compare entered password with hashed password in DB
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-
-      if (!isPasswordValid) {
-        throw { code: 401, message: 'Invalid password' };
-      }
-
+/////////////////////////////
       // Update user status to online
       await prisma.user.update({
         where: { id: user.id },
