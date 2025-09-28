@@ -13,8 +13,10 @@ export class Game implements IComponent {
     private animationId: number | null = null;
 
     private ball = { x: 450, y: 300, dx: 5, dy: 3, radius: 12 };
-    private leftPaddle = { x: 20, y: 250, width: 10, height: 100 };
-    private rightPaddle = { x: 870, y: 250, width: 10, height: 100 };
+    private leftPaddle = { x: 20, y: 250, width: 10, height: 100, speed: 6 };
+    private rightPaddle = { x: 870, y: 250, width: 10, height: 100, speed: 6 };
+
+    private key: { [key: string]: boolean} = {}
 
     constructor() {
         this.canvas = document.createElement('canvas');
@@ -26,6 +28,8 @@ export class Game implements IComponent {
         this.context = ctx;
 
         this.gameService = new GameService();
+
+        this.setupKeyboardControls();
     }
 
     public render(): HTMLElement {
@@ -40,7 +44,7 @@ export class Game implements IComponent {
         const canvasContainer = document.createElement('div');
         canvasContainer.className = 'canvas_container';
 
-        //title container
+        //title containerå
         const titleContainer = document.createElement('div');
         titleContainer.className = 'title_container';
 
@@ -138,6 +142,18 @@ export class Game implements IComponent {
         link.rel = 'stylesheet';
         link.href = '/styles/Game.css';
         document.head.appendChild(link);
+    }
+
+    private setupKeyboardControls():void{
+        document.addEventListener('keydown', (event) => {
+            this.key[event.key.toLowerCase()] = true;
+            this.key[event.key] = true;
+        });
+
+        document.addEventListener('keyup', (event)=> {
+            this.key[event.key.toLowerCase()] = false;
+            this.key[event.key] = false;
+        })
     }
 
     private drawInitialScreen(){
@@ -290,6 +306,27 @@ export class Game implements IComponent {
         }
     }
 
+    private updatePaddleMovement(): void {
+        if(this.key['w'] && this.leftPaddle.y > 0){
+            this.leftPaddle.y -= this.leftPaddle.speed;
+        }
+        if (this.key['s'] && this.leftPaddle.y < this.canvas.height - this.leftPaddle.height) {
+            this.leftPaddle.y += this.leftPaddle.speed;
+        }
+
+        // Right paddle controls (Arrow keys)
+        if (this.key['ArrowUp'] && this.rightPaddle.y > 0) {
+            this.rightPaddle.y -= this.rightPaddle.speed;
+        }
+        if (this.key['ArrowDown'] && this.rightPaddle.y < this.canvas.height - this.rightPaddle.height) {
+            this.rightPaddle.y += this.rightPaddle.speed;
+        }
+
+        // Keep paddles within bounds
+        this.leftPaddle.y = Math.max(0, Math.min(this.leftPaddle.y, this.canvas.height - this.leftPaddle.height));
+        this.rightPaddle.y = Math.max(0, Math.min(this.rightPaddle.y, this.canvas.height - this.rightPaddle.height));
+    
+    }
 
     private drawGame(): void {
         // Clear canvas
@@ -400,6 +437,9 @@ export class Game implements IComponent {
     }
 
     private async updateGame(): Promise<void> {
+
+        this.updatePaddleMovement();
+
         this.ball.x += this.ball.dx;
         this.ball.y += this.ball.dy;
 
