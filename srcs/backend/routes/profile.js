@@ -9,7 +9,7 @@ import { getCurrentUserSchema, changeUsernameSchema, changePasswordSchema, chang
 async function profileRoutes(app, options) {
 
   // 1- Get current user's profile by ID (temporary: expects userId in body)
-  app.get('/api/profile/:id', { schema: getCurrentUserSchema }, async (request, reply) => {
+  app.get('/api/profile', { schema: getCurrentUserSchema }, async (request, reply) => {
     try {
       // Extract user ID from header (temporary)
       const userIdHeader = request.headers['x-current-user-id'];
