@@ -1,23 +1,24 @@
-import { createGameSessionSchema, getAllGameSessionsSchema, getGameSessionByIdSchema, deleteGameSessionSchema, updateSessionStatusSchema } from '../schemas/gameSession.js';
+import { createGameSessionSchema, getAllGameSessionsSchema, getGameSessionByIdSchema, updateSessionStatusSchema } from '../schemas/gameSession.js';
 import prisma from '../prisma/prismaClient.js';
-import { isValidTransition, buildUpdateData, runChecks } from '../services/gameSessionService.js';
+import { createGameSession, isValidTransition, buildUpdateData, runChecks } from '../services/gameSessionService.js';
 
 async function gameSessionRoutes(app, options) {    
 
-  // Create new game session
+  // Create game session with first player
   app.post('/api/game-sessions', {schema: createGameSessionSchema }, async (request, reply) => {
-    const { maxScore } = request.body ?? {};
+    const { userId, guestName, side } = request.body ?? {};
+    request.log.info({ body: request.body }, 'Incoming createGameSession request');
+
     try {
-      const session = await prisma.gameSession.create({
-        data: {
-          maxScore: maxScore ?? 5,
-        },
+      const session = await createGameSession(prisma, {
+        players: [{ userId, guestName, side }], tournamentId: null, matchIndex: null
       });
-      return reply.code(201).send(session); // Send back data that was created
+
+      return reply.code(201).send(session);
     }
     catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to create game session' });
+      return reply.code(err.code || 500 ).send({ error: err.message });
     }
   });
 
@@ -25,9 +26,9 @@ async function gameSessionRoutes(app, options) {
   app.get('/api/game-sessions', { schema: getAllGameSessionsSchema }, async (request, reply) => {
     try {
       const sessions = await prisma.gameSession.findMany({
-        include: { players: true, winner: true },
+        include: { players: true, winnerUser: true, winnerPlayer: true },
       });
-      return reply.send(sessions); // auto send 200; send back nested data with players and winners 
+      return reply.send(sessions);
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: 'Failed to fetch game sessions' });
@@ -35,13 +36,13 @@ async function gameSessionRoutes(app, options) {
   });
 
   // Get single game session
-  app.get('/api/game-sessions/:id', { schema: getGameSessionByIdSchema }, async (request, reply) => {
-    const { id } = request.params;
+  app.get('/api/game-sessions/:sessionId', { schema: getGameSessionByIdSchema }, async (request, reply) => {
+    const { sessionId } = request.params;
 
     try {
       const session = await prisma.gameSession.findUnique({
-        where: { id: Number(id) },
-        include: { players: true, winner: true },
+        where: { id: Number(sessionId) },
+        include: { players: true, winnerUser: true, winnerPlayer: true },
       });
 
       if (!session) {
@@ -54,36 +55,22 @@ async function gameSessionRoutes(app, options) {
     }
   });
 
-  // Delete game session
-  app.delete('/api/game-sessions/:id', { schema: deleteGameSessionSchema }, async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-        const session = await prisma.gameSession.findUnique({
-          where: { id: Number(id) },
-        });
-
-        if (!session) {
-          return reply.code(404).send({ error: 'Game session not found' });
-        }
-      await prisma.gameSession.delete({
-        where: { id: Number(id) },
-      });
-      return reply.code(200).send({ message: 'Game session deleted' });
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to delete game session' });
-    }
-  });
-
   // Update game session status
-  app.patch('/api/game-sessions/:id/status', {schema: updateSessionStatusSchema }, async (request, reply) => {
-    const { id } = request.params;
-    const { status: nextStatus, winnerUserId } = request.body; 
-    
+  /*
+    - Check session exists
+    - Check that status transition is allowed (via isValidTransition())
+    - Run additional checks specific to transition (via runChecks())
+    - Update timestamps where appropriate
+    - Update GameSession
+    - Return updated session object 
+  */
+  app.patch('/api/game-sessions/:sessionId/status', {schema: updateSessionStatusSchema }, async (request, reply) => {
+    const { sessionId } = request.params;
+    const { status: nextStatus } = request.body; 
+    console.log(request.body, session.status)
     try {
       const session = await prisma.gameSession.findUnique({
-        where: { id: Number(id) },
+        where: { id: Number(sessionId) },
         include: { players: true }
       });
       if (!session) {
@@ -92,9 +79,9 @@ async function gameSessionRoutes(app, options) {
       if (!isValidTransition(session.status, nextStatus)) {
         return reply.code(400).send({ error: `Invalid transition: ${session.status} to ${nextStatus}` });
       }
-      runChecks(session, nextStatus, winnerUserId);
-      const data = buildUpdateData(session, nextStatus, winnerUserId);
-      const updated = await prisma.gameSession.update({ where: { id: Number(id) }, data});
+      runChecks(session, nextStatus);
+      const data = buildUpdateData(session, nextStatus);
+      const updated = await prisma.gameSession.update({ where: { id: Number(sessionId) }, data});
       return reply.send(updated);
     } catch (err) {
       request.log.error(err);

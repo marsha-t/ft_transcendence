@@ -45,18 +45,30 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - 3000:3000
+      # - 3000:3000
+      - 443:443
     depends_on:
       - backend
     networks:
       - web
-    # volumes:
-    #   - ./frontend:/app
+    volumes:
+      - .:/app
     #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
+  # nginx:
+  #   build:
+  #     context: ../
+  #     dockerfile: srcs/nginx/Dockerfile
+  #   container_name: nginx
+  #   ports:
+  #     - "443:443"
+  #   depends_on:
+  #     - backend
+  #     - frontend
+  #   restart: always
 
-networks:
+networks: 
   web:
     name: transcendence
 
