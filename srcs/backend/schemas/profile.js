@@ -15,7 +15,7 @@ export const getCurrentUserSchema = {
       type: 'object',
       properties: {
         username: { type: 'string' },
-        avatar: { type: 'string' }, // must always be present
+        avatar: { type: 'string' },
       },
       required: ['username', 'avatar'],
     },
