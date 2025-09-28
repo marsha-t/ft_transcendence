@@ -27,14 +27,17 @@ export class Profile implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
-    if (this.avatar) {
-      const backendUrl = "http://localhost:5001"; // put this in a config file ideally
-      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+
+    if (this.avatar && this.avatar.trim() !== "") {
+      avatar.style.backgroundImage = `url(${this.avatar})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
+      avatar.textContent = ""; // clear fallback initials
     } else {
-      avatar.textContent = this.username.charAt(0) || "AV"; // Fallback to initials
+      avatar.style.backgroundImage = ""; // remove image if none
+      avatar.textContent = this.username.charAt(0).toUpperCase() || "AV";
     }
+
     const name = document.createElement("h2");
     name.className = "profile-name";
     name.textContent = this.username  || "Hi Test!";
@@ -151,16 +154,16 @@ export class Profile implements IComponent {
     this.container.appendChild(friends);
     this.container.appendChild(matchHistory);
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-          if (mutation.addedNodes.length && this.container.parentElement) {
-              console.log("Component added to DOM, fetching profile data...");
-              this.fetchProfileData();
-              observer.disconnect(); // Stop observing after the first fetch
-          }
-      });
-   });
-    observer.observe(document.body, { childList: true, subtree: true });
+  //   const observer = new MutationObserver((mutations) => {
+  //     mutations.forEach((mutation) => {
+  //         if (mutation.addedNodes.length && this.container.parentElement) {
+  //             console.log("Component added to DOM, fetching profile data...");
+  //             this.fetchProfileData();
+  //             observer.disconnect(); // Stop observing after the first fetch
+  //         }
+  //     });
+  //  });
+  //   observer.observe(document.body, { childList: true, subtree: true });
     return this.container;
   }
 

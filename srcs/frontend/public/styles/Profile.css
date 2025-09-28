@@ -40,11 +40,14 @@
   border: 2px solid #5D5A88;
   opacity: 0.98;
 
-  overflow: hidden; /* makes sure the image stays inside circle */
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent; /* no fill */
+  background: #ddd; /* fallback bg for initials */
+  font-size: 48px;  /* initials size */
+  font-weight: bold;
+  color: #5D5A88;
+  overflow: hidden; 
 }
 
 .profile-name {
@@ -334,6 +337,7 @@
   top: 60px;
   left: 20px;
   opacity: 1;
+  border: none;
   gap: 6px;
   position: absolute;
   display: flex;
@@ -343,10 +347,10 @@
 
 .friend-item {
   width: 464px;
-  height: 47px;
+  height: 40px;
   border-radius: 10px;
   opacity: 1;
-  padding: 38px 18px 38px 18px; /* Adjusted padding to fit within 47px height */
+  padding: 38px 18px 38px 14px; /* Adjusted padding to fit within 47px height */
   gap: 254px;
   display: flex;
   align-items: center;
@@ -357,7 +361,7 @@
 
 .friend-item-inner {
   width: 464px;
-  height: 47px;
+  height: 40px;
   opacity: 1;
   display: flex;
   align-items: center;
@@ -365,8 +369,8 @@
 }
 
 .friend-profile-text {
-  width: 147px;
-  height: 34px;
+  /* width: 90px;
+  height: 34px; */
   opacity: 1;
   gap: 23px;
   display: flex;
@@ -375,7 +379,7 @@
 .friend-avatar {
   width: 34px;
   height: 34px;
-  /* opacity: 0.98; */
+  opacity: 0.98;
   background: #6b5b95;
   border-radius: 50%; /* Ensures circular shape */
   display: flex;
@@ -386,23 +390,22 @@
 }
 
 .friend-name {
-  width: 90px;
-  height: 18px;
+  /* width: 90px;
+  height: 18px; */
   font-family: "DM Sans", sans-serif;
-  font-weight: 400;
+  font-weight: 500;
   font-style: normal;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 18px;
   letter-spacing: 0%;
   text-align: center;
   background: none;
-  color: #2F2B62;
-; /* Assuming white text on dark background */
+  color: #2F2B62; /* Assuming white text on dark background */
   margin: 0;
   padding: 0;
   white-space: nowrap; /* Ensures text stays on one line */
-  overflow: hidden; /* Prevents overflow */
-  text-overflow: ellipsis; /* Adds ellipsis if text exceeds width */
+  /* overflow: hidden; Prevents overflow */
+  /* text-overflow: ellipsis; Adds ellipsis if text exceeds width */
 }
 
 .friend-status {
