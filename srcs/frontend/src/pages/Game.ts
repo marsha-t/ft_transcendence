@@ -1,14 +1,31 @@
 import { IComponent } from "../components/IComponent.js";
-import { PongGame } from "./game/PongGame.js";
+import { GameService } from "../services/game/GameService.js";
+import { GameSession, PlayerSide } from "../services/game/types.js";
 
 export class Game implements IComponent {
-    private pongGame: PongGame | null = null;
+
     private canvas: HTMLCanvasElement;
+    private context: CanvasRenderingContext2D;
+    private gameService: GameService;
+    private currentSession: GameSession | null = null;
+    private isGameRunning: boolean = false;
+
+    private animationId: number | null = null;
+
+    private ball = { x: 450, y: 300, dx: 5, dy: 3, radius: 12 };
+    private leftPaddle = { x: 20, y: 250, width: 10, height: 100 };
+    private rightPaddle = { x: 870, y: 250, width: 10, height: 100 };
 
     constructor() {
         this.canvas = document.createElement('canvas');
-        this.canvas.width = 800;
-        this.canvas.height = 500;
+        this.canvas.width = 900;
+        this.canvas.height = 600;
+
+        const ctx = this.canvas.getContext("2d");
+        if (!ctx) throw new Error("Failed to get canvas context");
+        this.context = ctx;
+
+        this.gameService = new GameService();
     }
 
     public render(): HTMLElement {
@@ -18,53 +35,98 @@ export class Game implements IComponent {
         //Load css
         this.loadPageStyles();
 
-        // Game title
-        const title = document.createElement('h1');
-        title.textContent = 'Pong Game';
-        title.className = 'game_title';
-        container.appendChild(title);
 
         // Canvas container
         const canvasContainer = document.createElement('div');
         canvasContainer.className = 'canvas_container';
+
+        //title container
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'title_container';
+
+        const userLeft = document.createElement('h2');
+        userLeft.textContent = 'User 1';
+        userLeft.className = 'user';
+        userLeft.id = 'left-player';
+        
+        const VS = document.createElement('h1');
+        VS.textContent = 'VS';
+        VS.className = 'VS';
+        
+        const userRight = document.createElement('h2');
+        userRight.textContent = 'User 2';
+        userRight.className = 'user';
+        userRight.id = 'right-player';
+
+        titleContainer.appendChild(userLeft);
+        titleContainer.appendChild(VS);
+        titleContainer.appendChild(userRight);
+
+        container.appendChild(titleContainer);
+
         this.canvas.className = 'game_canvas';
         canvasContainer.appendChild(this.canvas);
         container.appendChild(canvasContainer);
+
+        // Player setup section
+        const setupSection = document.createElement('div');
+        setupSection.className = 'setup_section';
+        setupSection.id = 'setup-section';
+
+        const guestInput = document.createElement('input');
+        guestInput.type = 'text';
+        guestInput.placeholder = 'Enter guest name';
+        guestInput.className = 'guest_input';
+        guestInput.id = 'guest-input';
+
+        const addGuestBtn = document.createElement('button');
+        addGuestBtn.className = 'add_guest_btn';
+        addGuestBtn.textContent = 'Add Guest Player';
+        addGuestBtn.addEventListener('click', () => this.addGuestPlayer());
+
+        setupSection.appendChild(guestInput);
+        setupSection.appendChild(addGuestBtn);
+
+
+        // game controls 
 
         // Controls container
         const controlsContainer = document.createElement('div');
         controlsContainer.className = 'controls_container';
 
-        // Start/Pause button
         const startBtn = document.createElement('button');
         startBtn.className = 'start_btn';
         startBtn.textContent = 'Start Game';
-        startBtn.addEventListener('click', () => this.toggleGame(startBtn));
-        controlsContainer.appendChild(startBtn);
+        startBtn.id = 'start-btn';
+        // startBtn.style.display = 'none';
+        startBtn.addEventListener('click', () => this.toggleGame());
 
-        // Reset button
-        const resetBtn = document.createElement('button');
-        resetBtn.className = 'reset_btn';
-        resetBtn.textContent = 'Reset';
-        resetBtn.addEventListener('click', () => this.resetGame(startBtn));
-        controlsContainer.appendChild(resetBtn);
+        const pauseBtn = document.createElement('button');
+        pauseBtn.className = 'pause_btn';
+        pauseBtn.textContent = 'Pause';
+        pauseBtn.id = 'pause-btn';
+        pauseBtn.addEventListener('click', () => this.pauseGame());
+        pauseBtn.style.display = 'none';
+
+        const quitBtn = document.createElement('button');
+        quitBtn.className = 'quit_btn';
+        quitBtn.textContent = 'Quit Game';
+        quitBtn.id = 'quit-btn';
+        quitBtn.addEventListener('click', () => this.quitGame());
+        quitBtn.style.display = 'none';
+
+
+        controlsContainer.appendChild(setupSection);
+        controlsContainer.appendChild(startBtn);
+        controlsContainer.appendChild(pauseBtn);
+        controlsContainer.appendChild(quitBtn);
 
         container.appendChild(controlsContainer);
 
-        // Instructions
-        const instructions = document.createElement('div');
-        instructions.className = 'instructions';
-        instructions.innerHTML = `
-            <h3>How to Play:</h3>
-            <p><strong>Player 1:</strong> Use W (up) and S (down)</p>
-            <p><strong>Player 2:</strong> Use Arrow Up and Arrow Down</p>
-            <p><strong>Goal:</strong> First to 5 points wins!</p>
-        `;
-        container.appendChild(instructions);
-
-        // Initialize the game
-        this.initGame();
-
+        this.drawInitialScreen();
+        
+        //main logic
+        this.initializeGame();
         return container;
     }
 
@@ -78,33 +140,373 @@ export class Game implements IComponent {
         document.head.appendChild(link);
     }
 
-    private initGame(): void {
-        this.pongGame = new PongGame(this.canvas);
+    private drawInitialScreen(){
+        if(!this.context)
+            return;
+    
+        //background
+        this.context.fillStyle = '#F2F1FA';
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        //ball
+        this.context.fillStyle = "#423f6a";
+        this.context.beginPath();
+        this.context.arc(this.canvas.width / 2, this.canvas.height / 2, 12, 0, Math.PI * 2);
+        this.context.fill();
+    
+        /// Left paddle
+        this.drawRoundedRect(20, this.canvas.height / 2 - 40, 10, 100, 5, "#423f6a");
+
+        // Right paddle
+        this.drawRoundedRect(this.canvas.width - 30, this.canvas.height / 2 - 40, 10, 100, 5, "#423f6a");
+
+        //divider
+        this.context.beginPath();
+        this.context.setLineDash([10, 15]);
+        this.context.strokeStyle = "#423f6a";
+        this.context.lineWidth = 4;
+        this.context.moveTo(this.canvas.width / 2, 0);
+        this.context.lineTo(this.canvas.width / 2, this.canvas.height);
+        this.context.stroke();
+        this.context.setLineDash([]); // reset dashes
     }
 
-    private toggleGame(button: HTMLButtonElement): void {
-        if (!this.pongGame) return;
+   
 
-        if (button.textContent === 'Start Game') {
-            this.pongGame.start();
-            button.textContent = 'Pause Game';
-        } else {
-            this.pongGame.pause();
-            button.textContent = 'Start Game';
+    private async initializeGame():Promise<void>{
+        try{
+            const userId = 1 // For test case only, later i need to replace with actual id from backend;
+
+            //Ask backend to create a new game session
+            this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
+
+            //show the user one the right
+            const rightPlayerElement = document.getElementById('right-player');
+            if(rightPlayerElement && this.currentSession?.players[0])
+                rightPlayerElement.textContent = this.currentSession?.players[0].displayName;
+
+        }catch(error){
+            console.error('Failed to initialize game:', error);
+            alert('Failed to initialize game from: initializeGame()');
         }
     }
 
-    private resetGame(startButton: HTMLButtonElement): void {
-        if (!this.pongGame) return;
+    private async addGuestPlayer(): Promise<void>{
+        const guestInput = document.getElementById('guest-input') as HTMLInputElement;
+        const guestName  = guestInput.value.trim();
 
-        this.pongGame.reset();
-        startButton.textContent = 'Start Game';
+        if(!guestName){
+            alert('Please, enter a guest name');
+            return;
+        }
+        if(!this.currentSession){
+            alert('Game session not initialized');
+            return;
+        }
+        try{
+            await this.gameService.addGuestPlayer(this.currentSession.sessionId, guestName, "LEFT");
+            
+
+            //ui
+            const leftPlayerElement = document.getElementById('left-player');
+            if(leftPlayerElement){
+                leftPlayerElement.textContent = guestName;
+            }
+
+            //hide setup
+            const setupSection = document.getElementById('setup-section');
+            // const startBtn = document.getElementById('start-btn');
+
+            if(setupSection)
+                setupSection.style.display = 'none';
+            // if(startBtn)
+            //     startBtn.style.display = 'block';
+
+            guestInput.value = '';
+        }catch(error){
+            console.log("Error adding guest player", error);
+            alert("Error adding guest player");
+        }
     }
 
-    public destroy(): void {
-        if (this.pongGame) {
-            this.pongGame.destroy();
-            this.pongGame = null;
+    private async toggleGame(): Promise<void> {
+        if (!this.currentSession) {
+            alert('Game session not initialized, toggleGame()');
+            return;
+        }
+
+        try {
+            if (!this.isGameRunning) {
+                // Start the game
+                await this.gameService.startGame(this.currentSession.sessionId);
+                this.startGameLoop();
+                this.updateGameButtons(true);
+            }
+        } catch (error) {
+            console.error('Failed to start game:', error);
+            alert('Failed to start game. Please try again.');
+        }
+    }
+
+    private startGameLoop(): void {
+        this.isGameRunning = true;
+        this.gameLoop();
+    }
+
+    private gameLoop(): void {
+        if(!this.isGameRunning)
+            return;
+        this.updateGame();
+        this.drawGame();
+
+        this.animationId = requestAnimationFrame(() => this.gameLoop());
+    }
+
+    private updateGameButtons(isPlaying: boolean): void {
+        const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+        const pauseBtn = document.getElementById('pause-btn') as HTMLButtonElement;
+
+        if (isPlaying) {
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'block';
+            pauseBtn.textContent = 'Pause';
+        } else {
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'block';
+            pauseBtn.textContent = 'Resume';
+        }
+    }
+
+    private stopGameLoop(): void {
+        this.isGameRunning = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+
+    private drawGame(): void {
+        // Clear canvas
+        this.context.fillStyle = '#F2F1FA';
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        //  ball
+        this.context.fillStyle = "#423f6a";
+        this.context.beginPath();
+        this.context.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+        this.context.fill();
+
+        //  paddles
+        this.drawRoundedRect(this.leftPaddle.x, this.leftPaddle.y, this.leftPaddle.width, this.leftPaddle.height, 5, "#423f6a");
+        this.drawRoundedRect(this.rightPaddle.x, this.rightPaddle.y, this.rightPaddle.width, this.rightPaddle.height, 5, "#423f6a");
+
+        //  divider
+        this.context.beginPath();
+        this.context.setLineDash([10, 15]);
+        this.context.strokeStyle = "#423f6a";
+        this.context.lineWidth = 4;
+        this.context.moveTo(this.canvas.width / 2, 0);
+        this.context.lineTo(this.canvas.width / 2, this.canvas.height);
+        this.context.stroke();
+        this.context.setLineDash([]);
+
+        // Draw scores
+        this.drawScores();
+    }
+
+    private drawRoundedRect(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+        fillColor: string,
+        // strokeColor?: string
+    ) {
+        if (!this.context) return;
+        const ctx = this.context;
+    
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+    }
+
+    private drawScores(): void {
+        if (!this.currentSession) return;
+
+        this.context.fillStyle = "#423f6a";
+        this.context.font = "48px Arial";
+        this.context.textAlign = "center";
+
+        const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
+        const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
+
+        // Left score
+        if (leftPlayer) {
+            this.context.fillText(leftPlayer.score.toString(), this.canvas.width / 4, 80);
+        }
+
+        // Right score
+        if (rightPlayer) {
+            this.context.fillText(rightPlayer.score.toString(), (3 * this.canvas.width) / 4, 80);
+        }
+    }
+
+    private resetGame(): void {
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.dx = 5;
+        this.ball.dy = 3;
+        
+        this.drawInitialScreen();
+        
+        // Reset UI
+        const setupSection = document.getElementById('setup-section');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const quitBtn = document.getElementById('quit-btn');
+        
+        if (setupSection) setupSection.style.display = 'block';
+        if (startBtn) startBtn.style.display = 'none';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (quitBtn) quitBtn.style.display = 'block';
+
+        // Reset player names
+        const leftPlayerElement = document.getElementById('left-player');
+        const rightPlayerElement = document.getElementById('right-player');
+        if (leftPlayerElement) leftPlayerElement.textContent = 'Player 1';
+        if (rightPlayerElement) rightPlayerElement.textContent = 'Player 2';
+        
+        // Reset session
+        this.currentSession = null;
+        this.initializeGame();
+    }
+
+    private updateGame(): void {
+        this.ball.x += this.ball.dx;
+        this.ball.y += this.ball.dy;
+
+        // Ball collision with top and bottom walls
+        if (this.ball.y <= this.ball.radius || this.ball.y >= this.canvas.height - this.ball.radius) {
+            this.ball.dy = -this.ball.dy;
+        }
+
+        // Ball collision with paddles
+        if (this.ball.x <= this.leftPaddle.x + this.leftPaddle.width + this.ball.radius &&
+            this.ball.y >= this.leftPaddle.y && this.ball.y <= this.leftPaddle.y + this.leftPaddle.height) {
+            this.ball.dx = -this.ball.dx;
+        }
+
+        if (this.ball.x >= this.rightPaddle.x - this.ball.radius &&
+            this.ball.y >= this.rightPaddle.y && this.ball.y <= this.rightPaddle.y + this.rightPaddle.height) {
+            this.ball.dx = -this.ball.dx;
+        }
+
+        // Scoring
+        if (this.ball.x < 0) {
+            this.scorePoint("RIGHT");
+        } else if (this.ball.x > this.canvas.width) {
+            this.scorePoint("LEFT");
+        }
+    }
+
+    private async scorePoint(scoringSide: PlayerSide): Promise<void>{
+
+        try{
+            if(this.currentSession){
+                await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
+                this.currentSession = await this.gameService.getGameSession(this.currentSession.sessionId);
+            }
+        }catch(error){
+            console.error('Failed to update score:', error);
+        }
+        // Reset ball position
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.dx = -this.ball.dx; // Change direction
+        
+        // Check for game end (example: first to 5 points wins)
+        this.checkGameEnd();
+    }
+
+    private async checkGameEnd(): Promise<void> {
+        if (!this.currentSession) return;
+
+        const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
+        const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
+
+        const winningScore = 5; // Set winning score or get from the backend
+
+        if (leftPlayer && leftPlayer.score >= winningScore) {
+            await this.endGame("LEFT");
+        } else if (rightPlayer && rightPlayer.score >= winningScore) {
+            await this.endGame("RIGHT");
+        }
+    }
+
+    private async endGame(winner: PlayerSide): Promise<void> {
+        try {
+            if (this.currentSession) {
+                await this.gameService.finishGame(this.currentSession.sessionId);
+                this.stopGameLoop();
+                
+                const winnerName = winner === "LEFT" ? 
+                    this.currentSession.players.find(p => p.side === "LEFT")?.displayName :
+                    this.currentSession.players.find(p => p.side === "RIGHT")?.displayName;
+                
+                alert(`Game Over! ${winnerName} wins!`);
+                this.resetGame();
+            }
+        } catch (error) {
+            console.error('Failed to finish game:', error);
+        }
+    }
+
+    private async pauseGame(): Promise<void>{
+        if(!this.currentSession)
+            return;
+
+        try{
+            if (this.isGameRunning){
+                await this.gameService.pauseGame(this.currentSession.sessionId);
+                this.stopGameLoop();
+                this.updateGameButtons(false);
+            }else{
+                await this.gameService.startGame(this.currentSession.sessionId);
+                this.startGameLoop();
+                this.updateGameButtons(true);
+            }
+        }catch(error){
+            console.log('failed t pause/resume the game')
+        }
+    }
+
+    private async quitGame(): Promise<void> {
+        if (!this.currentSession) 
+            return;
+        
+        const confirmed = confirm('Are you sure you want to quit the game?');
+        
+        if (!confirmed)
+            return;
+        try {
+            await this.gameService.abortGame(this.currentSession.sessionId);
+            this.stopGameLoop();
+            this.resetGame();
+        } catch (error) {
+            console.error('Failed to quit game:', error);
         }
     }
 }

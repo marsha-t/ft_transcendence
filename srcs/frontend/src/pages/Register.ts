@@ -73,7 +73,7 @@ export class Register implements IComponent {
         passwordInput.id = 'password';
         passwordInput.name = 'password';
         passwordInput.placeholder = '••••••••';
-        passwordInput.minLength = 6;
+        // passwordInput.minLength = 6;
         passwordInput.required = true;
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(passwordInput);
