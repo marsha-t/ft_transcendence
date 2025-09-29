@@ -41,6 +41,13 @@ export const getCurrentUserSchema = {
 export const changeUsernameSchema = {
   tags: ['Profile'],
   summary: 'Change the username of the current user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
   body: {
     type: 'object',
     required: ['username'],
@@ -63,22 +70,18 @@ export const changeUsernameSchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        updatedUsername: {
-          type: 'object',
-          properties: {
-            username: { type: 'string' },
-          },
-        },
+        username: { type: 'string' },
       },
     },
     400: {
       type: 'object',
-      properties: { 
-        error: { type: 'string' },
-        message: { type: 'string' },
-      },
+      properties: { error: { type: 'string' } },
     },
     409: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
+    500: {
       type: 'object',
       properties: { error: { type: 'string' } },
     },
@@ -88,6 +91,13 @@ export const changeUsernameSchema = {
 export const changePasswordSchema = {
   tags: ['Profile'],
   summary: 'Change the password of the current user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
   body: {
     type: 'object',
     required: ['oldPassword', 'newPassword'],
@@ -107,20 +117,28 @@ export const changePasswordSchema = {
           minLength: 'New password must be at least 12 characters',
           pattern: 'New password must include uppercase, lowercase, number, and symbol'
         }
-      },
-    },
+      }
+    }
   },
   response: {
     200: { type: 'object', properties: { message: { type: 'string' } } },
     400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
     401: { type: 'object', properties: { error: { type: 'string' } } },
     404: { type: 'object', properties: { error: { type: 'string' } } },
+    500: { type: 'object', properties: { error: { type: 'string' } } },
   },
 };
 
 export const changeEmailSchema = {
   tags: ['Profile'],
   summary: 'Change the email address of the current user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
   body: {
     type: 'object',
     required: ['newEmail', 'password'],
@@ -149,12 +167,20 @@ export const changeEmailSchema = {
     401: { type: 'object', properties: { error: { type: 'string' } } },
     404: { type: 'object', properties: { error: { type: 'string' } } },
     409: { type: 'object', properties: { error: { type: 'string' } } },
+    500: { type: 'object', properties: { error: { type: 'string' } } },
   },
 };
 
 export const avatarUploadSchema = {
   tags: ['Profile'],
   summary: 'Upload or update the avatar of the current user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
   consumes: ['multipart/form-data'],
   response: {
     200: {
@@ -168,18 +194,22 @@ export const avatarUploadSchema = {
       type: 'object',
       properties: { error: { type: 'string' } },
     },
+    500: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
   },
 };
 
 export const removeAvatarSchema = {
   tags: ['Profile'],
   summary: 'Remove user avatar and reset to default',
-  params: {
+  headers: {
     type: 'object',
-    required: ['id'],
     properties: {
-      id: { type: 'integer', minimum: 1 }
-    }
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
   },
   response: {
     200: {
@@ -194,20 +224,17 @@ export const removeAvatarSchema = {
       properties: {
         error: { type: 'string' }
       }
-    }
-  }
+    },
+    500: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
+  },
 };
 
 export const getAvatarSchema = {
   tags: ['Profile'],
   summary: 'Fetch user avatar by ID',
-  params: {
-    type: 'object',
-    required: ['id'],
-    properties: {
-      id: { type: 'integer', minimum: 1 }
-    }
-  },
   response: {
     200: {
       type: 'object',
@@ -220,6 +247,10 @@ export const getAvatarSchema = {
       properties: {
         error: { type: 'string' }
       }
-    }
-  }
+    },
+    500: {
+      type: 'object',
+      properties: { error: { type: 'string' } },
+    },
+  },
 };

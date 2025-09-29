@@ -8,23 +8,21 @@ async function friendsRoutes(app, options) {
   // 1- Send a friend request by username
   app.post('/api/friends/send', { schema: sendFriendRequestSchema }, async (request, reply) => {
     try {
-      const { username } = request.body;       // target user's username
-      const { currentUserId } = request.body;  // temporary: sender ID
+      const { username } = request.body; // target user's username
+      // Extract current user ID from header (temporary, JWT will replace)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+
+      // Check if current user exists
+      const currentUser = await prisma.user.findUnique({ where: { id: currentUserId } });
+      if (!currentUser) throw { code: 404, message: 'Current user not found' };
 
       // Check if user is trying to add themselves
-      const currentUser = await prisma.user.findUnique({ where: { id: Number(currentUserId) } });
-      if (!currentUser) {
-        throw { code: 404, message: 'Current user not found' };
-      }
-      if (currentUser.username === username) {
-        throw { code: 400, message: 'You cannot send a friend request to yourself' };
-      }
+      if (currentUser.username === username) throw { code: 400, message: 'You cannot send a friend request to yourself' };
 
       // Check if target user exists
       const targetUser = await prisma.user.findUnique({ where: { username } });
-      if (!targetUser) {
-        throw { code: 404, message: 'User not found' };
-      }
+      if (!targetUser) throw { code: 404, message: 'User not found' };
 
       // Check if request already exists (pending or accepted)
       const existing = await prisma.friendRequest.findFirst({
@@ -36,9 +34,7 @@ async function friendsRoutes(app, options) {
         }
       });
 
-      if (existing) {
-        throw { code: 409, message: 'Friend request already exists' };
-      }
+      if (existing) throw { code: 409, message: 'Friend request already exists' };
 
       // Create friend request
       const requestRecord = await prisma.friendRequest.create({
@@ -61,27 +57,27 @@ async function friendsRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
       return reply.code(500).send({ error: 'Failed to send friend request' });
     }
   });
 
-  // 2- Accept a pending friend request
-  app.put('/api/friends/:id/accept', { schema: acceptFriendRequestSchema }, async (request, reply) => {
+  // 2- Accept a pending friend request by sender username
+  app.put('/api/friends/:username/accept', { schema: acceptFriendRequestSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;           // sender ID of the request
-      const { currentUserId } = request.body;  // temporary: receiver ID (you)
+      const { username } = request.params; // sender username
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+
+      // Find sender by username
+      const sender = await prisma.user.findUnique({ where: { username } });
+      if (!sender) throw { code: 404, message: 'Sender not found' };
 
       // Find pending request
       const requestRecord = await prisma.friendRequest.findFirst({
-        where: { senderId: Number(id), receiverId: currentUserId, status: 'PENDING' },
+        where: { senderId: sender.id, receiverId: currentUserId, status: 'PENDING' },
       });
-
-      if (!requestRecord) {
-        throw { code: 404, message: 'Pending friend request not found' };
-      }
+      if (!requestRecord) throw { code: 404, message: 'Pending friend request not found' };
 
       // Update status to ACCEPTED
       const updated = await prisma.friendRequest.update({
@@ -100,75 +96,71 @@ async function friendsRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
       return reply.code(500).send({ error: 'Failed to accept friend request' });
     }
   });
 
-  // 3- Reject a friend request
-  app.put('/api/friends/:id/reject', { schema: rejectFriendRequestSchema }, async (request, reply) => {
+  // 3- Reject a friend request by sender username
+  app.put('/api/friends/:username/reject', { schema: rejectFriendRequestSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;           // sender ID of the request
-      const { currentUserId } = request.body;  // temporary: receiver ID (you)
+      const { username } = request.params; // sender username
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+
+      // Find sender by username
+      const sender = await prisma.user.findUnique({ where: { username } });
+      if (!sender) throw { code: 404, message: 'Sender not found' };
 
       // Find pending request
       const requestRecord = await prisma.friendRequest.findFirst({
-        where: { senderId: Number(id), receiverId: currentUserId, status: 'PENDING' },
+        where: { senderId: sender.id, receiverId: currentUserId, status: 'PENDING' },
       });
+      if (!requestRecord) throw { code: 404, message: 'Pending friend request not found' };
 
-      if (!requestRecord) {
-        throw { code: 404, message: 'Pending friend request not found' };
-      }
-
-      // Delete the request so sender can retry later
+      // Delete request so sender can retry later
       await prisma.friendRequest.delete({ where: { id: requestRecord.id } });
 
       return reply.code(200).send({ message: 'Friend request rejected' });
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
       return reply.code(500).send({ error: 'Failed to reject friend request' });
     }
   });
 
-  // 4- Remove an existing friend
-  app.delete('/api/friends/:id', { schema: removeFriendSchema }, async (request, reply) => {
+  // 4- Remove an existing friend by username
+  app.delete('/api/friends/:username', { schema: removeFriendSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;           // friend user ID
-      const { currentUserId } = request.body;  // temporary: current user
+      const { username } = request.params; // friend's username
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+
+      // Find friend by username
+      const friend = await prisma.user.findUnique({ where: { username } });
+      if (!friend) throw { code: 404, message: 'Friend not found' };
 
       // Check if there is an accepted friendship
       const existing = await prisma.friendRequest.findFirst({
         where: {
           status: 'ACCEPTED',
           OR: [
-            { senderId: currentUserId, receiverId: Number(id) },
-            { senderId: Number(id), receiverId: currentUserId }
+            { senderId: currentUserId, receiverId: friend.id },
+            { senderId: friend.id, receiverId: currentUserId }
           ]
         }
       });
-
-      if (!existing) {
-        throw { code: 404, message: 'Friendship not found' };
-      }
+      if (!existing) throw { code: 404, message: 'Friendship not found' };
 
       // Delete the friendship record
-      await prisma.friendRequest.delete({
-        where: { id: existing.id }
-      });
+      await prisma.friendRequest.delete({ where: { id: existing.id } });
 
       return reply.code(200).send({ message: 'Friend removed' });
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
       return reply.code(500).send({ error: 'Failed to remove friend' });
     }
   });
@@ -176,7 +168,8 @@ async function friendsRoutes(app, options) {
   // 5- Get the current user’s list of friends
   app.get('/api/friends', { schema: getFriendsSchema }, async (request, reply) => {
     try {
-      const { currentUserId } = request.query;
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       const friends = await prisma.friendRequest.findMany({
         where: {
@@ -186,10 +179,7 @@ async function friendsRoutes(app, options) {
             { receiverId: currentUserId }
           ]
         },
-        include: {
-          sender: true,
-          receiver: true
-        }
+        include: { sender: true, receiver: true }
       });
 
       // Transform into a list of the "other user"
@@ -209,16 +199,12 @@ async function friendsRoutes(app, options) {
   // 6- Get incoming friend requests (users who added me, still pending)
   app.get('/api/friends/requests', { schema: getIncomingRequestsSchema }, async (request, reply) => {
     try {
-      const { currentUserId } = request.query;
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       const incoming = await prisma.friendRequest.findMany({
-        where: {
-          receiverId: currentUserId,
-          status: 'PENDING'
-        },
-        include: {
-          sender: true
-        }
+        where: { receiverId: currentUserId, status: 'PENDING' },
+        include: { sender: true }
       });
 
       const requests = incoming.map(req => ({
@@ -238,16 +224,12 @@ async function friendsRoutes(app, options) {
   // 7- Get outgoing friend requests (users I added, still pending)
   app.get('/api/friends/sent', { schema: getOutgoingRequestsSchema }, async (request, reply) => {
     try {
-      const { currentUserId } = request.query;
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       const outgoing = await prisma.friendRequest.findMany({
-        where: {
-          senderId: currentUserId,
-          status: 'PENDING'
-        },
-        include: {
-          receiver: true
-        }
+        where: { senderId: currentUserId, status: 'PENDING' },
+        include: { receiver: true }
       });
 
       const requests = outgoing.map(req => ({
@@ -267,14 +249,13 @@ async function friendsRoutes(app, options) {
   // 8- Search users by username
   app.get('/api/friends/search', { schema: searchFriendsSchema }, async (request, reply) => {
     try {
-      const { query, currentUserId } = request.query; // search term and your user ID
+      const { query } = request.query;
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
-      if (!query || query.trim() === '') {
-        throw { code: 400, message: 'Search query is required' };
-      }
+      if (!query || query.trim() === '') throw { code: 400, message: 'Search query is required' };
 
-      // Find users whose username contains the search query (case-insensitive as Prisma 6 .contain is "sensitive")
-      // Sort it exact matches first, then usernames starting with the query, then any other partial match in ascending order
+      // Find users whose username contains the search query (case-insensitive)
       const users = await prisma.$queryRaw`
         SELECT id, username, avatar
         FROM User
@@ -289,18 +270,12 @@ async function friendsRoutes(app, options) {
           username ASC;
       `;
 
-      if (users.length === 0) {
-      throw { code: 404, message: 'No users found matching your search' };
-    }
+      if (users.length === 0) throw { code: 404, message: 'No users found matching your search' };
 
       return reply.code(200).send(users);
     } catch (err) {
       request.log.error(err);
-
-      if (err.code && err.message) {
-        throw err;
-      }
-
+      if (err.code && err.message) throw err;
       throw { code: 500, message: 'Failed to search users' };
     }
   });
