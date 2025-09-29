@@ -129,12 +129,12 @@ export const loginSchema = {
 export const logoutSchema = {
   tags: ['Authentication'],
   summary: 'Log out a user',
-  body: {
+  headers: {
     type: 'object',
-    required: ['id'],
     properties: {
-      id: { type: 'integer', minimum: 1 }
-    }
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
   },
   response: {
     200: {

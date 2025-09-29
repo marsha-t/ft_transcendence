@@ -39,9 +39,11 @@ async function profileRoutes(app, options) {
   });
 
   // 2- Update username (temporary: expects userId in URL)
-  app.put('/api/profile/:id/username', { schema: changeUsernameSchema }, async (request, reply) => {
+  app.put('/api/profile/username', { schema: changeUsernameSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
       const { username } = request.body;
 
       // Check if username already exists
@@ -51,12 +53,15 @@ async function profileRoutes(app, options) {
       }
 
       const updatedUsername = await prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: userId },
         data: { username },
         select: { username: true },
       });
 
-      return reply.code(200).send({ message: 'Username updated successfully', updatedUsername });
+      return reply.code(200).send({
+        message: 'Username updated successfully',
+        username: updatedUsername.username,
+      });
 
     } catch (err) {
       request.log.error(err);
@@ -68,19 +73,21 @@ async function profileRoutes(app, options) {
   });
 
   // 3- Update password (temporary: expects userId in URL)
-  app.put('/api/profile/:id/password', { schema: changePasswordSchema }, async (request, reply) => {
+  app.put('/api/profile/password', { schema: changePasswordSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
       const { oldPassword, newPassword } = request.body;
 
-      const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) throw { code: 404, message: 'User not found' };
 
       const isValid = await bcrypt.compare(oldPassword, user.password);
       if (!isValid) throw { code: 401, message: 'Old password is incorrect' };
 
       const hashedPassword = await bcrypt.hash(newPassword, 12);
-      await prisma.user.update({ where: { id: Number(id) }, data: { password: hashedPassword } });
+      await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
 
       return reply.code(200).send({ message: 'Password updated successfully' });
 
@@ -94,13 +101,15 @@ async function profileRoutes(app, options) {
   });
 
   // 4- Update email (temporary: expects userId in URL)
-  app.put('/api/profile/:id/email', { schema: changeEmailSchema }, async (request, reply) => {
+  app.put('/api/profile/email', { schema: changeEmailSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
       const { newEmail, password } = request.body;
 
       // Find the user by ID
-      const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) throw { code: 404, message: 'User not found' };
 
       // Verify the password
@@ -113,7 +122,7 @@ async function profileRoutes(app, options) {
 
       // Update the email
       await prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: userId },
         data: { email: newEmail },
       });
 
@@ -129,16 +138,18 @@ async function profileRoutes(app, options) {
   });
 
   // 5- Update avatar through upload (temporary: expects userId in URL)
-  app.put('/api/profile/:id/avatar', { schema: avatarUploadSchema }, async (request, reply) => {
+  app.put('/api/profile/avatar', { schema: avatarUploadSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
       const data = await request.file();
 
       if (!data) throw { code: 400, message: 'No file uploaded' };
 
       // Save file as <userId>.ext
       const ext = path.extname(data.filename) || '.jpg';
-      const fileName = `${id}${ext}`;
+      const fileName = `${userId}${ext}`;
       const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
       const filePath = path.join(uploadDir, fileName);
 
@@ -148,7 +159,7 @@ async function profileRoutes(app, options) {
       const avatarUrl = `/uploads/avatars/${fileName}`;
 
       await prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: userId },
         data: { avatar: avatarUrl },
       });
 
@@ -164,12 +175,14 @@ async function profileRoutes(app, options) {
   });
 
   // 6- Remove avatar (reset to default)
-  app.delete('/api/profile/:id/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
+  app.delete('/api/profile/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
     try {
-      const { id } = request.params;
+      // Extract user ID from header (temporary)
+      const userIdHeader = request.headers['x-current-user-id'];
+      const userId = userIdHeader ? Number(userIdHeader) : null;
 
       // Find the user
-      const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) throw { code: 404, message: 'User not found' };
 
       // Define default avatar (served from uploads folder)
@@ -177,7 +190,7 @@ async function profileRoutes(app, options) {
 
       // Update DB with default avatar
       await prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: userId },
         data: { avatar: defaultAvatar },
       });
 
@@ -197,7 +210,6 @@ async function profileRoutes(app, options) {
     try {
       const { id } = request.params;
 
-      // Find the user
       const user = await prisma.user.findUnique({
         where: { id: Number(id) },
         select: { avatar: true },
@@ -220,4 +232,4 @@ async function profileRoutes(app, options) {
 export default profileRoutes;
 
 // To test avatar uploads using CURL:
-// curl -X PUT http://localhost:5001/api/profile/2/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"
+// curl -X PUT http://localhost:5001/api/profile/1/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"

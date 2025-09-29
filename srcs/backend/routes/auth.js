@@ -88,11 +88,14 @@ async function authRoutes(app, options) {
   // Logout Route
   app.post('/api/logout', { schema: logoutSchema }, async (request, reply) => {
     try {
-      const { id } = request.body; // temporary: expects userId in body
+      // Get user ID from header
+      const userIdHeader = request.headers['x-current-user-id'];
+      if (!userIdHeader) throw { code: 400, message: 'x-current-user-id header is required' };
+      const userId = Number(userIdHeader);
 
       // Find user in database
       const user = await prisma.user.findUnique({
-        where: { id: Number(id) },
+        where: { id: userId },
       });
 
       if (!user) {
@@ -106,11 +109,12 @@ async function authRoutes(app, options) {
 
       // Update user status to offline
       await prisma.user.update({
-        where: { id: user.id },
+        where: { id: userId },
         data: { status: "OFFLINE" },
       });
 
       return reply.code(200).send({ message: 'Logout successful' });
+      
     } catch (err) {
       request.log.error(err);
 
