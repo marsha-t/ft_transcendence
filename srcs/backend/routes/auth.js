@@ -22,7 +22,7 @@ async function authRoutes(app, options) {
       });
 
       if (existingUser) {
-        throw { code: 409, message: 'Username or email already exists' };
+        return reply.code(409).send({ message: 'Username or email already exists' });
       }
 
       // Hash the password
@@ -42,11 +42,7 @@ async function authRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
-
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'User registration failed' });
     }
   });
@@ -62,7 +58,7 @@ async function authRoutes(app, options) {
       });
       
       if (!user || !await bcrypt.compare(password, user.password)) {
-        throw { code: 401, message: 'Invalid credentials' };
+        return reply.code(401).send({ message: 'Invalid credentials' });
       }
 
       // Update user status to online
@@ -76,11 +72,7 @@ async function authRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
-
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Login failed' });
     }
   });
@@ -90,7 +82,7 @@ async function authRoutes(app, options) {
     try {
       // Get user ID from header
       const userIdHeader = request.headers['x-current-user-id'];
-      if (!userIdHeader) throw { code: 400, message: 'x-current-user-id header is required' };
+      if (!userIdHeader) return reply.code(400).send({ message: 'x-current-user-id header is required' });
       const userId = Number(userIdHeader);
 
       // Find user in database
@@ -99,12 +91,12 @@ async function authRoutes(app, options) {
       });
 
       if (!user) {
-        throw { code: 404, message: 'User not found' };
+        return reply.code(404).send({ message: 'User not found' });
       }
 
       // Check if user is already offline
       if (user.status === "OFFLINE") {
-        throw { code: 400, message: 'User is already offline' };
+        return reply.code(400).send({ message: 'User is already offline' });
       }
 
       // Update user status to offline
@@ -117,12 +109,8 @@ async function authRoutes(app, options) {
       
     } catch (err) {
       request.log.error(err);
-
-      if (err.code && err.message) {
-        throw err;
-      }
-
-      throw { code: 500, message: 'Internal server error' };
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
+      return reply.code(500).send({ error: 'Logout failed' });
     }
   });
 }

@@ -121,7 +121,14 @@ export const getFriendsSchema = {
   response: {
     200: {
       type: 'array',
-      items: { type: 'object', properties: { id: { type: 'integer' }, username: { type: 'string' } } }
+      items: {
+        type: 'object',
+        properties: {
+          username: { type: 'string' },
+          avatar: { type: 'string' },
+          status: { type: 'string' }
+        }
+      }
     },
     500: { type: 'object', properties: { error: { type: 'string' } } },
   }
@@ -142,7 +149,14 @@ export const getIncomingRequestsSchema = {
         type: 'object',
         properties: {
           id: { type: 'integer' },
-          from: { type: 'object', properties: { id: { type: 'integer' }, username: { type: 'string' } } },
+          from: { 
+            type: 'object', 
+            properties: { 
+              username: { type: 'string' },
+              avatar: { type: 'string' },
+              status: { type: 'string' }
+            } 
+          },
           status: { type: 'string' }
         }
       }
@@ -166,7 +180,14 @@ export const getOutgoingRequestsSchema = {
         type: 'object',
         properties: {
           id: { type: 'integer' },
-          to: { type: 'object', properties: { id: { type: 'integer' }, username: { type: 'string' } } },
+          to: { 
+            type: 'object', 
+            properties: { 
+              username: { type: 'string' },
+              avatar: { type: 'string' },
+              status: { type: 'string' }
+            } 
+          },
           status: { type: 'string' }
         }
       }
@@ -192,7 +213,15 @@ export const searchFriendsSchema = {
   response: {
     200: {
       type: 'array',
-      items: { type: 'object', properties: { id: { type: 'integer' }, username: { type: 'string' }, avatar: { type: 'string' } } }
+      items: { 
+        type: 'object', 
+        properties: { 
+          id: { type: 'integer' }, 
+          username: { type: 'string' }, 
+          avatar: { type: 'string' },
+          status: { type: 'string' } 
+        } 
+      }
     },
     400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
     404: { type: 'object', properties: { error: { type: 'string' } } },
