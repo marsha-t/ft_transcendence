@@ -141,3 +141,102 @@
     color: #8a1f1f;
     border: 1px solid #e0a1a1;
   }
+
+
+
+  /* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* Modal box */
+.modal {
+  width: 400px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h2 {
+  font-family: "DM Sans", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #404040;
+}
+.close-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #5D5A88;
+}
+
+/* Inputs */
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+}
+
+/* Avatar inside settings */
+.settings-avatar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.profile-avatar.small {
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+}
+.change-avatar-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #5D5A88;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Action buttons */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.save-btn, .cancel-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+.save-btn {
+  background: #5D5A88;
+  color: #fff;
+}
+.cancel-btn {
+  background: #ccc;
+  color: #333;
+}
