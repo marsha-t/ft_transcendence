@@ -8,7 +8,7 @@ import { getCurrentUserSchema, changeUsernameSchema, changePasswordSchema, chang
 
 async function profileRoutes(app, options) {
 
-  // 1- Get current user's profile by ID (temporary: expects userId in body)
+  // 1- Get current user's profile by ID 
   app.get('/api/profile', { schema: getCurrentUserSchema }, async (request, reply) => {
     try {
       // Extract user ID from header (temporary)
@@ -24,21 +24,19 @@ async function profileRoutes(app, options) {
       });
 
       if (!user) {
-        throw { code: 404, message: 'User not found' };
+        return reply.code(404).send({ message: 'User not found' });
       }
 
       return reply.code(200).send(user);
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Failed to fetch user profile' });
     }
   });
 
-  // 2- Update username (temporary: expects userId in URL)
+  // 2- Update username
   app.put('/api/profile/username', { schema: changeUsernameSchema }, async (request, reply) => {
     try {
       // Extract user ID from header (temporary)
@@ -49,7 +47,7 @@ async function profileRoutes(app, options) {
       // Check if username already exists
       const existingUser = await prisma.user.findUnique({ where: { username } });
       if (existingUser) {
-        throw { code: 409, message: 'Username already taken' };
+        return reply.code(409).send({ message: 'Username already taken' });
       }
 
       const updatedUsername = await prisma.user.update({
@@ -65,14 +63,12 @@ async function profileRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Failed to update username' });
     }
   });
 
-  // 3- Update password (temporary: expects userId in URL)
+  // 3- Update password
   app.put('/api/profile/password', { schema: changePasswordSchema }, async (request, reply) => {
     try {
       // Extract user ID from header (temporary)
@@ -81,10 +77,10 @@ async function profileRoutes(app, options) {
       const { oldPassword, newPassword } = request.body;
 
       const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) throw { code: 404, message: 'User not found' };
+      if (!user) return reply.code(404).send({ code: 404, message: 'User not found' });
 
       const isValid = await bcrypt.compare(oldPassword, user.password);
-      if (!isValid) throw { code: 401, message: 'Old password is incorrect' };
+      if (!isValid) reply.code(401).send({ message: 'Old password is incorrect' });
 
       const hashedPassword = await bcrypt.hash(newPassword, 12);
       await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
@@ -93,14 +89,12 @@ async function profileRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Failed to update password' });
     }
   });
 
-  // 4- Update email (temporary: expects userId in URL)
+  // 4- Update email
   app.put('/api/profile/email', { schema: changeEmailSchema }, async (request, reply) => {
     try {
       // Extract user ID from header (temporary)
@@ -110,15 +104,15 @@ async function profileRoutes(app, options) {
 
       // Find the user by ID
       const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) throw { code: 404, message: 'User not found' };
+      if (!user) return reply.code(404).send({ message: 'User not found' });
 
       // Verify the password
       const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) throw { code: 401, message: 'Incorrect password' };
+      if (!isValid) return reply.code(401).send({ message: 'Incorrect password' });
 
       // Check if the new email is already in use
       const existingUser = await prisma.user.findUnique({ where: { email: newEmail } });
-      if (existingUser) throw { code: 409, message: 'Email already in use' };
+      if (existingUser) return reply.code(409).send({ message: 'Email already in use' });
 
       // Update the email
       await prisma.user.update({
@@ -130,34 +124,74 @@ async function profileRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Failed to update email' });
     }
   });
 
-  // 5- Update avatar through upload (temporary: expects userId in URL)
+  // 5- Update avatar through upload
   app.put('/api/profile/avatar', { schema: avatarUploadSchema }, async (request, reply) => {
     try {
-      // Extract user ID from header (temporary)
       const userIdHeader = request.headers['x-current-user-id'];
       const userId = userIdHeader ? Number(userIdHeader) : null;
-      const data = await request.file();
 
-      if (!data) throw { code: 400, message: 'No file uploaded' };
+      if (!userId) return reply.code(400).send({ message: 'Missing user ID in header' });
 
-      // Save file as <userId>.ext
-      const ext = path.extname(data.filename) || '.jpg';
-      const fileName = `${userId}${ext}`;
+      // Get file
+      const data = await request.file().catch(err => {
+        console.error('File parsing error:', err);
+        return null;
+      });
+
+      if (!data) return reply.code(400).send({ message: 'No file uploaded or failed parsing' });
+
+      console.log('Received file:', data.filename, data.mimetype);
+
+      // Validate extension -> only allow well-known image types
+      const allowedExts = ['.jpg', '.jpeg', '.png', '.gif'];
+      const ext = path.extname(data.filename).toLowerCase();
+      if (!allowedExts.includes(ext)) {
+        return reply.code(400).send({ message: 'Invalid file type. Only JPG, PNG, or GIF are allowed.' });
+      }
+
+      // MIME type check
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!allowedMimes.includes(data.mimetype)) {
+        return reply.code(400).send({ message: 'Invalid MIME type. Must be a JPG, PNG, or GIF image.' });
+      }
+
+      // Read buffer
+      const buffer = await data.toBuffer();
+
+      // File size limit
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (buffer.length > maxSize) {
+        return reply.code(400).send({ message: 'File too large. Maximum size is 5MB.' });
+      }
+
       const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+      await fs.promises.mkdir(uploadDir, { recursive: true });
+
+      const fileName = `${userId}${ext}`;
       const filePath = path.join(uploadDir, fileName);
 
-      const buffer = await data.toBuffer();
-      await fs.promises.writeFile(filePath, buffer);
+      // Delete old avatar if exists and is not default
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const defaultAvatar = '/uploads/avatars/default.png';
+      if (user?.avatar && user.avatar !== defaultAvatar) {
+        const oldPath = path.join(process.cwd(), user.avatar);
+        try {
+          await fs.promises.unlink(oldPath);
+        } catch (e) {
+          request.log.warn(`Failed to delete old avatar: ${oldPath}`);
+        }
+      }
 
+      // Save new avatar
+      await fs.promises.writeFile(filePath, buffer);
       const avatarUrl = `/uploads/avatars/${fileName}`;
 
+      // Update DB
       await prisma.user.update({
         where: { id: userId },
         data: { avatar: avatarUrl },
@@ -167,28 +201,32 @@ async function profileRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
-      return reply.code(500).send({ error: 'Failed to upload avatar' });
+      return reply.code(500).send({ message: 'Failed to upload avatar' });
     }
   });
 
   // 6- Remove avatar (reset to default)
   app.delete('/api/profile/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
     try {
-      // Extract user ID from header (temporary)
       const userIdHeader = request.headers['x-current-user-id'];
       const userId = userIdHeader ? Number(userIdHeader) : null;
 
-      // Find the user
       const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) throw { code: 404, message: 'User not found' };
+      if (!user) return reply.code(404).send({ message: 'User not found' });
 
-      // Define default avatar (served from uploads folder)
       const defaultAvatar = '/uploads/avatars/default.png';
 
-      // Update DB with default avatar
+      // Delete old avatar file (if not default)
+      if (user.avatar && user.avatar !== defaultAvatar) {
+        const oldPath = path.join(process.cwd(), user.avatar);
+        try {
+          await fs.promises.unlink(oldPath);
+        } catch (e) {
+          request.log.warn(`Failed to delete old avatar: ${oldPath}`);
+        }
+      }
+
+      // Update DB
       await prisma.user.update({
         where: { id: userId },
         data: { avatar: defaultAvatar },
@@ -198,10 +236,8 @@ async function profileRoutes(app, options) {
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
-      return reply.code(500).send({ error: 'Failed to remove avatar' });
+      if (err.code && err.message) return reply.code(err.code).send({ message: err.message });
+      return reply.code(500).send({ message: 'Failed to remove avatar' });
     }
   });
 
@@ -215,15 +251,13 @@ async function profileRoutes(app, options) {
         select: { avatar: true },
       });
 
-      if (!user) throw { code: 404, message: 'User not found' };
+      if (!user) return reply.code(404).send({ message: 'User not found' });
 
       return reply.code(200).send({ avatar: user.avatar });
 
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) {
-        return reply.code(err.code).send({ error: err.message });
-      }
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: 'Failed to fetch avatar' });
     }
   });
