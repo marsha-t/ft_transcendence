@@ -49,7 +49,7 @@ export class Profile implements IComponent {
     const settingsBtn = document.createElement("button");
     settingsBtn.className = "settings-btn";
     settingsBtn.innerHTML = "&#9881;"; // Gear icon using HTML entity
-
+    settingsBtn.addEventListener("click", () => this.openSettingsPopup());
     card.appendChild(avatar);
     card.appendChild(name);
     card.appendChild(status);
@@ -97,6 +97,7 @@ export class Profile implements IComponent {
     requestTitle.addEventListener("click", () => this.switchToRequests());
 
     const addFriendBtn = document.createElement("button");
+    addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
     addFriendBtn.className = "add-friend-btn";
     const addFriendText = document.createElement("span");
     addFriendText.textContent = "Add Friend";
@@ -335,5 +336,98 @@ private async fetchProfileData(): Promise<void> {
     const card = this.container.querySelector('.profile-card');
     if (card) card.classList.toggle('loading', loading);
     console.log(`Loading state: ${loading}`);
+  }
+
+
+//-------------------------
+
+private openAddFriendPopup(): void {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const title = document.createElement("h2");
+    title.textContent = "Add Friend";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => overlay.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search username...";
+    searchInput.className = "modal-input";
+
+    modal.appendChild(header);
+    modal.appendChild(searchInput);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  private openSettingsPopup(): void {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const title = document.createElement("h2");
+    title.textContent = "Settings";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => overlay.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    modal.appendChild(header);
+
+    // Avatar
+    const avatarSection = document.createElement("div");
+    avatarSection.className = "settings-avatar";
+    avatarSection.innerHTML = `
+      <div class="profile-avatar small"></div>
+      <button class="change-avatar-btn">Change Avatar</button>
+    `;
+
+    // Form fields
+    const form = document.createElement("div");
+    form.className = "settings-form";
+    form.innerHTML = `
+      <input type="text" placeholder="Username" class="modal-input">
+      <input type="email" placeholder="Email" class="modal-input">
+      <input type="password" placeholder="Old Password" class="modal-input">
+      <input type="password" placeholder="New Password" class="modal-input">
+    `;
+
+    // Action buttons
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
+    actions.innerHTML = `
+      <button class="save-btn">Save</button>
+      <button class="cancel-btn">Cancel</button>
+    `;
+
+    // Cancel closes popup
+    actions.querySelector(".cancel-btn")?.addEventListener("click", () => overlay.remove());
+
+    modal.appendChild(avatarSection);
+    modal.appendChild(form);
+    modal.appendChild(actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
   }
 }
