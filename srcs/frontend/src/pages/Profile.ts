@@ -3,8 +3,8 @@ import { ProfileServices } from '../services/profile/ProfileServices.js';
 // import { apiServices } from '../services/ApiServices';
 import { ProfileData, ApiResponse } from "../services/profile/types";
 export class Profile implements IComponent {
-   private isFriendsActive: boolean = true;
-   private username: string = "";
+  private isFriendsActive: boolean = true;
+  private username: string = "";
   private avatar: string = "";
   private isLoading: boolean = false;
   private profileService: ProfileServices;
@@ -28,14 +28,13 @@ export class Profile implements IComponent {
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
 
-    if (this.avatar && this.avatar.trim() !== "") {
-      avatar.style.backgroundImage = `url(${this.avatar})`;
+    if (this.avatar) {
+      const backendUrl = "http://localhost:5001"; // put this in a config file ideally
+      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
-      avatar.textContent = ""; // clear fallback initials
     } else {
-      avatar.style.backgroundImage = ""; // remove image if none
-      avatar.textContent = this.username.charAt(0).toUpperCase() || "AV";
+      avatar.textContent = this.username.charAt(0) || "AV"; // Fallback to initials
     }
 
     const name = document.createElement("h2");
@@ -113,12 +112,17 @@ export class Profile implements IComponent {
     if (this.isFriendsActive) {
       friendsList.appendChild(this.createFriend("TF", "Test's friend", true));
       friendsList.appendChild(this.createFriend("JD", "John Doe", false));
+      friendsList.appendChild(this.createFriend("TU", "Test User", true));
+      friendsList.appendChild(this.createFriend("JD", "Joey Doe", false));
+
     } else {
-      friendsList.appendChild(this.createRequest("RF", "Random Friend", "Pending"));
-      friendsList.appendChild(this.createRequest("AF", "Another Friend", "Accepted"));
+      friendsList.appendChild(this.createRequest("RF", "Random Friend"));
+      friendsList.appendChild(this.createRequest("AF", "Another Friend"));
+      friendsList.appendChild(this.createRequest("RF", "Random Friend"));
+      friendsList.appendChild(this.createRequest("AF", "Another Friend"));
     }
-    friends.appendChild(friendsList);
     friends.appendChild(friendsHeader);
+    friends.appendChild(friendsList);
 
     // friends.appendChild(this.createFriend("JD", "John Doe", true));
 
@@ -155,16 +159,16 @@ export class Profile implements IComponent {
     this.container.appendChild(friends);
     this.container.appendChild(matchHistory);
 
-  //   const observer = new MutationObserver((mutations) => {
-  //     mutations.forEach((mutation) => {
-  //         if (mutation.addedNodes.length && this.container.parentElement) {
-  //             console.log("Component added to DOM, fetching profile data...");
-  //             this.fetchProfileData();
-  //             observer.disconnect(); // Stop observing after the first fetch
-  //         }
-  //     });
-  //  });
-  //   observer.observe(document.body, { childList: true, subtree: true });
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+          if (mutation.addedNodes.length && this.container.parentElement) {
+              console.log("Component added to DOM, fetching profile data...");
+              this.fetchProfileData();
+              observer.disconnect(); // Stop observing after the first fetch
+          }
+      });
+   });
+    observer.observe(document.body, { childList: true, subtree: true });
     return this.container;
   }
 
@@ -203,13 +207,14 @@ export class Profile implements IComponent {
   // ----------------------------------------------------------------------------------------------
 
 
- private createFriend(initials: string, name: string, online: boolean): HTMLElement {
+private createFriend(initials: string, name: string, online: boolean): HTMLElement {
   const item = document.createElement("div");
   item.className = "friend-item";
 
   const inner = document.createElement("div");
   inner.className = "friend-item-inner";
 
+  // Frame for avatar + name
   const profileText = document.createElement("div");
   profileText.className = "friend-profile-text";
 
@@ -221,17 +226,20 @@ export class Profile implements IComponent {
   friendName.className = "friend-name";
   friendName.textContent = name;
 
+  profileText.appendChild(avatar);
+  profileText.appendChild(friendName);
+
+  // Status circle
   const status = document.createElement("span");
   status.className = `friend-status ${online ? "online" : "offline"}`;
 
-  profileText.appendChild(avatar);
-  profileText.appendChild(friendName);
-  profileText.appendChild(status);
   inner.appendChild(profileText);
+  inner.appendChild(status); // outside profileText
   item.appendChild(inner);
 
   return item;
 }
+
   // ----------------------------------------------------------------------------------------------
 
 
@@ -263,28 +271,58 @@ export class Profile implements IComponent {
 
 // --------------------------------------------------------------------------
 
-private createRequest(initials: string, name: string, status: string): HTMLElement {
-    const item = document.createElement("div");
-    item.className = "request-item";
+private createRequest(initials: string, name: string): HTMLElement {
+  const item = document.createElement("div");
+  item.className = "request-item";
 
-    const avatar = document.createElement("div");
-    avatar.className = "request-avatar";
-    avatar.textContent = initials;
+  const inner = document.createElement("div");
+  inner.className = "request-item-inner";
 
-    const requestName = document.createElement("span");
-    requestName.className = "request-name";
-    requestName.textContent = name;
+  // Avatar + Username
+  const profileText = document.createElement("div");
+  profileText.className = "request-profile-text";
 
-    const requestStatus = document.createElement("span");
-    requestStatus.className = "request-status";
-    requestStatus.textContent = status;
+  const avatar = document.createElement("div");
+  avatar.className = "request-avatar";
+  avatar.textContent = initials;
 
-    item.appendChild(avatar);
-    item.appendChild(requestName);
-    item.appendChild(requestStatus);
+  const userName = document.createElement("span");
+  userName.className = "request-name";
+  userName.textContent = name;
 
-    return item;
-  }
+  profileText.appendChild(avatar);
+  profileText.appendChild(userName);
+
+  // Buttons
+  const buttons = document.createElement("div");
+  buttons.className = "request-buttons";
+
+  const acceptBtn = document.createElement("button");
+  acceptBtn.className = "accept-btn";
+  acceptBtn.textContent = "Accept";
+  acceptBtn.addEventListener("click", () => {
+    console.log(`Accepted friend request from ${name}`);
+    // handle accept logic here
+  });
+
+  const declineBtn = document.createElement("button");
+  declineBtn.className = "decline-btn";
+  declineBtn.textContent = "Decline";
+  declineBtn.addEventListener("click", () => {
+    console.log(`Declined friend request from ${name}`);
+    // handle decline logic here
+  });
+
+  buttons.appendChild(acceptBtn);
+  buttons.appendChild(declineBtn);
+
+  inner.appendChild(profileText);
+  inner.appendChild(buttons);
+  item.appendChild(inner);
+
+  return item;
+}
+
 
     private switchToFriends(): void {
     this.isFriendsActive = true;
@@ -314,18 +352,21 @@ private async fetchProfileData(): Promise<void> {
       if (response.success) {
           this.username = response.data?.username || "Hi Test!";
           this.avatar = response.data?.avatar || "";
-          this.rerender(); // Re-render to reflect updated data
+          // this.rerender(); // Re-render to reflect updated data
+          this.updateProfileUI();
       } else {
           this.username = response.data?.username || "Hi Test!";
           this.avatar = response.data?.avatar || "";
-          this.rerender(); // Re-render to reflect updated data
+          // this.rerender(); // Re-render to reflect updated data
+          this.updateProfileUI();
           // throw new Error(response.message || "Failed to load profile data");
       }
   } catch (error: any) {
       console.error('Error fetching profile data:', error);
       this.username = "Hi Test!"; // Fallback username
       this.avatar = ""; // No avatar on error
-      this.rerender(); // Re-render with fallback data
+      // this.rerender(); // Re-render with fallback data
+      this.updateProfileUI();
   } finally {
       this.setLoadingState(false);
   }
@@ -338,6 +379,21 @@ private async fetchProfileData(): Promise<void> {
     console.log(`Loading state: ${loading}`);
   }
 
+  private updateProfileUI(): void {
+  const name = this.container.querySelector(".profile-name");
+  const avatar = this.container.querySelector(".profile-avatar");
+
+  if (name) name.textContent = this.username || "Hi Test!";
+  if (avatar) {
+    if (this.avatar) {
+      (avatar as HTMLElement).style.backgroundImage = `url(${this.avatar})`;
+      avatar.textContent = "";
+    } else {
+      (avatar as HTMLElement).style.backgroundImage = "";
+      avatar.textContent = this.username.charAt(0).toUpperCase() || "AV";
+    }
+  }
+}
 
 //-------------------------
 
