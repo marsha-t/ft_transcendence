@@ -439,51 +439,156 @@ private openAddFriendPopup(): void {
     const header = document.createElement("div");
     header.className = "modal-header";
 
-    const title = document.createElement("h2");
-    title.textContent = "Settings";
-
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
-    closeBtn.textContent = "×";
+    closeBtn.innerHTML = "&times;"; // HTML entity for '×'
     closeBtn.addEventListener("click", () => overlay.remove());
 
-    header.appendChild(title);
-    header.appendChild(closeBtn);
-    modal.appendChild(header);
-
-    // Avatar
+    // Avatar section
     const avatarSection = document.createElement("div");
     avatarSection.className = "settings-avatar";
-    avatarSection.innerHTML = `
-      <div class="profile-avatar small"></div>
-      <button class="change-avatar-btn">Change Avatar</button>
-    `;
+    const avatarPlaceholder = document.createElement("div");
+    avatarPlaceholder.className = "avatar-placeholder";
+    // avatarPlaceholder.textContent = "AV"; // Placeholder initials
+    // Pen icon (for editing)
+    const penIcon = document.createElement("span");
+    penIcon.className = "pen-icon";
+    penIcon.innerHTML = "&#9998;"; // Pen Unicode
+    penIcon.addEventListener("click", () => this.handleAvatarEdit());
+
+    // Trash icon (for deleting avatar)
+    const trashIcon = document.createElement("span");
+    trashIcon.className = "trash-icon";
+    trashIcon.innerHTML = "&#128465;"; // Trash Unicode
+    trashIcon.addEventListener("click", () => this.handleAvatarDelete());
+
+    avatarSection.appendChild(avatarPlaceholder);
+    avatarSection.appendChild(penIcon);
+    avatarSection.appendChild(trashIcon);
+
+    header.appendChild(closeBtn);
+    header.appendChild(avatarSection);
+
+    modal.appendChild(header);
 
     // Form fields
     const form = document.createElement("div");
-    form.className = "settings-form";
-    form.innerHTML = `
-      <input type="text" placeholder="Username" class="modal-input">
-      <input type="email" placeholder="Email" class="modal-input">
-      <input type="password" placeholder="Old Password" class="modal-input">
-      <input type="password" placeholder="New Password" class="modal-input">
-    `;
+form.className = "settings-form";
+
+// === Username ===
+const usernameGroup = document.createElement("div");
+usernameGroup.className = "form-group";
+
+const usernameLabel = document.createElement("label");
+usernameLabel.className = "form-label";
+usernameLabel.textContent = "Username";
+
+const usernameInput = document.createElement("input");
+usernameInput.type = "text";
+usernameInput.className = "modal-input";
+
+usernameGroup.appendChild(usernameLabel);
+usernameGroup.appendChild(usernameInput);
+
+// === Email ===
+const emailGroup = document.createElement("div");
+emailGroup.className = "form-group";
+
+const emailLabel = document.createElement("label");
+emailLabel.className = "form-label";
+emailLabel.textContent = "Email";
+
+const emailInput = document.createElement("input");
+emailInput.type = "email";
+emailInput.className = "modal-input";
+
+emailGroup.appendChild(emailLabel);
+emailGroup.appendChild(emailInput);
+
+// === Password ===
+const passwordGroup = document.createElement("div");
+passwordGroup.className = "form-group";
+
+const passwordLabel = document.createElement("label");
+passwordLabel.className = "form-label";
+passwordLabel.textContent = "Password";
+
+const oldPasswordInput = document.createElement("input");
+oldPasswordInput.type = "password";
+oldPasswordInput.placeholder = "Old Password";
+oldPasswordInput.className = "modal-input";
+
+const newPasswordInput = document.createElement("input");
+newPasswordInput.type = "password";
+newPasswordInput.placeholder = "New Password";
+newPasswordInput.className = "modal-input";
+
+passwordGroup.appendChild(passwordLabel);
+passwordGroup.appendChild(oldPasswordInput);
+passwordGroup.appendChild(newPasswordInput);
+
+// === Append groups ===
+form.appendChild(usernameGroup);
+form.appendChild(emailGroup);
+form.appendChild(passwordGroup);
+
+modal.appendChild(form);
+
 
     // Action buttons
     const actions = document.createElement("div");
     actions.className = "modal-actions";
-    actions.innerHTML = `
-      <button class="save-btn">Save</button>
-      <button class="cancel-btn">Cancel</button>
-    `;
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "save-btn";
+    saveBtn.textContent = "Save";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "cancel-btn";
+    cancelBtn.textContent = "Cancel";
 
-    // Cancel closes popup
-    actions.querySelector(".cancel-btn")?.addEventListener("click", () => overlay.remove());
+    // saveBtn.addEventListener("click", () => {
+    //     const inputs = form.getElementsByClassName("modal-input") as HTMLCollectionOf<HTMLInputElement>;
+    //     const data = {};
+    //     for (let input of inputs) {
+    //         data[input.placeholder.toLowerCase()] = input.value;
+    //     }
+    //     console.log("Saved data:", data);
+    //     overlay.remove(); // Close on save (add API call if needed)
+    // });
 
-    modal.appendChild(avatarSection);
-    modal.appendChild(form);
+    cancelBtn.addEventListener("click", () => overlay.remove());
+
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
     modal.appendChild(actions);
+
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+}
+
+  private handleAvatarEdit(): void {
+    console.log("Change avatar clicked");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.avatar = event.target?.result as string; // Update avatar
+                this.rerender(); // Re-render to show new avatar
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    input.click();
   }
+
+
+  private handleAvatarDelete(): void {
+    console.log("Delete avatar clicked");
+    this.avatar = ""; // Clear avatar
+    this.rerender(); // Re-render to show placeholder
+  }
+  
 }
