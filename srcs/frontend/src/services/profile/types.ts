@@ -4,7 +4,7 @@ export interface ProfileData {
 }
 
 export interface FriendsData {
-    friends?: { initials: string; name: string; online: string }[];
+    friends?: { avatarURL: string; name: string; online: boolean }[];
 }
 
 export interface ApiResponse<T> {
