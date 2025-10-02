@@ -1,10 +1,25 @@
 import { IComponent } from "../components/IComponent";
+import { ProfileServices } from '../services/profile/ProfileServices.js';
+import { ProfileData, ApiResponse } from "../services/profile/types";
 
 export class Profile implements IComponent {
-   private isFriendsActive: boolean = true;
-  public render(): HTMLElement {
-    const container = document.createElement("div");
-    container.className = "profile-page";
+  private isFriendsActive: boolean = true;
+  private username: string = "";
+  private avatar: string = "";
+  private friendsListData: { initials: string; name: string; online: boolean }[] = [];
+  private requestsListData: { initials: string; name: string }[] = [];
+  private isLoading: boolean = false;
+  private profileService: ProfileServices;
+  private container!: HTMLElement;
+
+  constructor() {
+      this.profileService = new ProfileServices();
+  }
+
+  public render():  HTMLElement {
+    this.container = document.createElement("div");
+    this.container.className = "profile-page";
+
 
     this.loadPageStyles();
 
@@ -17,7 +32,7 @@ export class Profile implements IComponent {
 
     const name = document.createElement("h2");
     name.className = "profile-name";
-    name.textContent = "Hi Test!";
+    name.textContent = this.username  || "Hi Test!";
 
     const status = document.createElement("p");
     status.className = "profile-status online";
@@ -25,8 +40,8 @@ export class Profile implements IComponent {
 
     const settingsBtn = document.createElement("button");
     settingsBtn.className = "settings-btn";
-    settingsBtn.innerHTML = "&#9881;"; // Gear icon using HTML entity
-
+    settingsBtn.innerHTML = "&#9881;";
+    settingsBtn.addEventListener("click", () => this.openSettingsPopup());
     card.appendChild(avatar);
     card.appendChild(name);
     card.appendChild(status);
@@ -74,6 +89,7 @@ export class Profile implements IComponent {
     requestTitle.addEventListener("click", () => this.switchToRequests());
 
     const addFriendBtn = document.createElement("button");
+    addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
     addFriendBtn.className = "add-friend-btn";
     const addFriendText = document.createElement("span");
     addFriendText.textContent = "Add Friend";
@@ -86,15 +102,17 @@ export class Profile implements IComponent {
     // Conditionally render friends or requests list
     const friendsList = document.createElement("div");
     friendsList.className = "friends-list";
+
     if (this.isFriendsActive) {
-      friendsList.appendChild(this.createFriend("TF", "Test's friend", true));
-      friendsList.appendChild(this.createFriend("JD", "John Doe", false));
+      this.friendsListData.forEach(f =>
+        friendsList.appendChild(this.createFriend(f.initials, f.name, f.online))
+      );
     } else {
-      friendsList.appendChild(this.createRequest("RF", "Random Friend", "Pending"));
-      friendsList.appendChild(this.createRequest("AF", "Another Friend", "Accepted"));
-    }
-    friends.appendChild(friendsList);
+      this.requestsListData.forEach(r =>
+        friendsList.appendChild(this.createRequest(r.initials, r.name))
+      );    }
     friends.appendChild(friendsHeader);
+    friends.appendChild(friendsList);
 
     // friends.appendChild(this.createFriend("JD", "John Doe", true));
 
@@ -126,12 +144,20 @@ export class Profile implements IComponent {
     matchHistory.appendChild(table);
 
     // Append everything
-    container.appendChild(card);
-    container.appendChild(stats);
-    container.appendChild(friends);
-    container.appendChild(matchHistory);
+    this.container.appendChild(card);
+    this.container.appendChild(stats);
+    this.container.appendChild(friends);
+    this.container.appendChild(matchHistory);
 
-    return container;
+    const observer = new MutationObserver(() => {
+      if (this.container.parentElement) {
+        this.fetchProfileData();
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return this.container;
   }
 
 
@@ -169,13 +195,14 @@ export class Profile implements IComponent {
   // ----------------------------------------------------------------------------------------------
 
 
- private createFriend(initials: string, name: string, online: boolean): HTMLElement {
+private createFriend(initials: string, name: string, online: boolean): HTMLElement {
   const item = document.createElement("div");
   item.className = "friend-item";
 
   const inner = document.createElement("div");
   inner.className = "friend-item-inner";
 
+  // Frame for avatar + name
   const profileText = document.createElement("div");
   profileText.className = "friend-profile-text";
 
@@ -187,17 +214,20 @@ export class Profile implements IComponent {
   friendName.className = "friend-name";
   friendName.textContent = name;
 
+  profileText.appendChild(avatar);
+  profileText.appendChild(friendName);
+
+  // Status circle
   const status = document.createElement("span");
   status.className = `friend-status ${online ? "online" : "offline"}`;
 
-  profileText.appendChild(avatar);
-  profileText.appendChild(friendName);
-  profileText.appendChild(status);
   inner.appendChild(profileText);
+  inner.appendChild(status); // outside profileText
   item.appendChild(inner);
 
   return item;
 }
+
   // ----------------------------------------------------------------------------------------------
 
 
@@ -229,33 +259,63 @@ export class Profile implements IComponent {
 
 // --------------------------------------------------------------------------
 
-private createRequest(initials: string, name: string, status: string): HTMLElement {
-    const item = document.createElement("div");
-    item.className = "request-item";
+private createRequest(initials: string, name: string): HTMLElement {
+  const item = document.createElement("div");
+  item.className = "request-item";
 
-    const avatar = document.createElement("div");
-    avatar.className = "request-avatar";
-    avatar.textContent = initials;
+  const inner = document.createElement("div");
+  inner.className = "request-item-inner";
 
-    const requestName = document.createElement("span");
-    requestName.className = "request-name";
-    requestName.textContent = name;
+  // Avatar + Username
+  const profileText = document.createElement("div");
+  profileText.className = "request-profile-text";
 
-    const requestStatus = document.createElement("span");
-    requestStatus.className = "request-status";
-    requestStatus.textContent = status;
+  const avatar = document.createElement("div");
+  avatar.className = "request-avatar";
+  avatar.textContent = initials;
 
-    item.appendChild(avatar);
-    item.appendChild(requestName);
-    item.appendChild(requestStatus);
+  const userName = document.createElement("span");
+  userName.className = "request-name";
+  userName.textContent = name;
 
-    return item;
-  }
+  profileText.appendChild(avatar);
+  profileText.appendChild(userName);
+
+  // Buttons
+  const buttons = document.createElement("div");
+  buttons.className = "request-buttons";
+
+  const acceptBtn = document.createElement("button");
+  acceptBtn.className = "accept-btn";
+  acceptBtn.textContent = "Accept";
+  acceptBtn.addEventListener("click", () => {
+    console.log(`Accepted friend request from ${name}`);
+    // handle accept logic here
+  });
+
+  const declineBtn = document.createElement("button");
+  declineBtn.className = "decline-btn";
+  declineBtn.textContent = "Decline";
+  declineBtn.addEventListener("click", () => {
+    console.log(`Declined friend request from ${name}`);
+    // handle decline logic here
+  });
+
+  buttons.appendChild(acceptBtn);
+  buttons.appendChild(declineBtn);
+
+  inner.appendChild(profileText);
+  inner.appendChild(buttons);
+  item.appendChild(inner);
+
+  return item;
+}
+
 
     private switchToFriends(): void {
     this.isFriendsActive = true;
     this.rerender();
-  }
+    }
 
   private switchToRequests(): void {
     this.isFriendsActive = false;
@@ -269,4 +329,256 @@ private createRequest(initials: string, name: string, status: string): HTMLEleme
       parent.replaceWith(newContainer);
     }
   }
+
+
+//-----------------------
+
+private async fetchProfileData(): Promise<void> {
+  this.setLoadingState(true);
+  try {
+      const response: ApiResponse<ProfileData> = await this.profileService.getProfile();
+      if (response.success) {
+          this.username = response.data?.username || "Hi Test!";
+          this.avatar = response.data?.avatar || "";
+          this.friendsListData = response.data?.friends || [];
+          this.requestsListData = response.data?.requests || [];
+          this.updateProfileUI();
+      }
+  } catch (error: any) {
+      console.error('Error fetching profile data:', error);
+      this.username = "Hi Test!"; // Fallback username
+      this.avatar = ""; // No avatar on error
+      this.updateProfileUI();
+  } finally {
+      this.setLoadingState(false);
+  }
+}
+
+  private setLoadingState(loading: boolean): void {
+    this.isLoading = loading;
+    const card = this.container.querySelector('.profile-card');
+    if (card) card.classList.toggle('loading', loading);
+    console.log(`Loading state: ${loading}`);
+  }
+
+  private updateProfileUI(): void {
+    const nameEl = this.container.querySelector(".profile-name") as HTMLElement;
+    const avatarEl = this.container.querySelector(".profile-avatar") as HTMLElement;
+  
+    if (!nameEl || !avatarEl) return;
+  
+    // Update name
+    nameEl.textContent = this.username || "Hi Test!";
+  
+    // Update avatar
+    if (this.avatar) {
+      const backendUrl = "http://localhost:5001";
+      avatarEl.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatarEl.style.backgroundSize = "cover";
+      avatarEl.style.backgroundPosition = "center";
+      avatarEl.textContent = "";
+    }
+    else {
+      avatarEl.style.backgroundImage = "";
+      avatarEl.textContent = this.username.charAt(0).toUpperCase() || "AV";
+    }
+  }
+  
+
+//-------------------------
+
+private openAddFriendPopup(): void {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const title = document.createElement("h2");
+    title.textContent = "Add Friend";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.textContent = "×";
+    closeBtn.addEventListener("click", () => overlay.remove());
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "Search username...";
+    searchInput.className = "modal-input";
+
+    modal.appendChild(header);
+    modal.appendChild(searchInput);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  private openSettingsPopup(): void {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+
+    const modal = document.createElement("div");
+    modal.className = "modal";
+
+    const header = document.createElement("div");
+    header.className = "modal-header";
+
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "close-btn";
+    closeBtn.innerHTML = "&times;"; // HTML entity for '×'
+    closeBtn.addEventListener("click", () => overlay.remove());
+
+    // Avatar section
+    const avatarSection = document.createElement("div");
+    avatarSection.className = "settings-avatar";
+    const avatarPlaceholder = document.createElement("div");
+    avatarPlaceholder.className = "avatar-placeholder";
+    // avatarPlaceholder.textContent = "AV"; // Placeholder initials
+    // Pen icon (for editing)
+    const penIcon = document.createElement("span");
+    penIcon.className = "pen-icon";
+    penIcon.innerHTML = "&#9998;"; // Pen Unicode
+    penIcon.addEventListener("click", () => this.handleAvatarEdit());
+
+    // Trash icon (for deleting avatar)
+    const trashIcon = document.createElement("span");
+    trashIcon.className = "trash-icon";
+    trashIcon.innerHTML = "&#128465;"; // Trash Unicode
+    trashIcon.addEventListener("click", () => this.handleAvatarDelete());
+
+    avatarSection.appendChild(avatarPlaceholder);
+    avatarSection.appendChild(penIcon);
+    avatarSection.appendChild(trashIcon);
+
+    header.appendChild(closeBtn);
+    header.appendChild(avatarSection);
+
+    modal.appendChild(header);
+
+    // Form fields
+    const form = document.createElement("div");
+form.className = "settings-form";
+
+// === Username ===
+const usernameGroup = document.createElement("div");
+usernameGroup.className = "form-group";
+
+const usernameLabel = document.createElement("label");
+usernameLabel.className = "form-label";
+usernameLabel.textContent = "Username";
+
+const usernameInput = document.createElement("input");
+usernameInput.type = "text";
+usernameInput.className = "modal-input";
+
+usernameGroup.appendChild(usernameLabel);
+usernameGroup.appendChild(usernameInput);
+
+// === Email ===
+const emailGroup = document.createElement("div");
+emailGroup.className = "form-group";
+
+const emailLabel = document.createElement("label");
+emailLabel.className = "form-label";
+emailLabel.textContent = "Email";
+
+const emailInput = document.createElement("input");
+emailInput.type = "email";
+emailInput.className = "modal-input";
+
+emailGroup.appendChild(emailLabel);
+emailGroup.appendChild(emailInput);
+
+// === Password ===
+const passwordGroup = document.createElement("div");
+passwordGroup.className = "form-group";
+
+const passwordLabel = document.createElement("label");
+passwordLabel.className = "form-label";
+passwordLabel.textContent = "Password";
+
+const oldPasswordInput = document.createElement("input");
+oldPasswordInput.type = "password";
+oldPasswordInput.placeholder = "Old Password";
+oldPasswordInput.className = "modal-input";
+
+const newPasswordInput = document.createElement("input");
+newPasswordInput.type = "password";
+newPasswordInput.placeholder = "New Password";
+newPasswordInput.className = "modal-input";
+
+passwordGroup.appendChild(passwordLabel);
+passwordGroup.appendChild(oldPasswordInput);
+passwordGroup.appendChild(newPasswordInput);
+
+// === Append groups ===
+form.appendChild(usernameGroup);
+form.appendChild(emailGroup);
+form.appendChild(passwordGroup);
+
+modal.appendChild(form);
+
+
+    // Action buttons
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "save-btn";
+    saveBtn.textContent = "Save";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "cancel-btn";
+    cancelBtn.textContent = "Cancel";
+
+    // saveBtn.addEventListener("click", () => {
+    //     const inputs = form.getElementsByClassName("modal-input") as HTMLCollectionOf<HTMLInputElement>;
+    //     const data = {};
+    //     for (let input of inputs) {
+    //         data[input.placeholder.toLowerCase()] = input.value;
+    //     }
+    //     console.log("Saved data:", data);
+    //     overlay.remove(); // Close on save (add API call if needed)
+    // });
+
+    cancelBtn.addEventListener("click", () => overlay.remove());
+
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+    modal.appendChild(actions);
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+}
+
+  private handleAvatarEdit(): void {
+    console.log("Change avatar clicked");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.addEventListener("change", (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                this.avatar = event.target?.result as string; // Update avatar
+                this.rerender(); // Re-render to show new avatar
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    input.click();
+  }
+
+
+  private handleAvatarDelete(): void {
+    console.log("Delete avatar clicked");
+    this.avatar = ""; // Clear avatar
+    this.rerender(); // Re-render to show placeholder
+  }
+  
 }
