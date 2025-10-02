@@ -102,7 +102,7 @@ export class Game implements IComponent {
         startBtn.className = 'start_btn';
         startBtn.textContent = 'Start Game';
         startBtn.id = 'start-btn';
-        // startBtn.style.display = 'none';
+        startBtn.style.display = 'none';
         startBtn.addEventListener('click', () => this.toggleGame());
 
         const pauseBtn = document.createElement('button');
@@ -231,12 +231,15 @@ export class Game implements IComponent {
 
             //hide setup
             const setupSection = document.getElementById('setup-section');
-            // const startBtn = document.getElementById('start-btn');
+            const startBtn = document.getElementById('start-btn');
+            const quitBtn = document.getElementById('quit-btn');
 
             if(setupSection)
                 setupSection.style.display = 'none';
-            // if(startBtn)
-            //     startBtn.style.display = 'block';
+            if(startBtn)
+                startBtn.style.display = 'block';
+            if(quitBtn)
+                quitBtn.style.display = 'block';
 
             guestInput.value = '';
         } catch (error:any) {
@@ -286,14 +289,17 @@ export class Game implements IComponent {
     private updateGameButtons(isPlaying: boolean): void {
         const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
         const pauseBtn = document.getElementById('pause-btn') as HTMLButtonElement;
+        const quitBtn = document.getElementById('quit-btn') as HTMLButtonElement;
 
         if (isPlaying) {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
-            pauseBtn.textContent = 'Pause';
+            quitBtn.style.display = 'block';
+            pauseBtn.textContent = 'Pause'
         } else {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
+            quitBtn.style.display = 'block';
             pauseBtn.textContent = 'Resume';
         }
     }
@@ -386,7 +392,8 @@ export class Game implements IComponent {
     }
 
     private drawScores(): void {
-        if (!this.currentSession) return;
+        if (!this.currentSession)
+            return;
 
         this.context.fillStyle = "#423f6a";
         this.context.font = "48px Arial";
@@ -395,15 +402,11 @@ export class Game implements IComponent {
         const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
         const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
 
-        // Left score
-        if (leftPlayer) {
-            this.context.fillText(leftPlayer.score.toString(), this.canvas.width / 4, 80);
-        }
-
-        // Right score
-        if (rightPlayer) {
-            this.context.fillText(rightPlayer.score.toString(), (3 * this.canvas.width) / 4, 80);
-        }
+        const rightScore = rightPlayer ? rightPlayer.score : 0;        
+        const leftScore = leftPlayer ? leftPlayer.score : 0;        
+       
+        this.context.fillText(leftScore.toString(), this.canvas.width / 4, 80);
+        this.context.fillText(rightScore.toString(), (3 * this.canvas.width) / 4, 80);
     }
 
     private resetGame(): void {
@@ -423,7 +426,7 @@ export class Game implements IComponent {
         if (setupSection) setupSection.style.display = 'block';
         if (startBtn) startBtn.style.display = 'none';
         if (pauseBtn) pauseBtn.style.display = 'none';
-        if (quitBtn) quitBtn.style.display = 'block';
+        if (quitBtn) quitBtn.style.display = 'none';
 
         // Reset player names
         const leftPlayerElement = document.getElementById('left-player');
@@ -485,7 +488,9 @@ export class Game implements IComponent {
             if(this.currentSession){
                 this.currentSession = await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
                 if (this.currentSession.status === "FINISHED") {
-                    this.endGame();
+                    setTimeout(() => {
+                        this.endGame();
+                    }, 500) // adding 0,5 sec delay to update the ui to show score 5
                 }
             }
 
