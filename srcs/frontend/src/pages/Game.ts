@@ -405,8 +405,8 @@ export class Game implements IComponent {
         const rightScore = rightPlayer ? rightPlayer.score : 0;        
         const leftScore = leftPlayer ? leftPlayer.score : 0;        
        
-        this.context.fillText(rightScore.toString(), this.canvas.width / 4, 80);
-        this.context.fillText(leftScore.toString(), (3 * this.canvas.width) / 4, 80);
+        this.context.fillText(leftScore.toString(), this.canvas.width / 4, 80);
+        this.context.fillText(rightScore.toString(), (3 * this.canvas.width) / 4, 80);
     }
 
     private resetGame(): void {
