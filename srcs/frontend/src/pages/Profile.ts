@@ -6,7 +6,7 @@ export class Profile implements IComponent {
   private isFriendsActive: boolean = true;
   private username: string = "";
   private avatar: string = "";
-  private friendsListData: { initials: string; name: string; online: string }[] = [];
+  private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
   // private requestsListData: { initials: string; name: string }[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
@@ -105,7 +105,7 @@ export class Profile implements IComponent {
 
     if (this.isFriendsActive) {
       this.friendsListData.forEach(f =>
-        friendsList.appendChild(this.createFriend(f.initials, f.name, f.online))
+        friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online))
       );
     } else {
       // this.requestsListData.forEach(r =>
@@ -195,8 +195,7 @@ export class Profile implements IComponent {
 
   // ----------------------------------------------------------------------------------------------
 
-
-private createFriend(initials: string, name: string, online: string): HTMLElement {
+private createFriend(avatarURL: string, name: string, online: boolean): HTMLElement {
   const item = document.createElement("div");
   item.className = "friend-item";
 
@@ -209,7 +208,13 @@ private createFriend(initials: string, name: string, online: string): HTMLElemen
 
   const avatar = document.createElement("div");
   avatar.className = "friend-avatar";
-  avatar.textContent = initials;
+
+  // Use background-image for the avatar
+  const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
+  avatar.style.backgroundImage = `url(${backendUrl}${avatarURL})`;
+  avatar.style.backgroundSize = "cover";
+  avatar.style.backgroundPosition = "center";
+  avatar.textContent = ""; // clear any fallback text
 
   const friendName = document.createElement("span");
   friendName.className = "friend-name";
@@ -217,11 +222,11 @@ private createFriend(initials: string, name: string, online: string): HTMLElemen
 
   profileText.appendChild(avatar);
   profileText.appendChild(friendName);
-//  ******************************************
+
   // Status circle
   const status = document.createElement("span");
-  status.className = `friend-status ${"ONLINE" ? "online" : "offline"}`;
-  //  STR TO BOOL
+  status.className = `friend-status ${online ? "online" : "offline"}`;
+
   inner.appendChild(profileText);
   inner.appendChild(status); // outside profileText
   item.appendChild(inner);
@@ -260,7 +265,7 @@ private createFriend(initials: string, name: string, online: string): HTMLElemen
 
 // --------------------------------------------------------------------------
 
-private createRequest(initials: string, name: string): HTMLElement {
+private createRequest(avatarURL: string, name: string): HTMLElement {
   const item = document.createElement("div");
   item.className = "request-item";
 
@@ -273,7 +278,7 @@ private createRequest(initials: string, name: string): HTMLElement {
 
   const avatar = document.createElement("div");
   avatar.className = "request-avatar";
-  avatar.textContent = initials;
+  avatar.textContent = avatarURL;
 
   const userName = document.createElement("span");
   userName.className = "request-name";

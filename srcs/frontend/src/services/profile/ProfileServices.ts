@@ -8,7 +8,7 @@ export class ProfileServices {
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
-    // Method for register
+    // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
             const response = await fetch(`${this.baseUrl}/profile`, {
@@ -44,6 +44,7 @@ export class ProfileServices {
             };
         }
     }
+    // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {
             const response = await fetch(`${this.baseUrl}/friends`, {
@@ -63,10 +64,17 @@ export class ProfileServices {
                     errors: data.errors || []
                 };
             }
+
+            // Transform backend response into your frontend format
+            const friends = data.map((f: any) => ({
+                avatarURL: f.avatar,
+                name: f.username,
+                online: f.status === "ONLINE"   // convert string → boolean
+            }));
             return {
                 success: true,
                 status: response.status,
-                data: data,
+                data: { friends },
                 message: 'Friends fetched successfully'
             };
         } catch (error) {
