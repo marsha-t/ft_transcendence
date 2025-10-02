@@ -25,17 +25,3 @@ export interface GameSession{
     startedAt?: string;
     endedAt?: string;
 }
-
-export interface CreateGameSessionRequest{
-    userId: number;
-    side: PlayerSide;
-}
-
-export interface AddPlayerRequest{
-    guestName: string;
-    side: PlayerSide;
-}
-
-export interface UpdateStatusRequest{
-    status: GameStatus;
-}
