@@ -1,11 +1,13 @@
 import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
-// import { apiServices } from '../services/ApiServices';
 import { ProfileData, ApiResponse } from "../services/profile/types";
+
 export class Profile implements IComponent {
   private isFriendsActive: boolean = true;
   private username: string = "";
   private avatar: string = "";
+  private friendsListData: { initials: string; name: string; online: boolean }[] = [];
+  private requestsListData: { initials: string; name: string }[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
   private container!: HTMLElement;
@@ -18,7 +20,7 @@ export class Profile implements IComponent {
     this.container = document.createElement("div");
     this.container.className = "profile-page";
 
-    // await this.fetchProfileData();
+
     this.loadPageStyles();
 
     // Profile card
@@ -27,15 +29,6 @@ export class Profile implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = "profile-avatar";
-
-    if (this.avatar) {
-      const backendUrl = "http://localhost:5001"; // put this in a config file ideally
-      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
-      avatar.style.backgroundSize = "cover";
-      avatar.style.backgroundPosition = "center";
-    } else {
-      avatar.textContent = this.username.charAt(0) || "AV"; // Fallback to initials
-    }
 
     const name = document.createElement("h2");
     name.className = "profile-name";
@@ -47,7 +40,7 @@ export class Profile implements IComponent {
 
     const settingsBtn = document.createElement("button");
     settingsBtn.className = "settings-btn";
-    settingsBtn.innerHTML = "&#9881;"; // Gear icon using HTML entity
+    settingsBtn.innerHTML = "&#9881;";
     settingsBtn.addEventListener("click", () => this.openSettingsPopup());
     card.appendChild(avatar);
     card.appendChild(name);
@@ -109,18 +102,15 @@ export class Profile implements IComponent {
     // Conditionally render friends or requests list
     const friendsList = document.createElement("div");
     friendsList.className = "friends-list";
-    if (this.isFriendsActive) {
-      friendsList.appendChild(this.createFriend("TF", "Test's friend", true));
-      friendsList.appendChild(this.createFriend("JD", "John Doe", false));
-      friendsList.appendChild(this.createFriend("TU", "Test User", true));
-      friendsList.appendChild(this.createFriend("JD", "Joey Doe", false));
 
+    if (this.isFriendsActive) {
+      this.friendsListData.forEach(f =>
+        friendsList.appendChild(this.createFriend(f.initials, f.name, f.online))
+      );
     } else {
-      friendsList.appendChild(this.createRequest("RF", "Random Friend"));
-      friendsList.appendChild(this.createRequest("AF", "Another Friend"));
-      friendsList.appendChild(this.createRequest("RF", "Random Friend"));
-      friendsList.appendChild(this.createRequest("AF", "Another Friend"));
-    }
+      this.requestsListData.forEach(r =>
+        friendsList.appendChild(this.createRequest(r.initials, r.name))
+      );    }
     friends.appendChild(friendsHeader);
     friends.appendChild(friendsList);
 
@@ -159,16 +149,14 @@ export class Profile implements IComponent {
     this.container.appendChild(friends);
     this.container.appendChild(matchHistory);
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-          if (mutation.addedNodes.length && this.container.parentElement) {
-              console.log("Component added to DOM, fetching profile data...");
-              this.fetchProfileData();
-              observer.disconnect(); // Stop observing after the first fetch
-          }
-      });
-   });
+    const observer = new MutationObserver(() => {
+      if (this.container.parentElement) {
+        this.fetchProfileData();
+        observer.disconnect();
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
+
     return this.container;
   }
 
@@ -327,7 +315,7 @@ private createRequest(initials: string, name: string): HTMLElement {
     private switchToFriends(): void {
     this.isFriendsActive = true;
     this.rerender();
-  }
+    }
 
   private switchToRequests(): void {
     this.isFriendsActive = false;
@@ -352,20 +340,14 @@ private async fetchProfileData(): Promise<void> {
       if (response.success) {
           this.username = response.data?.username || "Hi Test!";
           this.avatar = response.data?.avatar || "";
-          // this.rerender(); // Re-render to reflect updated data
+          this.friendsListData = response.data?.friends || [];
+          this.requestsListData = response.data?.requests || [];
           this.updateProfileUI();
-      } else {
-          this.username = response.data?.username || "Hi Test!";
-          this.avatar = response.data?.avatar || "";
-          // this.rerender(); // Re-render to reflect updated data
-          this.updateProfileUI();
-          // throw new Error(response.message || "Failed to load profile data");
       }
   } catch (error: any) {
       console.error('Error fetching profile data:', error);
       this.username = "Hi Test!"; // Fallback username
       this.avatar = ""; // No avatar on error
-      // this.rerender(); // Re-render with fallback data
       this.updateProfileUI();
   } finally {
       this.setLoadingState(false);
@@ -380,20 +362,28 @@ private async fetchProfileData(): Promise<void> {
   }
 
   private updateProfileUI(): void {
-  const name = this.container.querySelector(".profile-name");
-  const avatar = this.container.querySelector(".profile-avatar");
-
-  if (name) name.textContent = this.username || "Hi Test!";
-  if (avatar) {
+    const nameEl = this.container.querySelector(".profile-name") as HTMLElement;
+    const avatarEl = this.container.querySelector(".profile-avatar") as HTMLElement;
+  
+    if (!nameEl || !avatarEl) return;
+  
+    // Update name
+    nameEl.textContent = this.username || "Hi Test!";
+  
+    // Update avatar
     if (this.avatar) {
-      (avatar as HTMLElement).style.backgroundImage = `url(${this.avatar})`;
-      avatar.textContent = "";
-    } else {
-      (avatar as HTMLElement).style.backgroundImage = "";
-      avatar.textContent = this.username.charAt(0).toUpperCase() || "AV";
+      const backendUrl = "http://localhost:5001";
+      avatarEl.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatarEl.style.backgroundSize = "cover";
+      avatarEl.style.backgroundPosition = "center";
+      avatarEl.textContent = "";
+    }
+    else {
+      avatarEl.style.backgroundImage = "";
+      avatarEl.textContent = this.username.charAt(0).toUpperCase() || "AV";
     }
   }
-}
+  
 
 //-------------------------
 
