@@ -1,5 +1,5 @@
 
-import { ProfileData, ApiResponse } from './types';
+import { ProfileData, FriendsData, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -44,6 +44,43 @@ export class ProfileServices {
             };
         }
     }
+    async getFriends(): Promise<ApiResponse<FriendsData>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/friends`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-current-user-id': '1',
+                },
+            });
+            const data = await response.json();
+            if(!response.ok){
+                let msg = data.error || 'Friends fetch failed';
+                return {
+                    success: false,
+                    status: response.status,
+                    message: msg,
+                    errors: data.errors || []
+                };
+            }
+            return {
+                success: true,
+                status: response.status,
+                data: data,
+                message: 'Friends fetched successfully'
+            };
+        } catch (error) {
+            console.error('API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                errors: []
+            };
+        }
+    }
 }
+
+
 
 

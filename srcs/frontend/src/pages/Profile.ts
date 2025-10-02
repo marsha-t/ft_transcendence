@@ -1,13 +1,13 @@
 import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
-import { ProfileData, ApiResponse } from "../services/profile/types";
+import { ProfileData, ApiResponse, FriendsData } from "../services/profile/types";
 
 export class Profile implements IComponent {
   private isFriendsActive: boolean = true;
   private username: string = "";
   private avatar: string = "";
-  private friendsListData: { initials: string; name: string; online: boolean }[] = [];
-  private requestsListData: { initials: string; name: string }[] = [];
+  private friendsListData: { initials: string; name: string; online: string }[] = [];
+  // private requestsListData: { initials: string; name: string }[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
   private container!: HTMLElement;
@@ -108,13 +108,14 @@ export class Profile implements IComponent {
         friendsList.appendChild(this.createFriend(f.initials, f.name, f.online))
       );
     } else {
-      this.requestsListData.forEach(r =>
-        friendsList.appendChild(this.createRequest(r.initials, r.name))
-      );    }
+      // this.requestsListData.forEach(r =>
+      //   friendsList.appendChild(this.createRequest(r.initials, r.name))
+      // ); 
+      friends.appendChild(this.createRequest("JD", "John Doe"));  
+    }
     friends.appendChild(friendsHeader);
     friends.appendChild(friendsList);
 
-    // friends.appendChild(this.createFriend("JD", "John Doe", true));
 
 // ----------------------------------------------------------------------------------------------
 
@@ -195,7 +196,7 @@ export class Profile implements IComponent {
   // ----------------------------------------------------------------------------------------------
 
 
-private createFriend(initials: string, name: string, online: boolean): HTMLElement {
+private createFriend(initials: string, name: string, online: string): HTMLElement {
   const item = document.createElement("div");
   item.className = "friend-item";
 
@@ -216,11 +217,11 @@ private createFriend(initials: string, name: string, online: boolean): HTMLEleme
 
   profileText.appendChild(avatar);
   profileText.appendChild(friendName);
-
+//  ******************************************
   // Status circle
   const status = document.createElement("span");
-  status.className = `friend-status ${online ? "online" : "offline"}`;
-
+  status.className = `friend-status ${"ONLINE" ? "online" : "offline"}`;
+  //  STR TO BOOL
   inner.appendChild(profileText);
   inner.appendChild(status); // outside profileText
   item.appendChild(inner);
@@ -336,12 +337,17 @@ private createRequest(initials: string, name: string): HTMLElement {
 private async fetchProfileData(): Promise<void> {
   this.setLoadingState(true);
   try {
-      const response: ApiResponse<ProfileData> = await this.profileService.getProfile();
-      if (response.success) {
-          this.username = response.data?.username || "Hi Test!";
-          this.avatar = response.data?.avatar || "";
-          this.friendsListData = response.data?.friends || [];
-          this.requestsListData = response.data?.requests || [];
+      const profileResponse: ApiResponse<ProfileData> = await this.profileService.getProfile();
+      if (profileResponse.success) {
+          this.username = profileResponse.data?.username || "Hi Test!";
+          this.avatar = profileResponse.data?.avatar || "";
+          // this.friendsListData = response.data?.friends || [];
+          // this.requestsListData = response.data?.requests || [];
+          this.updateProfileUI();
+      }
+      const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
+      if (friendsResponse.success) {
+          this.friendsListData = friendsResponse.data?.friends || [];
           this.updateProfileUI();
       }
   } catch (error: any) {
