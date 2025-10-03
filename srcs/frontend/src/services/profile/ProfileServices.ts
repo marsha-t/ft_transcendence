@@ -66,6 +66,7 @@ export class ProfileServices {
             }
 
             // Transform backend response into your frontend format
+            const friendsArray = Array.isArray(data.friends) ? data.friends : [];
             const friends = data.map((f: any) => ({
                 avatarURL: f.avatar,
                 name: f.username,
