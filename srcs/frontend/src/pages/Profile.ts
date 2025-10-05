@@ -359,6 +359,7 @@ private async fetchProfileData(): Promise<void> {
       const profileResponse: ApiResponse<ProfileData> = await this.profileService.getProfile();
       if (profileResponse.success) {
           this.username = profileResponse.data?.username || "Hi Test!";
+          this.email = profileResponse.data?.email || "test@email.com";
           this.avatar = profileResponse.data?.avatar || "";
           this.updateProfileUI();
       }
@@ -520,11 +521,11 @@ private openAddFriendPopup(): void {
   const emailLabel = document.createElement("label");
   emailLabel.className = "form-label";
   emailLabel.textContent = "Email";
-  // emailInput.value = this.email || "";
 
   const emailInput = document.createElement("input");
   emailInput.type = "email";
   emailInput.className = "modal-input";
+  emailInput.value = this.email || "";
 
   emailGroup.appendChild(emailLabel);
   emailGroup.appendChild(emailInput);

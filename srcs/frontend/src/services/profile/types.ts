@@ -1,7 +1,7 @@
 export interface ProfileData {
     username: string;
     avatar: string;
-    // email: string;
+    email: string;
 }
 
 export interface FriendsData {
