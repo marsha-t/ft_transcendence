@@ -8,6 +8,7 @@ export class Profile implements IComponent {
   private email: string = "";
   private avatar: string = "";
   private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
+  private popupAvatarEl: HTMLElement | null = null;
   // private requestsListData: { initials: string; name: string }[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
@@ -408,7 +409,22 @@ private async fetchProfileData(): Promise<void> {
     }
   }
   
-
+  // Method to update the avatar in the settings's page once it gets changed
+  private updatePopupAvatar(): void {
+    if (!this.popupAvatarEl) return;
+  
+    const backendUrl = "http://localhost:5001";
+  
+    if (this.avatar) {
+      this.popupAvatarEl.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      this.popupAvatarEl.style.backgroundSize = "cover";
+      this.popupAvatarEl.style.backgroundPosition = "center";
+      this.popupAvatarEl.textContent = "";
+    } else {
+      this.popupAvatarEl.style.backgroundImage = "";
+      this.popupAvatarEl.textContent = this.username.charAt(0).toUpperCase() || "AV";
+    }
+  }
 //-------------------------
 
 private openAddFriendPopup(): void {
@@ -471,7 +487,9 @@ private openAddFriendPopup(): void {
     } else {
         avatarPlaceholder.textContent = this.username.charAt(0).toUpperCase() || "AV";
     }
-    // avatarPlaceholder.textContent = "AV"; // Placeholder initials
+
+    this.popupAvatarEl = avatarPlaceholder;
+
     // Pen icon (for editing)
     const penIcon = document.createElement("span");
     penIcon.className = "pen-icon";
@@ -637,8 +655,12 @@ private openAddFriendPopup(): void {
             // Upload to backend
             const response = await this.profileService.uploadAvatar(file);
 
+            // Confirmation before upload
+            if (!confirm("Are you sure you want to set this image as your new avatar?")) return;
+
             if (response.success && response.data) {
                 this.avatar = response.data.avatar; // update avatar path
+                this.updatePopupAvatar(); 
                 this.updateProfileUI(); // refresh UI
                 console.log("Avatar updated:", this.avatar);
             } else {
@@ -667,6 +689,7 @@ private openAddFriendPopup(): void {
     
         // Success → reset UI and update avatar field
         this.avatar = result.data?.avatar || ""; // set to default returned by backend
+        this.updatePopupAvatar(); 
         this.updateProfileUI();
     
       } catch (error) {
