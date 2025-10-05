@@ -1,5 +1,5 @@
 
-import { ProfileData, FriendsData, ApiResponse } from './types';
+import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -66,6 +66,7 @@ export class ProfileServices {
             }
 
             // Transform backend response into your frontend format
+            const friendsArray = Array.isArray(data.friends) ? data.friends : [];
             const friends = data.map((f: any) => ({
                 avatarURL: f.avatar,
                 name: f.username,
@@ -87,6 +88,84 @@ export class ProfileServices {
             };
         }
     }
+    // Method to update the current user's avatar
+    async uploadAvatar(file: File): Promise<ApiResponse<AvatarUploadResponse>> {
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+    
+            const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+                method: "PUT",
+                headers: {
+                    "x-current-user-id": "1",
+                },
+                body: formData,
+            });
+    
+            const data = await response.json();
+    
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.message || "Avatar upload failed",
+                    errors: [],
+                };
+            }
+    
+            return {
+                success: true,
+                status: response.status,
+                data: data,
+                message: "Avatar uploaded successfully",
+            };
+        } catch (error) {
+            console.error("API error:", error);
+            return {
+                success: false,
+                status: 0,
+                message: "Network error",
+                errors: [],
+            };
+        }
+    }
+    // Method to remove the current user's avatar
+    async deleteAvatar(): Promise<ApiResponse<AvatarDeleteResponse>> {
+        try {
+          const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+            method: "DELETE",
+            headers: {
+              "x-current-user-id": "1", // or dynamically from auth
+            },
+          });
+      
+          const data = await response.json();
+      
+          if (!response.ok) {
+            return {
+              success: false,
+              status: response.status,
+              message: data.message || "Failed to delete avatar",
+              errors: data.errors || [],
+            };
+          }
+      
+          return {
+            success: true,
+            status: response.status,
+            message: data.message || "Avatar deleted successfully",
+            data: data,
+          };
+        } catch (error) {
+          console.error("API error", error);
+          return {
+            success: false,
+            status: 0,
+            message: "Network error",
+            errors: [],
+          };
+        }
+    }      
 }
 
 
