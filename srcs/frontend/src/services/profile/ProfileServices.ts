@@ -1,5 +1,5 @@
 
-import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, ApiResponse } from './types';
+import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -165,7 +165,191 @@ export class ProfileServices {
             errors: [],
           };
         }
-    }      
+    }
+    // Method to search for users by username
+    async searchUsers(query: string): Promise<ApiResponse<UserSearchResult[]>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/friends/search?query=${encodeURIComponent(query)}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-current-user-id": "1", // replace with dynamic ID later
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.error || data.message || "Failed to search users",
+                    errors: data.errors || [],
+                };
+            }
+
+            // Transform to your frontend format (username + avatar only)
+            const users: UserSearchResult[] = Array.isArray(data)
+                ? data.map((u: any) => ({
+                    id: u.id,
+                    username: u.username,
+                    avatar: u.avatar || "/default-avatar.png",
+                }))
+                : [];
+
+            return {
+                success: true,
+                status: response.status,
+                data: users,
+                message: "Users fetched successfully",
+            };
+        } catch (error) {
+            console.error("API error", error);
+            return {
+                success: false,
+                status: 0,
+                message: "Network error",
+                errors: [],
+            };
+        }
+    }
+    // Fetch incoming friend requests (users who added me)
+    async getIncomingRequests(): Promise<ApiResponse<FriendRequest[]>> {
+        try {
+        const response = await fetch(`${this.baseUrl}/friends/requests`, {
+            method: 'GET',
+            headers: {
+            'Content-Type': 'application/json',
+            'x-current-user-id': '1',
+            },
+        });
+    
+        const data = await response.json();
+    
+        if (!response.ok) {
+            return {
+            success: false,
+            status: response.status,
+            message: data.error || "Failed to fetch incoming requests",
+            errors: data.errors || [],
+            };
+        }
+    
+        // Format to match frontend
+        const requests: FriendRequest[] = data.map((req: any) => ({
+            id: req.id,
+            from: {
+            username: req.from.username,
+            avatar: req.from.avatar,
+            status: req.from.status,
+            },
+        }));
+    
+        return {
+            success: true,
+            status: response.status,
+            data: requests,
+            message: "Incoming requests fetched successfully",
+        };
+        } catch (error) {
+        console.error("API error:", error);
+        return {
+            success: false,
+            status: 0,
+            message: "Network error",
+            errors: [],
+        };
+        }
+    }
+  
+  
+//   // Fetch outgoing friend requests (users I sent requests to)
+//     async getOutgoingRequests(): Promise<ApiResponse<FriendRequest[]>> {
+//         try {
+//         const response = await fetch(`${this.baseUrl}/friends/sent`, {
+//             method: 'GET',
+//             headers: {
+//             'Content-Type': 'application/json',
+//             'x-current-user-id': '1',
+//             },
+//         });
+    
+//         const data = await response.json();
+    
+//         if (!response.ok) {
+//             return {
+//             success: false,
+//             status: response.status,
+//             message: data.error || "Failed to fetch outgoing requests",
+//             errors: data.errors || [],
+//             };
+//         }
+    
+//         const requests: FriendRequest[] = data.map((req: any) => ({
+//             id: req.id,
+//             to: {
+//             username: req.to.username,
+//             avatar: req.to.avatar,
+//             status: req.to.status,
+//             },
+//         }));
+    
+//         return {
+//             success: true,
+//             status: response.status,
+//             data: requests,
+//             message: "Outgoing requests fetched successfully",
+//         };
+//         } catch (error) {
+//         console.error("API error:", error);
+//         return {
+//             success: false,
+//             status: 0,
+//             message: "Network error",
+//             errors: [],
+//         };
+//         }
+//     }
+  
+  
+  // Respond to a friend request (accept/decline)
+    async respondToRequest(username: string, action: "accept" | "reject"): Promise<ApiResponse<null>> {
+        try {
+        const response = await fetch(`${this.baseUrl}/friends/${username}/${action}`, {
+            method: 'PUT',
+            headers: {
+            'x-current-user-id': '1',
+            },
+        });
+    
+        const data = await response.json();
+    
+        if (!response.ok) {
+            return {
+            success: false,
+            status: response.status,
+            message: data.error || `Failed to ${action} request`,
+            errors: data.errors || [],
+            };
+        }
+    
+        return {
+            success: true,
+            status: response.status,
+            message: data.message || `Request ${action}ed successfully`,
+        };
+        } catch (error) {
+        console.error("API error:", error);
+        return {
+            success: false,
+            status: 0,
+            message: "Network error",
+            errors: [],
+        };
+        }
+    }
+  
+    
 }
 
 
