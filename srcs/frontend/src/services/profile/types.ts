@@ -8,6 +8,26 @@ export interface FriendsData {
     friends?: { avatarURL: string; name: string; online: boolean }[];
 }
 
+export interface FriendRequest {
+    id: number;
+    from?: {
+        username: string;
+        avatar: string;
+        status: string;
+    };
+
+    // to?: {
+    //     username: string;
+    //     avatar: string;
+    //     status: string;
+    // };
+}
+
+export interface FriendRequestsData {
+    incoming: FriendRequest[];
+    outgoing: FriendRequest[];
+}
+
 export interface AvatarUploadResponse {
     message: string;
     avatar: string; // the new avatar URL returned by backend
@@ -25,4 +45,10 @@ export interface ApiResponse<T> {
     status?: number;
     message?: string;
     errors?: string[]; 
+}
+
+export interface UserSearchResult {
+    id: number;
+    username: string;
+    avatar: string;
 }
