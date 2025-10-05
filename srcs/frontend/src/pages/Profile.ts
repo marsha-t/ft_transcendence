@@ -509,7 +509,7 @@ private openAddFriendPopup(): void {
   const usernameInput = document.createElement("input");
   usernameInput.type = "text";
   usernameInput.className = "modal-input";
-  usernameInput.value = this.username || "";
+  usernameInput.placeholder = this.username || "";
 
   usernameGroup.appendChild(usernameLabel);
   usernameGroup.appendChild(usernameInput);
@@ -525,7 +525,7 @@ private openAddFriendPopup(): void {
   const emailInput = document.createElement("input");
   emailInput.type = "email";
   emailInput.className = "modal-input";
-  emailInput.value = this.email || "";
+  emailInput.placeholder = this.email || "";
 
   emailGroup.appendChild(emailLabel);
   emailGroup.appendChild(emailInput);
@@ -570,15 +570,50 @@ private openAddFriendPopup(): void {
     cancelBtn.className = "cancel-btn";
     cancelBtn.textContent = "Cancel";
 
-    // saveBtn.addEventListener("click", () => {
-    //     const inputs = form.getElementsByClassName("modal-input") as HTMLCollectionOf<HTMLInputElement>;
-    //     const data = {};
-    //     for (let input of inputs) {
-    //         data[input.placeholder.toLowerCase()] = input.value;
-    //     }
-    //     console.log("Saved data:", data);
-    //     overlay.remove(); // Close on save (add API call if needed)
-    // });
+    saveBtn.addEventListener("click", async () => {
+      // Gather form inputs
+      const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
+      const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
+      const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
+      const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='New Password']");
+    
+      const data: any = {};
+    
+      if (usernameInput && usernameInput.value.trim() !== "" && usernameInput.value !== this.username) {
+        data.username = usernameInput.value.trim();
+      }
+    
+      if (emailInput && emailInput.value.trim() !== "" && emailInput.value !== this.email) {
+        data.newEmail = emailInput.value.trim();
+      }
+    
+      if (oldPasswordInput && newPasswordInput && oldPasswordInput.value && newPasswordInput.value) {
+        data.oldPassword = oldPasswordInput.value;
+        data.newPassword = newPasswordInput.value;
+      }
+    
+      if (Object.keys(data).length === 0) {
+        alert("No changes to save.");
+        return;
+      }
+    
+      // Call backend
+      const response = await this.profileService.updateProfile(data);
+    
+      if (!response.success) {
+        alert(response.message || "Failed to update profile");
+        console.error(response);
+        return;
+      }
+    
+      // Success → update UI
+      if (response.data.username) this.username = response.data.username;
+      if (response.data.email) this.email = response.data.email;
+    
+      this.fetchProfileData();
+      alert("Profile updated successfully!");
+      overlay.remove(); // close modal
+    });
 
     cancelBtn.addEventListener("click", () => overlay.remove());
 

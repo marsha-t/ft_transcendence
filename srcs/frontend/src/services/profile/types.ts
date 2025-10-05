@@ -4,6 +4,13 @@ export interface ProfileData {
     email: string;
 }
 
+export interface UpdateProfileData {
+    username?: string;
+    oldPassword?: string;
+    newPassword?: string;
+    newEmail?: string;
+}
+
 export interface FriendsData {
     friends?: { avatarURL: string; name: string; online: boolean }[];
 }
