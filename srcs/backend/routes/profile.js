@@ -4,7 +4,7 @@ import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
-import { getCurrentUserSchema, changeUsernameSchema, changePasswordSchema, changeEmailSchema, avatarUploadSchema, removeAvatarSchema, getAvatarSchema  } from '../schemas/profile.js';
+import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema, getAvatarSchema  } from '../schemas/profile.js';
 
 async function profileRoutes(app, options) {
 
@@ -37,100 +37,63 @@ async function profileRoutes(app, options) {
     }
   });
 
-  // 2- Update username
-  app.put('/api/profile/username', { schema: changeUsernameSchema }, async (request, reply) => {
+  app.put('/api/profile', { schema: updateProfileSchema }, async (request, reply) => {
     try {
-      // Extract user ID from header (temporary)
       const userIdHeader = request.headers['x-current-user-id'];
       const userId = userIdHeader ? Number(userIdHeader) : null;
-      const { username } = request.body;
-
-      // Check if username already exists
-      const existingUser = await prisma.user.findUnique({ where: { username } });
-      if (existingUser) {
-        return reply.code(409).send({ message: 'Username already taken' });
-      }
-
-      const updatedUsername = await prisma.user.update({
-        where: { id: userId },
-        data: { username },
-        select: { username: true },
-      });
-
-      return reply.code(200).send({
-        message: 'Username updated successfully',
-        username: updatedUsername.username,
-      });
-
-    } catch (err) {
-      request.log.error(err);
-      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-      return reply.code(500).send({ error: 'Failed to update username' });
-    }
-  });
-
-  // 3- Update password
-  app.put('/api/profile/password', { schema: changePasswordSchema }, async (request, reply) => {
-    try {
-      // Extract user ID from header (temporary)
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
-      const { oldPassword, newPassword } = request.body;
-
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) return reply.code(404).send({ code: 404, message: 'User not found' });
-
-      const isValid = await bcrypt.compare(oldPassword, user.password);
-      if (!isValid) reply.code(401).send({ message: 'Old password is incorrect' });
-
-      const hashedPassword = await bcrypt.hash(newPassword, 12);
-      await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
-
-      return reply.code(200).send({ message: 'Password updated successfully' });
-
-    } catch (err) {
-      request.log.error(err);
-      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-      return reply.code(500).send({ error: 'Failed to update password' });
-    }
-  });
-
-  // 4- Update email
-  app.put('/api/profile/email', { schema: changeEmailSchema }, async (request, reply) => {
-    try {
-      // Extract user ID from header (temporary)
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
-      const { newEmail, password } = request.body;
-
-      // Find the user by ID
+      if (!userId) return reply.code(400).send({ message: 'Missing user ID' });
+  
+      // Fetch the user from DB
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) return reply.code(404).send({ message: 'User not found' });
-
-      // Verify the password
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) return reply.code(401).send({ message: 'Incorrect password' });
-
-      // Check if the new email is already in use
-      const existingUser = await prisma.user.findUnique({ where: { email: newEmail } });
-      if (existingUser) return reply.code(409).send({ message: 'Email already in use' });
-
-      // Update the email
-      await prisma.user.update({
+  
+      const { username, oldPassword, newPassword, newEmail } = request.body;
+      const updates = {};
+  
+      // --- Username ---
+      if (username && username !== user.username) {
+        const existingUser = await prisma.user.findUnique({ where: { username } });
+        if (existingUser) return reply.code(409).send({ message: 'Username already taken' });
+        updates.username = username;
+      }
+  
+      // --- Password ---
+      if (oldPassword && newPassword) {
+        const isValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isValid) return reply.code(401).send({ message: 'Old password is incorrect' });
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        updates.password = hashedPassword;
+      }
+  
+      // --- Email ---
+      if (newEmail && newEmail !== user.email) {
+        const existingEmail = await prisma.user.findUnique({ where: { email: newEmail } });
+        if (existingEmail) return reply.code(409).send({ message: 'Email already in use' });
+        updates.email = newEmail;
+      }
+  
+      if (Object.keys(updates).length === 0) {
+        return reply.code(400).send({ message: 'No valid fields to update' });
+      }
+  
+      const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data: { email: newEmail },
+        data: updates,
+        select: { username: true, email: true },
       });
-
-      return reply.code(200).send({ message: 'Email updated successfully' });
-
+  
+      return reply.code(200).send({
+        message: 'Profile updated successfully',
+        data: updatedUser,
+      });
+  
     } catch (err) {
       request.log.error(err);
-      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-      return reply.code(500).send({ error: 'Failed to update email' });
+      return reply.code(500).send({ message: 'Failed to update profile' });
     }
-  });
+  });  
 
-  // 5- Update avatar through upload
+  // 3- Update avatar through upload
   app.put('/api/profile/avatar', { schema: avatarUploadSchema }, async (request, reply) => {
     try {
       const userIdHeader = request.headers['x-current-user-id'];
@@ -206,7 +169,7 @@ async function profileRoutes(app, options) {
     }
   });
 
-  // 6- Remove avatar (reset to default)
+  // 4- Remove avatar (reset to default)
   app.delete('/api/profile/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
     try {
       const userIdHeader = request.headers['x-current-user-id'];
@@ -242,7 +205,7 @@ async function profileRoutes(app, options) {
     }
   });
 
-  // 7- Get avatar only (optional helper route)
+  // 5- Get avatar only (optional helper route)
   app.get('/api/profile/:id/avatar', { schema: getAvatarSchema }, async (request, reply) => {
     try {
       const { id } = request.params;

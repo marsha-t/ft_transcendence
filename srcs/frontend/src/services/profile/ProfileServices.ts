@@ -1,5 +1,5 @@
 
-import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, ApiResponse } from './types';
+import { ProfileData, FriendsData, UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -86,6 +86,41 @@ export class ProfileServices {
                 message: 'Network error',
                 errors: []
             };
+        }
+    }
+    // Method to update the current user's information
+    async updateProfile(data: UpdateProfileData): Promise<ApiResponse<any>> {
+        try {
+          const response = await fetch(`${this.baseUrl}/profile`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "x-current-user-id": "1", // or dynamically get user ID
+            },
+            body: JSON.stringify(data),
+          });
+      
+          const resData = await response.json();
+      
+          if (!response.ok) {
+            return {
+              success: false,
+              status: response.status,
+              message: resData.message || "Failed to update profile",
+              errors: resData.errors || [],
+            };
+          }
+      
+          return {
+            success: true,
+            status: response.status,
+            message: resData.message,
+            data: resData.data,
+          };
+      
+        } catch (error) {
+          console.error("API error", error);
+          return { success: false, status: 0, message: "Network error", errors: [] };
         }
     }
     // Method to update the current user's avatar
