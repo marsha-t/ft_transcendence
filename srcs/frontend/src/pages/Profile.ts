@@ -590,28 +590,54 @@ private openAddFriendPopup(): void {
     document.body.appendChild(overlay);
 }
   private handleAvatarEdit(): void {
-      console.log("Change avatar clicked");
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.addEventListener("change", (e: Event) => {
-          const file = (e.target as HTMLInputElement).files?.[0];
-          if (file) {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                  this.avatar = event.target?.result as string; // Update avatar
-                  this.updateProfileUI(); // <-- update UI without full rerender
-              };
-              reader.readAsDataURL(file);
-          }
-      });
-      input.click();
+    console.log("Change avatar clicked");
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.addEventListener("change", async (e: Event) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+            // Upload to backend
+            const response = await this.profileService.uploadAvatar(file);
+
+            if (response.success && response.data) {
+                this.avatar = response.data.avatar; // update avatar path
+                this.updateProfileUI(); // refresh UI
+                console.log("Avatar updated:", this.avatar);
+            } else {
+                console.error("Avatar upload failed:", response.message);
+                alert(response.message);
+            }
+        }
+    });
+
+    input.click();
   }
 
-  private handleAvatarDelete(): void {
+  private async handleAvatarDelete(): Promise<void> {
       console.log("Delete avatar clicked");
-      this.avatar = ""; // Clear avatar
-      this.updateProfileUI(); // <-- update UI without full rerender
+
+      // Ask for confirmation
+      if (!confirm("Are you sure you want to remove your avatar?")) return;
+
+      try {
+        const result = await this.profileService.deleteAvatar();
+
+        if (!result.success) {
+          alert(result.message || "Failed to remove avatar");
+          return;
+        }
+    
+        // Success → reset UI and update avatar field
+        this.avatar = result.data?.avatar || ""; // set to default returned by backend
+        this.updateProfileUI();
+    
+      } catch (error) {
+        console.error("Network error:", error);
+        alert("Network error while removing avatar.");
+      }
   }
   
 }
