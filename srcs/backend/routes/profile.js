@@ -19,6 +19,7 @@ async function profileRoutes(app, options) {
         where: { id: userId },
         select: {
           username: true,
+          email: true,
           avatar: true,
         },
       });

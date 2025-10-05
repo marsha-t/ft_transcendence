@@ -15,9 +15,10 @@ export const getCurrentUserSchema = {
       type: 'object',
       properties: {
         username: { type: 'string' },
+        email: { type: 'string' },
         avatar: { type: 'string' },
       },
-      required: ['username', 'avatar'],
+      required: ['username', 'avatar', 'email'],
     },
     400: {
       type: 'object',
