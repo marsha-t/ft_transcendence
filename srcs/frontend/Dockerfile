@@ -7,7 +7,6 @@ COPY package*.json ./
 
 # Install dependencies
 RUN npm install
-
 # # Install a better static server that handles MIME types correctly
 # RUN npm install -g http-server
 
