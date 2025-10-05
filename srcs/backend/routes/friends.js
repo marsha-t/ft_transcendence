@@ -258,6 +258,77 @@ async function friendsRoutes(app, options) {
       return reply.code(500).send({ error: 'Failed to fetch outgoing friend requests' });
     }
   });
+
+  // 8- Search users by username (safe + sanitized)
+  app.get('/api/friends/search', { schema: searchFriendsSchema }, async (request, reply) => {
+    try {
+      const { query } = request.query;
+      const userIdHeader = request.headers['x-current-user-id'];
+      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+
+      // Basic validation
+      if (!query || query.trim() === '') {
+        return reply.code(400).send({ error: 'Search query is required' });
+      }
+
+      const trimmed = query.trim();
+
+      // Enforce length limit (adjust maxLen as needed)
+      const maxLen = 20;
+      if (trimmed.length > maxLen) {
+        return reply.code(400).send({ error: `Search query must be at most ${maxLen} characters` });
+      }
+
+      // Reject if the user deliberately sends only wildcard characters or similar
+      // (e.g., "%", "_", "%%", "  %  ")
+      // Remove whitespace then check if all remaining chars are only '%' or '_' or backslash
+      const noSpace = trimmed.replace(/\s+/g, '');
+      if (noSpace.length === 0) {
+        return reply.code(400).send({ error: 'Search query is required' });
+      }
+      if (/^[%_\\]+$/.test(noSpace)) {
+        return reply.code(400).send({ error: 'Search query cannot be just wildcard characters' });
+      }
+
+      // Escape LIKE wildcards and backslash so the value is treated literally
+      // We escape: %, _, and backslash -> prefix with backslash
+      const escapeForLike = (s) => s.replace(/[%_\\]/g, '\\$&');
+
+      const escaped = escapeForLike(trimmed);
+
+      // Wrap with % for contains search (safe because escaped)
+      const param = `%${escaped}%`;
+
+      // Limit number of results returned
+      const limit = 50;
+
+      // Use parameterized $queryRaw to keep it safe. Use ESCAPE '\' so backslash escapes work.
+      const users = await prisma.$queryRaw`
+        SELECT id, username, avatar
+        FROM "User"
+        WHERE LOWER(username) LIKE LOWER(${param}) ESCAPE '\\'
+          AND id != ${currentUserId}
+        ORDER BY
+          CASE
+            WHEN LOWER(username) = LOWER(${trimmed}) THEN 1
+            WHEN LOWER(username) LIKE LOWER(${trimmed} || '%') THEN 2
+            ELSE 3
+          END,
+          username ASC
+        LIMIT ${limit};
+      `;
+
+      if (!users || users.length === 0) {
+        return reply.code(404).send({ error: 'No users found matching your search' });
+      }
+
+      return reply.code(200).send(users);
+
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to search users' });
+    }
+  });
 }
 
 export default friendsRoutes;
