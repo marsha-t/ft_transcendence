@@ -37,6 +37,7 @@ async function profileRoutes(app, options) {
     }
   });
 
+  // 2- Update username, password, or email of the current user
   app.put('/api/profile', { schema: updateProfileSchema }, async (request, reply) => {
     try {
       const userIdHeader = request.headers['x-current-user-id'];
@@ -48,6 +49,8 @@ async function profileRoutes(app, options) {
       if (!user) return reply.code(404).send({ message: 'User not found' });
   
       const { username, oldPassword, newPassword, newEmail } = request.body;
+
+      // Empty object that will collect valid fields to send to the database later
       const updates = {};
   
       // --- Username ---
@@ -57,19 +60,19 @@ async function profileRoutes(app, options) {
         updates.username = username;
       }
   
+      // --- Email ---
+      if (newEmail && newEmail !== user.email) {
+        const existingEmail = await prisma.user.findUnique({ where: { email: newEmail } });
+        if (existingEmail) return reply.code(409).send({ message: 'Email already in use' });
+        updates.email = newEmail;
+      }
+
       // --- Password ---
       if (oldPassword && newPassword) {
         const isValid = await bcrypt.compare(oldPassword, user.password);
         if (!isValid) return reply.code(401).send({ message: 'Old password is incorrect' });
         const hashedPassword = await bcrypt.hash(newPassword, 12);
         updates.password = hashedPassword;
-      }
-  
-      // --- Email ---
-      if (newEmail && newEmail !== user.email) {
-        const existingEmail = await prisma.user.findUnique({ where: { email: newEmail } });
-        if (existingEmail) return reply.code(409).send({ message: 'Email already in use' });
-        updates.email = newEmail;
       }
   
       if (Object.keys(updates).length === 0) {
@@ -112,16 +115,16 @@ async function profileRoutes(app, options) {
       console.log('Received file:', data.filename, data.mimetype);
 
       // Validate extension -> only allow well-known image types
-      const allowedExts = ['.jpg', '.jpeg', '.png', '.gif'];
+      const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
       const ext = path.extname(data.filename).toLowerCase();
       if (!allowedExts.includes(ext)) {
-        return reply.code(400).send({ message: 'Invalid file type. Only JPG, PNG, or GIF are allowed.' });
+        return reply.code(400).send({ message: 'Invalid file type. Only JPG, PNG, GIF, or WEBP are allowed.' });
       }
 
       // MIME type check
-      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedMimes.includes(data.mimetype)) {
-        return reply.code(400).send({ message: 'Invalid MIME type. Must be a JPG, PNG, or GIF image.' });
+        return reply.code(400).send({ message: 'Invalid MIME type. Must be a JPG, PNG, GIF, or WEBP image.' });
       }
 
       // Read buffer
