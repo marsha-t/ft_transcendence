@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
-import { ProfileData, ApiResponse, FriendsData } from "../services/profile/types";
+import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from '../services/profile/types';
 
 export class Profile implements IComponent {
   private isFriendsActive: boolean = true;
@@ -10,6 +10,7 @@ export class Profile implements IComponent {
   private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
   private popupAvatarEl: HTMLElement | null = null;
   // private requestsListData: { initials: string; name: string }[] = [];
+  private requestsListData: FriendRequest[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
   private container!: HTMLElement;
@@ -261,7 +262,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
 // --------------------------------------------------------------------------
 
-  private createRequest(avatarURL: string, name: string): HTMLElement {
+  private createRequest(avatarURL: string, name: string, reqId: number): HTMLElement {
     const item = document.createElement("div");
     item.className = "request-item";
 
@@ -286,22 +287,37 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     // Buttons
     const buttons = document.createElement("div");
     buttons.className = "request-buttons";
-
+    const profileServices = new ProfileServices();
     const acceptBtn = document.createElement("button");
     acceptBtn.className = "accept-btn";
     acceptBtn.textContent = "Accept";
-    acceptBtn.addEventListener("click", () => {
-      console.log(`Accepted friend request from ${name}`);
+    acceptBtn.addEventListener("click", async () => {
+      // console.log(`Accepted friend request from ${name}`);
       // handle accept logic !!!
+      const res = await profileServices.respondToRequest(name, "accept");
+      if (res.success) {
+        console.log(`✅ Accepted friend request from ${name}`);
+        item.remove(); // Remove from UI
+        const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
+        if (friendsResponse.success) {
+            this.friendsListData = friendsResponse.data?.friends || [];}
+      } else {
+        alert(res.message);
+      }
     });
 
     const declineBtn = document.createElement("button");
     declineBtn.className = "decline-btn";
     declineBtn.textContent = "Decline";
-    declineBtn.addEventListener("click", () => {
-      console.log(`Declined friend request from ${name}`);
-      // handle decline logic !!!!
-    });
+    declineBtn.addEventListener("click", async () => {
+  const res = await profileServices.respondToRequest(name, "reject");
+  if (res.success) {
+      console.log(`❌ Declined friend request from ${name}`);
+      item.remove(); // Remove from UI
+    } else {
+      alert(res.message);
+    }
+  });
 
     buttons.appendChild(acceptBtn);
     buttons.appendChild(declineBtn);
@@ -337,10 +353,12 @@ private updateFriendsList(): void {
             friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online))
         );
     } else {
-        // this.requestsListData.forEach(r =>
-        //     friendsList.appendChild(this.createRequest(r.initials, r.name))
-        // );
-        friendsList.appendChild(this.createRequest("JD", "John Doe"));
+      this.requestsListData.forEach(r => {
+        if (!r.from) return; // safety check
+        friendsList.appendChild(
+            this.createRequest(r.from.avatar, r.from.username, r.id)
+        );
+    });
     }
 
     // Update active class for tabs
@@ -367,8 +385,14 @@ private async fetchProfileData(): Promise<void> {
       const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
       if (friendsResponse.success) {
           this.friendsListData = friendsResponse.data?.friends || [];
+          if (this.isFriendsActive) this.updateFriendsList();
           this.updateProfileUI();
       }
+      const requestsResponse: ApiResponse<FriendRequest[]> = await this.profileService.getIncomingRequests();
+        if (requestsResponse.success && requestsResponse.data) {
+            this.requestsListData = requestsResponse.data;
+            this.updateFriendsList(); // update UI for requests
+        }
   } catch (error: any) {
       console.error('Error fetching profile data:', error);
       this.username = "Hi Test!";
@@ -428,36 +452,91 @@ private async fetchProfileData(): Promise<void> {
 //-------------------------
 
 private openAddFriendPopup(): void {
-    const overlay = document.createElement("div");
-    overlay.className = "modal-overlay";
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
 
-    const modal = document.createElement("div");
-    modal.className = "modal";
+  const modal = document.createElement("div");
+  modal.className = "modal";
 
-    const header = document.createElement("div");
-    header.className = "search-header";
+  const header = document.createElement("div");
+  header.className = "search-header";
 
-    const title = document.createElement("h2");
-    title.textContent = " Search for Users";
+  const title = document.createElement("h2");
+  title.textContent = "Search for Users";
 
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "close-btn";
-    closeBtn.innerHTML = "&times;"; // HTML  '×'
-    closeBtn.addEventListener("click", () => overlay.remove());
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "close-btn";
+  closeBtn.innerHTML = "&times;";
+  closeBtn.addEventListener("click", () => overlay.remove());
 
-    header.appendChild(title);
-    header.appendChild(closeBtn);
+  header.appendChild(title);
+  header.appendChild(closeBtn);
 
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.placeholder = "Search username...";
-    searchInput.className = "search-input";
+  const searchInput = document.createElement("input");
+  searchInput.type = "text";
+  searchInput.placeholder = "Search username...";
+  searchInput.className = "search-input";
 
-    modal.appendChild(header);
-    modal.appendChild(searchInput);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-  }
+  // Container for search results
+  const resultsContainer = document.createElement("div");
+  resultsContainer.className = "search-results";
+
+  modal.appendChild(header);
+  modal.appendChild(searchInput);
+  modal.appendChild(resultsContainer);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Create a service instance
+  const service = new ProfileServices();
+
+  // Add a small delay to avoid hitting the API on every keystroke (debounce)
+  let typingTimer: any;
+  const debounceDelay = 400; // ms
+
+  searchInput.addEventListener("input", () => {
+    clearTimeout(typingTimer);
+    const query = searchInput.value.trim();
+
+    if (query.length === 0) {
+      resultsContainer.innerHTML = "";
+      return;
+    }
+
+    resultsContainer.innerHTML = "<p class='loading-text'>Searching...</p>";
+
+    typingTimer = setTimeout(async () => {
+      const response = await service.searchUsers(query);
+
+      resultsContainer.innerHTML = ""; // clear before showing new results
+
+      if (!response.success || !response.data || response.data.length === 0) {
+        resultsContainer.innerHTML = "<p class='no-results'>No users found</p>";
+        return;
+      }
+
+      // Render results
+      response.data.forEach((user) => {
+        const userDiv = document.createElement("div");
+        userDiv.className = "search-item";
+
+        const avatar = document.createElement("img");
+        avatar.className = "search-userAvatar";
+        avatar.src = user.avatar || "/default-avatar.png";
+
+        const name = document.createElement("span");
+        name.className = "search-username";
+        name.textContent = user.username;
+
+        userDiv.appendChild(avatar);
+        userDiv.appendChild(name);
+
+        resultsContainer.appendChild(userDiv);
+      });
+    }, debounceDelay);
+  });
+}
+
 
   private openSettingsPopup(): void {
     const overlay = document.createElement("div");
