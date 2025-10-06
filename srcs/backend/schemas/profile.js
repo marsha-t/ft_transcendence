@@ -39,19 +39,16 @@ export const getCurrentUserSchema = {
   },
 };
 
-export const changeUsernameSchema = {
+export const updateProfileSchema = {
   tags: ['Profile'],
-  summary: 'Change the username of the current user',
+  summary: 'Update username, password, or email of the current user',
   headers: {
     type: 'object',
-    properties: {
-      'x-current-user-id': { type: 'string' },
-    },
+    properties: { 'x-current-user-id': { type: 'string' } },
     required: ['x-current-user-id'],
   },
   body: {
     type: 'object',
-    required: ['username'],
     properties: {
       username: { 
         type: 'string',
@@ -64,53 +61,12 @@ export const changeUsernameSchema = {
           pattern: 'Username can only contain letters, numbers, and underscores'
         }
       },
-    },
-  },
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        username: { type: 'string' },
-      },
-    },
-    400: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    409: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-  },
-};
-
-export const changePasswordSchema = {
-  tags: ['Profile'],
-  summary: 'Change the password of the current user',
-  headers: {
-    type: 'object',
-    properties: {
-      'x-current-user-id': { type: 'string' },
-    },
-    required: ['x-current-user-id'],
-  },
-  body: {
-    type: 'object',
-    required: ['oldPassword', 'newPassword'],
-    properties: {
       oldPassword: {
         type: 'string',
         minLength: 1,
-        errorMessage: {
-          minLength: 'Old password is required'
-        }
+        errorMessage: { minLength: 'Old password is required' }
       },
-      newPassword: { 
+      newPassword: {
         type: 'string',
         minLength: 12,
         pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{12,}$',
@@ -118,32 +74,7 @@ export const changePasswordSchema = {
           minLength: 'New password must be at least 12 characters',
           pattern: 'New password must include uppercase, lowercase, number, and symbol'
         }
-      }
-    }
-  },
-  response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    401: { type: 'object', properties: { error: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
-};
-
-export const changeEmailSchema = {
-  tags: ['Profile'],
-  summary: 'Change the email address of the current user',
-  headers: {
-    type: 'object',
-    properties: {
-      'x-current-user-id': { type: 'string' },
-    },
-    required: ['x-current-user-id'],
-  },
-  body: {
-    type: 'object',
-    required: ['newEmail', 'password'],
-    properties: {
+      },
       newEmail: { 
         type: 'string', 
         format: 'email',
@@ -152,23 +83,17 @@ export const changeEmailSchema = {
           format: 'Invalid email format',
           maxLength: 'Email must not exceed 255 characters'
         }
-      },
-      password: {
-        type: 'string',
-        minLength: 1,
-        errorMessage: {
-          minLength: 'Password is required'
-        }
-      },
+      }
     },
+    additionalProperties: false,
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    401: { type: 'object', properties: { error: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    409: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    200: { type: 'object', properties: { message: { type: 'string' }, data: { type: 'object' } } },
+    400: { type: 'object', properties: { message: { type: 'string' } } },
+    401: { type: 'object', properties: { message: { type: 'string' } } },
+    404: { type: 'object', properties: { message: { type: 'string' } } },
+    409: { type: 'object', properties: { message: { type: 'string' } } },
+    500: { type: 'object', properties: { message: { type: 'string' } } },
   },
 };
 
