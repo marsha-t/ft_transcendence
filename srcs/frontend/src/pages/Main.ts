@@ -6,7 +6,7 @@ export class Main implements IComponent {
     container.className = "main_page";
 
     // Load CSS
-    this.loadPageStyles();
+    // this.loadPageStyles();
     
     // Left side (title + description)
     const textSection = document.createElement('div');

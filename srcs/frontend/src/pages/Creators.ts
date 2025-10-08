@@ -5,7 +5,7 @@ export class Creators implements IComponent {
         const container = document.createElement('div');
         container.className = "creators_page";
 
-        this.loadPageStyles();
+        // this.loadPageStyles();
 
         //left half
         const text_section = document.createElement('div');
