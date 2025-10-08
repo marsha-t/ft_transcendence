@@ -88,6 +88,31 @@ export class ProfileServices {
             };
         }
     }
+    static async removeFriend(username: string): Promise<ApiResponse<null>> {
+        try {
+          const res = await fetch(`/api/friends/${(username)}`, {
+            method: "DELETE",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              // You may need to include the current user ID header if backend requires it:
+              "x-current-user-id": "1", 
+            },
+          });
+      
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.message || "Failed to remove friend");
+          }
+      
+          return { success: true, message: data.message };
+        } catch (err) {
+          console.error("Error removing friend:", err);
+          return { success: false, message: (err as Error).message };
+        }
+      }
+      
+      
     // Method to update the current user's information
     async updateProfile(data: UpdateProfileData): Promise<ApiResponse<any>> {
         try {
@@ -103,6 +128,7 @@ export class ProfileServices {
           const resData = await response.json();
       
           if (!response.ok) {
+            let msg = resData.validation?.[0]?.message || resData.error;
             return {
               success: false,
               status: response.status,
