@@ -14,12 +14,23 @@ RUN npm install
 # Copy configuration files
 COPY tsconfig.json ./
 
+#tailwind files -->>
+COPY src/postcss.config.js ./postcss.config.js
+COPY src/tailwind.config.js ./tailwind.config.js
+
+
 # Copy source code
 COPY src/ ./src/
 COPY public/ ./public/
 
 # Create output directory
 RUN mkdir -p ./public/js
+
+#tailwind files -->>
+RUN mkdir -p ./public/styles
+
+# Build Tailwind CSS
+RUN npx tailwindcss -i ./src/input.css -o ./public/styles/tailwind.css --minify
 
 # Compile TypeScript
 RUN npx tsc
@@ -36,7 +47,7 @@ RUN echo "=== Files in public/ ===" && ls -la ./public/ && echo "=== Files in pu
 
 # Stage 2: serve
 FROM nginx:alpine
-
+ 
 # Install OpenSSL (needed to generate certs)
 RUN apk add --no-cache openssl
 

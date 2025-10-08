@@ -11,14 +11,14 @@ export class Login implements IComponent {
     
     public render(): HTMLElement {
         this.container = document.createElement('div');
-        this.container.className = 'login_page';
+        this.container.className = 'flex flex-col justify-start items-center bg-primary min-h-[80vh] pt-5 pb-0';
         
         //Load css
-        this.loadPageStyles();
+        // this.loadPageStyles();
         
         // Heading stays above the card
         const heading = document.createElement('h2');
-        heading.className = 'login_title';
+        heading.className = 'w-[596px] text-left mb-4 text-[28px] font-pixel';
         heading.textContent = 'Welcome Back!';
         this.container.appendChild(heading);
         

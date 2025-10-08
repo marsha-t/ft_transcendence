@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #fff;
+    --color-secondary: #5D5A88;
+    --color-background: #F2F1FA;
+    --color-background-secondary: #F2F1FA;
+    --color-text: #5D5A88;
+    --color-text-secondary: #afafaf;
+    --color-primary-dark: #423f6a;
+
+    --button-bg-light: #F2F1FA;
+    --button-bg-dark: #5D5A88;
+    --button-text-light: #5D5A88;
+    --button-text-dark: #fff;
+    --button-border-light: rgba(103, 99, 152, 0.3);
+    --button-border-dark: rgba(93, 90, 136, 0.8);
+  }
+}
