@@ -1,14 +1,16 @@
 .profile-page
 {
-    width: 1280px;
-    height: 1041px;
-  
-    background: #FFFFFF;
-    position: relative; /* so child absolute elements (cards) are positioned relative to this page */
-  
-    /* optional defaults */
-    overflow: hidden;
-    margin: 0 auto; /* center page if viewport is wider */
+  display: flex;
+  justify-content: flex-start;
+  width: 1280px;
+  height: 1041px;
+
+  background: #FFFFFF;
+  position: relative; /* so child absolute elements (cards) are positioned relative to this page */
+
+  /* optional defaults */
+  overflow: hidden;
+  margin: 0 auto; /* center page if viewport is wider */
 }
 
 .profile-card {
@@ -327,16 +329,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between; /* inner content stretched */
-  padding: 6px 14px; /* top/bottom padding inside item */
+  padding: 5px 14px; /* top/bottom padding inside item */
   box-sizing: border-box; /* ensures padding counted in height */
 }
 
 .friend-item-inner {
-  width: 100%;
+  width: 85%;
   display: flex;
   align-items: center;
   justify-content: space-between; /* push status to right */
-  gap: 238px; /* as in Figma frame */
+  /* gap: 238px; as in Figma frame */
 }
 
 .friend-profile-text {
@@ -370,8 +372,8 @@
 }
 
 .friend-status {
-  width: 18px;
-  height: 18px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #22FC17; /* green if online */
 }
@@ -379,8 +381,21 @@
   background: #666; /* grey if offline */
 }
 
+.remove-friend {
+  position: absolute;
+  background: none;
+  border: none;
+  margin: 10px;
+  right: 20px;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #d32f2f;
+}
 
-
+.remove-friend:hover {
+  color: #2F2B62;
+}
 
 
 .request-item {
@@ -831,4 +846,30 @@ width: 96px; /* approximate column width */
 .friend-btn:disabled {
   background: #aaa;
   cursor: default;
+}
+
+
+.message_container {
+  margin: 15px 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  width: fit-content;
+  display: none; /* hidden until JS shows it */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Success state (green) */
+.message_container.success {
+  background-color: #e6ffed;
+  color: #256029;
+  border: 1px solid #a3d9a5;
+}
+
+/* Error state (red) */
+.message_container.error {
+  background-color: #ffe6e6;
+  color: #8a1f1f;
+  border: 1px solid #e0a1a1;
 }

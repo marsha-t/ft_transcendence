@@ -13,6 +13,7 @@ export class Profile implements IComponent {
   private requestsListData: FriendRequest[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
+  private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
 
   constructor() {
@@ -25,6 +26,7 @@ export class Profile implements IComponent {
 
 
     this.loadPageStyles();
+
 
     // Profile card
     const card = document.createElement("div");
@@ -40,6 +42,8 @@ export class Profile implements IComponent {
     const status = document.createElement("p");
     status.className = "profile-status online";
     status.innerHTML = "Online"; // Using innerHTML for the dot
+
+    
 
     const settingsBtn = document.createElement("button");
     settingsBtn.className = "settings-btn";
@@ -224,7 +228,23 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
   const status = document.createElement("span");
   status.className = `friend-status ${online ? "online" : "offline"}`;
 
+  
+  const removeBtn = document.createElement("botton");
+  removeBtn.className = "remove-friend";
+  removeBtn.innerHTML = "&times;";
+
+  removeBtn.addEventListener("click", async () => {
+    const response = await ProfileServices.removeFriend(name);
+    if (response.success) {
+      item.remove(); // Remove from UI
+      console.log(`${name} removed successfully`);
+      this.switchToFriends();
+    } else {
+      console.error("Failed to remove friend:", response.message);
+    }
+  });
   inner.appendChild(profileText);
+  inner.appendChild(removeBtn);
   inner.appendChild(status); // outside profileText
   item.appendChild(inner);
 
@@ -300,7 +320,9 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
         item.remove(); // Remove from UI
         const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
         if (friendsResponse.success) {
-            this.friendsListData = friendsResponse.data?.friends || [];}
+            this.friendsListData = friendsResponse.data?.friends || [];
+            this.switchToRequests();
+          }
       } else {
         alert(res.message);
       }
@@ -310,14 +332,14 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     declineBtn.className = "decline-btn";
     declineBtn.textContent = "Decline";
     declineBtn.addEventListener("click", async () => {
-  const res = await profileServices.respondToRequest(name, "reject");
-  if (res.success) {
-      console.log(`❌ Declined friend request from ${name}`);
-      item.remove(); // Remove from UI
-    } else {
-      alert(res.message);
-    }
-  });
+    const res = await profileServices.respondToRequest(name, "reject");
+    if (res.success) {
+        console.log(`❌ Declined friend request from ${name}`);
+        item.remove(); // Remove from UI
+      } else {
+        alert(res.message);
+      }
+    });
 
     buttons.appendChild(acceptBtn);
     buttons.appendChild(declineBtn);
@@ -541,18 +563,23 @@ private openAddFriendPopup(): void {
   private openSettingsPopup(): void {
     const overlay = document.createElement("div");
     overlay.className = "modal-overlay";
-
+    //Create message container for success/error messages
     const modal = document.createElement("div");
     modal.className = "modal";
-
+    
     const header = document.createElement("div");
     header.className = "modal-header";
-
+    
     const closeBtn = document.createElement("button");
     closeBtn.className = "close-btn";
     closeBtn.innerHTML = "&times;"; // HTML  '×'
     closeBtn.addEventListener("click", () => overlay.remove());
-
+    
+    this.messageContainer = document.createElement('div');
+    this.messageContainer.className = 'message_container';
+    this.messageContainer.style.display = 'none';
+    header.appendChild(this.messageContainer);
+  
     // Avatar section
     const avatarSection = document.createElement("div");
     avatarSection.className = "settings-avatar";
@@ -698,8 +725,10 @@ private openAddFriendPopup(): void {
       const response = await this.profileService.updateProfile(data);
     
       if (!response.success) {
-        alert(response.message || "Failed to update profile");
-        console.error(response);
+
+        // alert(response.message || "Failed to update profile");
+        // console.error(response);
+        this.showMessage(response.message || "Failed to update profile", 'error');
         return;
       }
     
@@ -776,5 +805,17 @@ private openAddFriendPopup(): void {
         alert("Network error while removing avatar.");
       }
   }
-  
+  private showMessage(message: string, type: 'success' | 'error'): void {
+    this.messageContainer.style.display = 'block';
+    this.messageContainer.className = `message_container ${type}`;
+    this.messageContainer.textContent = message;
+    // Auto-hide success messages after 5 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            this.messageContainer.style.display = 'none';
+        }, 5001);
+    }
+    // Scroll to top to show message
+    this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 }
