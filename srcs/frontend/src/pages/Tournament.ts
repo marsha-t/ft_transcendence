@@ -2,9 +2,11 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { Player } from "../services/tournament/types";
 import { Game } from "./Game.js";
+ 
 
 export class Tournament implements IComponent {
 	private container!: HTMLElement;
+	private messageContainer!: HTMLElement;
 	private tournamentId: number | null = null;
 	private numberOfPlayers: number | null = null;
 	private currentStep: "setup" | "addPlayers" | "lineup" | "match" | "results" = "setup";
@@ -13,13 +15,21 @@ export class Tournament implements IComponent {
 	private playerIndex = 0;
 
 	public render(): HTMLElement {
-		this.container = document.createElement('div');
+		this.loadStyles();
+		this.container = document.createElement("div");
+		this.container.className = "tournament-page";
+	
+		this.messageContainer = document.createElement("div");
+		this.messageContainer.className = "message-container";
+		this.messageContainer.style.display = "none";
+		this.container.appendChild(this.messageContainer);
 		this.renderStep();
 		return this.container;
 	}
 	
 	private renderStep() {
 		this.container.innerHTML = "";
+		this.container.appendChild(this.messageContainer);
 
 		switch (this.currentStep) {
 			case "setup":
@@ -37,37 +47,50 @@ export class Tournament implements IComponent {
 			// case "result":
 			// 	this.showResultsPage();
 			// 	break;
+			default:
+				this.showSetupPage();
 		}
 	}
 
 	private showSetupPage() {
-		// this.container.innerHTML = "";
-		const form = document.createElement("form");
+		const tournamentSetup = document.createElement("div");
+		tournamentSetup.className = "tournament-setup";
+
+		const title = document.createElement("h2");
+		title.textContent = "🏆 Tournament Setup";
+		tournamentSetup.appendChild(title);
+
+		const counterContainer = document.createElement("div");
+		counterContainer.className = "counter-container";
+		// const form = document.createElement("form");
 		const label = document.createElement("label");
 		label.textContent = "Number of Players:";
-		form.appendChild(label);
+		counterContainer.appendChild(label);
 
 		const input = document.createElement('input');
 		input.type = 'number';
 		input.min = "2";
 		input.max = "64";
-		input.value = this.numberOfPlayers?.toString() || "";
+		this.numberOfPlayers = this.numberOfPlayers ?? 2; // default to 2
+		input.value = this.numberOfPlayers.toString();
+
 		input.required = true;
-		input.addEventListener('input', () => {
+		input.addEventListener("input", () => {
 			this.numberOfPlayers = parseInt(input.value, 10);
 		});
-		form.appendChild(input);
+		counterContainer.appendChild(input);
 
 		const submitButton = document.createElement('button');
-		submitButton.type = 'submit';
 		submitButton.textContent = "Create Tournament";
-		form.appendChild(submitButton);
+		submitButton.type = 'submit';
+		submitButton.className = 'create-btn';
+		// form.appendChild(submitButton);
 		
 
-		form.addEventListener('submit', async (event) => {
-			event.preventDefault();
+		submitButton.addEventListener("click", async () => {
 			if (!this.numberOfPlayers || this.numberOfPlayers < 2) {
-				alert("Please enter at least 2 players");
+				// alert("Please enter at least 2 players");
+				this.showMessage("Please enter at least 2 players","error");
 				return ;
 			}
 			this.isLoading = true;
@@ -92,54 +115,83 @@ export class Tournament implements IComponent {
 				console.error(response.message || "Failed to create tournament: ");
 			}
 		});
-		this.container.appendChild(form);
+		tournamentSetup.appendChild(counterContainer);
+		tournamentSetup.appendChild(submitButton);
+		this.container.appendChild(tournamentSetup);
 	}
 
 	private showAddPlayerPage() {
-		// this.container.innerHTML = "";
+		const addPlayerSetup = document.createElement("div");
+		addPlayerSetup.className = "add-player";
+
 		const heading = document.createElement("h3");
-		heading.textContent = `Add Player ${this.playerIndex + 1} of ${this.numberOfPlayers} `
+		heading.textContent = `Add Player ${this.playerIndex + 1} of ${this.numberOfPlayers} ` ||"Enter existing user credentials or a guest display name";
 
-		const form = document.createElement("form");
+	
+		const errorContainer = document.createElement("div");
+		errorContainer.className = "error-message";
+		errorContainer.style.display = "none";
+	
 		
-		const choiceLabel = document.createElement("p");
-		choiceLabel.textContent = "Add existing user or guest";
-		form.appendChild(choiceLabel);
+		// const instruction = document.createElement("p");
+		// instruction.className = "form-instruction";
+		// instruction.textContent = "Enter existing user credentials or a guest display name";
+		addPlayerSetup.appendChild(heading);
 
-		// Username / Password
+		// User inputs
+		const userInputs = document.createElement("form");
+		userInputs.className = "user-inputs";
+
 		const usernameInput = document.createElement("input");
 		usernameInput.type = "text";
 		usernameInput.name = "username";
+		usernameInput.id = "username";
 		usernameInput.placeholder = "Username";
-		form.appendChild(usernameInput);
+		usernameInput.className = "form-input";
+		const usernameLabel = document.createElement("label");
+		usernameLabel.htmlFor = "username";
+		usernameLabel.textContent = "Username";
+		userInputs.appendChild(usernameLabel);
+		userInputs.appendChild(usernameInput);
 
 		const passwordInput = document.createElement("input");
-		passwordInput.type = "text";
+		passwordInput.type = "password";
 		passwordInput.name = "password";
+		passwordInput.id = "password";
 		passwordInput.placeholder = "Password";
-		form.appendChild(passwordInput);
+		passwordInput.className = "form-input";
+		const passwordLabel = document.createElement("label");
+		passwordLabel.htmlFor = "password";
+		passwordLabel.textContent = "Password";
+		userInputs.appendChild(passwordLabel);
+		userInputs.appendChild(passwordInput);
 
+		addPlayerSetup.appendChild(userInputs);
 		// Guest Name
+		const guest = document.createElement("form");
+		guest.className = "add-guest";
+		const guestInputs = document.createElement("div");
+    	guestInputs.className = "guest-inputs";
 		const guestInput = document.createElement("input");
 		guestInput.type = "text";
 		guestInput.name = "guestName";
 		guestInput.placeholder = "Guest Display Name";
-		form.appendChild(guestInput);
+		guest.appendChild(guestInput);
 
 		// Submit button
 		const submitButton = document.createElement("button");
 		submitButton.type = "submit";
 		submitButton.textContent = "Add Player";
-		form.appendChild(submitButton);
+		guest.appendChild(submitButton);
 	
-		this.container.appendChild(form);
-
-		form.addEventListener("submit", async (event) => {
+		addPlayerSetup.appendChild(guest);
+		
+		guest.addEventListener("submit", async (event) => {
 			event.preventDefault();
 			const username = usernameInput.value.trim();
     		const password = passwordInput.value.trim();
     		const guestName = guestInput.value.trim();
-
+			
 			let body: any = {};
 			if (username && password) {
 				body = { username, password };
@@ -149,7 +201,7 @@ export class Tournament implements IComponent {
 				alert("Please provide login credentials OR a guest display name");
 				return ;
 			}
-
+			
 			const response = await apiServices.tournament.addTournamentPlayer(this.tournamentId!, body);
 			if (!response.success) {
 				alert(response.message);
@@ -166,6 +218,7 @@ export class Tournament implements IComponent {
 				this.renderStep();
 			}
 		});
+		this.container.appendChild(addPlayerSetup);
 	}
 
 	private showLineupPage() {
@@ -272,4 +325,28 @@ export class Tournament implements IComponent {
 	// 		this.currentStep = "lineup";
 	// 	this.renderStep();
 	// }
+	private loadStyles() {
+		if (document.getElementById("tournament-styles")) return;
+
+			const link = document.createElement("link");
+			link.id = "tournament-styles";
+			link.rel = "stylesheet";
+			link.href = "/styles/tournament.css";
+			document.head.appendChild(link);
+	}
+	
+	private showMessage(message: string, type: 'success' | 'error'): void {
+        this.messageContainer.style.display = 'block';
+        this.messageContainer.className = `message_container ${type}`;
+        this.messageContainer.textContent = message;
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                this.messageContainer.style.display = 'none';
+            }, 5001);
+        }
+        // Scroll to top to show message
+        this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    }
 }
