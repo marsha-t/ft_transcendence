@@ -9,97 +9,203 @@ export class Login implements IComponent {
     private submitButton!: HTMLButtonElement;
     private isLoading: boolean = false;
     
-    public render(): HTMLElement {
-        this.container = document.createElement('div');
-        this.container.className = 'flex flex-col justify-start items-center bg-primary min-h-[80vh] pt-5 pb-0';
+    // public render(): HTMLElement {
+    //     this.container = document.createElement('div');
+    //     this.container.className = 
+    //         'flex flex-col items-center justify-start bg-background min-h-screen py-10';
         
-        //Load css
-        // this.loadPageStyles();
-        
-        // Heading stays above the card
-        const heading = document.createElement('h2');
-        heading.className = 'w-[596px] text-left mb-4 text-[28px] font-pixel';
-        heading.textContent = 'Welcome Back!';
-        this.container.appendChild(heading);
-        
-        // Create message container for success/error messages
-        this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'message_container';
-        this.messageContainer.style.display = 'none';
-        this.container.appendChild(this.messageContainer);
-                
-        // Card containing form and register link
-        const loginCard = document.createElement('div');
-        loginCard.className = 'login_block';
-        
-        // Register link
-        const registerLink = document.createElement('p');
-        registerLink.className = 'register_text';
-        registerLink.innerHTML = 'Don\'t have an account? <a href="/register">Register</a>';
-        
-        // Form - Initialize the form property here
-        this.form = document.createElement('form');
-        this.form.className = 'login_form';
-        
-        // const emailGroup = document.createElement('div');
-        const usernameGroup = document.createElement('div');
+    //     // Heading stays above the card
+    //     const heading = document.createElement('h2');
+    //     heading.className = 'w-[596px] text-left mb-6 text-[28px] font-bold text-color_white';
+    //     heading.textContent = 'Welcome Back!';
+
+    //     // Message container
+    //     this.messageContainer = document.createElement('div');
+    //     this.messageContainer.className = 'my-[15px] px-4 py-3 rounded-md text-sm font-medium hidden transition-opacity duration-300';
+
+    //     // Card containing form and register link
+    //     const loginCard = document.createElement('div');
+    //     loginCard.className = 'flex flex-col items-center justify-center bg-background py-8';
+
+    //     // Register link
+    //     const registerLink = document.createElement('p');
+    //     registerLink.className = 'text-sm text-color-yellow text-center mb-4';
+    //     registerLink.innerHTML =
+    //     'Don\'t have an account? <a href="/register" class="font-bold text-color-green ml-1 hover:underline">Register</a>';
+
+    //     // Form
+    //     this.form = document.createElement('form');
+    //     this.form.className = 'flex flex-col gap-[26px] items-center w-full mb-0 p-0 leading-normal';
+
+    //     // Username group
+    //     const usernameGroup = document.createElement('div');
+    //     usernameGroup.className = 'flex flex-col gap-2';
        
+    //     const usernameLabel = document.createElement('label');
+    //     usernameLabel.className = 'text-lg font-medium text-color_white';
+    //     usernameLabel.textContent = 'Username';
+    //     usernameLabel.htmlFor = 'username';
+
+    //     const usernameInput = document.createElement('input');
+    //     usernameInput.className = 'w-[312px] h-[72px] px-4 rounded-[50px] border-2 border-color_border bg-background text-color_white text-sm box-border placeholder:text-color-yellow placeholder:text-sm placeholder:font-normal focus:outline-none focus:border-border-green transition-colors';
+    //     usernameInput.type = 'text';
+    //     usernameInput.id = 'username';
+    //     usernameInput.name = 'username';
+    //     usernameInput.placeholder = 'username';
+    //     usernameGroup.appendChild(usernameLabel);
+    //     usernameGroup.appendChild(usernameInput);
+        
+    //     // Password group
+    //     const passwordGroup = document.createElement('div');
+    //     passwordGroup.className = 'flex flex-col gap-2';
+
+    //     const passwordLabel = document.createElement('label');
+    //     passwordLabel.className = 'text-lg font-medium text-color_white';
+    //     passwordLabel.textContent = 'Password';
+    //     passwordLabel.htmlFor = 'password';
+        
+    //     // Password input
+    //     const passwordInput = document.createElement('input');
+    //     passwordInput.className = 'w-[312px] h-[72px] px-4 rounded-[50px] border-2 border-color_border bg-background text-color_white text-sm box-border placeholder:text-color-yellow placeholder:text-sm placeholder:font-normal focus:outline-none focus:border-border-green transition-colors';
+    //     passwordInput.type = 'password';
+    //     passwordInput.id = 'password';
+    //     passwordInput.name = 'password';
+    //     passwordInput.placeholder = '••••••••';
+    //     passwordGroup.appendChild(passwordLabel);
+    //     passwordGroup.appendChild(passwordInput);
+        
+    //     // Submit button
+    //     this.submitButton = document.createElement('button');
+    //     this.submitButton.className = 'w-[312px] h-[72px] px-4 rounded-[50px] text-color_white text-lg font-bold cursor-pointer bg-color_button hover:bg-color-green hover:text-background transition-all duration-300 border-2 border-color_border hover:border-border-green disabled:opacity-50 disabled:cursor-not-allowed';
+    //     this.submitButton.type = 'submit';
+    //     this.submitButton.textContent = 'Login';
+        
+    //     this.form.appendChild(usernameGroup);
+    //     this.form.appendChild(passwordGroup);
+    //     this.form.appendChild(this.submitButton);
+                
+    //     // Append form and register link inside the card
+    //     loginCard.appendChild(registerLink);
+    //     loginCard.appendChild(this.form);
+        
+
+    //     this.form.appendChild(usernameGroup);
+    //     this.form.appendChild(passwordGroup);
+    //     this.form.appendChild(this.submitButton);
+
+    //     // Append form and register link to the card
+    //     loginCard.appendChild(registerLink);
+    //     loginCard.appendChild(this.form);
+
+    //     // Add all parts to main container in correct order
+    //     this.container.appendChild(heading);
+    //     this.container.appendChild(this.messageContainer);
+    //     this.container.appendChild(loginCard);
+    //     this.attachEventListener();
+        
+    //     return this.container;
+    // }
+
+    public render(): HTMLElement {
+        // === Main container ===
+        this.container = document.createElement('div');
+        this.container.className =
+            'flex flex-col items-center justify-center bg-background min-h-[80vh] py-8';
+    
+        // === Heading ===
+        const heading = document.createElement('h2');
+        heading.className =
+            'w-[596px] text-left mb-4 text-[28px] font-bold text-color_white';
+        heading.textContent = 'Welcome Back!';
+    
+        // === Message container ===
+        this.messageContainer = document.createElement('div');
+        this.messageContainer.className =
+            'mb-4 px-4 py-3 rounded-md text-sm font-medium hidden transition-opacity duration-300';
+    
+        // === Login card (form wrapper) ===
+        const loginCard = document.createElement('div');
+        loginCard.className =
+            'flex flex-col items-center justify-center bg-background border-2 border-color_border rounded-[30px] p-8';
+    
+        // === Register link ===
+        const registerLink = document.createElement('p');
+        registerLink.className =
+            'text-sm text-color-yellow text-center mb-4';
+        registerLink.innerHTML =
+            'Don\'t have an account? <a href="/register" class="font-bold text-color-green ml-1 hover:underline">Register</a>';
+    
+        // === Form ===
+        this.form = document.createElement('form');
+        this.form.className =
+            'flex flex-col gap-[26px] items-center w-full leading-normal';
+    
+        // === Username group ===
+        const usernameGroup = document.createElement('div');
+        usernameGroup.className = 'flex flex-col gap-2';
+    
         const usernameLabel = document.createElement('label');
+        usernameLabel.className = 'text-lg font-medium text-color_white';
         usernameLabel.textContent = 'Username';
         usernameLabel.htmlFor = 'username';
-
+    
         const usernameInput = document.createElement('input');
+        usernameInput.className =
+            'w-[312px] h-[72px] px-4 rounded-[50px] border-2 border-color_border bg-background text-color_white text-sm box-border placeholder:text-color-yellow placeholder:text-sm placeholder:font-normal focus:outline-none focus:border-border-green transition-colors';
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
         usernameInput.placeholder = 'username';
+    
         usernameGroup.appendChild(usernameLabel);
         usernameGroup.appendChild(usernameInput);
-        
+    
+        // === Password group ===
         const passwordGroup = document.createElement('div');
+        passwordGroup.className = 'flex flex-col gap-2';
+    
         const passwordLabel = document.createElement('label');
+        passwordLabel.className = 'text-lg font-medium text-color_white';
         passwordLabel.textContent = 'Password';
         passwordLabel.htmlFor = 'password';
-        
-        //PAssword
+    
         const passwordInput = document.createElement('input');
+        passwordInput.className =
+            'w-[312px] h-[72px] px-4 rounded-[50px] border-2 border-color_border bg-background text-color_white text-sm box-border placeholder:text-color-yellow placeholder:text-sm placeholder:font-normal focus:outline-none focus:border-border-green transition-colors';
         passwordInput.type = 'password';
         passwordInput.id = 'password';
-        passwordInput.name = 'password'
+        passwordInput.name = 'password';
         passwordInput.placeholder = '••••••••';
+    
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(passwordInput);
-        
+    
+        // === Submit button ===
         this.submitButton = document.createElement('button');
+        this.submitButton.className =
+            'w-[312px] h-[72px] px-4 rounded-[50px] text-color_white text-lg font-bold cursor-pointer bg-color_button hover:bg-color-green hover:text-background transition-all duration-300 border-2 border-color_border hover:border-border-green disabled:opacity-50 disabled:cursor-not-allowed';
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
-        this.submitButton.className = 'login_button';
-        
+    
+        // === Build the form ===
         this.form.appendChild(usernameGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
-                
-        // Append form and register link inside the card
+    
+        // === Assemble card ===
+        // loginCard.appendChild(heading);          // Heading near the form
+        loginCard.appendChild(this.messageContainer);
         loginCard.appendChild(registerLink);
         loginCard.appendChild(this.form);
-        
-        // Append heading and card to main container        
+    
+        // === Add to main container ===
+        this.container.appendChild(heading);
         this.container.appendChild(loginCard);
-        
+    
         this.attachEventListener();
-        
         return this.container;
     }
     
-    private loadPageStyles(): void {
-        if (document.getElementById('login-styles')) return;
-                
-        const link = document.createElement('link');
-        link.id = 'login-styles';
-        link.rel = 'stylesheet';
-        link.href = '/styles/Login.css';
-        document.head.appendChild(link);
-    }
     
     private attachEventListener(): void { 
         this.form.addEventListener('submit', this.handleLogin.bind(this));
