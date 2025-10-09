@@ -1,0 +1,120 @@
+
+
+.header {
+    /* width: 100%; */
+    background-color: var(--color-primary);
+    padding: 10px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    /* margin-bottom: 20px; space below header */
+}
+    
+.navbar {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 0 20px;
+    margin-left: 0%;
+    margin-right: 60px;
+}
+
+.nav_links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.logo_icon{
+    width: 40px;
+    height: 40px;
+}
+
+.logo_text{
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--color-secondary);
+}
+
+.nav_links{
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.nav_links_group a {
+    text-decoration: none; /* remove underline */
+    /* color: var(--color-text); keep your text color */
+}
+
+.nav_links_group{
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+
+
+.nav_links_buttons{
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.login_btn{
+    width: 87px;
+    height: 54px;
+    padding: 0 16px;
+    border-radius: 50px;
+    color: var(--color-text);              
+    font-size: 16px;
+    cursor: pointer;
+    background-color: var(--color-background);
+    border: 0.2px solid var(--button-border-light);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+.login_btn:hover {
+    background-color: var(--color-primary);
+    color: var(--color-primary-dark);
+}
+ 
+
+.register_btn{
+    width: 138px;
+    height: 54px;
+    padding: 0 16px;
+    border-radius: 50px;
+    background-color: var(--color-text); 
+    color: var(--color-background); 
+    /* background-color: #5D5A88 !important; 
+    color: #F2F1FA !important; */
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+
+.register_btn:hover {
+    background-color: var(--color-primary-dark);  
+    color: var(--color-background);               
+}
+
+
+/* ===== footer  ===== */
+footer {
+    margin-top: 20px; /* space above footer */
+}
