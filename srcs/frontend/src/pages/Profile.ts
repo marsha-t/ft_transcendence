@@ -9,7 +9,6 @@ export class Profile implements IComponent {
   private avatar: string = "";
   private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
   private popupAvatarEl: HTMLElement | null = null;
-  // private requestsListData: { initials: string; name: string }[] = [];
   private requestsListData: FriendRequest[] = [];
   private isLoading: boolean = false;
   private profileService: ProfileServices;
@@ -295,7 +294,11 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
     const avatar = document.createElement("div");
     avatar.className = "request-avatar";
-    avatar.textContent = avatarURL;
+    const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
+    avatar.style.backgroundImage = `url(${backendUrl}${avatarURL})`;
+    avatar.style.backgroundSize = "cover";
+    avatar.style.backgroundPosition = "center";
+    avatar.textContent = ""
 
     const userName = document.createElement("span");
     userName.className = "request-name";
@@ -321,6 +324,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
         const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
         if (friendsResponse.success) {
             this.friendsListData = friendsResponse.data?.friends || [];
+            this.fetchProfileData();
             this.switchToRequests();
           }
       } else {
@@ -336,6 +340,8 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     if (res.success) {
         console.log(`❌ Declined friend request from ${name}`);
         item.remove(); // Remove from UI
+        this.fetchProfileData();
+        this.switchToRequests();
       } else {
         alert(res.message);
       }
@@ -451,7 +457,7 @@ private async fetchProfileData(): Promise<void> {
     }
     else {
       avatarEl.style.backgroundImage = "";
-      avatarEl.textContent = this.username.charAt(0).toUpperCase() || "AV";
+      avatarEl.textContent = this.username.charAt(0).toUpperCase() || "";
     }
   }
   
@@ -468,7 +474,7 @@ private async fetchProfileData(): Promise<void> {
       this.popupAvatarEl.textContent = "";
     } else {
       this.popupAvatarEl.style.backgroundImage = "";
-      this.popupAvatarEl.textContent = this.username.charAt(0).toUpperCase() || "AV";
+      this.popupAvatarEl.textContent = this.username.charAt(0).toUpperCase() || "";
     }
   }
 //-------------------------
@@ -542,9 +548,12 @@ private openAddFriendPopup(): void {
         const userDiv = document.createElement("div");
         userDiv.className = "search-item";
 
-        const avatar = document.createElement("img");
+        const avatar = document.createElement("div");
+        const backendUrl = "http://localhost:5001";
+        avatar.style.backgroundImage = `url(${backendUrl}${user.avatar})`;
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
         avatar.className = "search-userAvatar";
-        avatar.src = user.avatar || "/default-avatar.png";
 
         const name = document.createElement("span");
         name.className = "search-username";
@@ -578,7 +587,7 @@ private openAddFriendPopup(): void {
     this.messageContainer = document.createElement('div');
     this.messageContainer.className = 'message_container';
     this.messageContainer.style.display = 'none';
-    header.appendChild(this.messageContainer);
+    modal.appendChild(this.messageContainer);
   
     // Avatar section
     const avatarSection = document.createElement("div");
@@ -591,7 +600,7 @@ private openAddFriendPopup(): void {
       avatarPlaceholder.style.backgroundSize = "cover";
       avatarPlaceholder.style.backgroundPosition = "center";
     } else {
-        avatarPlaceholder.textContent = this.username.charAt(0).toUpperCase() || "AV";
+        avatarPlaceholder.textContent = this.username.charAt(0).toUpperCase() || "";
     }
 
     this.popupAvatarEl = avatarPlaceholder;
@@ -717,7 +726,7 @@ private openAddFriendPopup(): void {
       }
     
       if (Object.keys(data).length === 0) {
-        alert("No changes to save.");
+        this.showMessage("No changes to save.", 'error');
         return;
       }
     
@@ -737,8 +746,11 @@ private openAddFriendPopup(): void {
       if (response.data.email) this.email = response.data.email;
     
       this.fetchProfileData();
-      alert("Profile updated successfully!");
-      overlay.remove(); // close modal
+      this.showMessage("Profile updated successfully!", 'success');
+      setTimeout(() => {
+        overlay.remove();
+      }, 1000); // waits 1.5s so message is visible
+      // overlay.remove(); // close modal
     });
 
     cancelBtn.addEventListener("click", () => overlay.remove());
@@ -810,12 +822,13 @@ private openAddFriendPopup(): void {
     this.messageContainer.className = `message_container ${type}`;
     this.messageContainer.textContent = message;
     // Auto-hide success messages after 5 seconds
-    if (type === 'success') {
-        setTimeout(() => {
-            this.messageContainer.style.display = 'none';
-        }, 5001);
-    }
+    setTimeout(() => {
+      this.messageContainer.style.opacity = '0';
+      setTimeout(() => {
+          this.messageContainer.style.display = 'none';
+          this.messageContainer.style.opacity = '1'; // reset for next use
+      }, 300); // wait for fade-out transition
+    }, 3000);
     // Scroll to top to show message
-    this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  }
 }
