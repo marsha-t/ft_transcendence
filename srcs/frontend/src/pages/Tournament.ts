@@ -170,9 +170,8 @@ export class Tournament implements IComponent {
 		// Guest Name
 		const guest = document.createElement("form");
 		guest.className = "add-guest";
-		const guestInputs = document.createElement("div");
-    	guestInputs.className = "guest-inputs";
 		const guestInput = document.createElement("input");
+		guestInput.className = "form-input";
 		guestInput.type = "text";
 		guestInput.name = "guestName";
 		guestInput.placeholder = "Guest Display Name";
@@ -181,10 +180,10 @@ export class Tournament implements IComponent {
 		// Submit button
 		const submitButton = document.createElement("button");
 		submitButton.type = "submit";
+		submitButton.className = "add-btn";
 		submitButton.textContent = "Add Player";
-		guest.appendChild(submitButton);
+		addPlayerSetup.appendChild(submitButton);
 	
-		addPlayerSetup.appendChild(guest);
 		
 		guest.addEventListener("submit", async (event) => {
 			event.preventDefault();
@@ -218,6 +217,7 @@ export class Tournament implements IComponent {
 				this.renderStep();
 			}
 		});
+		addPlayerSetup.appendChild(guest);
 		this.container.appendChild(addPlayerSetup);
 	}
 
