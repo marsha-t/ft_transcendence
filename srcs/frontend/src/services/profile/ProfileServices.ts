@@ -132,7 +132,7 @@ export class ProfileServices {
             return {
               success: false,
               status: response.status,
-              message: resData.message || "Failed to update profile",
+              message: msg || "Failed to update profile",
               errors: resData.errors || [],
             };
           }
