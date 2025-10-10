@@ -89,7 +89,23 @@ export const updateProfileSchema = {
   },
   response: {
     200: { type: 'object', properties: { message: { type: 'string' }, data: { type: 'object' } } },
-    400: { type: 'object', properties: { message: { type: 'string' } } },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+        validation: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
     401: { type: 'object', properties: { message: { type: 'string' } } },
     404: { type: 'object', properties: { message: { type: 'string' } } },
     409: { type: 'object', properties: { message: { type: 'string' } } },

@@ -113,8 +113,18 @@ export const loginSchema = {
     400: {
       type: 'object',
       properties: {
-        error: { type: 'string' }, 
-        message: { type: 'string' }
+        error: { type: 'string' },
+        message: { type: 'string' },
+        validation: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
       }
     },
     401: {
