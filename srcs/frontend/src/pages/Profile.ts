@@ -10,7 +10,6 @@ export class Profile implements IComponent {
   private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
   private popupAvatarEl: HTMLElement | null = null;
   private requestsListData: FriendRequest[] = [];
-  private isLoading: boolean = false;
   private profileService: ProfileServices;
   private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
@@ -228,20 +227,25 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
   status.className = `friend-status ${online ? "online" : "offline"}`;
 
   
-  const removeBtn = document.createElement("botton");
+  const removeBtn = document.createElement("button");
   removeBtn.className = "remove-friend";
   removeBtn.innerHTML = "&times;";
+ 
+  const profileServices = this.profileService;
 
   removeBtn.addEventListener("click", async () => {
-    const response = await ProfileServices.removeFriend(name);
+    const response = await profileServices.removeFriend(name);
+    console.log("API response:", response);
     if (response.success) {
       item.remove(); // Remove from UI
       console.log(`${name} removed successfully`);
-      this.switchToFriends();
+      this.fetchProfileData();
+      this.switchToFriends(); // ✅ use captured instance
     } else {
       console.error("Failed to remove friend:", response.message);
     }
   });
+
   inner.appendChild(profileText);
   inner.appendChild(removeBtn);
   inner.appendChild(status); // outside profileText
@@ -432,7 +436,6 @@ private async fetchProfileData(): Promise<void> {
 }
 
   private setLoadingState(loading: boolean): void {
-    this.isLoading = loading;
     const card = this.container.querySelector('.profile-card');
     if (card) card.classList.toggle('loading', loading);
     console.log(`Loading state: ${loading}`);

@@ -88,13 +88,11 @@ export class ProfileServices {
             };
         }
     }
-    static async removeFriend(username: string): Promise<ApiResponse<null>> {
+    async removeFriend(username: string): Promise<ApiResponse<null>> {
         try {
-          const res = await fetch(`/api/friends/${(username)}`, {
+          const res = await fetch(`${this.baseUrl}/friends/${encodeURIComponent(username)}`, {
             method: "DELETE",
-            credentials: "include",
             headers: {
-              "Content-Type": "application/json",
               // You may need to include the current user ID header if backend requires it:
               "x-current-user-id": "1", 
             },
