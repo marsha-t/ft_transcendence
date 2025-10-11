@@ -124,8 +124,9 @@ export class Tournament implements IComponent {
 		const addPlayerSetup = document.createElement("div");
 		addPlayerSetup.className = "add-player";
 
-		const heading = document.createElement("h3");
-		heading.textContent = `Add Player ${this.playerIndex + 1} of ${this.numberOfPlayers} ` ||"Enter existing user credentials or a guest display name";
+		const heading = document.createElement("h2");
+		heading.textContent = "Add Players";
+		// heading.textContent = `Add Player ${this.playerIndex + 1} of ${this.numberOfPlayers} ` ||"Enter existing user credentials or a guest display name";
 
 	
 		const errorContainer = document.createElement("div");
@@ -139,9 +140,12 @@ export class Tournament implements IComponent {
 		addPlayerSetup.appendChild(heading);
 
 		// User inputs
-		const userInputs = document.createElement("form");
-		userInputs.className = "user-inputs";
-
+		const userHead  = document.createElement("h3");
+		userHead.className = "user-head";
+		userHead .textContent = "Registered User";
+		addPlayerSetup.appendChild(userHead);
+		const userInfo = document.createElement("form");
+		userInfo.className = "user-info";
 		const usernameInput = document.createElement("input");
 		usernameInput.type = "text";
 		usernameInput.name = "username";
@@ -151,9 +155,9 @@ export class Tournament implements IComponent {
 		const usernameLabel = document.createElement("label");
 		usernameLabel.htmlFor = "username";
 		usernameLabel.textContent = "Username";
-		userInputs.appendChild(usernameLabel);
-		userInputs.appendChild(usernameInput);
-
+		userInfo.appendChild(usernameLabel);
+		userInfo.appendChild(usernameInput);
+		
 		const passwordInput = document.createElement("input");
 		passwordInput.type = "password";
 		passwordInput.name = "password";
@@ -163,18 +167,25 @@ export class Tournament implements IComponent {
 		const passwordLabel = document.createElement("label");
 		passwordLabel.htmlFor = "password";
 		passwordLabel.textContent = "Password";
-		userInputs.appendChild(passwordLabel);
-		userInputs.appendChild(passwordInput);
+		userInfo.appendChild(passwordLabel);
+		userInfo.appendChild(passwordInput);
+		addPlayerSetup.appendChild(userInfo);
 
-		addPlayerSetup.appendChild(userInputs);
 		// Guest Name
 		const guest = document.createElement("form");
-		guest.className = "add-guest";
+		guest.className = "guest-info";
+		const guestHead  = document.createElement("h3");
+		guestHead.className = "guest-head";
+		guestHead .textContent = "Play as a Guest";
 		const guestInput = document.createElement("input");
 		guestInput.className = "form-input";
 		guestInput.type = "text";
 		guestInput.name = "guestName";
-		guestInput.placeholder = "Guest Display Name";
+		guestInput.placeholder = "Guest Name";
+		const guestLabel = document.createElement("label");
+		guestLabel.textContent = "Guest Name";
+		addPlayerSetup.appendChild(guestHead );
+		guest.appendChild(guestLabel);
 		guest.appendChild(guestInput);
 
 		// Submit button
@@ -182,10 +193,9 @@ export class Tournament implements IComponent {
 		submitButton.type = "submit";
 		submitButton.className = "add-btn";
 		submitButton.textContent = "Add Player";
-		addPlayerSetup.appendChild(submitButton);
-	
+
 		
-		guest.addEventListener("submit", async (event) => {
+		submitButton.addEventListener("click", async (event) => {
 			event.preventDefault();
 			const username = usernameInput.value.trim();
     		const password = passwordInput.value.trim();
@@ -218,6 +228,7 @@ export class Tournament implements IComponent {
 			}
 		});
 		addPlayerSetup.appendChild(guest);
+		addPlayerSetup.appendChild(submitButton);
 		this.container.appendChild(addPlayerSetup);
 	}
 
