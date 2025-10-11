@@ -127,18 +127,12 @@ export class Tournament implements IComponent {
 		const heading = document.createElement("h2");
 		heading.textContent = "Add Players";
 		// heading.textContent = `Add Player ${this.playerIndex + 1} of ${this.numberOfPlayers} ` ||"Enter existing user credentials or a guest display name";
-
+		addPlayerSetup.appendChild(heading);
 	
 		const errorContainer = document.createElement("div");
 		errorContainer.className = "error-message";
 		errorContainer.style.display = "none";
 	
-		
-		// const instruction = document.createElement("p");
-		// instruction.className = "form-instruction";
-		// instruction.textContent = "Enter existing user credentials or a guest display name";
-		addPlayerSetup.appendChild(heading);
-
 		// User inputs
 		const userHead  = document.createElement("h3");
 		userHead.className = "user-head";
@@ -171,7 +165,7 @@ export class Tournament implements IComponent {
 		userInfo.appendChild(passwordInput);
 		addPlayerSetup.appendChild(userInfo);
 
-		// Guest Name
+		// Guest Input
 		const guest = document.createElement("form");
 		guest.className = "guest-info";
 		const guestHead  = document.createElement("h3");
@@ -231,97 +225,116 @@ export class Tournament implements IComponent {
 		addPlayerSetup.appendChild(submitButton);
 		this.container.appendChild(addPlayerSetup);
 	}
+private showLineupPage() {
+  const lineUp = document.createElement("div");
+  lineUp.classList.add("lineup-container");
 
-	private showLineupPage() {
-		// this.container.innerHTML = "";
-		
-		const heading = document.createElement("h3");
-		heading.textContent = "Tournament Players";
-		this.container.appendChild(heading);
+  const heading = document.createElement("h2");
+  heading.textContent = "Tournament Players";
+  lineUp.appendChild(heading);
 
-		// List players
-		const list = document.createElement("ul");
-		this.players.forEach((p, index) => {
-			const li = document.createElement("li");
-			li.textContent = `${index + 1}. ${p.displayName}`;
-			list.appendChild(li);
-		});
-		this.container.appendChild(list);
+  const list = document.createElement("ul");
+  this.players.forEach((p, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${index + 1}. ${p.displayName}`;
+    list.appendChild(li);
+  });
+  lineUp.appendChild(list);
 
-		// Start button
-		const startButton = document.createElement("button");
-		startButton.textContent = "Start Tournament";
-		this.container.appendChild(startButton);
+  const startButton = document.createElement("button");
+  startButton.textContent = "Start Tournament";
+  lineUp.appendChild(startButton);
 
-		startButton.addEventListener("click", async() => {
-			startButton.disabled = true;
-			startButton.textContent = "Starting...";
-			const response = await apiServices.tournament.updateTournamentStatus(this.tournamentId!, 'STARTED');
-			if (!response.success) {
-				alert(response.message || "Failed to start tournament");
-				return ;
-			}
-			this.currentStep = "match";
-			this.renderStep();
-		});
+  startButton.addEventListener("click", async () => {
+    startButton.disabled = true;
+    startButton.textContent = "Starting...";
+    const response = await apiServices.tournament.updateTournamentStatus(
+      this.tournamentId!,
+      "STARTED"
+    );
+    if (!response.success) {
+      alert(response.message || "Failed to start tournament");
+      return;
+    }
+    this.currentStep = "match";
+    this.renderStep();
+  });
 
-	}
+  this.container.appendChild(lineUp);
+}
+
 	private async showMatchPage() {
-		
-		try {
-			const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
-			if (!response.success) {
-				alert(response.message || "Failed to fetch next match");
-				return ;
-			}
-			
-			const data = response.data;
-			if (!data?.nextMatch){
-				this.currentStep = "results";
-				this.renderStep();
-				return ;
-			}
+  try {
+    const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
+    if (!response.success) return this.showMessage(response.message || "Failed to fetch next match", "error");
 
-			const heading = document.createElement("h3");
-			heading.textContent = "Next Match";
-			this.container.appendChild(heading);
+    const data = response.data;
+    if (!data?.nextMatch) {
+      this.currentStep = "results";
+      this.renderStep();
+      return;
+    }
 
-			const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
-			const matchInfo = document.createElement("p");
-			matchInfo.textContent = `Match ${matchIndex}`;
-			this.container.appendChild(matchInfo);
+    const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
 
-			const players = document.createElement("p");
-			players.textContent = `${player1?.displayName} vs ${player2?.displayName}`;
-			this.container.appendChild(players);
+    // Clear container for this match
+    this.container.innerHTML = "";
 
-			const readyButton = document.createElement("button");
-			readyButton.textContent = "Ready";
-			this.container.appendChild(readyButton);
+    // --- Main Match Container ---
+    const matchWrapper = document.createElement("div");
+    matchWrapper.className = "match-container";
 
-			readyButton.addEventListener("click", async () => {
-				readyButton.disabled = true;
-				readyButton.textContent = "Starting...";
+    // --- Match Info ---
+    const matchInfo = document.createElement("div");
+    matchInfo.className = "match-info";
+    const heading = document.createElement("h3");
+    heading.textContent = `Match ${matchIndex}`;
+    matchInfo.appendChild(heading);
 
-				await apiServices.game.updateGameStatus(String(gameSessionId), "PLAYING");
-				
-				this.container.innerHTML = "";
-				const game = new Game();
-				this.container.appendChild(game.render());
+    const playersInfo = document.createElement("p");
+    playersInfo.textContent = `${player1?.displayName} vs ${player2?.displayName}`;
+    matchInfo.appendChild(playersInfo);
+    matchWrapper.appendChild(matchInfo);
 
-				const nextButton = document.createElement("button");
-				nextButton.textContent = "Next Match";
-				this.container.appendChild(nextButton);
-				nextButton.addEventListener("click", () => {
-					this.showMatchPage();
-				});
-			});
+    // --- Ready Button ---
+    const readyContainer = document.createElement("div");
+    readyContainer.className = "ready-container";
+    const readyButton = document.createElement("button");
+    readyButton.textContent = "Ready";
 
-		} catch (err) {
-			console.error(err);
-    		alert("Error loading match");
-		}
-	}
+    readyButton.addEventListener("click", async () => {
+      readyButton.disabled = true;
+      readyButton.textContent = "Starting...";
+
+      await apiServices.game.updateGameStatus(String(gameSessionId), "PLAYING");
+
+      // Render game directly in matchWrapper
+      matchWrapper.innerHTML = "";
+      const game = new Game();
+      matchWrapper.appendChild(game.render());
+
+      // --- Next Match Button ---
+      const nextContainer = document.createElement("div");
+      nextContainer.className = "next-container";
+      const nextButton = document.createElement("button");
+      nextButton.textContent = "Next Match";
+      nextButton.addEventListener("click", () => this.showMatchPage());
+      nextContainer.appendChild(nextButton);
+
+      matchWrapper.appendChild(nextContainer);
+    });
+
+    readyContainer.appendChild(readyButton);
+    matchWrapper.appendChild(readyContainer);
+
+    this.container.appendChild(matchWrapper);
+
+  } catch (err) {
+    console.error(err);
+    this.showMessage("Error loading match", "error");
+  }
+}
+
 	
 	// private showResultsPage() {
 		
@@ -361,3 +374,4 @@ export class Tournament implements IComponent {
     
     }
 }
+

@@ -1,4 +1,3 @@
-
 /* === Tournament Setup Styles === */
 .tournament-page {
 	display: flex;
@@ -183,3 +182,157 @@
 	font-weight: 600;
 	cursor: pointer;
 }
+
+/* ------------------------------------- */
+.lineup-container {
+  max-width: 600px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: var(--color-background-secondary);
+  border: 1none;
+  border-radius: 30px;
+  box-shadow: 0 4px 10px rgba(93, 90, 136, 0.1);
+  padding: 150px;
+}
+
+.lineup-container h2 {
+  text-align: center;
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  border-bottom: 1px solid var(--button-border-light);
+  padding-bottom: 0.5rem;
+}
+
+.lineup-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+}
+
+.lineup-container li {
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--button-border-light);
+  border-radius: 8px;
+  background-color: var(--color-background-secondary);
+  color: var(--color-text);
+  font-size: 1rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.lineup-container li:hover {
+  background-color: #eae8f6;
+  transform: translateY(-2px);
+}
+
+.lineup-container button {
+  display: block;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--button-border-dark);
+  background-color: var(--button-bg-dark);
+  color: var(--button-text-dark);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.lineup-container button:hover {
+  background-color: var(--color-primary-dark);
+  transform: scale(1.02);
+}
+
+.lineup-container button:disabled {
+  background-color: var(--button-bg-light);
+  color: var(--button-text-light);
+  border-color: var(--button-border-light);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
+/* === Match Page Container === */
+.match-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: var(--color-background-secondary);
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(93, 90, 136, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 150px;
+}
+
+/* --- Match Info --- */
+.match-info h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.match-info p {
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* --- Ready Button Container --- */
+.ready-container {
+  display: flex;
+  justify-content: center;
+}
+
+.ready-container button {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ready-container button:hover {
+  background-color: #2563eb;
+}
+
+.ready-container button:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+/* --- Game Container --- */
+
+/* --- Next Match Button Container --- */
+.next-container {
+  display: flex;
+  justify-content: center;
+}
+
+.next-container button {
+  background-color: #5D5A88;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1rem;
+}
+
+.next-container button:hover {
+  background-color: #453f74;
+}
+
+
