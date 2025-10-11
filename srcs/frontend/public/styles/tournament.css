@@ -88,46 +88,44 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	/* align-items: center; */
-	/* padding: 32px; */
 	box-sizing: border-box;
 	border-radius: 30px;
 
 }
 
-.add-player h3{
-
-	width: 610px;
-	height: 650px;
-	position: relative;
-	background-color: var(--color-background-secondary);
+.add-player h2{
+	position: absolute;
+	background: none;
 	display: flex;
+	font-weight: 700;
 	top: 10px;
-	left:10px;
-	/* flex-direction: column; */
-	/* justify-content: center; */
-	/* align-items: center; */
-	/* padding: 32px; */
-	box-sizing: border-box;
-	border-radius: 30px;
-
+	left:230px;
 }
 
-.user-inputs {
-	width: 312px;
+.user-head{
+	position: absolute;
+	top: 100px;
+	left: 52px;
+	background: none;
+	display: flex;
+	align-content: left;
+}
+
+.user-info {
+	width: 400px;
 	height: 182px;
-	left: 153px;
-	top: 118px;
+	position: absolute;
+	left: 150px;
+	top: 160px;
 	position: absolute;
 	background: none;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	margin-bottom: 20px;
-
 }
 
-.user-inputs label {
+
+.add-player label {
 	font-size: 18px;
     font-weight: 500;
 	align-content: left;
@@ -138,7 +136,7 @@
 .form-input {
 	margin: 10px 20px;
 	width: 300px;
-	height: 45px;
+	height: 40px;
 	text-align: left;
 	padding: 0.4rem;
 	border: 1px solid #cbd5e1;
@@ -147,32 +145,27 @@
 	outline: none;
 	transition: border-color 0.2s ease;
 }
-
-.guest-input {
-	margin: 10px 20px;
-	width: 300px;
-	height: 45px;
-	text-align: left;
-	padding: 0.4rem;
-	border: 1px solid #cbd5e1;
-	border-radius: 50px;
-	font-size: 1rem;
-	outline: none;
-	transition: border-color 0.2s ease;
-}
-
-.add-guest {
-	width: 300px;
-	height: 85px;
+.guest-head{
 	position: absolute;
-	top: 414px;
+	top: 360px;
+	left: 52px;
+	background: none;
+	display: flex;
+	align-content: left;
+}
+
+.guest-info {
+	width: 300px;
+	height: 100px;
+	position: absolute;
+	top: 430px;
 	left: 147px;
 	background: none;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	margin-bottom: 20px;
 }
+
 
 .add-btn {
 	width: 160px;
@@ -189,5 +182,4 @@
 	font-size: 18px;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background-color 0.2s ease;
 }
