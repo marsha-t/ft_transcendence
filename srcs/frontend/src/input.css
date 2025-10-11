@@ -11,20 +11,14 @@
 
     /* Background */
     --color-background: #143367;
-    /* --color-background-secondary: #F2F1FA; */
-    /* --color-text-secondary: #afafaf; */
-    /* --color-primary-dark: #423f6a; */
+    --color-background-secondary: #FFD248;
 
     /* Button */
     --color-button: #77AB55;
-    /* --button-bg-dark: #5D5A88; */
-    /* --button-text-light: #5D5A88;
-    --button-text-dark: #fff;
-    --button-border-light: rgba(103, 99, 152, 0.3);
-    --button-border-dark: rgba(93, 90, 136, 0.8); */
 
     /* Text */
     --color-text-white: #FFFFFF;
+    --color-text-secondary: #5D5A88;
     --color-text-yellow: #ECD05F;
     --color-text-green: #77AB55;
 

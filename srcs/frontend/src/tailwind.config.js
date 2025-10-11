@@ -15,8 +15,10 @@ module.exports = {
 
         colors: {
           background: 'var(--color-background)',
+          'background-yellow': 'var(--color-background-secondary)',
           color_button: 'var(--color-button)',
           color_white: 'var(--color-text-white)',
+          'color-secondary': 'var(--color-text-secondary)',
           'color-yellow': 'var(--color-text-yellow)',
           'color-green': 'var(--color-text-green)',
           color_border: 'var(--color-border-red)',
