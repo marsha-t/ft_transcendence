@@ -11,50 +11,89 @@ export class Register implements IComponent {
 
     public render(): HTMLElement {
         this.container = document.createElement('div');
-        this.container.className = 'register_page';
-
-        // Dynamically load page CSS
-        this.loadPageStyles();
+        this.container.className = `
+            flex justify-center bg-background-yellow
+             min-h-[85vh] py-[23px]`;
+    
+        // === SUBcontainer ===
+        const subContainer = document.createElement('div');
+        subContainer.className = `
+            flex flex-col items-center justify-start
+            bg-background
+            rounded-[16px]
+            shadow-lg
+            mx-[23px]
+            w-[calc(100%-46px)]
+            h-auto
+            p-10
+            `;
 
         // Heading stays above the card
         const heading = document.createElement('h2');
-        heading.className = 'register_title';
+        heading.className = `
+            w-[596px] text-center mb-4 
+            text-[26px] font-press text-color_white`;
         heading.textContent = 'Create an Account';
-        this.container.appendChild(heading);
 
-        // Create message container for success/error messages
-        this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'message_container';
-        this.messageContainer.style.display = 'none';
-        this.container.appendChild(this.messageContainer);
-
+        // === Login card (form wrapper) ===
         const registerCard = document.createElement('div');
-        registerCard.className = 'register_block';
+        registerCard.className =
+            `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8` ;
+    
+
 
         this.form = document.createElement('form');
-        this.form.className = 'register_form';
+        this.form.className = `
+            flex flex-col gap-[26px] 
+            items-center w-full leading-normal`;
 
         // Username field
         const usernameGroup = document.createElement('div');
+        usernameGroup.className = 'flex flex-col gap-2';
+
         const usernameLabel = document.createElement('label');
-        usernameLabel.textContent = 'Username';
+        usernameLabel.className = 'text-lg font-mono text-color_white';
+        usernameLabel.textContent = 'USERNAME';
         usernameLabel.htmlFor = 'username';
 
         const usernameInput = document.createElement('input');
+        usernameInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
         usernameInput.placeholder = 'Your Username';
         usernameInput.required = true;
+
         usernameGroup.appendChild(usernameLabel);
         usernameGroup.appendChild(usernameInput);
 
         // Email field
         const emailGroup = document.createElement('div');
+        emailGroup.className = 'flex flex-col gap-2';
+
         const emailLabel = document.createElement('label');
+        emailLabel.className = 'text-lg font-mono text-color_white';
         emailLabel.textContent = 'Email';
         emailLabel.htmlFor = 'email';
+
         const emailInput = document.createElement('input');
+        emailInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
         emailInput.type = 'email';
         emailInput.id = 'email';
         emailInput.name = 'email';
@@ -63,52 +102,84 @@ export class Register implements IComponent {
         emailGroup.appendChild(emailLabel);
         emailGroup.appendChild(emailInput);
 
-        // Password field
+        // === Password group ===
         const passwordGroup = document.createElement('div');
+        passwordGroup.className = 'flex flex-col gap-2';
+    
         const passwordLabel = document.createElement('label');
+        passwordLabel.className = 'text-lg font-mono text-color_white';
         passwordLabel.textContent = 'Password';
         passwordLabel.htmlFor = 'password';
+    
         const passwordInput = document.createElement('input');
+        passwordInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
         passwordInput.type = 'password';
         passwordInput.id = 'password';
         passwordInput.name = 'password';
         passwordInput.placeholder = '••••••••';
-        // passwordInput.minLength = 6;
-        passwordInput.required = true;
+    
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(passwordInput);
 
-        // Submit button
+        // === Submit button ===
         this.submitButton = document.createElement('button');
+        this.submitButton.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-pixel
+            cursor-pointer bg-color_button
+            hover:bg-color-green hover:text-background
+            hover:ring-2 hover:ring-border-green
+            transition-all duration-300
+            focus:outline-none
+            disabled:opacity-50 disabled:cursor-not-allowed
+            `;
+
         this.submitButton.type = 'submit';
-        this.submitButton.textContent = 'Register';
-        this.submitButton.className = 'register_button';
+        this.submitButton.textContent = 'Login';
+
+        // Login link
+        // === Register link ===
+        const loginLink = document.createElement('p');
+        loginLink.className =
+            'font-mono text-color_white text-left mt-4';
+            loginLink.innerHTML = `
+            Already have an account? 
+            <a href="/register"
+            class="font-mono text-color-green underline mt-4
+            ml-40 hover:opacity-80">Login</a>`;
+
+        // === Message container ===
+        this.messageContainer = document.createElement('div');
+        this.messageContainer.className = 'none';
+        
+        // === Build the form ===
         this.form.appendChild(usernameGroup);
-        this.form.appendChild(emailGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
 
-        // Login link
-        const loginLink = document.createElement('p');
-        loginLink.className = 'login_text';
-        loginLink.innerHTML = 'Already have an account? <a href="login">Login</a>';
-        
+        // === Assemble card ===
         registerCard.appendChild(this.form);
         registerCard.appendChild(loginLink);
-        this.container.appendChild(registerCard);
+
+        // === Add to main container ===
+        subContainer.appendChild(heading);
+        subContainer.appendChild(registerCard);
+        subContainer.appendChild(this.messageContainer);
+
+        // === Add to main container ===
+        this.container.appendChild(subContainer);
 
         this.attachEventListener();
-        
         return this.container;
     }
-    private loadPageStyles(): void {
-        if (document.getElementById('register-styles')) return;
-        const link = document.createElement('link');
-        link.id = 'register-styles';
-        link.rel = 'stylesheet';
-        link.href = '/styles/Register.css';
-        document.head.appendChild(link);
-    }
+
     private attachEventListener(): void{
         this.form.addEventListener('submit', this.handleRegister.bind(this));
     }
@@ -171,10 +242,25 @@ export class Register implements IComponent {
                 this.setLoadingState(false);
             }
     }
+   
     private showMessage(message: string, type: 'success' | 'error'): void {
         this.messageContainer.style.display = 'block';
-        this.messageContainer.className = `message_container ${type}`;
+        const baseClass = `
+            mt-6 px-4 py-3    
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-mono text-[20px]
+            text-center          
+            flex items-center justify-center 
+            transition-opacity duration-300
+        `;
+
+        const typeClasses = type === 'error' 
+            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
+            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+        
+        this.messageContainer.className = `${baseClass} ${typeClasses}`;
         this.messageContainer.textContent = message;
+        
         // Auto-hide success messages after 5 seconds
         if (type === 'success') {
             setTimeout(() => {
@@ -183,7 +269,9 @@ export class Register implements IComponent {
         }
         // Scroll to top to show message
         this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
     }
+
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
