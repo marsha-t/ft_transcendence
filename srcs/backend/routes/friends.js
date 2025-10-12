@@ -34,7 +34,7 @@ async function friendsRoutes(app, options) {
         }
       });
 
-      if (existing) return reply.code(409).send({ message: 'Friend request already exists' });
+      if (existing) return reply.code(409).send({ message: 'Friend request already sent' });
 
       // Create friend request
       const requestRecord = await prisma.friendRequest.create({
@@ -303,6 +303,7 @@ async function friendsRoutes(app, options) {
       const limit = 50;
 
       // Use parameterized $queryRaw to keep it safe. Use ESCAPE '\' so backslash escapes work.
+      // 1. Fetch matching users
       const users = await prisma.$queryRaw`
         SELECT id, username, avatar
         FROM "User"
@@ -321,8 +322,32 @@ async function friendsRoutes(app, options) {
       if (!users || users.length === 0) {
         return reply.code(404).send({ error: 'No users found matching your search' });
       }
-
-      return reply.code(200).send(users);
+  
+      // 2. Fetch friends and incoming requests
+      const friends = await prisma.friendRequest.findMany({
+        where: {
+          status: 'ACCEPTED',
+          OR: [
+            { senderId: currentUserId },
+            { receiverId: currentUserId }
+          ]
+        },
+        select: { senderId: true, receiverId: true }
+      });
+  
+      const incomingRequests = await prisma.friendRequest.findMany({
+        where: { receiverId: currentUserId, status: 'PENDING' },
+        select: { senderId: true }
+      });
+  
+      // 3. Filter out only friends and incoming requests
+      const filteredUsers = users.filter(u => {
+        const isFriend = friends.some(f => f.senderId === u.id || f.receiverId === u.id);
+        const hasIncoming = incomingRequests.some(r => r.senderId === u.id);
+        return !isFriend && !hasIncoming;
+      });
+  
+      return reply.code(200).send(filteredUsers);
 
     } catch (err) {
       request.log.error(err);
