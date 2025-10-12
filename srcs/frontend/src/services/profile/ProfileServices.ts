@@ -126,7 +126,7 @@ export class ProfileServices {
           const resData = await response.json();
       
           if (!response.ok) {
-            let msg = resData.validation?.[0]?.message || resData.error;
+            let msg = resData.validation?.[0]?.message || resData.message || resData.error;
             return {
               success: false,
               status: response.status,
