@@ -713,25 +713,12 @@ private openAddFriendPopup(): void {
       const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
       const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='New Password']");
     
-      const data: any = {};
-    
-      if (usernameInput && usernameInput.value.trim() !== "" && usernameInput.value !== this.username) {
-        data.username = usernameInput.value.trim();
-      }
-    
-      if (emailInput && emailInput.value.trim() !== "" && emailInput.value !== this.email) {
-        data.newEmail = emailInput.value.trim();
-      }
-    
-      if (oldPasswordInput && newPasswordInput && oldPasswordInput.value && newPasswordInput.value) {
-        data.oldPassword = oldPasswordInput.value;
-        data.newPassword = newPasswordInput.value;
-      }
-    
-      if (Object.keys(data).length === 0) {
-        this.showMessage("No changes to save.", 'error');
-        return;
-      }
+      const data: any = {
+        username: usernameInput?.value || undefined,
+        newEmail: emailInput?.value || undefined,
+        oldPassword: oldPasswordInput?.value || undefined,
+        newPassword: newPasswordInput?.value || undefined,
+      };
     
       // Call backend
       const response = await this.profileService.updateProfile(data);

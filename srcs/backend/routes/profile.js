@@ -48,6 +48,7 @@ async function profileRoutes(app, options) {
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) return reply.code(404).send({ message: 'User not found' });
   
+      // Extract & sanitize input
       const { username, oldPassword, newPassword, newEmail } = request.body;
 
       // Empty object that will collect valid fields to send to the database later
