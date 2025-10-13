@@ -142,9 +142,8 @@ export class Register implements IComponent {
             `;
 
         this.submitButton.type = 'submit';
-        this.submitButton.textContent = 'Login';
+        this.submitButton.textContent = 'Register';
 
-        // Login link
         // === Register link ===
         const loginLink = document.createElement('p');
         loginLink.className =
