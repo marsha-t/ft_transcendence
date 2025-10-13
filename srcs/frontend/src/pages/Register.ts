@@ -151,7 +151,7 @@ export class Register implements IComponent {
             'font-mono text-color_white text-left mt-4';
             loginLink.innerHTML = `
             Already have an account? 
-            <a href="/register"
+            <a href="/login"
             class="font-mono text-color-green underline mt-4
             ml-40 hover:opacity-80">Login</a>`;
 
@@ -161,6 +161,7 @@ export class Register implements IComponent {
         
         // === Build the form ===
         this.form.appendChild(usernameGroup);
+        this.form.appendChild(emailGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
 
