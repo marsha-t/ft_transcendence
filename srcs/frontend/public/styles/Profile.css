@@ -802,8 +802,14 @@ width: 96px; /* approximate column width */
 }
 
 .pending-label {
-  color: gray;
-  font-style: italic;
+  display: inline-block;
+  background-color: #d3d3d3; /* light gray background */
+  color: #555; /* dark gray text */
+  padding: 4px 10px; /* small padding */
+  border-radius: 12px; /* rounded corners */
+  font-size: 0.9rem; /* slightly smaller font */
+  font-weight: 500;
+  text-align: center;
 }
 
 .search-results {

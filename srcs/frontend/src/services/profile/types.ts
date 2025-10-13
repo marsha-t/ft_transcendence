@@ -45,6 +45,12 @@ export interface AvatarDeleteResponse {
     avatar: string;
 }
   
+export interface UserSearchResult {
+    id: number;
+    username: string;
+    avatar: string;
+    friendStatus: 'not_friend' | 'pending_sent';
+}
 
 export interface ApiResponse<T> {
     success: boolean;
@@ -54,8 +60,3 @@ export interface ApiResponse<T> {
     errors?: string[]; 
 }
 
-export interface UserSearchResult {
-    id: number;
-    username: string;
-    avatar: string;
-}

@@ -227,51 +227,75 @@ export class ProfileServices {
     }
     // Method to search for users by username
     async searchUsers(query: string): Promise<ApiResponse<UserSearchResult[]>> {
-        try {
-            const response = await fetch(`${this.baseUrl}/friends/search?query=${encodeURIComponent(query)}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-current-user-id": "1", // replace with dynamic ID later
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                return {
-                    success: false,
-                    status: response.status,
-                    message: data.error || data.message || "Failed to search users",
-                    errors: data.errors || [],
-                };
-            }
-
-            // Transform to your frontend format (username + avatar only)
-            const users: UserSearchResult[] = Array.isArray(data)
-                ? data.map((u: any) => ({
+      try {
+          const response = await fetch(`${this.baseUrl}/friends/search?query=${encodeURIComponent(query)}`, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+                  "x-current-user-id": "1", // replace with dynamic current user ID
+              },
+          });
+  
+          const data = await response.json();
+  
+          if (!response.ok) {
+              return {
+                  success: false,
+                  status: response.status,
+                  message: data.error || data.message || "Failed to search users",
+                  errors: data.errors || [],
+              };
+          }
+  
+          // Transform API data into frontend format
+          const users: UserSearchResult[] = Array.isArray(data)
+              ? data.map((u: any) => ({
                     id: u.id,
                     username: u.username,
                     avatar: u.avatar || "/default-avatar.png",
+                    friendStatus: u.friendStatus || "not_friend", // include status for button logic
                 }))
-                : [];
+              : [];
+  
+          return {
+              success: true,
+              status: response.status,
+              data: users,
+              message: "Users fetched successfully",
+          };
+      } catch (error: any) {
+          console.error("API error", error);
+          return {
+              success: false,
+              status: 0,
+              message: error?.message || "Network error",
+              errors: [],
+          };
+      }
+  }
+  async sendFriendRequest(username: string): Promise<ApiResponse<null>> {
+    try {
+      const userId = 1; // current user id
+      const res = await fetch(`${this.baseUrl}/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-current-user-id": userId.toString(),
+        },
+        body: JSON.stringify({ username }),
+      });
 
-            return {
-                success: true,
-                status: response.status,
-                data: users,
-                message: "Users fetched successfully",
-            };
-        } catch (error) {
-            console.error("API error", error);
-            return {
-                success: false,
-                status: 0,
-                message: "Network error",
-                errors: [],
-            };
-        }
+      if (!res.ok) {
+        const err = await res.json();
+        return { success: false, message: err.message || "Failed to send request" };
+      }
+
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, message: err.message };
     }
+  }
+  
     // Fetch incoming friend requests (users who added me)
     async getIncomingRequests(): Promise<ApiResponse<FriendRequest[]>> {
         try {
@@ -320,56 +344,22 @@ export class ProfileServices {
         };
         }
     }
+    
+      // 🟡 Get friendship status with another user
+      // async getFriendStatus(targetUserId: string): Promise<ApiResponse<{ status: string }>> {
+      //   try {
+      //     const res = await fetch(`${this.baseUrl}/friends/status/${targetUserId}`, {
+      //       credentials: "include",
+      //     });
+      //     const data = await res.json();
+      //     return data;
+      //   } catch (err) {
+      //     console.error("Error checking friend status:", err);
+      //     return { success: false, message: "Failed to check friend status" };
+      //   }
+      // }
   
-  
-//   // Fetch outgoing friend requests (users I sent requests to)
-//     async getOutgoingRequests(): Promise<ApiResponse<FriendRequest[]>> {
-//         try {
-//         const response = await fetch(`${this.baseUrl}/friends/sent`, {
-//             method: 'GET',
-//             headers: {
-//             'Content-Type': 'application/json',
-//             'x-current-user-id': '1',
-//             },
-//         });
-    
-//         const data = await response.json();
-    
-//         if (!response.ok) {
-//             return {
-//             success: false,
-//             status: response.status,
-//             message: data.error || "Failed to fetch outgoing requests",
-//             errors: data.errors || [],
-//             };
-//         }
-    
-//         const requests: FriendRequest[] = data.map((req: any) => ({
-//             id: req.id,
-//             to: {
-//             username: req.to.username,
-//             avatar: req.to.avatar,
-//             status: req.to.status,
-//             },
-//         }));
-    
-//         return {
-//             success: true,
-//             status: response.status,
-//             data: requests,
-//             message: "Outgoing requests fetched successfully",
-//         };
-//         } catch (error) {
-//         console.error("API error:", error);
-//         return {
-//             success: false,
-//             status: 0,
-//             message: "Network error",
-//             errors: [],
-//         };
-//         }
-//     }
-  
+
   
   // Respond to a friend request (accept/decline)
     async respondToRequest(username: string, action: "accept" | "reject"): Promise<ApiResponse<null>> {

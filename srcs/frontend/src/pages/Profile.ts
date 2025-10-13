@@ -562,8 +562,33 @@ private openAddFriendPopup(): void {
         name.className = "search-username";
         name.textContent = user.username;
 
+        const action = document.createElement("div");
+        action.className = "search-action";
+
+        if (user.friendStatus === "not_friend") {
+          const addBtn = document.createElement("button");
+          addBtn.textContent = "Add Friend";
+          addBtn.className = "add-friend-btn";
+          addBtn.addEventListener("click", async () => {
+            const res = await service.sendFriendRequest(user.username);
+            if (res.success) {
+              addBtn.textContent = "Pending";
+              addBtn.disabled = true;
+            } else {
+              alert(res.message || "Failed to send friend request");
+            }
+          });
+          action.appendChild(addBtn);
+        } else if (user.friendStatus === "pending_sent") {
+          const pendingLabel = document.createElement("span");
+          pendingLabel.textContent = "Pending";
+          pendingLabel.className = "pending-label";
+          action.appendChild(pendingLabel);
+        }
+
         userDiv.appendChild(avatar);
         userDiv.appendChild(name);
+        userDiv.appendChild(action);
 
         resultsContainer.appendChild(userDiv);
       });
