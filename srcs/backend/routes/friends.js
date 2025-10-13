@@ -339,13 +339,24 @@ async function friendsRoutes(app, options) {
         where: { receiverId: currentUserId, status: 'PENDING' },
         select: { senderId: true }
       });
-  
+      const outgoingRequests = await prisma.friendRequest.findMany({
+        where: { senderId: currentUserId, status: 'PENDING' },
+        select: { receiverId: true }
+      });
       // 3. Filter out only friends and incoming requests
       const filteredUsers = users.filter(u => {
         const isFriend = friends.some(f => f.senderId === u.id || f.receiverId === u.id);
         const hasIncoming = incomingRequests.some(r => r.senderId === u.id);
-        return !isFriend && !hasIncoming;
-      });
+        const hasSentRequest = outgoingRequests.some(r => r.receiverId === u.id);
+        if (isFriend || hasIncoming) return null;
+
+        return {
+          id: u.id,
+          username: u.username,
+          avatar: u.avatar,
+          friendStatus: hasSentRequest ? "pending_sent" : "not_friend"
+        };
+    }).filter(u => u !== null);
   
       return reply.code(200).send(filteredUsers);
 
