@@ -13,7 +13,7 @@ export class Profile implements IComponent {
   private profileService: ProfileServices;
   private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
-  private sentRequestsCache: Set<string> = new Set(); // ✅ global cache for pending friend requests
+  
 
 
 
@@ -521,10 +521,11 @@ private openAddFriendPopup(): void {
   document.body.appendChild(overlay);
 
   const service = new ProfileServices();
-  const sentRequests = this.sentRequestsCache; // use class-level cache
   const backendUrl = "http://localhost:5001";
   const debounceDelay = 400;
   let typingTimer: any;
+  // Track requests sent during this modal session
+  const localPending = new Set<string>();
 
   // 🧩 Reusable render function
   const renderResults = (data: UserSearchResult[]) => {
@@ -554,8 +555,7 @@ private openAddFriendPopup(): void {
       action.className = "search-action";
 
       const isPending =
-        sentRequests.has(user.username) ||
-        user.friendStatus === "pending_sent"
+        user.friendStatus === "pending_sent" || localPending.has(user.username);
 
       if (isPending) {
         const pendingLabel = document.createElement("span");
@@ -570,14 +570,13 @@ private openAddFriendPopup(): void {
         addBtn.addEventListener("click", async () => {
           const res = await service.sendFriendRequest(user.username);
           if (res.success) {
-            sentRequests.add(user.username); // Track locally
-            addBtn.textContent = "Pending";
-            addBtn.disabled = true;
-
-            // Optional: refresh from backend for consistency
-            const refreshed = await service.searchUsers(searchInput.value.trim());
-            if (refreshed.success && refreshed.data)
-              renderResults(refreshed.data);
+            localPending.add(user.username);
+            // Swap the button for a non-interactive Pending label immediately
+            const pendingLabel = document.createElement("span");
+            pendingLabel.textContent = "Pending";
+            pendingLabel.className = "pending-label";
+            action.innerHTML = "";
+            action.appendChild(pendingLabel);
           } else {
             alert(res.message || "Failed to send friend request");
           }
