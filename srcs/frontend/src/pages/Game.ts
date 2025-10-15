@@ -6,6 +6,7 @@ type GameOptions = {
   sessionId?: string;
   isTournament?: boolean;
   displayNames?: { leftName: string; rightName: string };
+  onMatchEnd?: () => void;
 };
 
 export class Game implements IComponent {
@@ -614,7 +615,12 @@ export class Game implements IComponent {
                 
                 const winnerName = this.currentSession.winnerName ?? "Unknown";
                 alert(`Game Over! ${winnerName} wins!`);
-                this.resetGame();
+                if (this.opts?.isTournament && this.opts.onMatchEnd) {
+                    this.opts.onMatchEnd();
+                }
+                else {
+                    this.resetGame();
+                }
             }
         } catch (error) {
             console.error('Failed to finish game:', error);

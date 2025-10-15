@@ -343,15 +343,19 @@ async function tournamentRoutes(app, options) {
 				results: {
 					champion: finalMatch?.winnerPlayerId 
 					? (finalMatch.player1?.id === finalMatch.winnerPlayerId 
-						? finalMatch.player1.displayName
-						: finalMatch.player2.displayName)
+						? finalMatch.player1?.displayName ?? "-"
+						: finalMatch.player2?.displayName ?? "-")
 					: null,
 					bracket: tournament.matches.map(m => ({
-					matchIndex: m.matchIndex,
-					player1: m.player1.displayName,
-					player2: m.player2.displayName,
-					winner: m.player1?.id === m.winnerPlayerId ? m.player1?.displayName : m.player2?.displayName,
-				})),
+						matchIndex: m.matchIndex,
+						player1: m.player1?.displayName ?? "-",
+						player2: m.player2?.displayName ?? "-",
+						winner: m.winnerPlayerId
+						? (m.player1?.id === m.winnerPlayerId
+							? m.player1?.displayName ?? "—"
+							: m.player2?.displayName ?? "—")
+						: "—",
+					})),
 				stats: {
 					totalMatches: tournament.matches.length,
 					playedMatches: tournament.matches.filter(m => m.gameSession?.status === 'FINISHED').length,
