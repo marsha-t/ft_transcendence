@@ -15,15 +15,14 @@
     </div>
     <script type="module" src="js/main.js"></script>
     <script>
-        document.body.addEventListener('click', (e) => {
-            const target = e.target.closest('a');
-            if(target.tagName === 'A' 
-                && target.href.startsWith(window.location.origin)){
-                    e.preventDefault();
-                    history.pushState(null, '', target.href);
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-            }
-        } );
-    </script>
+    document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('a');
+        if(target && target.tagName === 'A' && target.href.startsWith(window.location.origin)){
+            e.preventDefault();
+            history.pushState(null, '', target.href);
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        }
+    });
+</script>
 </body>
 </html>
