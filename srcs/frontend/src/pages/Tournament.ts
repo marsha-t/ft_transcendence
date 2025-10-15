@@ -263,7 +263,7 @@ private showLineupPage() {
   this.container.appendChild(lineUp);
 }
 
-	private async showMatchPage() {
+private async showMatchPage() {
   try {
     const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
     if (!response.success) return this.showMessage(response.message || "Failed to fetch next match", "error");
@@ -306,12 +306,36 @@ private showLineupPage() {
       readyButton.disabled = true;
       readyButton.textContent = "Starting...";
 
-      await apiServices.game.updateGameStatus(String(gameSessionId), "PLAYING");
+    //   await apiServices.game.updateGameStatus(String(gameSessionId), "PLAYING");
 
       // Render game directly in matchWrapper
       matchWrapper.innerHTML = "";
-      const game = new Game();
-      matchWrapper.appendChild(game.render());
+     
+	  	// Pass tournament match info into Game
+		const session = {
+			sessionId: String(gameSessionId),
+			status: "CREATED",
+			players: [
+				{ side: "LEFT", displayName: player1?.displayName ?? "Player 1", score: 0 },
+				{ side: "RIGHT", displayName: player2?.displayName ?? "Player 2", score: 0 },
+			],
+			tournamentMatch: {
+				id: data.nextMatch!.matchId,
+				tournamentId: data.nextMatch!.tournamentId,
+				matchIndex: data.nextMatch!.matchIndex,
+			},
+		};
+
+		const game = new Game({ 
+			sessionId: String(gameSessionId), 
+			isTournament: true,
+			displayNames: {
+				leftName: player1?.displayName ?? "Player 1",
+				rightName: player2?.displayName ?? "Player 2",
+			},
+		});
+		matchWrapper.appendChild(game.render());
+	
 
       // --- Next Match Button ---
       const nextContainer = document.createElement("div");

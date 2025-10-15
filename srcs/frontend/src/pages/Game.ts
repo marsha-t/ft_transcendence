@@ -2,12 +2,19 @@ import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide } from "../services/game/types.js";
 
-export class Game implements IComponent {
+type GameOptions = {
+  sessionId?: string;
+  isTournament?: boolean;
+  displayNames?: { leftName: string; rightName: string };
+};
 
+export class Game implements IComponent {
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
     private gameService: GameService;
     private currentSession: GameSession | null = null;
+    private opts?: GameOptions;
+
     private isGameRunning: boolean = false;
     private isScoring: boolean = false; 
     private animationId: number | null = null;
@@ -15,10 +22,10 @@ export class Game implements IComponent {
     private ball = { x: 450, y: 300, dx: 5, dy: 3, radius: 12 };
     private leftPaddle = { x: 20, y: 250, width: 10, height: 100, speed: 6 };
     private rightPaddle = { x: 870, y: 250, width: 10, height: 100, speed: 6 };
-
     private key: { [key: string]: boolean} = {}
 
-    constructor() {
+    constructor(opts?: GameOptions) {
+        this.opts = opts;
         this.canvas = document.createElement('canvas');
         this.canvas.width = 900;
         this.canvas.height = 600;
@@ -39,17 +46,12 @@ export class Game implements IComponent {
         //Load css
         this.loadPageStyles();
 
-
-        // Canvas container
-        const canvasContainer = document.createElement('div');
-        canvasContainer.className = 'canvas_container';
-
-        //title containerå
+        //Title container
         const titleContainer = document.createElement('div');
         titleContainer.className = 'title_container';
 
         const userLeft = document.createElement('h2');
-        userLeft.textContent = 'User 1';
+        userLeft.textContent = this.opts?.displayNames?.leftName ?? 'User 1a';
         userLeft.className = 'user';
         userLeft.id = 'left-player';
         
@@ -58,82 +60,100 @@ export class Game implements IComponent {
         VS.className = 'VS';
         
         const userRight = document.createElement('h2');
-        userRight.textContent = 'User 2';
+        userRight.textContent = this.opts?.displayNames?.rightName ?? 'User 2b';
         userRight.className = 'user';
         userRight.id = 'right-player';
-
+        
         titleContainer.appendChild(userLeft);
         titleContainer.appendChild(VS);
         titleContainer.appendChild(userRight);
-
         container.appendChild(titleContainer);
-
+        
+        // Canvas container
         this.canvas.className = 'game_canvas';
+        const canvasContainer = document.createElement('div');
+        canvasContainer.className = 'canvas_container';
         canvasContainer.appendChild(this.canvas);
         container.appendChild(canvasContainer);
-
-        // Player setup section
-        const setupSection = document.createElement('div');
-        setupSection.className = 'setup_section';
-        setupSection.id = 'setup-section';
-
-        const guestInput = document.createElement('input');
-        guestInput.type = 'text';
-        guestInput.placeholder = 'Enter guest name';
-        guestInput.className = 'guest_input';
-        guestInput.id = 'guest-input';
-
-        const addGuestBtn = document.createElement('button');
-        addGuestBtn.className = 'add_guest_btn';
-        addGuestBtn.textContent = 'Add Guest Player';
-        addGuestBtn.addEventListener('click', () => this.addGuestPlayer());
-
-        setupSection.appendChild(guestInput);
-        setupSection.appendChild(addGuestBtn);
-
-
-        // game controls 
 
         // Controls container
         const controlsContainer = document.createElement('div');
         controlsContainer.className = 'controls_container';
 
-        const startBtn = document.createElement('button');
-        startBtn.className = 'start_btn';
-        startBtn.textContent = 'Start Game';
-        startBtn.id = 'start-btn';
-        startBtn.style.display = 'none';
-        startBtn.addEventListener('click', () => this.toggleGame());
+        const startBtn = this.makeButton("Start Game", "start-btn", () => this.toggleGame());
+        if (this.opts?.isTournament) startBtn.style.display = "block";
+        const pauseBtn = this.makeButton("Pause", "pause-btn", () => this.pauseGame());
+        const quitBtn = this.makeButton("Quit Game", "quit-btn", () => this.quitGame());
+    
+        // const startBtn = document.createElement('button');
+        //     startBtn.className = 'start_btn';
+        //     startBtn.textContent = 'Start Game';
+        //     startBtn.id = 'start-btn';
+        //     startBtn.style.display = 'none';
+        //     startBtn.addEventListener('click', () => this.toggleGame());
+    
+        //     const pauseBtn = document.createElement('button');
+        //     pauseBtn.className = 'pause_btn';
+        //     pauseBtn.textContent = 'Pause';
+        //     pauseBtn.id = 'pause-btn';
+        //     pauseBtn.addEventListener('click', () => this.pauseGame());
+        //     pauseBtn.style.display = 'none';
+    
+        //     const quitBtn = document.createElement('button');
+        //     quitBtn.className = 'quit_btn';
+        //     quitBtn.textContent = 'Quit Game';
+        //     quitBtn.id = 'quit-btn';
+        //     quitBtn.addEventListener('click', () => this.quitGame());
+        //     quitBtn.style.display = 'none';
 
-        const pauseBtn = document.createElement('button');
-        pauseBtn.className = 'pause_btn';
-        pauseBtn.textContent = 'Pause';
-        pauseBtn.id = 'pause-btn';
-        pauseBtn.addEventListener('click', () => this.pauseGame());
-        pauseBtn.style.display = 'none';
-
-        const quitBtn = document.createElement('button');
-        quitBtn.className = 'quit_btn';
-        quitBtn.textContent = 'Quit Game';
-        quitBtn.id = 'quit-btn';
-        quitBtn.addEventListener('click', () => this.quitGame());
-        quitBtn.style.display = 'none';
-
-
-        controlsContainer.appendChild(setupSection);
         controlsContainer.appendChild(startBtn);
         controlsContainer.appendChild(pauseBtn);
         controlsContainer.appendChild(quitBtn);
 
+        // Standalone Game
+        if (!this.opts?.isTournament) {
+            // Player setup section
+            const setupSection = document.createElement('div');
+            setupSection.className = 'setup_section';
+            setupSection.id = 'setup-section';
+    
+            const guestInput = document.createElement('input');
+            guestInput.type = 'text';
+            guestInput.placeholder = 'Enter guest name';
+            guestInput.className = 'guest_input';
+            guestInput.id = 'guest-input';
+    
+            const addGuestBtn = this.makeButton("Add Guest Player", "add-guest-btn", () => this.addGuestPlayer());
+            addGuestBtn.style.display = "block";
+            // const addGuestBtn = document.createElement('button');
+            // addGuestBtn.className = 'add_guest_btn';
+            // addGuestBtn.textContent = 'Add Guest Player';
+            // addGuestBtn.addEventListener('click', () => this.addGuestPlayer());
+    
+            setupSection.appendChild(guestInput);
+            setupSection.appendChild(addGuestBtn);
+            controlsContainer.appendChild(setupSection);
+            // controlsContainer.prepend(setupSection); // place above butons instead?
+        }
+        
         container.appendChild(controlsContainer);
 
         this.drawInitialScreen();
         
-        //main logic
-        this.initializeGame();
+        // Initialise logic
+        if (this.opts?.isTournament && this.opts.sessionId) {
+            this.initializeTournament();
+        } else {
+            this.initializeStandalone();
+        }
         return container;
     }
 
+    // -------------------------------------------------
+    // SETUP HELPERS
+    // - sets up UI scaffolding, drawing primitives
+    // - don't depend on backend session or game logic
+    // -------------------------------------------------
     private loadPageStyles(): void {
         if (document.getElementById('game-styles')) return;
         
@@ -154,6 +174,16 @@ export class Game implements IComponent {
             this.key[event.key.toLowerCase()] = false;
             this.key[event.key] = false;
         })
+    }
+
+    private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        btn.id = id;
+        btn.className = id.replace("-", "_");
+        btn.style.display = "none";
+        btn.addEventListener("click", handler);
+        return btn;
     }
 
     private drawInitialScreen(){
@@ -187,24 +217,71 @@ export class Game implements IComponent {
         this.context.setLineDash([]); // reset dashes
     }
 
-   
+    private drawRoundedRect(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+        fillColor: string,
+        // strokeColor?: string
+    ) {
+        if (!this.context) return;
+        const ctx = this.context;
+    
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+    }
 
-    private async initializeGame():Promise<void>{
+    // -------------------------------------------------
+    // INITIALISATION
+    // - prepare game session before gameplay begins
+    // - configures UI according to whether standalone or tournament game
+    // -------------------------------------------------
+    private async initializeStandalone():Promise<void>{
         try{
-            const userId = 1 // For test case only, later i need to replace with actual id from backend;
-
-            //Ask backend to create a new game session
+            const userId = 1 // TODO For test case only, later i need to replace with actual id from backend;
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
-            console.log(`current Session: ${this.currentSession}`);
+
+            console.log(`Current Session: ${this.currentSession}`);
+            
             //show the user one the right
             const rightPlayerElement = document.getElementById('right-player');
             if(rightPlayerElement && this.currentSession?.players[0])
                 rightPlayerElement.textContent = this.currentSession?.players[0].displayName;
-
+            this.showButtons({ start: false, pause: false, quit: false });
         }catch(error){
             console.error('Failed to initialize game:', error);
-            alert('Failed to initialize game from: initializeGame()');
+            alert('Failed to initialize game from: initializeStandalone()');
         }
+    }
+
+    private async initializeTournament() {
+        const left = this.opts?.displayNames?.leftName ?? "User 1c";
+        const right = this.opts?.displayNames?.rightName ?? "User 2d";
+
+        this.currentSession = {
+        sessionId: this.opts!.sessionId!,
+        status: "PLAYING",
+        players: [
+            { side: "LEFT", displayName: left, score: 0 },
+            { side: "RIGHT", displayName: right, score: 0 },
+        ],
+        } as GameSession;
+
+        // this.showButtons({ start: true, pause: false, quit: false });
     }
 
     private async addGuestPlayer(): Promise<void>{
@@ -253,6 +330,42 @@ export class Game implements IComponent {
         }
     }
 
+    private showButtons(v: { start: boolean; pause: boolean; quit: boolean }) {
+        const start = document.getElementById("start-btn") as HTMLElement;
+        const pause = document.getElementById("pause-btn") as HTMLElement;
+        const quit = document.getElementById("quit-btn") as HTMLElement;
+        if (start) start.style.display = v.start ? "block" : "none";
+        if (pause) pause.style.display = v.pause ? "block" : "none";
+        if (quit) quit.style.display = v.quit ? "block" : "none";
+    }
+
+    // -------------------------------------------------
+    // GAME LOOP + CONTROLS
+    // - controls how game runs frame-by-frame
+    // - manages runtime flow
+    // -------------------------------------------------
+    private startGameLoop(): void {
+        this.isGameRunning = true;
+        this.gameLoop();
+    }
+
+    private stopGameLoop(): void {
+        this.isGameRunning = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+    private async gameLoop(): Promise<void> {
+        if(!this.isGameRunning)
+            return;
+        await this.updateGame();
+        this.drawGame();
+
+        this.animationId = requestAnimationFrame(() => this.gameLoop());
+    }
+
     private async toggleGame(): Promise<void> {
         if (!this.currentSession) {
             alert('Game session not initialized, toggleGame()');
@@ -272,18 +385,70 @@ export class Game implements IComponent {
         }
     }
 
-    private startGameLoop(): void {
-        this.isGameRunning = true;
-        this.gameLoop();
+    private async pauseGame(): Promise<void>{
+        if(!this.currentSession)
+            return;
+
+        try{
+            if (this.isGameRunning){
+                await this.gameService.pauseGame(this.currentSession.sessionId);
+                this.stopGameLoop();
+                this.updateGameButtons(false);
+            }else{
+                await this.gameService.startGame(this.currentSession.sessionId);
+                this.startGameLoop();
+                this.updateGameButtons(true);
+            }
+        }catch(error){
+            console.log('failed t pause/resume the game')
+        }
     }
 
-    private async gameLoop(): Promise<void> {
-        if(!this.isGameRunning)
+    private async quitGame(): Promise<void> {
+        if (!this.currentSession) 
             return;
-        await this.updateGame();
-        this.drawGame();
+        
+        const confirmed = confirm('Are you sure you want to quit the game?');
+        
+        if (!confirmed)
+            return;
+        try {
+            await this.gameService.abortGame(this.currentSession.sessionId);
+            this.stopGameLoop();
+            this.resetGame();
+        } catch (error) {
+            console.error('Failed to quit game:', error);
+        }
+    }
 
-        this.animationId = requestAnimationFrame(() => this.gameLoop());
+    private resetGame(): void {
+        this.ball.x = this.canvas.width / 2;
+        this.ball.y = this.canvas.height / 2;
+        this.ball.dx = 5;
+        this.ball.dy = 3;
+        
+        this.drawInitialScreen();
+        
+        // Reset UI
+        const setupSection = document.getElementById('setup-section');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const quitBtn = document.getElementById('quit-btn');
+        
+        if (setupSection) setupSection.style.display = 'block';
+        if (startBtn) startBtn.style.display = 'none';
+        if (pauseBtn) pauseBtn.style.display = 'none';
+        if (quitBtn) quitBtn.style.display = 'none';
+
+        // Reset player names
+        const leftPlayerElement = document.getElementById('left-player');
+        const rightPlayerElement = document.getElementById('right-player');
+        if (leftPlayerElement) leftPlayerElement.textContent = 'Player 1';
+        if (rightPlayerElement) rightPlayerElement.textContent = 'Player 2';
+        
+        // Reset session
+        this.currentSession = null;
+        this.initializeStandalone();
     }
 
     private updateGameButtons(isPlaying: boolean): void {
@@ -303,15 +468,12 @@ export class Game implements IComponent {
             pauseBtn.textContent = 'Resume';
         }
     }
-
-    private stopGameLoop(): void {
-        this.isGameRunning = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-    }
-
+ 
+    // -------------------------------------------------
+    // GAME STATE UPDATES 
+    // - defines what happens each frame in gameplay
+    // - handles physics, scoring, drawing and determining winners
+    // -------------------------------------------------
     private updatePaddleMovement(): void {
         if(this.key['w'] && this.leftPaddle.y > 0){
             this.leftPaddle.y -= this.leftPaddle.speed;
@@ -362,35 +524,7 @@ export class Game implements IComponent {
         // Draw scores
         this.drawScores();
     }
-
-    private drawRoundedRect(
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        radius: number,
-        fillColor: string,
-        // strokeColor?: string
-    ) {
-        if (!this.context) return;
-        const ctx = this.context;
     
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-    
-        ctx.fillStyle = fillColor;
-        ctx.fill();
-    }
-
     private drawScores(): void {
         if (!this.currentSession)
             return;
@@ -407,36 +541,6 @@ export class Game implements IComponent {
        
         this.context.fillText(leftScore.toString(), this.canvas.width / 4, 80);
         this.context.fillText(rightScore.toString(), (3 * this.canvas.width) / 4, 80);
-    }
-
-    private resetGame(): void {
-        this.ball.x = this.canvas.width / 2;
-        this.ball.y = this.canvas.height / 2;
-        this.ball.dx = 5;
-        this.ball.dy = 3;
-        
-        this.drawInitialScreen();
-        
-        // Reset UI
-        const setupSection = document.getElementById('setup-section');
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const quitBtn = document.getElementById('quit-btn');
-        
-        if (setupSection) setupSection.style.display = 'block';
-        if (startBtn) startBtn.style.display = 'none';
-        if (pauseBtn) pauseBtn.style.display = 'none';
-        if (quitBtn) quitBtn.style.display = 'none';
-
-        // Reset player names
-        const leftPlayerElement = document.getElementById('left-player');
-        const rightPlayerElement = document.getElementById('right-player');
-        if (leftPlayerElement) leftPlayerElement.textContent = 'Player 1';
-        if (rightPlayerElement) rightPlayerElement.textContent = 'Player 2';
-        
-        // Reset session
-        this.currentSession = null;
-        this.initializeGame();
     }
 
     private async updateGame(): Promise<void> {
@@ -514,42 +618,6 @@ export class Game implements IComponent {
             }
         } catch (error) {
             console.error('Failed to finish game:', error);
-        }
-    }
-
-    private async pauseGame(): Promise<void>{
-        if(!this.currentSession)
-            return;
-
-        try{
-            if (this.isGameRunning){
-                await this.gameService.pauseGame(this.currentSession.sessionId);
-                this.stopGameLoop();
-                this.updateGameButtons(false);
-            }else{
-                await this.gameService.startGame(this.currentSession.sessionId);
-                this.startGameLoop();
-                this.updateGameButtons(true);
-            }
-        }catch(error){
-            console.log('failed t pause/resume the game')
-        }
-    }
-
-    private async quitGame(): Promise<void> {
-        if (!this.currentSession) 
-            return;
-        
-        const confirmed = confirm('Are you sure you want to quit the game?');
-        
-        if (!confirmed)
-            return;
-        try {
-            await this.gameService.abortGame(this.currentSession.sessionId);
-            this.stopGameLoop();
-            this.resetGame();
-        } catch (error) {
-            console.error('Failed to quit game:', error);
         }
     }
 }

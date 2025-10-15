@@ -2,6 +2,7 @@ import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import { createGameSession } from '../services/gameSessionService.js';
 import { createTournamentSchema, joinTournamentSchema, updateTournamentStatusSchema , getNextMatchSchema } from '../schemas/tournament.js';
+import { getParentMatchIndex } from '../services/tournamentService.js';
 
 async function tournamentRoutes(app, options) {
 
@@ -207,15 +208,54 @@ async function tournamentRoutes(app, options) {
 					],
 				});
 			} else { // Auto advance for odd number of players
+			  const winner = p1 && !p2 ? p1 : p2 && !p1 ? p2 : null;
+
 			  await prisma.tournamentMatch.updateMany({
 				where: { tournamentId: Number(tournamentId), matchIndex: i + 1 },
 				data: {
-				  player1Id: p1?.id ?? null,
-				  player2Id: p2?.id ?? null,
-				  ...(p1 && !p2 ? { winnerUserId: p1.userId ?? null, winnerPlayerId: p1.id } : {}),
-				  ...(p2 && !p1 ? { winnerUserId: p2.userId ?? null, winnerPlayerId: p2.id } : {}),
-				},
-			  });
+				player1Id: p1?.id ?? null,
+				player2Id: p2?.id ?? null,
+				...(winner
+					? {
+						winnerUserId: winner.userId ?? null,
+						winnerPlayerId: winner.id,
+					}
+					: {}),
+					},
+				});
+				if (winner) {
+					const parentIndex = getParentMatchIndex(i + 1, bracketSize);
+					const parentMatch = await prisma.tournamentMatch.findUnique({
+						where: { tournamentId_matchIndex: { tournamentId, matchIndex: parentIndex } },
+					});
+
+					if (parentMatch) {
+						const updateData = {};
+						if (!parentMatch.player1Id) updateData.player1Id = winner.id;
+						else if (!parentMatch.player2Id) updateData.player2Id = winner.id;
+
+						const updatedParent = await prisma.tournamentMatch.update({
+							where: { id: parentMatch.id },
+							data: updateData,
+						});
+
+						// If both players now exist, pre-create their game session
+						if (updatedParent.player1Id && updatedParent.player2Id && !updatedParent.gameSessionId) {
+							const parentPlayers = await prisma.tournamentPlayer.findMany({
+								where: { id: { in: [updatedParent.player1Id, updatedParent.player2Id] } },
+							});
+
+							await createGameSession(prisma, {
+								tournamentId,
+								matchIndex: updatedParent.matchIndex,
+								players: [
+									{ userId: parentPlayers[0].userId, guestName: parentPlayers[0].isGuest ? parentPlayers[0].displayName : null, side: 'LEFT' },
+									{ userId: parentPlayers[1].userId, guestName: parentPlayers[1].isGuest ? parentPlayers[1].displayName : null, side: 'RIGHT' },
+								],
+							});
+						}
+					}
+				}
 			}
 		  }
 		} else if (status === 'FINISHED' || status === 'ABORTED') {
@@ -268,7 +308,9 @@ async function tournamentRoutes(app, options) {
 				return reply.send({
 					tournamentId: Number(tournamentId),
 					nextMatch: {
+						matchId: nextMatch.id,
 						matchIndex: nextMatch.matchIndex,
+						tournamentId: Number(tournamentId),
 						player1: nextMatch.player1 
 							? { id: nextMatch.player1.id, displayName: nextMatch.player1.displayName }
 							: null,
