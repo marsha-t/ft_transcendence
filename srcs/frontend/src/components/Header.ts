@@ -1,9 +1,9 @@
-import { IComponent } from "./IComponent";
+import { IComponent } from "../components/IComponent";
+
 
 export class Header implements IComponent {
     
     public render(): HTMLElement {
-        // === HEADER ===
         const header = document.createElement('header');
         header.className = `bg-color-yellow pb-3`;
 
@@ -11,13 +11,27 @@ export class Header implements IComponent {
         subHeader.className = `bg-background py-6 rounded-[16px]
             shadow-[0_4px_4px_rgba(0,0,0,0.50)]`;
 
-        // === NAV CONTAINER ===
-        const nav = document.createElement('nav');
-        nav.className = `
-            flex justify-between items-center  
-            px-[20px] ml-0 mr-[60px]`;
+        const nav = this.createNav();
+        subHeader.appendChild(nav);
+        header.appendChild(subHeader);
 
-        // === LOGO ===
+        return header;
+    }
+
+    private createNav(): HTMLElement {
+        const nav = document.createElement('nav');
+        nav.className = `flex justify-between items-center px-[20px] ml-0 mr-[60px]`;
+
+        const logo = this.createLogo();
+        const rightNav = this.createRightNav();
+
+        nav.appendChild(logo);
+        nav.appendChild(rightNav);
+
+        return nav;
+    }
+
+    private createLogo(): HTMLElement {
         const logo = document.createElement('a');
         logo.href = '/main';
         logo.className = `flex items-center gap-[6px] no-underline`;
@@ -28,10 +42,7 @@ export class Header implements IComponent {
         });
 
         const logoText = document.createElement('span');
-        logoText.className = `
-            text-[24px] font-press 
-            text-color_white
-        `;
+        logoText.className = `text-[24px] font-press text-color_white`;
         logoText.textContent = 'PONG';
 
         const logoIcon = document.createElement('img');
@@ -42,218 +53,159 @@ export class Header implements IComponent {
         logo.appendChild(logoIcon);
         logo.appendChild(logoText);
 
-        // === RIGHT NAVIGATION ===
+        return logo;
+    }
+
+    private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
         rightNav.className = 'flex items-center gap-[32px]';
 
-        // === LINKS GROUP (Home, Creators, Profile) ===
         const linksGroup = document.createElement('div');
         linksGroup.className = 'flex items-center gap-[24px] font-pixel';
 
-        // === BUTTONS GROUP (Login, Register) ===
         const buttonsGroup = document.createElement('div');
         buttonsGroup.className = 'flex items-center gap-[24px]';
 
-        // === ALL LINKS ===
         const links = [
             {text: 'Home', href: '/main', type: 'link'},
             {text: 'Creators', href: '/creators', type: 'link'},
             {text: 'Profile', href: '/profile', type: 'link'},
-            {text: 'Login', href: '/login', type: 'link', className: 'login_btn'},
-            {text: 'Register', href: '/register', type: 'link', className: 'register_btn'},
+            {text: 'Login', href: '/login', type: 'link'},
+            {text: 'Register', href: '/register', type: 'link'},
         ];
 
-        // === FUNCTION TO UPDATE ACTIVE LINK ===
-        const updateActiveLink = () => {
-            const currentPath = window.location.pathname;
-            
-            // Update all navigation links
-            linksGroup.querySelectorAll('a').forEach(navLink => {
-                const href = navLink.getAttribute('href');
-                const baseClass = `
-                    text-[14px]
-                    font-pixel
-                    no-underline
-                    underline-offset-[3px]
-                    transition-all duration-200
-                    decoration-2
-                `;
-                
-                if (href === currentPath) {
-                    navLink.style.textDecoration = 'underline';
-                    navLink.style.textDecorationColor = 'var(--color-yellow)';
-                    navLink.className = `
-                        ${baseClass}
-                        text-color-yellow
-                    `;
-                } else {
-                    navLink.style.textDecoration = 'none';
-                    navLink.className = `
-                        ${baseClass}
-                        text-color_white
-                        hover:underline
-                        hover:text-color-yellow
-                    `;
-                }
-            });
-            // Update Login and Register buttons
-            buttonsGroup.querySelectorAll('a').forEach(btn => {
-                const href = btn.getAttribute('href');
-                const isLogin = btn.textContent === 'Login';
-                const isRegister = btn.textContent === 'Register';
-                
-                if (isLogin) {
-                    if (href === currentPath) {
-                        // Active state - green background
-                        btn.className = `
-                            w-[138px] h-[36px] 
-                            px-4 rounded-[8px] tracking-[0.4em]
-                            text-[16px] font-pixel
-                            text-color_white bg-color-green
-                            border border-[1px] border-border-green
-                            inline-flex justify-center items-center
-                            no-underline cursor-pointer
-                            transition-colors duration-200 ease-in-out`;
-                    } else {
-                        // Normal state
-                        btn.className = `
-                            w-[138px] h-[36px]
-                            px-4 rounded-[8px] tracking-[0.4em]
-                            text-[16px] font-pixel
-                            text-color_white
-                            border border-[1px] border-border-green
-                            inline-flex justify-center items-center
-                            no-underline cursor-pointer
-                            transition-colors duration-200 ease-in-out
-                            hover:bg-color-green
-                            hover:text-color_white`;
-                    }
-                }
-                
-                if (isRegister) {
-                    if (href === currentPath) {
-                        // Active state - green background
-                        btn.className = `
-                            w-[188px] h-[36px]
-                            px-4 rounded-[8px] tracking-[0.4em]
-                            text-[16px] font-pixel
-                            text-color_white
-                            bg-color-green
-                            border border-[1px] border-border-green
-                            inline-flex justify-center items-center
-                            no-underline cursor-pointer
-                            transition-colors duration-200 ease-in-out`;
-                    } else {
-                        // Normal state
-                        btn.className = `
-                            w-[188px] h-[36px]
-                            px-4 rounded-[8px]  tracking-[0.4em]
-                            text-[16px] font-pixel
-                            text-color_white
-                            border border-[1px] border-border-green
-                            inline-flex justify-center items-center
-                            no-underline cursor-pointer
-                            transition-colors duration-200 ease-in-out
-                            hover:bg-color-green
-                            hover:text-color_white`;
-                    }
-                }
-            });
-        };
-
-        // === CREATE EACH LINK ===
         links.forEach(link => {
-            const a = document.createElement('a');
-            a.href = link.href;
-            a.textContent = link.text;
-
-            if (link.text === 'Login') {
-                // LOGIN BUTTON
-                a.className = `
-                    w-[138px] h-[48px]
-                    px-4 rounded-4px
-                    text-[16px] font-pixel
-                    text-color_white
-                    border border-[1px] border-border-green
-                    inline-flex justify-center items-center
-                    no-underline cursor-pointer
-                    transition-colors duration-200 ease-in-out
-                    hover:bg-color-green
-                    hover:text-color_white`;
-            } else if (link.text === 'Register') {
-                // REGISTER BUTTON
-                a.className = `
-                    w-[87px] h-[54px]
-                    px-4 rounded-full 
-                    text-[16px] font-pixel
-                    text-color_white
-                    border border-[0.2px] border-[var(--button-border-light)]
-                    inline-flex justify-center items-center
-                    no-underline cursor-pointer
-                    transition-colors duration-200 ease-in-out
-                    hover:bg-[var(--color-primary)]
-                    hover:text-[var(--color-primary-dark)]`;
-            } else {
-                // NORMAL NAVIGATION LINKS (Home, Creators, Profile)
-                const currentPath = window.location.pathname;
-
-                // Base Tailwind classes
-                let baseClass = `
-                    text-[14px]
-                    font-pixel
-                    no-underline
-                    underline-offset-[3px]
-                    transition-all duration-200
-                    decoration-2`;
-
-                // If the link's href matches the current page, make it active
-                if (link.href === currentPath) {
-                    a.className = `
-                        ${baseClass}
-                        text-color-yellow
-                        underline
-                    `;
-                } else {
-                    a.className = `
-                        ${baseClass}
-                        text-color_white
-                        hover:underline
-                        hover:text-color-yellow
-                    `;
-                }
-            }
-
-
-            // Append link to the correct group
+            const a = this.createLink(link);
             (link.text === 'Login' || link.text === 'Register'
                 ? buttonsGroup
                 : linksGroup
             ).appendChild(a);
         });
 
-        // === COMBINE EVERYTHING ===
         rightNav.appendChild(linksGroup);
         rightNav.appendChild(buttonsGroup);
 
-        nav.appendChild(logo);
-        nav.appendChild(rightNav);
+        // Setup active link updating
+        this.setupActiveLinks(linksGroup, buttonsGroup);
 
-        subHeader.appendChild(nav);
-        header.appendChild(subHeader);
-
-        // Listen for route changes and update active link
-        const popstateHandler = () => {
-            updateActiveLink();
-        };
-        window.addEventListener('popstate', popstateHandler);
-        
-        // Set initial active state
-        updateActiveLink();
-
-        // Store handler reference for cleanup (optional, but good practice)
-        (header as any).__popstateHandler = popstateHandler;
-
-        return header;
+        return rightNav;
     }
 
+    private createLink(link: {text: string, href: string, type: string}): HTMLElement {
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.text;
+
+        if (link.text === 'Login') {
+            a.className = `
+                w-[138px] h-[36px]
+                px-4 rounded-[8px] tracking-[0.4em]
+                text-[16px] font-pixel
+                text-color_white
+                border border-[1px] border-border-green
+                inline-flex justify-center items-center
+                no-underline cursor-pointer
+                transition-colors duration-200 ease-in-out
+                hover:bg-color-green
+                hover:text-color_white`;
+        } else if (link.text === 'Register') {
+            a.className = `
+                w-[188px] h-[36px]
+                px-4 rounded-[8px] tracking-[0.4em]
+                text-[16px] font-pixel
+                text-color_white
+                border border-[1px] border-border-green
+                inline-flex justify-center items-center
+                no-underline cursor-pointer
+                transition-colors duration-200 ease-in-out
+                hover:bg-color-green
+                hover:text-color_white`;
+        } else {
+            a.className = this.getNavLinkClasses(link.href);
+        }
+
+        return a;
+    }
+
+    private getNavLinkClasses(href: string): string {
+        const currentPath = window.location.pathname;
+        const baseClass = `
+            text-[14px] font-pixel no-underline
+            underline-offset-[3px] transition-all duration-200 decoration-2`;
+
+        if (href === currentPath) {
+            return `${baseClass} text-color-yellow underline`;
+        } else {
+            return `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+        }
+    }
+
+    private setupActiveLinks(linksGroup: HTMLElement, buttonsGroup: HTMLElement): void {
+        const updateActiveLink = () => {
+            const currentPath = window.location.pathname;
+            
+            // Update navigation links
+            linksGroup.querySelectorAll('a').forEach(navLink => {
+                const href = navLink.getAttribute('href');
+                const baseClass = `
+                    text-[14px] font-pixel no-underline
+                    underline-offset-[3px] transition-all duration-200 decoration-2`;
+                
+                if (href === currentPath) {
+                    navLink.style.textDecoration = 'underline';
+                    navLink.style.textDecorationColor = 'var(--color-yellow)';
+                    navLink.className = `${baseClass} text-color-yellow`;
+                } else {
+                    navLink.style.textDecoration = 'none';
+                    navLink.className = `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+                }
+            });
+
+            // Update buttons
+            buttonsGroup.querySelectorAll('a').forEach(btn => {
+                this.updateButtonState(btn, currentPath);
+            });
+        };
+
+        window.addEventListener('popstate', updateActiveLink);
+        updateActiveLink();
+    }
+
+    private updateButtonState(btn: Element, currentPath: string): void {
+        const href = btn.getAttribute('href');
+        const isLogin = btn.textContent === 'Login';
+        const isRegister = btn.textContent === 'Register';
+        
+        if (isLogin) {
+            btn.className = this.getLoginButtonClasses(href === currentPath);
+        }
+        
+        if (isRegister) {
+            btn.className = this.getRegisterButtonClasses(href === currentPath);
+        }
+    }
+
+    private getLoginButtonClasses(isActive: boolean): string {
+        const baseClasses = `
+            w-[138px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
+            text-[16px] font-pixel text-color_white
+            border border-[1px] border-border-green
+            inline-flex justify-center items-center
+            no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
+        
+        return isActive ? `${baseClasses} bg-color-green`
+            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+    }
+
+    private getRegisterButtonClasses(isActive: boolean): string {
+        const baseClasses = `
+            w-[188px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
+            text-[16px] font-pixel text-color_white
+            border border-[1px] border-border-green
+            inline-flex justify-center items-center
+            no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
+        
+        return isActive ? `${baseClasses} bg-color-green`
+            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+    }
 }
