@@ -44,15 +44,26 @@ export class Tournament implements IComponent {
 			case "match":
 				this.showMatchPage();
 				break;
-			// case "result":
-			// 	this.showResultsPage();
-			// 	break;
+			case "results":
+				this.showResultsPage();
+				break;
 			default:
 				this.showSetupPage();
 		}
 	}
 
+	//----------------------------------------
+	// PAGE FUNCTIONS 
+	// - functions to show specific page in tournament flow
+	//----------------------------------------
 	private showSetupPage() {
+		// Reset state
+		this.tournamentId = null;
+		this.numberOfPlayers = null;
+		this.players = [];
+		this.playerIndex = 0;
+		this.isLoading = false;
+
 		const tournamentSetup = document.createElement("div");
 		tournamentSetup.className = "tournament-setup";
 
@@ -225,154 +236,183 @@ export class Tournament implements IComponent {
 		addPlayerSetup.appendChild(submitButton);
 		this.container.appendChild(addPlayerSetup);
 	}
-private showLineupPage() {
-  const lineUp = document.createElement("div");
-  lineUp.classList.add("lineup-container");
+	private showLineupPage() {
+		const lineUp = document.createElement("div");
+		lineUp.classList.add("lineup-container");
 
-  const heading = document.createElement("h2");
-  heading.textContent = "Tournament Players";
-  lineUp.appendChild(heading);
+		const heading = document.createElement("h2");
+		heading.textContent = "Tournament Players";
+		lineUp.appendChild(heading);
 
-  const list = document.createElement("ul");
-  this.players.forEach((p, index) => {
-    const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${p.displayName}`;
-    list.appendChild(li);
-  });
-  lineUp.appendChild(list);
-
-  const startButton = document.createElement("button");
-  startButton.textContent = "Start Tournament";
-  lineUp.appendChild(startButton);
-
-  startButton.addEventListener("click", async () => {
-    startButton.disabled = true;
-    startButton.textContent = "Starting...";
-    const response = await apiServices.tournament.updateTournamentStatus(
-      this.tournamentId!,
-      "STARTED"
-    );
-    if (!response.success) {
-      alert(response.message || "Failed to start tournament");
-      return;
-    }
-    this.currentStep = "match";
-    this.renderStep();
-  });
-
-  this.container.appendChild(lineUp);
-}
-
-private async showMatchPage() {
-  try {
-    const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
-    if (!response.success) return this.showMessage(response.message || "Failed to fetch next match", "error");
-
-    const data = response.data;
-    if (!data?.nextMatch) {
-      this.currentStep = "results";
-      this.renderStep();
-      return;
-    }
-
-    const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
-
-    // Clear container for this match
-    this.container.innerHTML = "";
-
-    // --- Main Match Container ---
-    const matchWrapper = document.createElement("div");
-    matchWrapper.className = "match-container";
-
-    // --- Match Info ---
-    const matchInfo = document.createElement("div");
-    matchInfo.className = "match-info";
-    const heading = document.createElement("h3");
-    heading.textContent = `Match ${matchIndex}`;
-    matchInfo.appendChild(heading);
-
-    const playersInfo = document.createElement("p");
-    playersInfo.textContent = `${player1?.displayName} vs ${player2?.displayName}`;
-    matchInfo.appendChild(playersInfo);
-    matchWrapper.appendChild(matchInfo);
-
-    // --- Ready Button ---
-    const readyContainer = document.createElement("div");
-    readyContainer.className = "ready-container";
-    const readyButton = document.createElement("button");
-    readyButton.textContent = "Ready";
-
-    readyButton.addEventListener("click", async () => {
-      readyButton.disabled = true;
-      readyButton.textContent = "Starting...";
-
-    //   await apiServices.game.updateGameStatus(String(gameSessionId), "PLAYING");
-
-      // Render game directly in matchWrapper
-      matchWrapper.innerHTML = "";
-     
-	  	// Pass tournament match info into Game
-		const session = {
-			sessionId: String(gameSessionId),
-			status: "CREATED",
-			players: [
-				{ side: "LEFT", displayName: player1?.displayName ?? "Player 1", score: 0 },
-				{ side: "RIGHT", displayName: player2?.displayName ?? "Player 2", score: 0 },
-			],
-			tournamentMatch: {
-				id: data.nextMatch!.matchId,
-				tournamentId: data.nextMatch!.tournamentId,
-				matchIndex: data.nextMatch!.matchIndex,
-			},
-		};
-
-		const game = new Game({ 
-			sessionId: String(gameSessionId), 
-			isTournament: true,
-			displayNames: {
-				leftName: player1?.displayName ?? "Player 1",
-				rightName: player2?.displayName ?? "Player 2",
-			},
+		const list = document.createElement("ul");
+		this.players.forEach((p, index) => {
+			const li = document.createElement("li");
+			li.textContent = `${index + 1}. ${p.displayName}`;
+			list.appendChild(li);
 		});
-		matchWrapper.appendChild(game.render());
+		lineUp.appendChild(list);
+
+		const startButton = document.createElement("button");
+		startButton.textContent = "Start Tournament";
+		lineUp.appendChild(startButton);
+
+		startButton.addEventListener("click", async () => {
+			startButton.disabled = true;
+			startButton.textContent = "Starting...";
+			const response = await apiServices.tournament.updateTournamentStatus(
+				this.tournamentId!,
+				"STARTED"
+			);
+			if (!response.success) {
+				alert(response.message || "Failed to start tournament");
+				return;
+			}
+			this.currentStep = "match";
+			this.renderStep();
+		});
+
+		this.container.appendChild(lineUp);
+	}
+
+	private async showMatchPage() {
+		try {
+			const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
+			if (!response.success) return this.showMessage(response.message || "Failed to fetch next match", "error");
+
+			const data = response.data;
+			if (!data?.nextMatch) {
+			this.currentStep = "results";
+			this.renderStep();
+			return;
+			}
+
+			const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
+
+			// Clear container for this match
+			this.container.innerHTML = "";
+
+			// --- Main Match Container ---
+			const matchWrapper = document.createElement("div");
+			matchWrapper.className = "match-container";
+
+			// --- Match Info ---
+			const matchInfo = document.createElement("div");
+			matchInfo.className = "match-info";
+			const heading = document.createElement("h3");
+			heading.textContent = `Match ${matchIndex}`;
+			matchInfo.appendChild(heading);
+
+			const playersInfo = document.createElement("p");
+			playersInfo.textContent = `${player1?.displayName} vs ${player2?.displayName}`;
+			matchInfo.appendChild(playersInfo);
+			matchWrapper.appendChild(matchInfo);
+
+			// --- Ready Button ---
+			const readyContainer = document.createElement("div");
+			readyContainer.className = "ready-container";
+			const readyButton = document.createElement("button");
+			readyButton.textContent = "Ready";
+
+			readyButton.addEventListener("click", async () => {
+				readyButton.disabled = true;
+				readyButton.textContent = "Starting...";
+
+				// Render game directly in matchWrapper
+				matchWrapper.innerHTML = "";
+				const game = new Game({ 
+					sessionId: String(gameSessionId), 
+					isTournament: true,
+					displayNames: {
+						leftName: player1?.displayName ?? "Player 1",
+						rightName: player2?.displayName ?? "Player 2",
+					},
+					onMatchEnd: () => this.showMatchPage(),
+				});
+				matchWrapper.appendChild(game.render());
+			});
+
+			readyContainer.appendChild(readyButton);
+			matchWrapper.appendChild(readyContainer);
+			this.container.appendChild(matchWrapper);
+		} catch (err) {
+			console.error(err);
+			this.showMessage("Error loading match", "error");
+		}
+	}
+
 	
+	private async showResultsPage() {
+		this.container.innerHTML = "";
 
-      // --- Next Match Button ---
-      const nextContainer = document.createElement("div");
-      nextContainer.className = "next-container";
-      const nextButton = document.createElement("button");
-      nextButton.textContent = "Next Match";
-      nextButton.addEventListener("click", () => this.showMatchPage());
-      nextContainer.appendChild(nextButton);
+		const results = document.createElement("div");
+		results.className = "result-container";
+		const heading = document.createElement("h2");
+		heading.textContent = "Tournament Results";
+		results.appendChild(heading);
 
-      matchWrapper.appendChild(nextContainer);
-    });
+		// Fetch results
+		const response = await apiServices.tournament.getNextMatch(this.tournamentId!);
+		if (!response.success || !response.data?.results) {
+			return this.showMessage(response.message || "Failed to load results", "error");
+		}
 
-    readyContainer.appendChild(readyButton);
-    matchWrapper.appendChild(readyContainer);
+		const { champion , bracket, stats} = response.data.results;
 
-    this.container.appendChild(matchWrapper);
+		// Champion section
+		const championDiv = document.createElement("div");
+		championDiv.className = "champion-section";
+		championDiv.innerHTML = `
+			<h3>Champion</h3>
+			<p class="champion-name">${champion ?? "-"}</p>`;
+		results.appendChild(championDiv);
 
-  } catch (err) {
-    console.error(err);
-    this.showMessage("Error loading match", "error");
-  }
-}
+		// Bracket section
+		const bracketDiv = document.createElement("div");
+		bracketDiv.className = "bracket-section";
+		bracketDiv.innerHTML = `<h3>Matches</h3>`;
+		const table = document.createElement("table");
+		table.className = "bracket-table";
+		table.innerHTML = `
+			<tr><th>Match</th><th>Player 1</th><th>Player 2</th><th>Winner</th></tr>
+			${bracket.map((m) => `<tr>
+				<td>${m.matchIndex}</td>
+				<td>${m.player1 ?? "-"}</td>
+				<td>${m.player2 ?? "-"}</td>
+				<td>${m.winner ?? "-"} </td>
+			</tr>`).join("")}
+		`;
+		bracketDiv.appendChild(table);
+		results.appendChild(bracketDiv);
 
+		// Stats section
+		const statsDiv = document.createElement("div");
+		statsDiv.className = "stats-section";
+		statsDiv.innerHTML = `
+			<h3>Stats</h3>
+			<p>Total Matches: ${stats.totalMatches}</p>
+			<p>Played Matches: ${stats.playedMatches}</p>
+		`;
+		results.appendChild(statsDiv);
+
+		// New Tournament Button
+		const newBtn = document.createElement("button");
+		newBtn.textContent = "Start New Tournament";
+		newBtn.className = "new-tournament-btn";
+		newBtn.addEventListener("click", () => {
+			this.players = [];
+			this.tournamentId = null;
+			this.currentStep = "setup";
+			this.renderStep();
+		});
+		results.appendChild(newBtn);
+
+		this.container.appendChild(results);
+	}
+
+	//----------------------------------------
+	// HELPER FUNCTIONS
+	//----------------------------------------
 	
-	// private showResultsPage() {
-		
-	// }
-
-	// private goBack() {
-	// 	if (this.currentStep === "addPlayers")
-	// 		this.currentStep = "setup";
-	// 	else if (this.currentStep === "lineup")
-	// 		this.currentStep = "addPlayers";
-	// 	else if (this.currentStep === "match")
-	// 		this.currentStep = "lineup";
-	// 	this.renderStep();
-	// }
 	private loadStyles() {
 		if (document.getElementById("tournament-styles")) return;
 
@@ -395,7 +435,6 @@ private async showMatchPage() {
         }
         // Scroll to top to show message
         this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
     }
 }
 
