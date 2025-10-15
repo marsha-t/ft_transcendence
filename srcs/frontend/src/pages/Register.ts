@@ -12,7 +12,7 @@ export class Register implements IComponent {
     public render(): HTMLElement {
         this.container = document.createElement('div');
         this.container.className = `
-            flex justify-center bg-background-yellow
+            flex justify-center bg-color-yellow
              min-h-[85vh] py-[23px]`;
     
         // === SUBcontainer ===

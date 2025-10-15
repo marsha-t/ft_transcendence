@@ -5,7 +5,7 @@ export class Main implements IComponent {
     const container = document.createElement('div');
     container.className = `
       flex justify-center
-      flex-wrap min-h-[85vh] py-[23px] 
+      flex-wrap min-h-[85vh] pt-3 pb-[23px]
       bg-color-yellow`;
 
     // === SUBcontainer ===
