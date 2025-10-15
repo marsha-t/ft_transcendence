@@ -117,7 +117,9 @@ export const getNextMatchSchema = {
 						{
 							type: 'object',
 							properties: {
+								matchId: { type: 'integer' },
 								matchIndex: { type: 'integer' },
+								tournamentId: { type: 'integer' },
 								player1: { 
 									anyOf: [ { type: 'object', properties: { id: { type: 'integer' }, displayName: { type: 'string' }, }, required: ['id', 'displayName'], },
 											{ type: 'null' }, ],
