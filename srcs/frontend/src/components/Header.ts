@@ -5,14 +5,17 @@ export class Header implements IComponent {
     public render(): HTMLElement {
         // === HEADER ===
         const header = document.createElement('header');
-        header.className = `bg-background px-5 py-2.5 shadow-md`;
+        header.className = `bg-color-yellow pb-3`;
+
+        const subHeader = document.createElement('div');
+        subHeader.className = `bg-background py-6 rounded-[16px]
+            shadow-[0_4px_4px_rgba(0,0,0,0.50)]`;
 
         // === NAV CONTAINER ===
         const nav = document.createElement('nav');
         nav.className = `
             flex justify-between items-center  
-            px-[20px] ml-0 mr-[60px]
-        `;
+            px-[20px] ml-0 mr-[60px]`;
 
         // === LOGO ===
         const logo = document.createElement('a');
@@ -93,6 +96,69 @@ export class Header implements IComponent {
                     `;
                 }
             });
+            // Update Login and Register buttons
+            buttonsGroup.querySelectorAll('a').forEach(btn => {
+                const href = btn.getAttribute('href');
+                const isLogin = btn.textContent === 'Login';
+                const isRegister = btn.textContent === 'Register';
+                
+                if (isLogin) {
+                    if (href === currentPath) {
+                        // Active state - green background
+                        btn.className = `
+                            w-[138px] h-[36px] 
+                            px-4 rounded-[8px] tracking-[0.4em]
+                            text-[16px] font-pixel
+                            text-color_white bg-color-green
+                            border border-[1px] border-border-green
+                            inline-flex justify-center items-center
+                            no-underline cursor-pointer
+                            transition-colors duration-200 ease-in-out`;
+                    } else {
+                        // Normal state
+                        btn.className = `
+                            w-[138px] h-[36px]
+                            px-4 rounded-[8px] tracking-[0.4em]
+                            text-[16px] font-pixel
+                            text-color_white
+                            border border-[1px] border-border-green
+                            inline-flex justify-center items-center
+                            no-underline cursor-pointer
+                            transition-colors duration-200 ease-in-out
+                            hover:bg-color-green
+                            hover:text-color_white`;
+                    }
+                }
+                
+                if (isRegister) {
+                    if (href === currentPath) {
+                        // Active state - green background
+                        btn.className = `
+                            w-[188px] h-[36px]
+                            px-4 rounded-[8px] tracking-[0.4em]
+                            text-[16px] font-pixel
+                            text-color_white
+                            bg-color-green
+                            border border-[1px] border-border-green
+                            inline-flex justify-center items-center
+                            no-underline cursor-pointer
+                            transition-colors duration-200 ease-in-out`;
+                    } else {
+                        // Normal state
+                        btn.className = `
+                            w-[188px] h-[36px]
+                            px-4 rounded-[8px]  tracking-[0.4em]
+                            text-[16px] font-pixel
+                            text-color_white
+                            border border-[1px] border-border-green
+                            inline-flex justify-center items-center
+                            no-underline cursor-pointer
+                            transition-colors duration-200 ease-in-out
+                            hover:bg-color-green
+                            hover:text-color_white`;
+                    }
+                }
+            });
         };
 
         // === CREATE EACH LINK ===
@@ -113,8 +179,7 @@ export class Header implements IComponent {
                     no-underline cursor-pointer
                     transition-colors duration-200 ease-in-out
                     hover:bg-color-green
-                    hover:text-color_white
-                `;
+                    hover:text-color_white`;
             } else if (link.text === 'Register') {
                 // REGISTER BUTTON
                 a.className = `
@@ -127,8 +192,7 @@ export class Header implements IComponent {
                     no-underline cursor-pointer
                     transition-colors duration-200 ease-in-out
                     hover:bg-[var(--color-primary)]
-                    hover:text-[var(--color-primary-dark)]
-                `;
+                    hover:text-[var(--color-primary-dark)]`;
             } else {
                 // NORMAL NAVIGATION LINKS (Home, Creators, Profile)
                 const currentPath = window.location.pathname;
@@ -140,8 +204,7 @@ export class Header implements IComponent {
                     no-underline
                     underline-offset-[3px]
                     transition-all duration-200
-                    decoration-2
-                `;
+                    decoration-2`;
 
                 // If the link's href matches the current page, make it active
                 if (link.href === currentPath) {
@@ -174,7 +237,9 @@ export class Header implements IComponent {
 
         nav.appendChild(logo);
         nav.appendChild(rightNav);
-        header.appendChild(nav);
+
+        subHeader.appendChild(nav);
+        header.appendChild(subHeader);
 
         // Listen for route changes and update active link
         const popstateHandler = () => {
