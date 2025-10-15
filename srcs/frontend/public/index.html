@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="/styles/tailwind.css">
 
 </head>
-<body>
-    <div id="app">
+<body class="min-h-screen flex flex-col bg-color-yellow">
+    <div id="app" class="flex flex-col flex-1">
         <header id="header-container"></header>
-        <main id="content-container"></main>
+        <main id="content-container" class="flex-1 overflow-y-auto"></main>
         <footer id="footer-container"></footer>
     </div>
     <script type="module" src="js/main.js"></script>
