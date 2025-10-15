@@ -343,20 +343,27 @@ async function friendsRoutes(app, options) {
         where: { senderId: currentUserId, status: 'PENDING' },
         select: { receiverId: true }
       });
-      // 3. Filter out only friends and incoming requests
-      const filteredUsers = users.filter(u => {
-        const isFriend = friends.some(f => f.senderId === u.id || f.receiverId === u.id);
-        const hasIncoming = incomingRequests.some(r => r.senderId === u.id);
-        const hasSentRequest = outgoingRequests.some(r => r.receiverId === u.id);
-        if (isFriend || hasIncoming) return null;
+      // Normalize all IDs to numbers and precompute sets for faster, type-safe comparisons
+      const userResults = users.map(u => ({ ...u, id: Number(u.id) }));
+      const friendOtherIds = new Set();
+      friends.forEach(f => {
+        const s = Number(f.senderId);
+        const r = Number(f.receiverId);
+        if (s !== currentUserId) friendOtherIds.add(s);
+        if (r !== currentUserId) friendOtherIds.add(r);
+      });
+      const incomingSenderIds = new Set(incomingRequests.map(r => Number(r.senderId)));
+      const outgoingReceiverIds = new Set(outgoingRequests.map(r => Number(r.receiverId)));
 
-        return {
+      // 3. Filter out friends and incoming requests; mark outgoing as pending
+      const filteredUsers = userResults
+        .filter(u => !friendOtherIds.has(u.id) && !incomingSenderIds.has(u.id))
+        .map(u => ({
           id: u.id,
           username: u.username,
           avatar: u.avatar,
-          friendStatus: hasSentRequest ? "pending_sent" : "not_friend"
-        };
-    }).filter(u => u !== null);
+          friendStatus: outgoingReceiverIds.has(u.id) ? 'pending_sent' : 'not_friend'
+        }));
   
       return reply.code(200).send(filteredUsers);
 

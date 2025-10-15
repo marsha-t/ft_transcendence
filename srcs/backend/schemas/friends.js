@@ -219,7 +219,7 @@ export const searchFriendsSchema = {
           id: { type: 'integer' }, 
           username: { type: 'string' }, 
           avatar: { type: 'string' },
-          status: { type: 'string' } 
+          friendStatus: { type: 'string', enum: ['not_friend', 'pending_sent'] }
         } 
       }
     },
