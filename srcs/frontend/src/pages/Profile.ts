@@ -13,6 +13,9 @@ export class Profile implements IComponent {
   private profileService: ProfileServices;
   private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
+  private sentRequestsCache: Set<string> = new Set(); // ✅ global cache for pending friend requests
+
+
 
   constructor() {
       this.profileService = new ProfileServices();
@@ -95,7 +98,7 @@ export class Profile implements IComponent {
 
     const addFriendBtn = document.createElement("button");
     addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
-    addFriendBtn.className = "add-friend-btn";
+    addFriendBtn.className = "search-btn";
     const addFriendText = document.createElement("span");
     addFriendText.textContent = "Add Friend";
     addFriendBtn.appendChild(addFriendText);
@@ -314,7 +317,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     // Buttons
     const buttons = document.createElement("div");
     buttons.className = "request-buttons";
-    const profileServices = new ProfileServices();
+    const profileServices = this.profileService;
     const acceptBtn = document.createElement("button");
     acceptBtn.className = "accept-btn";
     acceptBtn.textContent = "Accept";
@@ -508,7 +511,6 @@ private openAddFriendPopup(): void {
   searchInput.placeholder = "Search username...";
   searchInput.className = "search-input";
 
-  // Container for search results
   const resultsContainer = document.createElement("div");
   resultsContainer.className = "search-results";
 
@@ -518,13 +520,80 @@ private openAddFriendPopup(): void {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
-  // Create a service instance
   const service = new ProfileServices();
-
-  // Add a small delay to avoid hitting the API on every keystroke (debounce)
+  const sentRequests = this.sentRequestsCache; // use class-level cache
+  const backendUrl = "http://localhost:5001";
+  const debounceDelay = 400;
   let typingTimer: any;
-  const debounceDelay = 400; // ms
 
+  // 🧩 Reusable render function
+  const renderResults = (data: UserSearchResult[]) => {
+    resultsContainer.innerHTML = ""; // Clear old results
+
+    if (!data || data.length === 0) {
+      resultsContainer.innerHTML = "<p class='no-results'>No users found</p>";
+      return;
+    }
+
+    data.forEach((user) => {
+      console.log(`${user.username}: ${user.friendStatus}`);
+      const userDiv = document.createElement("div");
+      userDiv.className = "search-item";
+
+      const avatar = document.createElement("div");
+      avatar.style.backgroundImage = `url(${backendUrl}${user.avatar})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
+      avatar.className = "search-userAvatar";
+
+      const name = document.createElement("span");
+      name.className = "search-username";
+      name.textContent = user.username;
+
+      const action = document.createElement("div");
+      action.className = "search-action";
+
+      const isPending =
+        sentRequests.has(user.username) ||
+        user.friendStatus === "pending_sent"
+
+      if (isPending) {
+        const pendingLabel = document.createElement("span");
+        pendingLabel.textContent = "Pending";
+        pendingLabel.className = "pending-label";
+        action.appendChild(pendingLabel);
+      } else {
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add Friend";
+        addBtn.className = "addFriend-btn";
+
+        addBtn.addEventListener("click", async () => {
+          const res = await service.sendFriendRequest(user.username);
+          if (res.success) {
+            sentRequests.add(user.username); // Track locally
+            addBtn.textContent = "Pending";
+            addBtn.disabled = true;
+
+            // Optional: refresh from backend for consistency
+            const refreshed = await service.searchUsers(searchInput.value.trim());
+            if (refreshed.success && refreshed.data)
+              renderResults(refreshed.data);
+          } else {
+            alert(res.message || "Failed to send friend request");
+          }
+        });
+
+        action.appendChild(addBtn);
+      }
+
+      userDiv.appendChild(avatar);
+      userDiv.appendChild(name);
+      userDiv.appendChild(action);
+      resultsContainer.appendChild(userDiv);
+    });
+  };
+
+  // 🕐 Debounced search input
   searchInput.addEventListener("input", () => {
     clearTimeout(typingTimer);
     const query = searchInput.value.trim();
@@ -538,60 +607,8 @@ private openAddFriendPopup(): void {
 
     typingTimer = setTimeout(async () => {
       const response = await service.searchUsers(query);
-
-      resultsContainer.innerHTML = ""; // clear before showing new results
-
-      if (!response.success || !response.data || response.data.length === 0) {
-        resultsContainer.innerHTML = "<p class='no-results'>No users found</p>";
-        return;
-      }
-
-      // Render results
-      response.data.forEach((user) => {
-        const userDiv = document.createElement("div");
-        userDiv.className = "search-item";
-
-        const avatar = document.createElement("div");
-        const backendUrl = "http://localhost:5001";
-        avatar.style.backgroundImage = `url(${backendUrl}${user.avatar})`;
-        avatar.style.backgroundSize = "cover";
-        avatar.style.backgroundPosition = "center";
-        avatar.className = "search-userAvatar";
-
-        const name = document.createElement("span");
-        name.className = "search-username";
-        name.textContent = user.username;
-
-        const action = document.createElement("div");
-        action.className = "search-action";
-
-        if (user.friendStatus === "not_friend") {
-          const addBtn = document.createElement("button");
-          addBtn.textContent = "Add Friend";
-          addBtn.className = "add-friend-btn";
-          addBtn.addEventListener("click", async () => {
-            const res = await service.sendFriendRequest(user.username);
-            if (res.success) {
-              addBtn.textContent = "Pending";
-              addBtn.disabled = true;
-            } else {
-              alert(res.message || "Failed to send friend request");
-            }
-          });
-          action.appendChild(addBtn);
-        } else if (user.friendStatus === "pending_sent") {
-          const pendingLabel = document.createElement("span");
-          pendingLabel.textContent = "Pending";
-          pendingLabel.className = "pending-label";
-          action.appendChild(pendingLabel);
-        }
-
-        userDiv.appendChild(avatar);
-        userDiv.appendChild(name);
-        userDiv.appendChild(action);
-
-        resultsContainer.appendChild(userDiv);
-      });
+      if (response.success && response.data) renderResults(response.data);
+      else resultsContainer.innerHTML = "<p class='no-results'>No users found</p>";
     }, debounceDelay);
   });
 }

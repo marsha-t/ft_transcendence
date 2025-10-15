@@ -276,7 +276,7 @@ export class ProfileServices {
   async sendFriendRequest(username: string): Promise<ApiResponse<null>> {
     try {
       const userId = 1; // current user id
-      const res = await fetch(`${this.baseUrl}/send`, {
+      const res = await fetch(`${this.baseUrl}/friends/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
