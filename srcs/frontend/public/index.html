@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="/styles/tailwind.css">
 
 </head>
-<body class="min-h-screen flex flex-col bg-color-yellow">
-    <div id="app" class="flex flex-col flex-1">
-        <header id="header-container"></header>
+<body class="min-h-screen flex flex-col bg-color-yellow overflow-hidden">
+    <div id="app" class="flex flex-col h-screen">
+        <header id="header-container" class="flex-shrink-0"></header>
         <main id="content-container" class="flex-1 overflow-y-auto"></main>
-        <footer id="footer-container"></footer>
+        <footer id="footer-container" class="flex-shrink-0"></footer>
     </div>
     <script type="module" src="js/main.js"></script>
     <script>
@@ -23,6 +23,6 @@
             window.dispatchEvent(new PopStateEvent('popstate'));
         }
     });
-</script>
+    </script>
 </body>
 </html>

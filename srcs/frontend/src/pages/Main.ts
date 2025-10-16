@@ -4,9 +4,9 @@ export class Main implements IComponent {
   public render(): HTMLElement {
     const container = document.createElement('div');
     container.className = `
-      flex justify-center
-      flex-wrap min-h-[85vh] pt-3 pb-[23px]
-      bg-color-yellow`;
+  flex justify-center items-center  // Add items-center
+  flex-wrap h-full py-[23px]  // Use h-full instead of min-h
+  bg-color-yellow`;
 
     // === SUBcontainer ===
     const subContainer = document.createElement('div');
@@ -14,7 +14,9 @@ export class Main implements IComponent {
         flex flex-row  items-center justify-between  
         flex-wrap  bg-background rounded-[16px]
         shadow-lg mx-[23px] w-[calc(100%-46px)]
-        h-auto p-10 gap-8`;
+        h-auto p-10 gap-8 max-w-[1000px]
+        h-auto py-16 px-10 gap-8  // Adjust padding
+    my-auto`  ;
     
     // Left side (title + description)
     const textSection = document.createElement('div');
