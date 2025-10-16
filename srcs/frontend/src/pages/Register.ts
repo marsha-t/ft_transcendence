@@ -12,27 +12,21 @@ export class Register implements IComponent {
     public render(): HTMLElement {
         this.container = document.createElement('div');
         this.container.className = `
-            flex justify-center bg-color-yellow
-             min-h-[85vh] py-[23px]`;
-    
-        // === SUBcontainer ===
+        flex justify-center bg-color-yellow
+        h-full py-[23px]`;
+
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
-            bg-background
-            rounded-[16px]
-            shadow-lg
-            mx-[23px]
-            w-[calc(100%-46px)]
-            h-auto
-            p-10
-            `;
+            bg-background rounded-[16px] shadow-lg
+            mx-[23px] w-[calc(100%-46px)]
+            h-auto py-6 px-10`;
 
         // Heading stays above the card
         const heading = document.createElement('h2');
         heading.className = `
             w-[596px] text-center mb-4 
-            text-[26px] font-press text-color_white`;
+            text-[18px] font-press text-color_white`;
         heading.textContent = 'Create an Account';
 
         // === Login card (form wrapper) ===
@@ -46,7 +40,7 @@ export class Register implements IComponent {
 
         this.form = document.createElement('form');
         this.form.className = `
-            flex flex-col gap-[26px] 
+            flex flex-col gap-[16px] 
             items-center w-full leading-normal`;
 
         // Username field
@@ -147,7 +141,7 @@ export class Register implements IComponent {
         // === Register link ===
         const loginLink = document.createElement('p');
         loginLink.className =
-            'font-mono text-color_white text-left mt-4';
+            'font-mono text-color_white text-left mt-2';
             loginLink.innerHTML = `
             Already have an account? 
             <a href="/login"

@@ -3,18 +3,16 @@ import { IComponent } from "../components/IComponent";
 export class Creators implements IComponent {
     public render(): HTMLElement {
         const container = document.createElement('div');
-        container.className = `flex justify-center
-            flex-wrap min-h-[85vh] py-[23px] 
-            bg-color-yellow`;
+        container.className = `
+        flex justify-center bg-color-yellow
+        h-full py-[23px]`;
 
-        // === SUBcontainer ===
         const subContainer = document.createElement('div');
         subContainer.className = `
-            flex flex-row items-center justify-between
-            flex-wrap bg-background
-            rounded-[16px] shadow-lg
+            flex flex-row items-center justify-start
+            bg-background rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
-            h-auto p-10 gap-14`;
+            h-auto py-6 px-10`;
             
         //left half
         const text_section = document.createElement('div');
