@@ -3,7 +3,14 @@
 export const createTournamentSchema = {
 	tags: ['Tournament'],
 	summary: 'Create a tournament', 
-	body: {
+	headers: {
+		type: 'object',
+		required: ['x-current-user-id'],
+		properties: {
+			'x-current-user-id': { type: 'string' },
+		},
+  	},
+  	body: {
 		type: 'object',
 		required: ['numberOfPlayers'],
 		properties: {
@@ -15,9 +22,9 @@ export const createTournamentSchema = {
 			type: 'object',
 			properties: {
 				id: { type: 'integer' },
-				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
-        		createdAt: { type: 'string', format: 'date-time' },
-      		}
+				displayName: { type: 'string' },
+      		}, 
+			required: [ 'id', 'displayName' ],
 		}
 	}
 }
@@ -26,19 +33,19 @@ export const createTournamentSchema = {
 export const joinTournamentSchema = {
 	tags: ['Tournament'],
 	summary: 'Add player to tournament', 
-	params: {
-		type: 'object',
-		required: ['tournamentId'],
+	headers: {
+    	type: 'object',
 		properties: {
-			tournamentId: { type: 'integer' }
-		}
-	}, 
+			'x-current-tournament-id': { type: 'string'}, 
+		},
+	    required: ['x-current-tournament-id'],
+  	},
 	body: {
 		type: 'object',
 		properties: {
-			username: { type: 'string', minLength: 3 },
-			password: { type: 'string', minLength: 6 },
-			guestName: { type: 'string', minLength: 1 }
+			username: { type: 'string'},
+			password: { type: 'string' },
+			guestName: { type: 'string'}
 		},
 		oneOf: [
 			{ required: ['username', 'password'] },
@@ -61,12 +68,12 @@ export const joinTournamentSchema = {
 export const updateTournamentStatusSchema = {
 	tags: ['Tournament'],
 	summary: 'Update tournament status', 
-	params: {
-		type: 'object',
-		required: ['tournamentId'],
+	headers: {
+    	type: 'object',
 		properties: {
-			tournamentId: { type: 'integer' }
-    	}
+			'x-current-tournament-id': { type: 'string'}, 
+		},
+	    required: ['x-current-tournament-id'],
   	},
 	body: {
 		type: 'object',
@@ -92,13 +99,13 @@ export const updateTournamentStatusSchema = {
 export const getNextMatchSchema = {
 	tags: ['Tournament'],
 	summary: 'Get next match',
-	params: {
-		type: 'object',
-		required: ['tournamentId'],
-		properties: { 
-			tournamentId: { type: 'integer' },
+	headers: {
+    	type: 'object',
+		properties: {
+			'x-current-tournament-id': { type: 'string'}, 
 		},
-	},
+	    required: ['x-current-tournament-id'],
+  	},
 	response: {
 		200: {
 			type: 'object',

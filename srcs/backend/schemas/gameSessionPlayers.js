@@ -2,26 +2,33 @@
 export const joinSessionSchema = {
 	tags: ['Game Session'],
 	summary: 'Add player to game session',
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
 		},
-		required: ['sessionId'],
+		required: ['x-current-session-id'],
 	},
 	body: {
 		type: 'object',
-		required: ['side'],
-		oneOf: [
-			{ required: ['userId'] },
-			{ required: ['guestName'] }
-		],
 		properties: {
 			userId: { type: 'integer' },
 			guestName: { type: 'string' },
 			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		additionalProperties: false,
+		required: ['side'],
+		anyOf: [
+			{ required: ['userId'] },
+			{ required: ['guestName'] },
+		],
+	},
+	body: {
+		type: 'object',
+		required: ['side'],
+		properties: {
+		guestName: { type: 'string' },
+		side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+		},
 	},
 	response: {
 		201: {
@@ -58,12 +65,12 @@ export const joinSessionSchema = {
 export const listPlayersSessionSchema = {
 	tags: ['Game Session'],
 	summary: 'List players in session', 
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
+			'x-current-session-id': { type: 'string' },
 		},
-		required: ['sessionId'],
+		required: ['x-current-session-id'],
 	},
 	response: {
 		200: {
@@ -103,26 +110,43 @@ export const listPlayersSessionSchema = {
 export const updateScoreSchema = {
 	tags: ['Game Session'],
 	summary: 'Update player score',
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+			'x-current-session-id': { type: 'string' },
+			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['sessionId', 'side'],
+		required: ['x-current-session-id', 'x-player-side'],
 	},
 	response: {
 		200: {
 			type: 'object',
 			properties: {
-				id: { type: 'integer' },
-				sessionId: { type: 'integer' },
-				userId: { type: ['integer', 'null'] },
-				displayName: { type: 'string' },
-				side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-				isGuest: { type: 'boolean' },
-				score: { type: 'integer' },
+				sessionId: { type: 'string' },                // stringified ID
+				status: { type: 'string', enum: ['PLAYING', 'PAUSED', 'FINISHED', 'ABORTED'] },
+				createdAt: { type: ['string', 'null'], format: 'date-time' },
+				startedAt: { type: ['string', 'null'], format: 'date-time' },
+				endedAt: { type: ['string', 'null'], format: 'date-time' },
+				winner: { type: ['string', 'null'], enum: ['LEFT', 'RIGHT', null] },
+				winnerName: { type: ['string', 'null'] },
+				players: {
+					type: 'array',
+					items: {
+					type: 'object',
+					properties: {
+						userId: { type: ['string', 'null'] },
+						guestName: { type: ['string', 'null'] },
+						displayName: { type: 'string' },
+						side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+						score: { type: 'integer' },
+					},
+					required: ['displayName', 'side', 'score'],
+					additionalProperties: false,
+					},
+				},
 			},
+			required: ['sessionId', 'status', 'players'],
+			additionalProperties: false,
 		},
 		400: {
 			type: 'object',
@@ -147,14 +171,14 @@ export const updateScoreSchema = {
 export const deletePlayerSchema = {
 	tags: ['Game Session'],
 	summary: 'Delete player', 
-	params: {
+	headers: {
 		type: 'object',
 		properties: {
-			sessionId: { type: 'integer'},
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+			'x-current-session-id': { type: 'string' },
+			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['sessionId', 'side'],
-  	},
+		required: ['x-current-session-id', 'x-player-side'],
+	},
 	response: {
 		200: {
 			type: 'object',

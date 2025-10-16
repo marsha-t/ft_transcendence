@@ -9,12 +9,14 @@ export class Game implements IComponent {
     private gameService: GameService;
     private currentSession: GameSession | null = null;
     private isGameRunning: boolean = false;
-
+    private isScoring: boolean = false; 
     private animationId: number | null = null;
 
     private ball = { x: 450, y: 300, dx: 5, dy: 3, radius: 12 };
-    private leftPaddle = { x: 20, y: 250, width: 10, height: 100 };
-    private rightPaddle = { x: 870, y: 250, width: 10, height: 100 };
+    private leftPaddle = { x: 20, y: 250, width: 10, height: 100, speed: 6 };
+    private rightPaddle = { x: 870, y: 250, width: 10, height: 100, speed: 6 };
+
+    private key: { [key: string]: boolean} = {}
 
     constructor() {
         this.canvas = document.createElement('canvas');
@@ -26,6 +28,8 @@ export class Game implements IComponent {
         this.context = ctx;
 
         this.gameService = new GameService();
+
+        this.setupKeyboardControls();
     }
 
     public render(): HTMLElement {
@@ -40,7 +44,7 @@ export class Game implements IComponent {
         const canvasContainer = document.createElement('div');
         canvasContainer.className = 'canvas_container';
 
-        //title container
+        //title containerå
         const titleContainer = document.createElement('div');
         titleContainer.className = 'title_container';
 
@@ -98,7 +102,7 @@ export class Game implements IComponent {
         startBtn.className = 'start_btn';
         startBtn.textContent = 'Start Game';
         startBtn.id = 'start-btn';
-        // startBtn.style.display = 'none';
+        startBtn.style.display = 'none';
         startBtn.addEventListener('click', () => this.toggleGame());
 
         const pauseBtn = document.createElement('button');
@@ -140,6 +144,18 @@ export class Game implements IComponent {
         document.head.appendChild(link);
     }
 
+    private setupKeyboardControls():void{
+        document.addEventListener('keydown', (event) => {
+            this.key[event.key.toLowerCase()] = true;
+            this.key[event.key] = true;
+        });
+
+        document.addEventListener('keyup', (event)=> {
+            this.key[event.key.toLowerCase()] = false;
+            this.key[event.key] = false;
+        })
+    }
+
     private drawInitialScreen(){
         if(!this.context)
             return;
@@ -179,7 +195,7 @@ export class Game implements IComponent {
 
             //Ask backend to create a new game session
             this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
-
+            console.log(`current Session: ${this.currentSession}`);
             //show the user one the right
             const rightPlayerElement = document.getElementById('right-player');
             if(rightPlayerElement && this.currentSession?.players[0])
@@ -215,17 +231,25 @@ export class Game implements IComponent {
 
             //hide setup
             const setupSection = document.getElementById('setup-section');
-            // const startBtn = document.getElementById('start-btn');
+            const startBtn = document.getElementById('start-btn');
+            const quitBtn = document.getElementById('quit-btn');
 
             if(setupSection)
                 setupSection.style.display = 'none';
-            // if(startBtn)
-            //     startBtn.style.display = 'block';
+            if(startBtn)
+                startBtn.style.display = 'block';
+            if(quitBtn)
+                quitBtn.style.display = 'block';
 
             guestInput.value = '';
-        }catch(error){
+        } catch (error:any) {
             console.log("Error adding guest player", error);
-            alert("Error adding guest player");
+             if (error.status === 409) {
+                // Custom handling for duplicate display name
+                alert(error.message);
+            } else {
+                alert("Error adding guest player");
+            }
         }
     }
 
@@ -253,10 +277,10 @@ export class Game implements IComponent {
         this.gameLoop();
     }
 
-    private gameLoop(): void {
+    private async gameLoop(): Promise<void> {
         if(!this.isGameRunning)
             return;
-        this.updateGame();
+        await this.updateGame();
         this.drawGame();
 
         this.animationId = requestAnimationFrame(() => this.gameLoop());
@@ -265,14 +289,17 @@ export class Game implements IComponent {
     private updateGameButtons(isPlaying: boolean): void {
         const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
         const pauseBtn = document.getElementById('pause-btn') as HTMLButtonElement;
+        const quitBtn = document.getElementById('quit-btn') as HTMLButtonElement;
 
         if (isPlaying) {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
-            pauseBtn.textContent = 'Pause';
+            quitBtn.style.display = 'block';
+            pauseBtn.textContent = 'Pause'
         } else {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
+            quitBtn.style.display = 'block';
             pauseBtn.textContent = 'Resume';
         }
     }
@@ -285,6 +312,27 @@ export class Game implements IComponent {
         }
     }
 
+    private updatePaddleMovement(): void {
+        if(this.key['w'] && this.leftPaddle.y > 0){
+            this.leftPaddle.y -= this.leftPaddle.speed;
+        }
+        if (this.key['s'] && this.leftPaddle.y < this.canvas.height - this.leftPaddle.height) {
+            this.leftPaddle.y += this.leftPaddle.speed;
+        }
+
+        // Right paddle controls (Arrow keys)
+        if (this.key['ArrowUp'] && this.rightPaddle.y > 0) {
+            this.rightPaddle.y -= this.rightPaddle.speed;
+        }
+        if (this.key['ArrowDown'] && this.rightPaddle.y < this.canvas.height - this.rightPaddle.height) {
+            this.rightPaddle.y += this.rightPaddle.speed;
+        }
+
+        // Keep paddles within bounds
+        this.leftPaddle.y = Math.max(0, Math.min(this.leftPaddle.y, this.canvas.height - this.leftPaddle.height));
+        this.rightPaddle.y = Math.max(0, Math.min(this.rightPaddle.y, this.canvas.height - this.rightPaddle.height));
+    
+    }
 
     private drawGame(): void {
         // Clear canvas
@@ -344,7 +392,8 @@ export class Game implements IComponent {
     }
 
     private drawScores(): void {
-        if (!this.currentSession) return;
+        if (!this.currentSession)
+            return;
 
         this.context.fillStyle = "#423f6a";
         this.context.font = "48px Arial";
@@ -353,15 +402,11 @@ export class Game implements IComponent {
         const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
         const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
 
-        // Left score
-        if (leftPlayer) {
-            this.context.fillText(leftPlayer.score.toString(), this.canvas.width / 4, 80);
-        }
-
-        // Right score
-        if (rightPlayer) {
-            this.context.fillText(rightPlayer.score.toString(), (3 * this.canvas.width) / 4, 80);
-        }
+        const rightScore = rightPlayer ? rightPlayer.score : 0;        
+        const leftScore = leftPlayer ? leftPlayer.score : 0;        
+       
+        this.context.fillText(leftScore.toString(), this.canvas.width / 4, 80);
+        this.context.fillText(rightScore.toString(), (3 * this.canvas.width) / 4, 80);
     }
 
     private resetGame(): void {
@@ -381,7 +426,7 @@ export class Game implements IComponent {
         if (setupSection) setupSection.style.display = 'block';
         if (startBtn) startBtn.style.display = 'none';
         if (pauseBtn) pauseBtn.style.display = 'none';
-        if (quitBtn) quitBtn.style.display = 'block';
+        if (quitBtn) quitBtn.style.display = 'none';
 
         // Reset player names
         const leftPlayerElement = document.getElementById('left-player');
@@ -394,7 +439,10 @@ export class Game implements IComponent {
         this.initializeGame();
     }
 
-    private updateGame(): void {
+    private async updateGame(): Promise<void> {
+
+        this.updatePaddleMovement();
+
         this.ball.x += this.ball.dx;
         this.ball.y += this.ball.dy;
 
@@ -414,21 +462,38 @@ export class Game implements IComponent {
             this.ball.dx = -this.ball.dx;
         }
 
-        // Scoring
-        if (this.ball.x < 0) {
-            this.scorePoint("RIGHT");
-        } else if (this.ball.x > this.canvas.width) {
-            this.scorePoint("LEFT");
+        // Scoring (with lock to prevent double calls)
+        if (!this.isScoring) {
+            if (this.ball.x < 0) {
+                this.isScoring = true;
+                await this.scorePoint("RIGHT");
+                return ;
+            } else if (this.ball.x > this.canvas.width) {
+                this.isScoring = true;
+                await this.scorePoint("LEFT");
+                return ;
+            }
+        }
+        const safeZone = this.canvas.width / 4; // 25% away from center
+        if (this.isScoring) {
+            const centerX = this.canvas.width / 2;
+            if (Math.abs(this.ball.x - centerX) > safeZone) {
+                this.isScoring = false;
+            }
         }
     }
 
     private async scorePoint(scoringSide: PlayerSide): Promise<void>{
-
         try{
             if(this.currentSession){
-                await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
-                this.currentSession = await this.gameService.getGameSession(this.currentSession.sessionId);
+                this.currentSession = await this.gameService.updatePlayerScore(this.currentSession.sessionId, scoringSide);
+                if (this.currentSession.status === "FINISHED") {
+                    setTimeout(() => {
+                        this.endGame();
+                    }, 500) // adding 0,5 sec delay to update the ui to show score 5
+                }
             }
+
         }catch(error){
             console.error('Failed to update score:', error);
         }
@@ -436,36 +501,14 @@ export class Game implements IComponent {
         this.ball.x = this.canvas.width / 2;
         this.ball.y = this.canvas.height / 2;
         this.ball.dx = -this.ball.dx; // Change direction
-        
-        // Check for game end (example: first to 5 points wins)
-        this.checkGameEnd();
     }
 
-    private async checkGameEnd(): Promise<void> {
-        if (!this.currentSession) return;
-
-        const leftPlayer = this.currentSession.players.find(p => p.side === "LEFT");
-        const rightPlayer = this.currentSession.players.find(p => p.side === "RIGHT");
-
-        const winningScore = 5; // Set winning score or get from the backend
-
-        if (leftPlayer && leftPlayer.score >= winningScore) {
-            await this.endGame("LEFT");
-        } else if (rightPlayer && rightPlayer.score >= winningScore) {
-            await this.endGame("RIGHT");
-        }
-    }
-
-    private async endGame(winner: PlayerSide): Promise<void> {
+    private async endGame(): Promise<void> {
         try {
             if (this.currentSession) {
-                await this.gameService.finishGame(this.currentSession.sessionId);
                 this.stopGameLoop();
                 
-                const winnerName = winner === "LEFT" ? 
-                    this.currentSession.players.find(p => p.side === "LEFT")?.displayName :
-                    this.currentSession.players.find(p => p.side === "RIGHT")?.displayName;
-                
+                const winnerName = this.currentSession.winnerName ?? "Unknown";
                 alert(`Game Over! ${winnerName} wins!`);
                 this.resetGame();
             }
