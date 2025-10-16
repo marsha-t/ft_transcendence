@@ -10,9 +10,7 @@ export class Main implements IComponent {
     const subContainer = document.createElement('div');
     subContainer.className = `
         flex flex-row items-center justify-start
-        bg-background
-        rounded-[16px]
-        shadow-lg
+        bg-background rounded-[16px] shadow-lg
         mx-[23px] w-[calc(100%-46px)]
         h-auto py-6 px-10`;
     

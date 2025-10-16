@@ -12,28 +12,22 @@ export class Login implements IComponent {
     public render(): HTMLElement {
         // === Main container ===
         this.container = document.createElement('div');
-        this.container.className =
-            'flex justify-center bg-background-yellow min-h-[85vh] py-[23px]';
+        this.container.className = `
+        flex justify-center bg-color-yellow
+        h-full py-[23px]`;
 
-    
-        // === SUBcontainer ===
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
-            bg-background
-            rounded-[16px]
-            shadow-lg
-            mx-[23px]
-            w-[calc(100%-46px)]
-            h-auto
-            p-10
-            `;
+            bg-background rounded-[16px] shadow-lg
+            mx-[23px] w-[calc(100%-46px)]
+            h-auto py-6 px-10`;
 
             
         // === Heading ===
         const heading = document.createElement('h2');
         heading.className =
-            'w-[596px] text-center mb-4 text-[28px] font-press text-color_white';
+            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
         heading.textContent = 'Welcome Back!';
     
     
