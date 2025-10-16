@@ -8,98 +8,147 @@ export class Login implements IComponent {
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
     private isLoading: boolean = false;
-    
-    public render(): HTMLElement {
-        this.container = document.createElement('div');
-        this.container.className = 'login_page';
-        
-        //Load css
-        this.loadPageStyles();
-        
-        // Heading stays above the card
-        const heading = document.createElement('h2');
-        heading.className = 'login_title';
-        heading.textContent = 'Welcome Back!';
-        this.container.appendChild(heading);
-        
-        // Create message container for success/error messages
-        this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'message_container';
-        this.messageContainer.style.display = 'none';
-        this.container.appendChild(this.messageContainer);
-                
-        // Card containing form and register link
-        const loginCard = document.createElement('div');
-        loginCard.className = 'login_block';
-        
-        // Register link
-        const registerLink = document.createElement('p');
-        registerLink.className = 'register_text';
-        registerLink.innerHTML = 'Don\'t have an account? <a href="/register">Register</a>';
-        
-        // Form - Initialize the form property here
-        this.form = document.createElement('form');
-        this.form.className = 'login_form';
-        
-        // const emailGroup = document.createElement('div');
-        const usernameGroup = document.createElement('div');
-       
-        const usernameLabel = document.createElement('label');
-        usernameLabel.textContent = 'Username';
-        usernameLabel.htmlFor = 'username';
 
+    public render(): HTMLElement {
+        // === Main container ===
+        this.container = document.createElement('div');
+        this.container.className = `
+        flex justify-center bg-color-yellow
+        h-full py-[23px]`;
+
+        const subContainer = document.createElement('div');
+        subContainer.className = `
+            flex flex-col items-center justify-start
+            bg-background rounded-[16px] shadow-lg
+            mx-[23px] w-[calc(100%-46px)]
+            h-auto py-6 px-10`;
+
+            
+        // === Heading ===
+        const heading = document.createElement('h2');
+        heading.className =
+            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
+        heading.textContent = 'Welcome Back!';
+    
+    
+        // === Login card (form wrapper) ===
+        const loginCard = document.createElement('div');
+        loginCard.className =
+            `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8` ;
+    
+        // === Register link ===
+        const registerLink = document.createElement('p');
+        registerLink.className =
+            'font-mono text-color_white text-left mb-4';
+        registerLink.innerHTML = `
+            Don't have an account?
+            <a href="/register"
+            class="font-mono text-color-green underline ml-40 hover:opacity-80">
+            Register
+            </a>`;
+      
+        // === Form ===
+        this.form = document.createElement('form');
+        this.form.className =
+            'flex flex-col gap-[26px] items-center w-full leading-normal';
+    
+        // === Username group ===
+        const usernameGroup = document.createElement('div');
+        usernameGroup.className = 'flex flex-col gap-2';
+    
+        const usernameLabel = document.createElement('label');
+        usernameLabel.className = 'text-lg font-mono text-color_white';
+        usernameLabel.textContent = 'USERNAME';
+        usernameLabel.htmlFor = 'username';
+    
         const usernameInput = document.createElement('input');
+        usernameInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
+      
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
         usernameInput.placeholder = 'username';
+    
         usernameGroup.appendChild(usernameLabel);
         usernameGroup.appendChild(usernameInput);
-        
+    
+        // === Password group ===
         const passwordGroup = document.createElement('div');
+        passwordGroup.className = 'flex flex-col gap-2';
+    
         const passwordLabel = document.createElement('label');
+        passwordLabel.className = 'text-lg font-mono text-color_white';
         passwordLabel.textContent = 'Password';
         passwordLabel.htmlFor = 'password';
-        
-        //PAssword
+    
         const passwordInput = document.createElement('input');
+        passwordInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
         passwordInput.type = 'password';
         passwordInput.id = 'password';
-        passwordInput.name = 'password'
+        passwordInput.name = 'password';
         passwordInput.placeholder = '••••••••';
+    
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(passwordInput);
-        
+    
+        // === Submit button ===
         this.submitButton = document.createElement('button');
+        this.submitButton.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-pixel
+            cursor-pointer bg-color_button
+            hover:bg-color-green hover:text-background
+            hover:ring-2 hover:ring-border-green
+            transition-all duration-300
+            focus:outline-none
+            disabled:opacity-50 disabled:cursor-not-allowed
+            `;
+
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
-        this.submitButton.className = 'login_button';
-        
+    
+        // === Message container ===
+        this.messageContainer = document.createElement('div');
+        this.messageContainer.className = 'none';
+
+
+        // === Build the form ===
         this.form.appendChild(usernameGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
-                
-        // Append form and register link inside the card
+    
+        // === Assemble card ===
         loginCard.appendChild(registerLink);
         loginCard.appendChild(this.form);
-        
-        // Append heading and card to main container        
-        this.container.appendChild(loginCard);
-        
+    
+        // === Add to main container ===
+        subContainer.appendChild(heading);
+        subContainer.appendChild(loginCard);
+        subContainer.appendChild(this.messageContainer);
+    
+        // === Add to main container ===
+        this.container.appendChild(subContainer);
+
         this.attachEventListener();
-        
         return this.container;
     }
     
-    private loadPageStyles(): void {
-        if (document.getElementById('login-styles')) return;
-                
-        const link = document.createElement('link');
-        link.id = 'login-styles';
-        link.rel = 'stylesheet';
-        link.href = '/styles/Login.css';
-        document.head.appendChild(link);
-    }
     
     private attachEventListener(): void { 
         this.form.addEventListener('submit', this.handleLogin.bind(this));
@@ -182,8 +231,22 @@ export class Login implements IComponent {
     
     private showMessage(message: string, type: 'success' | 'error'): void {
         this.messageContainer.style.display = 'block';
-        this.messageContainer.className = `message_container ${type}`;
+        const baseClass = `
+            mt-6 px-4 py-3    
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-mono text-[20px]
+            text-center          
+            flex items-center justify-center 
+            transition-opacity duration-300
+        `;
+
+        const typeClasses = type === 'error' 
+            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
+            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+        
+        this.messageContainer.className = `${baseClass} ${typeClasses}`;
         this.messageContainer.textContent = message;
+        
         // Auto-hide success messages after 5 seconds
         if (type === 'success') {
             setTimeout(() => {

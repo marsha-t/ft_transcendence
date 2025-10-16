@@ -20,21 +20,8 @@ export interface GameSession{
     status: GameStatus;
     players: Player[];
     winner?: PlayerSide;
+    winnerName?: string;
     createdAt?: string;
     startedAt?: string;
     endedAt?: string;
-}
-
-export interface CreateGameSessionRequest{
-    userId: number;
-    side: PlayerSide;
-}
-
-export interface AddPlayerRequest{
-    guestName: string;
-    side: PlayerSide;
-}
-
-export interface UpdateStatusRequest{
-    status: GameStatus;
 }
