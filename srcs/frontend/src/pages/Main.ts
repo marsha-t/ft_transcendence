@@ -4,19 +4,17 @@ export class Main implements IComponent {
   public render(): HTMLElement {
     const container = document.createElement('div');
     container.className = `
-  flex justify-center items-center  // Add items-center
-  flex-wrap h-full py-[23px]  // Use h-full instead of min-h
-  bg-color-yellow`;
+      flex justify-center bg-color-yellow
+      h-full py-[23px]`;
 
-    // === SUBcontainer ===
     const subContainer = document.createElement('div');
     subContainer.className = `
-        flex flex-row  items-center justify-between  
-        flex-wrap  bg-background rounded-[16px]
-        shadow-lg mx-[23px] w-[calc(100%-46px)]
-        h-auto p-10 gap-8 max-w-[1000px]
-        h-auto py-16 px-10 gap-8  // Adjust padding
-    my-auto`  ;
+        flex flex-row items-center justify-start
+        bg-background
+        rounded-[16px]
+        shadow-lg
+        mx-[23px] w-[calc(100%-46px)]
+        h-auto py-6 px-10`;
     
     // Left side (title + description)
     const textSection = document.createElement('div');
