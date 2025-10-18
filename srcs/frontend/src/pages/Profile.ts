@@ -44,11 +44,17 @@ export class Profile implements IComponent {
     status.className = "profile-status online";
     status.innerHTML = "Online"; // Using innerHTML for the dot
 
-    
-
-    const settingsBtn = document.createElement("button");
-    settingsBtn.className = "settings-btn";
-    settingsBtn.innerHTML = "&#9881;";
+    const settingsBtn = document.createElement("img");
+    settingsBtn.src = "/assets/icons/gear.svg";
+    settingsBtn.alt = "profile settings";
+    settingsBtn.className = `
+    absolute top-[28px] left-[1009px] 
+    w-[30px] h-[30px]
+    text-[#5D5A88]
+    cursor-pointer
+    inline-flex items-center justify-center
+    transition duration-200
+    hover:brightness-90 hover:text-[#d32f2f]`;
     settingsBtn.addEventListener("click", () => this.openSettingsPopup());
     card.appendChild(avatar);
     card.appendChild(name);
@@ -649,18 +655,33 @@ private openAddFriendPopup(): void {
 
     this.popupAvatarEl = avatarPlaceholder;
 
-    // Pen icon (for editing)
-    const penIcon = document.createElement("span");
-    penIcon.className = "pen-icon";
-    penIcon.innerHTML = `<i class="fa-solid fa-pen"></i>`; // Pen Unicode
+   // Pen icon (edit)
+    const penIcon = document.createElement("img");
+    penIcon.src = "/assets/icons/pen.svg";
+    penIcon.alt = "Edit avatar";
+    penIcon.className = `absolute top-[172px] left-[230px] 
+      w-[20px] h-[20px]
+      text-[#5D5A88]
+      cursor-pointer
+      inline-flex items-center justify-center
+      transition duration-200
+      hover:brightness-90 hover:text-[#297138]`;
     penIcon.addEventListener("click", () => this.handleAvatarEdit());
 
-    // Trash icon (for deleting avatar)
-    
-    const trashIcon = document.createElement("span");
-    trashIcon.className = "trash-icon";
-    trashIcon.innerHTML = `<i class="fa-solid fa-trash"></i>`; 
+    // Trash icon (delete)
+    const trashIcon = document.createElement("img");
+    trashIcon.src = "/assets/icons/trash.svg";
+    trashIcon.alt = "Delete avatar";
+    trashIcon.className = `
+    absolute top-[172px] left-[307px] 
+    w-[20px] h-[20px]
+    text-[#5D5A88]
+    cursor-pointer
+    inline-flex items-center justify-center
+    transition duration-200
+    hover:brightness-90 hover:text-[#d32f2f]`;    
     trashIcon.addEventListener("click", () => this.handleAvatarDelete());
+
 
     avatarSection.appendChild(avatarPlaceholder);
     avatarSection.appendChild(penIcon);
