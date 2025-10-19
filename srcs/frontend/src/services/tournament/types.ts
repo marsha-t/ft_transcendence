@@ -27,7 +27,7 @@ export interface NextMatch {
 	tournamentId: number;
 	player1: Player | null;
 	player2: Player | null;
-	gameSessionId: number | null;
+	gameSessionId: number;
 	gameStatus: 'CREATED' | 'PLAYING' | 'PAUSED' | 'FINISHED' | 'ABORTED' | null;
 }
 

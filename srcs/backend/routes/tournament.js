@@ -1,7 +1,8 @@
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import { createGameSession } from '../services/gameSessionService.js';
-import { createTournamentSchema, joinTournamentSchema, updateTournamentStatusSchema , getNextMatchSchema } from '../schemas/tournament.js';
+// import { createTournamentSchema, joinTournamentSchema, updateTournamentStatusSchema , getNextMatchSchema, validatePlayerSchema, finalizeTournamentSchema } from '../schemas/tournament.js';
+import { updateTournamentStatusSchema , getNextMatchSchema, validatePlayerSchema, finalizeTournamentSchema } from '../schemas/tournament.js';
 import { getParentMatchIndex } from '../services/tournamentService.js';
 
 async function tournamentRoutes(app, options) {
@@ -13,50 +14,50 @@ async function tournamentRoutes(app, options) {
 		- Pre-generate rows in tournamentMatch table
 		- Checks that current user exists and then adds user into tournament
 	*/
-	app.post('/api/tournaments', { schema: createTournamentSchema }, async (request, reply) => {
-		const userId = Number(request.headers['x-current-user-id']);
-		const { numberOfPlayers } = request.body;
+	// app.post('/api/tournaments', { schema: createTournamentSchema }, async (request, reply) => {
+	// 	const userId = Number(request.headers['x-current-user-id']);
+	// 	const { numberOfPlayers } = request.body;
 		
-		try {
-			const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
-			const numMatches = bracketSize - 1;
+	// 	try {
+	// 		const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
+	// 		const numMatches = bracketSize - 1;
 
-			const tournament = await prisma.tournament.create({
-				data: { 
-					status: "CREATED", 
-					numberOfPlayers,
-					bracketSize,
-				 },
-			});
+	// 		const tournament = await prisma.tournament.create({
+	// 			data: { 
+	// 				status: "CREATED", 
+	// 				numberOfPlayers,
+	// 				bracketSize,
+	// 			 },
+	// 		});
 			
-			const matches = Array.from({ length: numMatches }, (_, i) => ({
-				tournamentId: tournament.id,
-				matchIndex: i + 1,
-			}));
+	// 		const matches = Array.from({ length: numMatches }, (_, i) => ({
+	// 			tournamentId: tournament.id,
+	// 			matchIndex: i + 1,
+	// 		}));
 
-			await prisma.tournamentMatch.createMany({ data: matches });
+	// 		await prisma.tournamentMatch.createMany({ data: matches });
 
-			const user = await prisma.user.findUnique({ where: { id: userId } });
-			if (!user) {
-				return reply.code(404).send({ error: "User not found" });
-			}
-			await prisma.tournamentPlayer.create({
-				data: {
-					tournamentId: tournament.id,
-					userId: userId,
-					displayName: user.username,
-				},
-			});
+	// 		const user = await prisma.user.findUnique({ where: { id: userId } });
+	// 		if (!user) {
+	// 			return reply.code(404).send({ error: "User not found" });
+	// 		}
+	// 		await prisma.tournamentPlayer.create({
+	// 			data: {
+	// 				tournamentId: tournament.id,
+	// 				userId: userId,
+	// 				displayName: user.username,
+	// 			},
+	// 		});
 
-			return reply.code(201).send({ 
-				id: tournament.id, 
-				displayName: user.username,
-			});
-		} catch (err) {
-			request.log.error(err);
-      		return reply.code(err.code || 500).send({ error: err.message || "Failed to create tournament" });
-		}
-	});
+	// 		return reply.code(201).send({ 
+	// 			id: tournament.id, 
+	// 			displayName: user.username,
+	// 		});
+	// 	} catch (err) {
+	// 		request.log.error(err);
+    //   		return reply.code(err.code || 500).send({ error: err.message || "Failed to create tournament" });
+	// 	}
+	// });
 
 	// Add a player
 	/*
@@ -71,68 +72,68 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-	app.post('/api/tournaments/players', { schema: joinTournamentSchema }, async (request, reply) => {
-		const tournamentId = Number(request.headers['x-current-tournament-id']);
-		const { username, password, guestName } = request.body;
+	// app.post('/api/tournaments/players', { schema: joinTournamentSchema }, async (request, reply) => {
+	// 	const tournamentId = Number(request.headers['x-current-tournament-id']);
+	// 	const { username, password, guestName } = request.body;
 
-		try {
-			const tournament = await prisma.tournament.findUnique({
-				where: { id: Number(tournamentId)},
-			});
-			if (!tournament) {
-				return reply.code(404).send({ error: 'Tournament not found'});
-			}
+	// 	try {
+	// 		const tournament = await prisma.tournament.findUnique({
+	// 			where: { id: Number(tournamentId)},
+	// 		});
+	// 		if (!tournament) {
+	// 			return reply.code(404).send({ error: 'Tournament not found'});
+	// 		}
 			
-			const count = await prisma.tournamentPlayer.count({ where: { tournamentId: Number(tournamentId) }});
-			if (count >= tournament.numberOfPlayers) {
-				return reply.code(400).send({ error: 'Tournament is already full' });
-			}
+	// 		const count = await prisma.tournamentPlayer.count({ where: { tournamentId: Number(tournamentId) }});
+	// 		if (count >= tournament.numberOfPlayers) {
+	// 			return reply.code(400).send({ error: 'Tournament is already full' });
+	// 		}
 
-			let playerData;
-			let displayName;
+	// 		let playerData;
+	// 		let displayName;
 
-			if (username && password) {
-				const user = await prisma.user.findUnique({ where: { username }});
-				if (!user) {
-					return reply.code(401).send({ error: 'Invalid username or password '});
-				}
-				const isPasswordValid = await bcrypt.compare(password, user.password);
-				if (!isPasswordValid) {
-					return reply.code(401).send({ error: 'Invalid username or password' });
-				}
-				displayName = user.username;
-				playerData = await prisma.tournamentPlayer.create({ 
-					data: {
-						tournamentId: Number(tournamentId),
-						userId: user.id,
-						displayName,
-					}
-				});
-			} else if (guestName) {
-				displayName = guestName;
-				playerData = await prisma.tournamentPlayer.create({
-					data: {
-						tournamentId: Number(tournamentId),
-						isGuest: true,
-						displayName,
-					}
-				})
-			}
-			else {
-				return reply.code(400).send({ error: 'Must provide either username/password or guestName'});
-			}
-			return reply.code(201).send({
-				id: playerData.id,
-				displayName: playerData.displayName,
-			});
-		} catch (err) {
-			if (err.code === 'P2002') {
-				return reply.code(409).send({ error: 'User/Display name already in tournament' });
-			}
-			request.log.error(err);
-      		return reply.code(err.code || 500).send({ error: err.message || "Player failed to join tournament" });
-		}
-	});
+	// 		if (username && password) {
+	// 			const user = await prisma.user.findUnique({ where: { username }});
+	// 			if (!user) {
+	// 				return reply.code(401).send({ error: 'Invalid username or password '});
+	// 			}
+	// 			const isPasswordValid = await bcrypt.compare(password, user.password);
+	// 			if (!isPasswordValid) {
+	// 				return reply.code(401).send({ error: 'Invalid username or password' });
+	// 			}
+	// 			displayName = user.username;
+	// 			playerData = await prisma.tournamentPlayer.create({ 
+	// 				data: {
+	// 					tournamentId: Number(tournamentId),
+	// 					userId: user.id,
+	// 					displayName,
+	// 				}
+	// 			});
+	// 		} else if (guestName) {
+	// 			displayName = guestName;
+	// 			playerData = await prisma.tournamentPlayer.create({
+	// 				data: {
+	// 					tournamentId: Number(tournamentId),
+	// 					isGuest: true,
+	// 					displayName,
+	// 				}
+	// 			})
+	// 		}
+	// 		else {
+	// 			return reply.code(400).send({ error: 'Must provide either username/password or guestName'});
+	// 		}
+	// 		return reply.code(201).send({
+	// 			id: playerData.id,
+	// 			displayName: playerData.displayName,
+	// 		});
+	// 	} catch (err) {
+	// 		if (err.code === 'P2002') {
+	// 			return reply.code(409).send({ error: 'User/Display name already in tournament' });
+	// 		}
+	// 		request.log.error(err);
+    //   		return reply.code(err.code || 500).send({ error: err.message || "Player failed to join tournament" });
+	// 	}
+	// });
 
 	// Update tournament status
 	/*
@@ -279,6 +280,72 @@ async function tournamentRoutes(app, options) {
 	  }
 	});
 	
+	// Validate player
+	/*
+	*/
+	app.post('/api/tournaments/validate-player', {schema: validatePlayerSchema }, async (request, reply) => {
+		const { username, password } = request.body;
+
+		try {
+			if (username && password) {
+				const user = await prisma.user.findUnique({ where: { username }});
+				if (!user) {
+					return reply.code(401).send({ valid: false, error: 'Invalid username or password '});
+				}
+				const isPasswordValid = await bcrypt.compare(password, user.password);
+				if (!isPasswordValid) {
+					return reply.code(401).send({ valid: false, error: 'Invalid username or password' });
+				}
+				return reply.send({ valid: true, displayName: user.username, userId: user.id});
+			}
+		} catch (err) {
+			request.log.error(err);
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to validate tournament player" });
+		}
+	});
+
+	// Finalise tournament details
+	/*
+	*/
+	app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema }, async(request, reply) => {
+		const { numberOfPlayers, players } = request.body;
+		if (players.length != numberOfPlayers )
+			return reply.code(400).send({ error: 'Wrong number of players credentials given'})
+		try {
+			const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
+			const numMatches = bracketSize - 1;
+
+			const tournament = await prisma.tournament.create({
+				data: { 
+					status: "CREATED", 
+					numberOfPlayers,
+					bracketSize
+				 },
+			});
+			
+			const tournamentPlayers = players.map(p => ({
+				tournamentId: tournament.id,
+				displayName: p.displayName,
+				userId: p.userId ?? null, 
+				isGuest: !p.userId,
+			}));
+			await prisma.tournamentPlayer.createMany({ data: tournamentPlayers});
+
+			const matches = Array.from({ length: numMatches }, (_, i) => ({
+			tournamentId: tournament.id,
+			matchIndex: i + 1,
+			}));
+			await prisma.tournamentMatch.createMany({ data: matches });
+			
+			return reply.code(201).send({ 
+				id: tournament.id,
+				status: tournament.status,
+			});
+		} catch (err) {
+			request.log.error(err);
+      		return reply.code(err.code || 500).send({ error: err.message || "Failed to create tournament" });
+		}
+	});
 	// Get next match
 	/*
 		- Look for next match in tournament
