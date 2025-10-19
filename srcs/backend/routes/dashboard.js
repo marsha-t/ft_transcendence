@@ -3,10 +3,9 @@ import { matchHistorySchema } from '../schemas/dashboard.js';
 
 async function dashboardRoutes(app, options) {
 
-	// Update game session status
+	// Fetch match history 
 	/*
-		- Check that user exists
-		- Get matches from GameSessionPlayer and organise it into a match history
+		- 
 	*/
 	app.get('/api/stats/users/match-history', { schema: matchHistorySchema }, async(request, reply) => {
 		const userIdHeader = request.headers['x-current-user-id'];

@@ -1,68 +1,68 @@
 
 // Create new tournament
-export const createTournamentSchema = {
-	tags: ['Tournament'],
-	summary: 'Create a tournament', 
-	headers: {
-		type: 'object',
-		required: ['x-current-user-id'],
-		properties: {
-			'x-current-user-id': { type: 'string' },
-		},
-  	},
-  	body: {
-		type: 'object',
-		required: ['numberOfPlayers'],
-		properties: {
-		numberOfPlayers: { type: 'integer', minimum: 2, maximum: 64 } // set your own max
-		}
-	}, 
-	response: {
-		201: {
-			type: 'object',
-			properties: {
-				id: { type: 'integer' },
-				displayName: { type: 'string' },
-      		}, 
-			required: [ 'id', 'displayName' ],
-		}
-	}
-}
+// export const createTournamentSchema = {
+// 	tags: ['Tournament'],
+// 	summary: 'Create a tournament', 
+// 	headers: {
+// 		type: 'object',
+// 		required: ['x-current-user-id'],
+// 		properties: {
+// 			'x-current-user-id': { type: 'string' },
+// 		},
+//   	},
+//   	body: {
+// 		type: 'object',
+// 		required: ['numberOfPlayers'],
+// 		properties: {
+// 		numberOfPlayers: { type: 'integer', minimum: 2, maximum: 64 } // set your own max
+// 		}
+// 	}, 
+// 	response: {
+// 		201: {
+// 			type: 'object',
+// 			properties: {
+// 				id: { type: 'integer' },
+// 				displayName: { type: 'string' },
+//       		}, 
+// 			required: [ 'id', 'displayName' ],
+// 		}
+// 	}
+// }
 
-// Add a player to tournament
-export const joinTournamentSchema = {
-	tags: ['Tournament'],
-	summary: 'Add player to tournament', 
-	headers: {
-    	type: 'object',
-		properties: {
-			'x-current-tournament-id': { type: 'string'}, 
-		},
-	    required: ['x-current-tournament-id'],
-  	},
-	body: {
-		type: 'object',
-		properties: {
-			username: { type: 'string'},
-			password: { type: 'string' },
-			guestName: { type: 'string'}
-		},
-		oneOf: [
-			{ required: ['username', 'password'] },
-			{ required: ['guestName'] },
-		],
-		additionalProperties: false
-	},
-	response: {
-		200: {
-			type: 'object',
-			properties: {
-				id: { type: 'integer' },
-				displayName: { type: 'string' },
-      		}
-		}
-	}
-};
+// // Add a player to tournament
+// export const joinTournamentSchema = {
+// 	tags: ['Tournament'],
+// 	summary: 'Add player to tournament', 
+// 	headers: {
+//     	type: 'object',
+// 		properties: {
+// 			'x-current-tournament-id': { type: 'string'}, 
+// 		},
+// 	    required: ['x-current-tournament-id'],
+//   	},
+// 	body: {
+// 		type: 'object',
+// 		properties: {
+// 			username: { type: 'string'},
+// 			password: { type: 'string' },
+// 			guestName: { type: 'string'}
+// 		},
+// 		oneOf: [
+// 			{ required: ['username', 'password'] },
+// 			{ required: ['guestName'] },
+// 		],
+// 		additionalProperties: false
+// 	},
+// 	response: {
+// 		200: {
+// 			type: 'object',
+// 			properties: {
+// 				id: { type: 'integer' },
+// 				displayName: { type: 'string' },
+//       		}
+// 		}
+// 	}
+// };
 
 // Update tournament status
 export const updateTournamentStatusSchema = {
@@ -94,6 +94,66 @@ export const updateTournamentStatusSchema = {
 		}
 	}
 }
+
+// Validate player
+export const validatePlayerSchema = {
+	tags: ['Tournament'],
+	summary: 'Validate tournament player',
+	body: {
+		type: 'object',
+		required: ['username', 'password'],
+		properties: {
+			username: { type: 'string' },
+			password: { type: 'string' },
+		},
+		additionalProperties: false,
+	},
+	response: {
+		200: {
+			type: 'object',
+			properties: {
+				valid: { type: 'boolean' },
+				displayName: { type: 'string' },
+				userId: { type: 'integer' },
+			},
+			required: ['valid', 'displayName', 'userId'],
+		},
+	},
+};
+
+// Finalise tournament details
+export const finalizeTournamentSchema = {
+	body: {
+		type: 'object',
+		required: ['numberOfPlayers', 'players'],
+		properties: {
+			numberOfPlayers: { type: 'integer', minimum: 2 },
+			players: {
+				type: 'array',
+				items: {
+					type: 'object',
+					required: ['displayName'],
+					properties: {
+						displayName: { type: 'string', minLength: 1 },
+						userId: { type: ['integer', 'null'] },
+					},
+					additionalProperties: false,
+				},
+			},
+		},
+		additionalProperties: false,
+	},
+	response: {
+		201: {
+			type: 'object',
+			properties: {
+				id: { type: 'integer' },
+				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
+			},
+			required: ['id', 'status'],
+		},
+	},
+};
 
 // Get next match in a tournament
 export const getNextMatchSchema = {
