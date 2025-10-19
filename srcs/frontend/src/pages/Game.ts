@@ -52,7 +52,7 @@ export class Game implements IComponent {
         titleContainer.className = 'title_container';
 
         const userLeft = document.createElement('h2');
-        userLeft.textContent = this.opts?.displayNames?.leftName ?? 'User 1a';
+        userLeft.textContent = this.opts?.displayNames?.leftName ?? 'User 1';
         userLeft.className = 'user';
         userLeft.id = 'left-player';
         
@@ -61,7 +61,7 @@ export class Game implements IComponent {
         VS.className = 'VS';
         
         const userRight = document.createElement('h2');
-        userRight.textContent = this.opts?.displayNames?.rightName ?? 'User 2b';
+        userRight.textContent = this.opts?.displayNames?.rightName ?? 'User 2';
         userRight.className = 'user';
         userRight.id = 'right-player';
         
@@ -82,61 +82,40 @@ export class Game implements IComponent {
         controlsContainer.className = 'controls_container';
 
         const startBtn = this.makeButton("Start Game", "start-btn", () => this.toggleGame());
-        if (this.opts?.isTournament) startBtn.style.display = "block";
         const pauseBtn = this.makeButton("Pause", "pause-btn", () => this.pauseGame());
         const quitBtn = this.makeButton("Quit Game", "quit-btn", () => this.quitGame());
-    
-        // const startBtn = document.createElement('button');
-        //     startBtn.className = 'start_btn';
-        //     startBtn.textContent = 'Start Game';
-        //     startBtn.id = 'start-btn';
-        //     startBtn.style.display = 'none';
-        //     startBtn.addEventListener('click', () => this.toggleGame());
-    
-        //     const pauseBtn = document.createElement('button');
-        //     pauseBtn.className = 'pause_btn';
-        //     pauseBtn.textContent = 'Pause';
-        //     pauseBtn.id = 'pause-btn';
-        //     pauseBtn.addEventListener('click', () => this.pauseGame());
-        //     pauseBtn.style.display = 'none';
-    
-        //     const quitBtn = document.createElement('button');
-        //     quitBtn.className = 'quit_btn';
-        //     quitBtn.textContent = 'Quit Game';
-        //     quitBtn.id = 'quit-btn';
-        //     quitBtn.addEventListener('click', () => this.quitGame());
-        //     quitBtn.style.display = 'none';
-
+        
+        // --- Tournament ---
+        if (this.opts?.isTournament) {
+        startBtn.style.display = "block";
+        controlsContainer.appendChild(startBtn);
+        controlsContainer.appendChild(pauseBtn);
+        }
+        // --- Standalone ---
+        else {
         controlsContainer.appendChild(startBtn);
         controlsContainer.appendChild(pauseBtn);
         controlsContainer.appendChild(quitBtn);
 
-        // Standalone Game
-        if (!this.opts?.isTournament) {
-            // Player setup section
-            const setupSection = document.createElement('div');
-            setupSection.className = 'setup_section';
-            setupSection.id = 'setup-section';
-    
-            const guestInput = document.createElement('input');
-            guestInput.type = 'text';
-            guestInput.placeholder = 'Enter guest name';
-            guestInput.className = 'guest_input';
-            guestInput.id = 'guest-input';
-    
-            const addGuestBtn = this.makeButton("Add Guest Player", "add-guest-btn", () => this.addGuestPlayer());
-            addGuestBtn.style.display = "block";
-            // const addGuestBtn = document.createElement('button');
-            // addGuestBtn.className = 'add_guest_btn';
-            // addGuestBtn.textContent = 'Add Guest Player';
-            // addGuestBtn.addEventListener('click', () => this.addGuestPlayer());
-    
-            setupSection.appendChild(guestInput);
-            setupSection.appendChild(addGuestBtn);
-            controlsContainer.appendChild(setupSection);
-            // controlsContainer.prepend(setupSection); // place above butons instead?
+        // Player setup section
+        const setupSection = document.createElement("div");
+        setupSection.className = "setup_section";
+        setupSection.id = "setup-section";
+
+        const guestInput = document.createElement("input");
+        guestInput.type = "text";
+        guestInput.placeholder = "Enter guest name";
+        guestInput.className = "guest_input";
+        guestInput.id = "guest-input";
+
+        const addGuestBtn = this.makeButton("Add Guest Player", "add-guest-btn", () => this.addGuestPlayer());
+        addGuestBtn.style.display = "block";
+
+        setupSection.appendChild(guestInput);
+        setupSection.appendChild(addGuestBtn);
+        controlsContainer.prepend(setupSection);
         }
-        
+
         container.appendChild(controlsContainer);
 
         this.drawInitialScreen();
@@ -262,7 +241,6 @@ export class Game implements IComponent {
             const rightPlayerElement = document.getElementById('right-player');
             if(rightPlayerElement && this.currentSession?.players[0])
                 rightPlayerElement.textContent = this.currentSession?.players[0].displayName;
-            this.showButtons({ start: false, pause: false, quit: false });
         }catch(error){
             console.error('Failed to initialize game:', error);
             alert('Failed to initialize game from: initializeStandalone()');
@@ -282,7 +260,6 @@ export class Game implements IComponent {
         ],
         } as GameSession;
 
-        // this.showButtons({ start: true, pause: false, quit: false });
     }
 
     private async addGuestPlayer(): Promise<void>{
@@ -299,7 +276,6 @@ export class Game implements IComponent {
         }
         try{
             await this.gameService.addGuestPlayer(this.currentSession.sessionId, guestName, "LEFT");
-            
 
             //ui
             const leftPlayerElement = document.getElementById('left-player');
@@ -329,15 +305,6 @@ export class Game implements IComponent {
                 alert("Error adding guest player");
             }
         }
-    }
-
-    private showButtons(v: { start: boolean; pause: boolean; quit: boolean }) {
-        const start = document.getElementById("start-btn") as HTMLElement;
-        const pause = document.getElementById("pause-btn") as HTMLElement;
-        const quit = document.getElementById("quit-btn") as HTMLElement;
-        if (start) start.style.display = v.start ? "block" : "none";
-        if (pause) pause.style.display = v.pause ? "block" : "none";
-        if (quit) quit.style.display = v.quit ? "block" : "none";
     }
 
     // -------------------------------------------------
@@ -395,13 +362,13 @@ export class Game implements IComponent {
                 await this.gameService.pauseGame(this.currentSession.sessionId);
                 this.stopGameLoop();
                 this.updateGameButtons(false);
-            }else{
+            } else{
                 await this.gameService.startGame(this.currentSession.sessionId);
                 this.startGameLoop();
                 this.updateGameButtons(true);
             }
         }catch(error){
-            console.log('failed t pause/resume the game')
+            console.log('failed to pause/resume the game')
         }
     }
 
@@ -460,12 +427,12 @@ export class Game implements IComponent {
         if (isPlaying) {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
-            quitBtn.style.display = 'block';
+            if (quitBtn) quitBtn.style.display = 'block';
             pauseBtn.textContent = 'Pause'
         } else {
             startBtn.style.display = 'none';
             pauseBtn.style.display = 'block';
-            quitBtn.style.display = 'block';
+            if (quitBtn) quitBtn.style.display = 'block';
             pauseBtn.textContent = 'Resume';
         }
     }
