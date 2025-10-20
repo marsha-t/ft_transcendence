@@ -24,4 +24,9 @@ export interface GameSession{
     createdAt?: string;
     startedAt?: string;
     endedAt?: string;
+    tournamentMatch?: {
+        id: number;
+        tournamentId: number;
+        matchIndex: number;
+    } | null;
 }
