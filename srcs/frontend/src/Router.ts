@@ -4,12 +4,18 @@ import { Creators } from './pages/Creators.js';
 import { Game } from './pages/Game.js';
 import { Main } from './pages/Main.js';
 import { Profile } from './pages/Profile.js';
-import { Tournament } from './pages/Tournament.js';
+// import { Tournament } from './pages/Tournament.js';
+import { TournamentSetup } from './pages/TournamentSetup.js';
+import { TournamentAddPlayers } from './pages/TournamentAddPlayers.js';
+import { TournamentLineup } from './pages/TournamentLineup.js';
+import { TournamentMatch } from './pages/TournamentMatch.js';
+import { TournamentResults } from './pages/TournamentResults.js';
 
 export class Router {
 
   constructor(container: HTMLElement) {
-    const renderRoute = () => {
+    const renderRoute = async () => {
+      
       container.innerHTML = ''; // Clear container
       const path = window.location.pathname;
       // console.log("Path:", window.location.pathname);
@@ -41,10 +47,36 @@ export class Router {
           container.appendChild(profile.render());
           break;
         case '/tournament':
-          const tournament = new Tournament();
-          container.appendChild(tournament.render());
+        case '/tournament/setup':
+          const tournamentSetup = new TournamentSetup();
+          container.appendChild(tournamentSetup.render());
           break;
-
+        case '/tournament/add-players':
+          const tournamentAddPlayers = new TournamentAddPlayers();
+          container.appendChild(tournamentAddPlayers.render());
+          break;
+        case '/tournament/lineup':
+          const tournamentLineup = new TournamentLineup();
+          container.appendChild(tournamentLineup.render());
+          break;
+        case '/tournament/match': {
+          const state = history.state;
+          const tournamentId = state?.tournamentId;
+          if (!tournamentId) {
+            container.textContent = 'Error: Missing tournament ID';
+            break;
+          }
+          const tournamentMatch = new TournamentMatch(tournamentId);
+          container.appendChild(await tournamentMatch.render());
+          break;
+        }
+        case '/tournament/results': {
+          const state = history.state;
+          const tournamentId = state?.tournamentId;
+          const tournamentResults = new TournamentResults(tournamentId);
+          container.appendChild(await tournamentResults.render());
+          break;
+        }
         default:
           container.textContent = '404 - Page Not Found';
       }

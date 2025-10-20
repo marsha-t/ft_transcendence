@@ -22,10 +22,12 @@ export interface Player {
 }
 
 export interface NextMatch {
+	matchId: number;
 	matchIndex: number;
+	tournamentId: number;
 	player1: Player | null;
 	player2: Player | null;
-	gameSessionId: number | null;
+	gameSessionId: number;
 	gameStatus: 'CREATED' | 'PLAYING' | 'PAUSED' | 'FINISHED' | 'ABORTED' | null;
 }
 
