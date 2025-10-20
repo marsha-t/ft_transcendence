@@ -87,8 +87,20 @@ export const loginSchema = {
     type: 'object',
     required: ['username', 'password'],
     properties: {
-      username: { type: 'string', minLength: 3 },
-      password: { type: 'string', minLength: 1 }
+      username: {
+        type: 'string',
+        minLength: 3,
+        errorMessage: {
+          minLength: 'Username must be at least 3 characters'
+        }
+      },
+      password: {
+        type: 'string',
+        minLength: 1,
+        errorMessage: {
+          minLength: 'Password is required'
+        }
+      }
     }
   },
   response: {
@@ -101,11 +113,60 @@ export const loginSchema = {
     400: {
       type: 'object',
       properties: {
-        error: { type: 'string' }, 
-        message: { type: 'string' }
+        error: { type: 'string' },
+        message: { type: 'string' },
+        validation: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
       }
     },
     401: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
+  }
+};
+
+export const logoutSchema = {
+  tags: ['Authentication'],
+  summary: 'Log out a user',
+  headers: {
+    type: 'object',
+    properties: {
+      'x-current-user-id': { type: 'string' },
+    },
+    required: ['x-current-user-id'],
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      }
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    },
+    500: {
       type: 'object',
       properties: {
         error: { type: 'string' }

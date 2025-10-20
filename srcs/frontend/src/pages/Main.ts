@@ -3,64 +3,74 @@ import { IComponent } from "../components/IComponent";
 export class Main implements IComponent {
   public render(): HTMLElement {
     const container = document.createElement('div');
-    container.className = "main_page";
+    container.className = `
+      flex justify-center bg-color-yellow
+      h-full py-[23px]`;
 
-    // Load CSS
-    this.loadPageStyles();
+    const subContainer = document.createElement('div');
+    subContainer.className = `
+        flex flex-row items-center justify-start
+        bg-background rounded-[16px] shadow-lg
+        mx-[23px] w-[calc(100%-46px)]
+        h-auto py-6 px-10`;
     
     // Left side (title + description)
     const textSection = document.createElement('div');
-    textSection.className = "text_section";
+    textSection.className = `
+      flex-1 basis-[400px] max-w-[600px]
+      text-color_white`;
 
     const heading = document.createElement('h1');
-    heading.className = "main_title";
+    heading.className = `
+      text-[clamp(18px,4vw,28px)] font-press mb-4
+      text-[16px] tracking-widest`;
     heading.textContent = "About the game";
     textSection.appendChild(heading);
 
     const description = document.createElement('p');
-    description.className = "description";
+    description.className = `
+      text-[clamp(8px,1.2vw,10px)] leading-[1.5]
+      font-press text-[10px] leading-[3] tracking-wider`;
     description.textContent = `Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
                                 Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
                                 Sign up or log in to join the fun and test your skills in this timeless arcade classic! Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
-                                Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
-                                Sign up or log in to join the fun and test your skills in this timeless arcade classic!Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
-                                Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
-                                Sign up or log in to join the fun and test your skills in this timeless arcade classic!Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
-                                Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
+                                Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
                                 Sign up or log in to join the fun and test your skills in this timeless arcade classic!`;
     textSection.appendChild(description);
 
     // Right side (button)
     const rightSection = document.createElement('div')
-    rightSection.className = "right_section";
+    rightSection.className = `
+      flex justify-center flex-1`;
 
     const playButton = document.createElement('a');
     playButton.href = "/game";
-    playButton.className = "play_btn";
-    playButton.textContent = "PLAY NOW";
+    playButton.className = `
+      flex justify-center items-center 
+      w-[260px] h-[82px] px-[46px] rounded-[10px] 
+      text-white text-[44px] font-pixel cursor-pointer 
+      bg-color_button hover:bg-color-secondary 
+      transition-colors duration-300 
+      border-color_border no-underline gap-2`;
+    // playButton.textContent = "PLAY NOW";
+    playButton.textContent = "START";
 
-    const arrow = document.createElement('img');
-    arrow.src = "/assets/arrow.png"; // Path to arrow.png in public/assets/
-    arrow.alt = "Arrow icon";
-    arrow.className = 'arrow';
+    // const arrow = document.createElement('img');
+    // arrow.src = "/assets/arrow.png"; // Path to arrow.png in public/assets/
+    // arrow.alt = "Arrow icon";
+    // arrow.className =  `w-[30px] h-[30px]`;
 
-    playButton.appendChild(arrow);
+    // playButton.appendChild(arrow);
     rightSection.appendChild(playButton);
 
-    // Add to container
-    container.appendChild(textSection);
-    container.appendChild(rightSection);
+    // Add to subcontainer
+    subContainer.appendChild(textSection);
+    subContainer.appendChild(rightSection);
+
+    //add to the main container
+    container.appendChild(subContainer);
 
     return container;
-  }
-  private loadPageStyles(): void {
-      if (document.getElementById('main-styles')) return;
-      
-      const link = document.createElement('link');
-      link.id = 'main-styles';
-      link.rel = 'stylesheet';
-      link.href = '/styles/Main.css';
-      document.head.appendChild(link);
   }
 
 }
