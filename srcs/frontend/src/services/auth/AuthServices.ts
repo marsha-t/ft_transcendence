@@ -24,7 +24,7 @@ export class AuthServices {
             });
             const data = await response.json();
             if(!response.ok){
-                let msg = data.validation?.[0]?.message || data.error;
+                let msg = data.validation?.[0]?.message || data.message || data.error;
                 return {
                     success: false,
                     status: response.status,
