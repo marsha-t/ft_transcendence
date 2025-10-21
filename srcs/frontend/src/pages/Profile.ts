@@ -2,6 +2,20 @@ import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
 import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from '../services/profile/types';
 
+// ***************************************
+/*
+  - profile
+    - profile card
+      - settings
+    - friends
+      - friends
+      - requests
+      - add friend
+        - search
+    - stats - dashboard
+    - match history
+  */
+// ***************************************
 export class Profile implements IComponent {
   private isFriendsActive: boolean = true;
   private username: string = "";
@@ -30,6 +44,7 @@ export class Profile implements IComponent {
 
 
     // Profile card
+    // ***************************************
     const card = document.createElement("div");
     card.className = "profile-card";
 
@@ -65,6 +80,7 @@ export class Profile implements IComponent {
 // ----------------------------------------------------------------------------------------------
 
     // Stats
+    // ***************************************
     const winsValue = "15";  //backend
     const lossesValue = "10"; //backend
     const rankValue = "3"; //backend
@@ -86,6 +102,7 @@ export class Profile implements IComponent {
 // ----------------------------------------------------------------------------------------------
 
   // Friends
+  // ***************************************
     const friends = document.createElement("div");
     friends.className = "friends";
 
@@ -124,6 +141,7 @@ export class Profile implements IComponent {
 // ----------------------------------------------------------------------------------------------
 
     // Match history
+    // ***************************************
     const matchHistory = document.createElement("div");
     matchHistory.className = "match-history";
 
@@ -203,6 +221,8 @@ export class Profile implements IComponent {
 
   // ----------------------------------------------------------------------------------------------
 
+  // ***************************************
+  // friends
 private createFriend(avatarURL: string, name: string, online: boolean): HTMLElement {
   const item = document.createElement("div");
   item.className = "friend-item";
@@ -265,7 +285,8 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
   // ----------------------------------------------------------------------------------------------
 
-
+// ***************************************
+// match history
   private createMatch(opponent: string, result: "Win" | "Loss", score: string, date: string): HTMLElement {
     const row = document.createElement("tr");
 
@@ -294,6 +315,8 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
 // --------------------------------------------------------------------------
 
+// ***************************************
+// requests
   private createRequest(avatarURL: string, name: string, reqId: number): HTMLElement {
     const item = document.createElement("div");
     item.className = "request-item";
@@ -370,7 +393,8 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     return item;
   }
 
-
+// ***************************************
+// friends
   private switchToFriends(): void {
     this.isFriendsActive = true;
     this.updateFriendsList();
@@ -412,7 +436,8 @@ private updateFriendsList(): void {
 
 
 //-----------------------
-
+ // ***************************************
+ // profile
 private async fetchProfileData(): Promise<void> {
   this.setLoadingState(true);
   try {
