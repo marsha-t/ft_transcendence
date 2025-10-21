@@ -1,77 +1,11 @@
 import { ApiResponse  } from "../auth/types";
-import { Tournament, PlayerJoin, Player, TournamentStatus, GetNextMatchResponse } from "./types";
+import { Tournament, TournamentStatus, GetNextMatchResponse } from "./types";
 
 export class TournamentService {
 	private baseUrl: string;
 
 	constructor(){
 		this.baseUrl = 'http://localhost:5001/api';
-	}
-
-	async createTournament(userId: number, numberOfPlayers: number): Promise<ApiResponse<any>> {
-		try {
-			const response = await fetch(`${this.baseUrl}/tournaments`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-current-user-id': String(userId),
-				}, 
-				body: JSON.stringify({
-					numberOfPlayers,
-				})
-			});
-			const data = await response.json();
-			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
-                return {
-                    success: false,
-                    status: response.status,
-                    message: msg || 'Failed to create tournament',
-                    errors: data.errors || [],
-                };
-			}
-			return {
-				success: true,
-				status: response.status,
-				message: "Tournament created successfully",
-				data
-			};
-		} catch(err) {
-			console.error('Error creating tournament: ', err);
-			throw err;
-		}
-	}
-
-	async addTournamentPlayer(tournamentId: number, player: PlayerJoin): Promise<ApiResponse<Player>> {
-		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/players`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'X-Current-Tournament-Id': String(tournamentId),
-				},
-				body: JSON.stringify(player)
-			});
-			const data = await response.json();
-			if (!response.ok) {
-			    let msg = data.validation?.[0]?.message || data.error;
-				return {
-					success: false,
-					status: response.status,
-					message: msg || "Failed to add tournament player",
-					errors: data.errors || [],
-				};
-			}
-			return {
-				success: true, 
-				status: response.status,
-				message: "Player added successfully",
-				data
-			};
-		} catch (err) {
-			console.error('Error adding tournament player: ', err);
-			throw err;
-		}
 	}
 
 	async updateTournamentStatus(tournamentId: number, status: TournamentStatus): Promise<ApiResponse<Tournament>> {
@@ -81,7 +15,6 @@ export class TournamentService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-Tournament-Id': String(tournamentId),
-
 				},
 				body: JSON.stringify({ status })
 			});
@@ -103,6 +36,59 @@ export class TournamentService {
 			}
 		} catch (err) {
 			console.error('Error updating tournament status: ', err);
+			throw err;
+		}
+	}
+
+	async validatePlayer(player: { username: string; password: string}): Promise<ApiResponse<any>> {
+		try {
+			const response = await fetch(`${this.baseUrl}/tournaments/validate-player`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json'},
+				body: JSON.stringify(player),
+			});
+			const data = await response.json();
+			if (!response.ok) {
+				let msg = data.validation?.[0]?.message || data.error;
+				return {
+					success: false,
+					status: response.status,
+					message: msg || "Failed to validate player",
+					errors: data.errors || []
+				};
+			}
+			return { success: true, status: response.status, message: 'Valid player', data };
+		} catch (err) {
+			console.error ('Error validating player: ', err);
+			throw err;
+		}
+	}
+
+	async finalizeTournament(numberOfPlayers: number, players: any[]): Promise<ApiResponse<any>> {
+		try {
+			const response = await fetch(`${this.baseUrl}/tournaments/finalize`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json'},
+				body: JSON.stringify({ numberOfPlayers, players }),
+			});
+			const data = await response.json();
+			if (!response.ok) {
+				let msg = data.validation?.[0]?.message || data.error;
+				return {
+					success: false,
+					status: response.status, 
+					message: data.error || 'Failed to finalize tournament',
+					errors: data.errors || []
+				};
+			}
+			return {
+				success: true,
+				status: response.status,
+				message: "Tournament finalized successfully",
+				data,
+			};
+		} catch (err) {
+			console.error('Error finalizing tournament: ', err);
 			throw err;
 		}
 	}
