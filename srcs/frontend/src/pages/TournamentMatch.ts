@@ -2,11 +2,12 @@ import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
-
+import { enableLeaveWarning } from "../utils.js";
 
 export class TournamentMatch implements IComponent {
 	private container!: HTMLElement;
 	private tournamentId: number;
+	private cleanupWarning?: () => void;
 
 	constructor(tournamentId: number) {
 		this.tournamentId = tournamentId;
@@ -21,6 +22,9 @@ export class TournamentMatch implements IComponent {
 		this.container = document.createElement('div');
 		this.container.className = 'tournament-match';
 
+		// Warning message if click 'back' or navigate away
+		this.cleanupWarning = enableLeaveWarning("A tournament is in progress. Leaving will abort it");
+		
 		this.loadNextMatch();
 		page.appendChild(this.container);
 		return page;
@@ -37,6 +41,7 @@ export class TournamentMatch implements IComponent {
 		}
 		const data = response.data;
 		if (!data?.nextMatch) {
+      		this.cleanup();
 			navigate("/tournament/results", { tournamentId: this.tournamentId });
 			return ;
 		}
@@ -98,5 +103,12 @@ export class TournamentMatch implements IComponent {
 		link.rel = "stylesheet";
 		link.href = "/styles/Tournament.css";
 		document.head.appendChild(link);
+	}
+
+	public cleanup() {
+		if (this.cleanupWarning) {
+			this.cleanupWarning();
+			this.cleanupWarning = undefined;
+		}
 	}
 }
