@@ -6,8 +6,6 @@ import { Main } from './pages/Main.js';
 import { Profile } from './pages/Profile.js';
 // import { Tournament } from './pages/Tournament.js';
 import { TournamentSetup } from './pages/TournamentSetup.js';
-import { TournamentAddPlayers } from './pages/TournamentAddPlayers.js';
-import { TournamentLineup } from './pages/TournamentLineup.js';
 import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
 
@@ -50,14 +48,6 @@ export class Router {
         case '/tournament/setup':
           const tournamentSetup = new TournamentSetup();
           container.appendChild(tournamentSetup.render());
-          break;
-        case '/tournament/add-players':
-          const tournamentAddPlayers = new TournamentAddPlayers();
-          container.appendChild(tournamentAddPlayers.render());
-          break;
-        case '/tournament/lineup':
-          const tournamentLineup = new TournamentLineup();
-          container.appendChild(tournamentLineup.render());
           break;
         case '/tournament/match': {
           const state = history.state;
