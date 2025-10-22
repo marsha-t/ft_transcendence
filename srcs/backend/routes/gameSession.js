@@ -52,6 +52,8 @@ async function gameSessionRoutes(app, options) {
     - Check that status transition is allowed (via isValidTransition())
     - Run additional checks specific to transition (via runChecks())
     - Update timestamps where appropriate
+    - If aborting, check if it is part of tournament
+      - If yes, abort tournament and other game sessions in tournament
     - Update GameSession
     - Return updated session object 
   */
@@ -63,7 +65,7 @@ async function gameSessionRoutes(app, options) {
     try {
       const session = await prisma.gameSession.findUnique({
         where: { id: Number(sessionId) },
-        include: { players: true }
+        include: { players: true, tournamentMatch : { include: { tournament: true }}},
       });
       if (!session) {
         return reply.code(404).send({ error: 'Game session not found' });
@@ -73,6 +75,19 @@ async function gameSessionRoutes(app, options) {
       }
       runChecks(session, nextStatus);
       const data = buildUpdateData(session, nextStatus);
+      if (nextStatus === 'ABORTED') {
+        const now = new Date();
+        
+        // If game is part of tournament, abort tournament and other game sessions
+        if (session.tournamentMatch?.tournamentId) {
+          const tournamentId = session.tournamentMatch.tournamentId;
+          await prisma.tournament.update({ where: { id: tournamentId }, data: { status: 'ABORTED', endedAt: now }});
+          await prisma.gameSession.updateMany({ 
+            where: { tournamentMatch: { tournamentId }, id: { not: session.id }, },
+            data: { status: 'ABORTED', endedAt: now },
+          });
+        }
+      }
       const updated = await prisma.gameSession.update({ where: { id: Number(sessionId) }, data, include: { players: true }});
       return reply.send(updated);
     } catch (err) {

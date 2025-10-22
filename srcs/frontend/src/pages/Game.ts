@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide } from "../services/game/types.js";
 import { enableLeaveWarning } from "../utils.js";
+import { apiServices } from "../services/ApiServices.js";
 
 type GameOptions = {
   sessionId?: string;
@@ -46,8 +47,12 @@ export class Game implements IComponent {
         const container = document.createElement('div');
         container.className = 'game_page';
 
-        this.cleanupWarning = enableLeaveWarning("Leaving will stop the current match.");
-        
+        this.cleanupWarning = enableLeaveWarning("Leaving will stop the current match.",
+        async () => {
+            const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
+            if (sessionId) await apiServices.game.updateGameStatus(sessionId, "ABORTED");
+        });
+
         //Load css
         this.loadPageStyles();
 
