@@ -111,7 +111,7 @@ export class TournamentResults implements IComponent {
 		const link = document.createElement("link");
 		link.id = "tournament-styles";
 		link.rel = "stylesheet";
-		link.href = "/styles/tournament.css";
+		link.href = "/styles/Tournament.css";
 		document.head.appendChild(link);
 	}
 }

@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide } from "../services/game/types.js";
+import { enableLeaveWarning } from "../utils.js";
 
 type GameOptions = {
   sessionId?: string;
@@ -15,6 +16,7 @@ export class Game implements IComponent {
     private gameService: GameService;
     private currentSession: GameSession | null = null;
     private opts?: GameOptions;
+    private cleanupWarning?: () => void;
 
     private isGameRunning: boolean = false;
     private isScoring: boolean = false; 
@@ -44,6 +46,8 @@ export class Game implements IComponent {
         const container = document.createElement('div');
         container.className = 'game_page';
 
+        this.cleanupWarning = enableLeaveWarning("Leaving will stop the current match.");
+        
         //Load css
         this.loadPageStyles();
 
@@ -578,6 +582,7 @@ export class Game implements IComponent {
     private async endGame(): Promise<void> {
         try {
             if (this.currentSession) {
+                this.cleanup();
                 this.stopGameLoop();
                 
                 const winnerName = this.currentSession.winnerName ?? "Unknown";
@@ -591,6 +596,13 @@ export class Game implements IComponent {
             }
         } catch (error) {
             console.error('Failed to finish game:', error);
+        }
+    }
+
+    private cleanup() {
+        if (this.cleanupWarning) {
+            this.cleanupWarning();
+            this.cleanupWarning = undefined;
         }
     }
 }
