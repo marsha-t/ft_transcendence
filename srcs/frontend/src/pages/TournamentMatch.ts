@@ -23,7 +23,11 @@ export class TournamentMatch implements IComponent {
 		this.container.className = 'tournament-match';
 
 		// Warning message if click 'back' or navigate away
-		this.cleanupWarning = enableLeaveWarning("A tournament is in progress. Leaving will abort it");
+		this.cleanupWarning = enableLeaveWarning("A tournament is in progress. Leaving will abort it", 
+			async () => {
+				await apiServices.tournament.updateTournamentStatus(this.tournamentId, "ABORTED");
+			}
+		);
 		
 		this.loadNextMatch();
 		page.appendChild(this.container);
@@ -83,8 +87,11 @@ export class TournamentMatch implements IComponent {
 	}
 	
 	private startGame(gameSessionId: number, p1: any, p2: any) {
+		if (this.cleanupWarning) {
+			this.cleanupWarning();
+			this.cleanupWarning = undefined;
+		}
 		this.container.innerHTML = "";
-
 		const game = new Game({
 			sessionId: String(gameSessionId),
 			isTournament: true,
