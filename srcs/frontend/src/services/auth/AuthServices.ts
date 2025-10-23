@@ -107,7 +107,7 @@ export class AuthServices {
         }
     }
 
-    // Method to get JWT token ------------------
+    // Method to get JWT token ------------------ if not used later on for logout route, remove it!
     getToken(): string | null {
         return localStorage.getItem('jwtToken');
     }
