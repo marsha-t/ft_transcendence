@@ -6,9 +6,9 @@ export const getCurrentUserSchema = {
   headers: {
     type: 'object',
     properties: {
-      'x-current-user-id': { type: 'string' },
+      authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ['x-current-user-id'],
+    required: ['authorization'],
   },
   response: {
     200: {
@@ -44,8 +44,10 @@ export const updateProfileSchema = {
   summary: 'Update username, password, or email of the current user',
   headers: {
     type: 'object',
-    properties: { 'x-current-user-id': { type: 'string' } },
-    required: ['x-current-user-id'],
+    properties: {
+      authorization: { type: 'string', description: 'Bearer <token>' },
+    },
+    required: ['authorization'],
   },
   body: {
     type: 'object',
@@ -119,9 +121,9 @@ export const avatarUploadSchema = {
   headers: {
     type: 'object',
     properties: {
-      'x-current-user-id': { type: 'string' },
+      authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ['x-current-user-id'],
+    required: ['authorization'],
   },
   consumes: ['multipart/form-data'],
   response: {
@@ -149,9 +151,9 @@ export const removeAvatarSchema = {
   headers: {
     type: 'object',
     properties: {
-      'x-current-user-id': { type: 'string' },
+      authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ['x-current-user-id'],
+    required: ['authorization'],
   },
   response: {
     200: {
@@ -174,25 +176,25 @@ export const removeAvatarSchema = {
   },
 };
 
-export const getAvatarSchema = {
-  tags: ['Profile'],
-  summary: 'Fetch user avatar by ID',
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        avatar: { type: 'string' } // URL/path to avatar
-      }
-    },
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-  },
-};
+// export const getAvatarSchema = {
+//   tags: ['Profile'],
+//   summary: 'Fetch user avatar by ID',
+//   response: {
+//     200: {
+//       type: 'object',
+//       properties: {
+//         avatar: { type: 'string' } // URL/path to avatar
+//       }
+//     },
+//     404: {
+//       type: 'object',
+//       properties: {
+//         error: { type: 'string' }
+//       }
+//     },
+//     500: {
+//       type: 'object',
+//       properties: { error: { type: 'string' } },
+//     },
+//   },
+// };
