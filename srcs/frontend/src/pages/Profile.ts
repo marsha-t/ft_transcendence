@@ -36,95 +36,132 @@ export class Profile implements IComponent {
   }
 
   public render():  HTMLElement {
-    this.container = document.createElement("div");
-    this.container.className = "profile-page";
+    this.container = document.createElement('div');
+        this.container.className = `
+        flex justify-center bg-color-yellow
+        h-full py-[23px]`;
 
-
-    this.loadPageStyles();
-
+        
+        this.loadPageStyles();
+        this.fetchProfileData();
+        
+        const subContainer = document.createElement('div');
+        subContainer.className = `
+            grid gap-4 grid-cols-1 sm:grid-cols-[1fr_1.3fr]
+            grid-rows-[250px_auto]  /* <-- top row fixed, bottom row auto */
+            bg-background rounded-[16px] shadow-lg
+            mx-[23px] w-[calc(100%-46px)]
+            py-6 px-10`;
 
     // Profile card
     // ***************************************
-    const card = document.createElement("div");
-    card.className = "profile-card";
+    //renderProfileCard()
+    
+    const profileInfo = document.createElement("div");
+    profileInfo.className = ` rounded-2xl bg-[#21447E] opacity-100 text-color_white
+        p-4 relative flex flex-col items-center`;
 
+    const editProfileBtn = document.createElement("div");
+    editProfileBtn.textContent = "edit";
+    editProfileBtn.className = `
+           absolute top-2 right-2
+        w-[105px] h-[32px]
+        rounded-[7px]
+        px-[10px] py-[6px] font-pixel
+        text-color_white
+        border border-[1px] border-border-green
+        inline-flex justify-center items-center
+        no-underline cursor-pointer
+        transition-colors duration-200 ease-in-out
+        hover:bg-color-green
+        hover:text-color_white
+        `;
+  
+    editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
+    profileInfo.style.position = "relative";
     const avatar = document.createElement("div");
-    avatar.className = "profile-avatar";
+    avatar.className = `w-[132px] h-[132px]
+        rounded-full border-[9.95px] border-white
+        bg-background-yellow
+        mt-6`;
+        avatar.style.backgroundImage = `url(${this.avatar || 'default.png'})`;
+        avatar.style.backgroundSize = "cover";
+        avatar.style.backgroundPosition = "center";
 
     const name = document.createElement("h2");
-    name.className = "profile-name";
-    name.textContent = this.username  || "Hi Test!";
+    name.className = `text-[18px] leading-[22px] tracking-[-0.01em]
+      font-pixel font-[400]
+      text-color_white
+      w-[125px] h-[22px]
+      flex justify-center items-center
+      rounded-md mt-3`;
+    name.textContent = this.username  || "username";
 
-    const status = document.createElement("p");
-    status.className = "profile-status online";
-    status.innerHTML = "Online"; // Using innerHTML for the dot
+    // const status = document.createElement("p");
+    // // status.className = "profile-status online";
+    // status.innerHTML = "Online"; // Using innerHTML for the dot
 
-    const settingsBtn = document.createElement("img");
-    settingsBtn.src = "/assets/icons/gear.svg";
-    settingsBtn.alt = "profile settings";
-    settingsBtn.className = `
-    absolute top-[28px] left-[1009px] 
-    w-[30px] h-[30px]
-    text-[#5D5A88]
-    cursor-pointer
-    inline-flex items-center justify-center
-    transition duration-200
-    hover:brightness-90 hover:text-[#d32f2f]`;
-    settingsBtn.addEventListener("click", () => this.openSettingsPopup());
-    card.appendChild(avatar);
-    card.appendChild(name);
-    card.appendChild(status);
-    card.appendChild(settingsBtn);
-
+    profileInfo.appendChild(editProfileBtn);
+    profileInfo.appendChild(avatar);
+    profileInfo.appendChild(name);
+    // profileInfo.appendChild(status);
 
 // ----------------------------------------------------------------------------------------------
-
-    // Stats
-    // ***************************************
-    const winsValue = "15";  //backend
-    const lossesValue = "10"; //backend
-    const rankValue = "3"; //backend
-    const stats = document.createElement("div");
-    stats.className = "stats";
-    const label = document.createElement("div");
-    label.className = "stats-label";
-    label.textContent = "Stats";
-    stats.appendChild(label);
-
-    const wins = this.createStat(winsValue, "Wins", "stat-wins");
-    const losses = this.createStat(lossesValue, "Losses", "stat-losses");
-    const rank = this.createStat(rankValue, "Rank", "stat-rank");
-
-    stats.appendChild(wins);
-    stats.appendChild(losses);
-    stats.appendChild(rank);
+// heatmap
+ //renderheatmap()
+    const heatmap = document.createElement('div');
+    // heatmap.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
+    this.createHeatmap(heatmap, 2025);
 
 // ----------------------------------------------------------------------------------------------
 
   // Friends
+  // renderFriends()
   // ***************************************
     const friends = document.createElement("div");
-    friends.className = "friends";
+    friends.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
 
     const friendsHeader = document.createElement("div");
-    friendsHeader.className = "friends-header";
+    friendsHeader.className = `
+        w-full h-[80px]
+        p-2 font-pixel font-[400]
+      text-color_white
+        flex items-center justify-between
+        gap-[58px]
+        text-[16px] font-semibold text-white
+        my-[10px] border-b border-gray-500`;
 
+ // Friends Title
     const friendsTitle = document.createElement("h3");
-    friendsTitle.className = this.isFriendsActive ? "active" : "";
+    friendsTitle.className = `
+        text-[16px] font-semibold cursor-pointer
+        hover:text-[--color-button] active:text-[--color-button]
+    `;
     friendsTitle.textContent = "Friends";
     friendsTitle.addEventListener("click", () => this.switchToFriends());
 
+    // Requests Title
     const requestTitle = document.createElement("h4");
-    requestTitle.className = !this.isFriendsActive ? "active" : "";
+    requestTitle.className = `
+        text-[16px] font-semibold cursor-pointer
+        hover:text-[--color-button] active:text-[--color-button]
+    `;
     requestTitle.textContent = "Request";
     requestTitle.addEventListener("click", () => this.switchToRequests());
 
+    // Add Friend Button
     const addFriendBtn = document.createElement("button");
+    addFriendBtn.className = `
+       w-[135px] h-[34px] flex justify-center items-center
+    text-[16px] font-pixel font-semibold
+    border border-[#77AB55] rounded-[7px]
+    gap-[6px]
+    hover:bg-[#77AB55] hover:text-white
+    transition-all duration-200
+    `;
     addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
-    addFriendBtn.className = "search-btn";
-    const addFriendText = document.createElement("span");
-    addFriendText.textContent = "Add Friend";
-    addFriendBtn.appendChild(addFriendText);
+    addFriendBtn.textContent = "Add Friend";
+
 
     friendsHeader.appendChild(friendsTitle);
     friendsHeader.appendChild(requestTitle);
@@ -143,7 +180,7 @@ export class Profile implements IComponent {
     // Match history
     // ***************************************
     const matchHistory = document.createElement("div");
-    matchHistory.className = "match-history";
+    matchHistory.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
 
     const matchTitle = document.createElement("h3");
     matchTitle.textContent = "Match History";
@@ -171,10 +208,11 @@ export class Profile implements IComponent {
     matchHistory.appendChild(table);
 
     // Append everything
-    this.container.appendChild(card);
-    this.container.appendChild(stats);
-    this.container.appendChild(friends);
-    this.container.appendChild(matchHistory);
+    subContainer.appendChild(profileInfo);
+    subContainer.appendChild(heatmap);
+    subContainer.appendChild(friends);
+    subContainer.appendChild(matchHistory);
+    this.container.appendChild(subContainer);
 
     const observer = new MutationObserver(() => {
       if (this.container.parentElement) {
@@ -518,20 +556,38 @@ private async fetchProfileData(): Promise<void> {
 
 private openAddFriendPopup(): void {
   const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-
+  overlay.className = `
+    fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50
+  `;
+  
+  // Modal popup
   const modal = document.createElement("div");
-  modal.className = "modal";
-
+  modal.className = `
+    w-[570px] h-[740px] rounded-[16px] bg-[#77AB55]
+    flex flex-col p-4 relative
+    opacity-100
+  `;
+  
   const header = document.createElement("div");
-  header.className = "search-header";
+  header.className = `w-full h-[30px] m-[10px]`;
 
   const title = document.createElement("h2");
+  title.className = `
+  font-pixel font-bold text-[16px] w-full h-[18px]
+  text-white
+  `;
   title.textContent = "Search for Users";
 
   const closeBtn = document.createElement("button");
-  closeBtn.className = "close-btn";
-  closeBtn.innerHTML = "&times;";
+  closeBtn.className = `absolute top-2 right-2
+        w-[16px] h-[16px]
+        px-[10px] py-[6px] font-pixel 
+        font-bold
+        m-[10px]
+        mr-[20px]
+        text-color_white
+        cursor-pointer`;
+  closeBtn.innerHTML = "X";
   closeBtn.addEventListener("click", () => overlay.remove());
 
   header.appendChild(title);
@@ -540,10 +596,14 @@ private openAddFriendPopup(): void {
   const searchInput = document.createElement("input");
   searchInput.type = "text";
   searchInput.placeholder = "Search username...";
-  searchInput.className = "search-input";
+  searchInput.className = `
+     w-[calc(100%-30px)] h-[50px] rounded-[10px] px-3
+    bg-[#183B76] text-white border border-gray-500
+    placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500
+  `;
 
   const resultsContainer = document.createElement("div");
-  resultsContainer.className = "search-results";
+  // resultsContainer.className = "search-results";
 
   modal.appendChild(header);
   modal.appendChild(searchInput);
@@ -1000,5 +1060,96 @@ private openAddFriendPopup(): void {
       );
     });
   }
+  // Generate a calendar-style heatmap
+  private createHeatmap(container: HTMLElement, year: number = new Date().getFullYear()): void {
+    container.innerHTML = ""; // clear previous content
+    container.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white flex flex-col justify-between `;
+
+    // const title = document.createElement("h2");
+    // title.className = "text-xl font-semibold mb-4";
+    // title.textContent = `${year} Activity`;
+    // container.appendChild(title);
+
+    // Grid container for 4 months in one row
+    const monthsGrid = document.createElement("div");
+    monthsGrid.className = "grid grid-cols-4 gap-4"; // 4 months side by side
+    container.appendChild(monthsGrid);
+
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    for (let m = 0; m < 4; m++) {
+        const monthContainer = document.createElement("div");
+        monthContainer.className = "flex flex-col gap-1";
+
+        const monthTitle = document.createElement("span");
+        monthTitle.className = "font-semibold text-center";
+        monthTitle.textContent = monthNames[m];
+        monthContainer.appendChild(monthTitle);
+
+        const grid = document.createElement("div");
+        grid.className = "grid grid-cols-7 gap-[2px] justify-center";
+
+        // Days in month
+        const start = new Date(year, m, 1);
+        const end = new Date(year, m + 1, 0);
+        const firstDayOfWeek = start.getDay();
+
+        // Empty cells to align first day
+        for (let i = 0; i < firstDayOfWeek; i++) {
+            const emptyCell = document.createElement("div");
+            emptyCell.className = "w-3 h-3 sm:w-4 sm:h-4";
+            grid.appendChild(emptyCell);
+        }
+
+        for (let d = 1; d <= end.getDate(); d++) {
+            const cell = document.createElement("div");
+            const count = Math.floor(Math.random() * 6); // replace with real activity
+            const getColor = (c: number) => {
+              switch (c) {
+                  case 0: 
+                      return "bg-white";        // No activity / empty
+                  case 1: 
+                      return "bg-[#99B5E5]";   // Light blue / low activity
+                  case 2: 
+                      return "bg-[#1F4D9A]";   // Medium blue / medium activity
+                  case 3: 
+                      return "bg-[#183B76]";   // Dark blue / high activity
+                  default: 
+                      return "bg-[#183B76]";   // Use same as high activity for any extra value
+              }
+          };
+          
+            cell.className = `w-3 h-3 sm:w-4 sm:h-4 rounded ${getColor(count)} transition hover:scale-110`;
+            cell.title = `${monthNames[m]} ${d}, ${year} — ${count} activity`;
+            grid.appendChild(cell);
+        }
+
+        monthContainer.appendChild(grid);
+        monthsGrid.appendChild(monthContainer);
+    }
+
+    // "Learn More" button
+    const button = document.createElement("button");
+    button.textContent = ">> Learn More";
+    button.className = `
+       absolute bottom-4 right-4
+                w-[190px] h-[32px]
+                rounded-[7px]
+                px-[10px] py-[6px] font-pixel
+                text-color_white
+                border border-[1px] border-border-green
+                inline-flex justify-center items-center
+                no-underline cursor-pointer
+                transition-colors duration-200 ease-in-out
+                hover:bg-color-green
+                hover:text-color_white
+    `;
+    button.addEventListener("click", () => alert("Redirect to full calendar view")); // replace with actual action
+    container.style.position = "relative";
+    container.appendChild(button);
+}
+
+
+
   
 }
