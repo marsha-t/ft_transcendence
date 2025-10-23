@@ -8,6 +8,11 @@ export class ProfileServices {
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
+
+    getToken(): string | null {
+      return localStorage.getItem('jwtToken');
+    }
+    
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
@@ -15,7 +20,7 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-current-user-id': '1',
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
             });
             const data = await response.json();
@@ -51,7 +56,7 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-current-user-id': '1',
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
             });
             const data = await response.json();
@@ -93,8 +98,7 @@ export class ProfileServices {
           const res = await fetch(`${this.baseUrl}/friends/${encodeURIComponent(username)}`, {
             method: "DELETE",
             headers: {
-              // You may need to include the current user ID header if backend requires it:
-              "x-current-user-id": "1", 
+              'Authorization': `Bearer ${this.getToken()}`,
             },
           });
       
@@ -118,7 +122,7 @@ export class ProfileServices {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "x-current-user-id": "1", // or dynamically get user ID
+              'Authorization': `Bearer ${this.getToken()}`,
             },
             body: JSON.stringify(data),
           });
@@ -156,7 +160,7 @@ export class ProfileServices {
             const response = await fetch(`${this.baseUrl}/profile/avatar`, {
                 method: "PUT",
                 headers: {
-                    "x-current-user-id": "1",
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
                 body: formData,
             });
@@ -194,7 +198,7 @@ export class ProfileServices {
           const response = await fetch(`${this.baseUrl}/profile/avatar`, {
             method: "DELETE",
             headers: {
-              "x-current-user-id": "1", // or dynamically from auth
+              'Authorization': `Bearer ${this.getToken()}`,
             },
           });
       
@@ -232,7 +236,7 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  "x-current-user-id": "1", // replace with dynamic current user ID
+                  'Authorization': `Bearer ${this.getToken()}`,
               },
           });
   
@@ -280,7 +284,7 @@ export class ProfileServices {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-current-user-id": userId.toString(),
+          'Authorization': `Bearer ${this.getToken()}`,
         },
         body: JSON.stringify({ username }),
       });
@@ -303,7 +307,7 @@ export class ProfileServices {
             method: 'GET',
             headers: {
             'Content-Type': 'application/json',
-            'x-current-user-id': '1',
+            'Authorization': `Bearer ${this.getToken()}`,
             },
         });
     
@@ -367,7 +371,7 @@ export class ProfileServices {
         const response = await fetch(`${this.baseUrl}/friends/${username}/${action}`, {
             method: 'PUT',
             headers: {
-            'x-current-user-id': '1',
+            'Authorization': `Bearer ${this.getToken()}`,
             },
         });
     
@@ -397,10 +401,5 @@ export class ProfileServices {
         };
         }
     }
-  
     
 }
-
-
-
-

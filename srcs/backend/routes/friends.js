@@ -1,17 +1,15 @@
 // routes/friends.js
 
 import prisma from '../prisma/prismaClient.js';
-import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequestSchema, removeFriendSchema, getFriendsSchema, getIncomingRequestsSchema, getOutgoingRequestsSchema, searchFriendsSchema } from '../schemas/friends.js';
+import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequestSchema, removeFriendSchema, getFriendsSchema, getIncomingRequestsSchema, searchFriendsSchema } from '../schemas/friends.js';
 
 async function friendsRoutes(app, options) {
 
   // 1- Send a friend request by username
-  app.post('/api/friends/send', { schema: sendFriendRequestSchema }, async (request, reply) => {
+  app.post('/api/friends/send', { schema: sendFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
+      const currentUserId = request.user.id;
       const { username } = request.body; // target user's username
-      // Extract current user ID from header (temporary, JWT will replace)
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       // Check if current user exists
       const currentUser = await prisma.user.findUnique({ where: { id: currentUserId } });
@@ -63,11 +61,10 @@ async function friendsRoutes(app, options) {
   });
 
   // 2- Accept a pending friend request by sender username
-  app.put('/api/friends/:username/accept', { schema: acceptFriendRequestSchema }, async (request, reply) => {
+  app.put('/api/friends/:username/accept', { schema: acceptFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
+      const currentUserId = request.user.id;
       const { username } = request.params; // sender username
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       // Find sender by username
       const sender = await prisma.user.findUnique({ where: { username } });
@@ -102,11 +99,10 @@ async function friendsRoutes(app, options) {
   });
 
   // 3- Reject a friend request by sender username
-  app.put('/api/friends/:username/reject', { schema: rejectFriendRequestSchema }, async (request, reply) => {
+  app.put('/api/friends/:username/reject', { schema: rejectFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
+      const currentUserId = request.user.id;
       const { username } = request.params; // sender username
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       // Find sender by username
       const sender = await prisma.user.findUnique({ where: { username } });
@@ -131,11 +127,10 @@ async function friendsRoutes(app, options) {
   });
 
   // 4- Remove an existing friend by username
-  app.delete('/api/friends/:username', { schema: removeFriendSchema }, async (request, reply) => {
+  app.delete('/api/friends/:username', { schema: removeFriendSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
+      const currentUserId = request.user.id;
       const { username } = request.params; // friend's username
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       // Find friend by username
       const friend = await prisma.user.findUnique({ where: { username } });
@@ -166,10 +161,9 @@ async function friendsRoutes(app, options) {
   });
 
   // 5- Get the current user’s list of friends
-  app.get('/api/friends', { schema: getFriendsSchema }, async (request, reply) => {
+  app.get('/api/friends', { schema: getFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+      const currentUserId = request.user.id;
 
       const friends = await prisma.friendRequest.findMany({
         where: {
@@ -202,10 +196,9 @@ async function friendsRoutes(app, options) {
   });
 
   // 6- Get incoming friend requests (users who added me, still pending)
-  app.get('/api/friends/requests', { schema: getIncomingRequestsSchema }, async (request, reply) => {
+  app.get('/api/friends/requests', { schema: getIncomingRequestsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+      const currentUserId = request.user.id;
 
       const incoming = await prisma.friendRequest.findMany({
         where: { receiverId: currentUserId, status: 'PENDING' },
@@ -230,41 +223,40 @@ async function friendsRoutes(app, options) {
     }
   });
 
-  // 7- Get outgoing friend requests (users I added, still pending)
-  app.get('/api/friends/sent', { schema: getOutgoingRequestsSchema }, async (request, reply) => {
-    try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
+  // // 7- Get outgoing friend requests (users I added, still pending)
+  // app.get('/api/friends/sent', { schema: getOutgoingRequestsSchema }, async (request, reply) => {
+  //   try {
+  //     const userIdHeader = request.headers['x-current-user-id'];
+  //     const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
-      const outgoing = await prisma.friendRequest.findMany({
-        where: { senderId: currentUserId, status: 'PENDING' },
-        include: { receiver: true }
-      });
+  //     const outgoing = await prisma.friendRequest.findMany({
+  //       where: { senderId: currentUserId, status: 'PENDING' },
+  //       include: { receiver: true }
+  //     });
 
-      const requests = outgoing.map(req => ({
-        id: req.id,
-        to: {
-          username: req.receiver.username,
-          avatar: req.receiver.avatar,
-          status: req.receiver.status
-        }
-      }));
+  //     const requests = outgoing.map(req => ({
+  //       id: req.id,
+  //       to: {
+  //         username: req.receiver.username,
+  //         avatar: req.receiver.avatar,
+  //         status: req.receiver.status
+  //       }
+  //     }));
 
-      return reply.code(200).send(requests);
+  //     return reply.code(200).send(requests);
 
-    } catch (err) {
-      request.log.error(err);
-      if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
-      return reply.code(500).send({ error: 'Failed to fetch outgoing friend requests' });
-    }
-  });
+  //   } catch (err) {
+  //     request.log.error(err);
+  //     if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
+  //     return reply.code(500).send({ error: 'Failed to fetch outgoing friend requests' });
+  //   }
+  // });
 
   // 8- Search users by username (safe + sanitized)
-  app.get('/api/friends/search', { schema: searchFriendsSchema }, async (request, reply) => {
+  app.get('/api/friends/search', { schema: searchFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
+      const currentUserId = request.user.id;
       const { query } = request.query;
-      const userIdHeader = request.headers['x-current-user-id'];
-      const currentUserId = userIdHeader ? Number(userIdHeader) : null;
 
       // Basic validation
       if (!query || query.trim() === '') {
