@@ -42,8 +42,9 @@ export class Profile implements IComponent {
         h-full py-[23px]`;
 
         
-        this.loadPageStyles();
-        this.fetchProfileData();
+  // styles are handled inline using Tailwind classes in this file
+  // (do not load external Profile.css as per project convention)
+  this.fetchProfileData();
         
         const subContainer = document.createElement('div');
         subContainer.className = `
@@ -57,9 +58,10 @@ export class Profile implements IComponent {
     // ***************************************
     //renderProfileCard()
     
-    const profileInfo = document.createElement("div");
-    profileInfo.className = ` rounded-2xl bg-[#21447E] opacity-100 text-color_white
-        p-4 relative flex flex-col items-center`;
+  const profileInfo = document.createElement("div");
+  // add `profile-card` so loading state toggles (.profile-card is queried elsewhere)
+  profileInfo.className = `profile-card rounded-2xl bg-[#21447E] opacity-100 text-color_white
+    p-4 relative flex flex-col items-center`;
 
     const editProfileBtn = document.createElement("div");
     editProfileBtn.textContent = "edit";
@@ -80,16 +82,25 @@ export class Profile implements IComponent {
     editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
     profileInfo.style.position = "relative";
     const avatar = document.createElement("div");
-    avatar.className = `w-[132px] h-[132px]
+    // add `profile-avatar` so updateProfileUI() can find and update it
+    avatar.className = `profile-avatar w-[132px] h-[132px]
         rounded-full border-[9.95px] border-white
         bg-background-yellow
         mt-6`;
-        avatar.style.backgroundImage = `url(${this.avatar || 'default.png'})`;
-        avatar.style.backgroundSize = "cover";
-        avatar.style.backgroundPosition = "center";
+    // set an initial rendering; updateProfileUI will overwrite after fetch
+    if (this.avatar) {
+      const backendUrl = "http://localhost:5001";
+      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatar.style.backgroundSize = "cover";
+      avatar.style.backgroundPosition = "center";
+      avatar.textContent = "";
+    } else {
+      avatar.style.backgroundImage = "";
+      avatar.textContent = (this.username ? this.username.charAt(0).toUpperCase() : "");
+    }
 
     const name = document.createElement("h2");
-    name.className = `text-[18px] leading-[22px] tracking-[-0.01em]
+    name.className = `profile-name text-[18px] leading-[22px] tracking-[-0.01em]
       font-pixel font-[400]
       text-color_white
       w-[125px] h-[22px]
@@ -229,13 +240,9 @@ export class Profile implements IComponent {
   // ----------------------------------------------------------------------------------------------
 
   private loadPageStyles(): void {
-    if (document.getElementById("profile-styles")) return;
-
-    const link = document.createElement("link");
-    link.id = "profile-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/Profile.css";
-    document.head.appendChild(link);
+    // No-op: styles for the profile are defined inline using Tailwind classes
+    // and this project no longer uses an external Profile.css for this page.
+    return;
   }
 
   // ----------------------------------------------------------------------------------------------
@@ -556,20 +563,20 @@ private async fetchProfileData(): Promise<void> {
 
 private openAddFriendPopup(): void {
   const overlay = document.createElement("div");
-  overlay.className = `
+  overlay.className = `modal-overlay
     fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50
   `;
   
   // Modal popup
   const modal = document.createElement("div");
-  modal.className = `
+  modal.className = `modal
     w-[570px] h-[740px] rounded-[16px] bg-[#77AB55]
     flex flex-col p-4 relative
     opacity-100
   `;
   
   const header = document.createElement("div");
-  header.className = `w-full h-[30px] m-[10px]`;
+  header.className = `modal-header w-full h-[30px] m-[10px]`;
 
   const title = document.createElement("h2");
   title.className = `
@@ -705,30 +712,33 @@ private openAddFriendPopup(): void {
 
 
   private openSettingsPopup(): void {
-    const overlay = document.createElement("div");
-    overlay.className = "modal-overlay";
+  const overlay = document.createElement("div");
+  // Use Tailwind-style classes so this works without external CSS
+  overlay.className = `fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50`;
     //Create message container for success/error messages
-    const modal = document.createElement("div");
-    modal.className = "modal";
+  const modal = document.createElement("div");
+  // match styling approach used in add-friend popup (Tailwind-like)
+  modal.className = `w-[520px] max-w-[95%] rounded-[16px] bg-[#21447E] text-white p-6 relative opacity-100`;
     
-    const header = document.createElement("div");
-    header.className = "modal-header";
+  const header = document.createElement("div");
+  header.className = `flex items-start justify-between w-full mb-4`;
     
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "close-btn";
-    closeBtn.innerHTML = "&times;"; // HTML  '×'
-    closeBtn.addEventListener("click", () => overlay.remove());
+  const closeBtn = document.createElement("button");
+  closeBtn.className = `absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-white bg-transparent hover:brightness-90`;
+  closeBtn.innerHTML = "&times;"; // HTML  '×'
+  closeBtn.addEventListener("click", () => overlay.remove());
     
-    this.messageContainer = document.createElement('div');
-    this.messageContainer.className = 'message_container';
-    this.messageContainer.style.display = 'none';
-    modal.appendChild(this.messageContainer);
+  this.messageContainer = document.createElement('div');
+  // Tailwind-friendly message container
+  this.messageContainer.className = 'message_container w-full p-3 rounded-md mb-3 text-sm';
+  this.messageContainer.style.display = 'none';
+  modal.appendChild(this.messageContainer);
   
     // Avatar section
-    const avatarSection = document.createElement("div");
-    avatarSection.className = "settings-avatar";
-    const avatarPlaceholder = document.createElement("div");
-    avatarPlaceholder.className = "avatar-placeholder";
+  const avatarSection = document.createElement("div");
+  avatarSection.className = `flex items-center gap-4 mb-4`;
+  const avatarPlaceholder = document.createElement("div");
+  avatarPlaceholder.className = `avatar-placeholder w-[132px] h-[132px] rounded-full border-[9.95px] border-white bg-background-yellow flex items-center justify-center text-3xl font-pixel`;
     if (this.avatar) {
       const backendUrl = "http://localhost:5001";
       avatarPlaceholder.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
@@ -744,27 +754,14 @@ private openAddFriendPopup(): void {
     const penIcon = document.createElement("img");
     penIcon.src = "/assets/icons/pen.svg";
     penIcon.alt = "Edit avatar";
-    penIcon.className = `absolute top-[172px] left-[230px] 
-      w-[20px] h-[20px]
-      text-[#5D5A88]
-      cursor-pointer
-      inline-flex items-center justify-center
-      transition duration-200
-      hover:brightness-90 hover:text-[#297138]`;
+    penIcon.className = `absolute top-[172px] left-[230px] w-[20px] h-[20px] cursor-pointer inline-flex items-center justify-center transition duration-200 hover:brightness-90 hover:text-[#297138]`;
     penIcon.addEventListener("click", () => this.handleAvatarEdit());
 
     // Trash icon (delete)
     const trashIcon = document.createElement("img");
     trashIcon.src = "/assets/icons/trash.svg";
     trashIcon.alt = "Delete avatar";
-    trashIcon.className = `
-    absolute top-[172px] left-[307px] 
-    w-[20px] h-[20px]
-    text-[#5D5A88]
-    cursor-pointer
-    inline-flex items-center justify-center
-    transition duration-200
-    hover:brightness-90 hover:text-[#d32f2f]`;    
+  trashIcon.className = `absolute top-[172px] left-[307px] w-[20px] h-[20px] cursor-pointer inline-flex items-center justify-center transition duration-200 hover:brightness-90 hover:text-[#d32f2f]`;
     trashIcon.addEventListener("click", () => this.handleAvatarDelete());
 
 
@@ -779,19 +776,19 @@ private openAddFriendPopup(): void {
 
     // Form fields
     const form = document.createElement("div");
-  form.className = "settings-form";
+  form.className = `flex flex-col gap-3`;
 
   // === Username ===
   const usernameGroup = document.createElement("div");
-  usernameGroup.className = "form-group";
+  usernameGroup.className = `flex flex-col gap-1`;
 
   const usernameLabel = document.createElement("label");
-  usernameLabel.className = "form-label";
+  usernameLabel.className = `text-sm font-semibold`;
   usernameLabel.textContent = "Username";
 
   const usernameInput = document.createElement("input");
   usernameInput.type = "text";
-  usernameInput.className = "modal-input";
+  usernameInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
   usernameInput.placeholder = this.username || "";
 
   usernameGroup.appendChild(usernameLabel);
@@ -799,15 +796,15 @@ private openAddFriendPopup(): void {
 
   // === Email ===
   const emailGroup = document.createElement("div");
-  emailGroup.className = "form-group";
+  emailGroup.className = `flex flex-col gap-1`;
 
   const emailLabel = document.createElement("label");
-  emailLabel.className = "form-label";
+  emailLabel.className = `text-sm font-semibold`;
   emailLabel.textContent = "Email";
 
   const emailInput = document.createElement("input");
   emailInput.type = "email";
-  emailInput.className = "modal-input";
+  emailInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
   emailInput.placeholder = this.email || "";
 
   emailGroup.appendChild(emailLabel);
@@ -815,21 +812,21 @@ private openAddFriendPopup(): void {
 
   // === Password ===
   const passwordGroup = document.createElement("div");
-  passwordGroup.className = "form-group";
+  passwordGroup.className = `flex flex-col gap-1`;
 
   const passwordLabel = document.createElement("label");
-  passwordLabel.className = "form-label";
+  passwordLabel.className = `text-sm font-semibold`;
   passwordLabel.textContent = "Password";
 
   const oldPasswordInput = document.createElement("input");
   oldPasswordInput.type = "password";
   oldPasswordInput.placeholder = "Old Password";
-  oldPasswordInput.className = "modal-input";
+  oldPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
 
   const newPasswordInput = document.createElement("input");
   newPasswordInput.type = "password";
   newPasswordInput.placeholder = "New Password";
-  newPasswordInput.className = "modal-input";
+  newPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
 
   passwordGroup.appendChild(passwordLabel);
   passwordGroup.appendChild(oldPasswordInput);
@@ -845,13 +842,13 @@ private openAddFriendPopup(): void {
 
     // Action buttons
     const actions = document.createElement("div");
-    actions.className = "modal-actions";
-    const saveBtn = document.createElement("button");
-    saveBtn.className = "save-btn";
-    saveBtn.textContent = "Save";
-    const cancelBtn = document.createElement("button");
-    cancelBtn.className = "cancel-btn";
-    cancelBtn.textContent = "Cancel";
+  actions.className = `flex items-center justify-end gap-3 mt-4`;
+  const saveBtn = document.createElement("button");
+  saveBtn.className = `w-[100px] h-[36px] rounded-[8px] bg-[#77AB55] text-white font-pixel font-semibold`;
+  saveBtn.textContent = "Save";
+  const cancelBtn = document.createElement("button");
+  cancelBtn.className = `w-[100px] h-[36px] rounded-[8px] bg-[#2b3b59] text-white font-pixel font-semibold`;
+  cancelBtn.textContent = "Cancel";
 
     saveBtn.addEventListener("click", async () => {
       // Gather form inputs
