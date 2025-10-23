@@ -21,7 +21,6 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 // --------------------------------
 
 // needed imports for the avatar
-// import path from 'path';
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 
@@ -64,6 +63,18 @@ await app.register(swagger, {
       servers: [
         { url: 'http://localhost:5001/' },
       ],
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'Enter your token as: **Bearer <JWT>**',
+          },
+        },
+      },
+      // 👇 This makes all routes require JWT by default (visually in docs)
+      security: [{ BearerAuth: [] }],
     },
   });
 
