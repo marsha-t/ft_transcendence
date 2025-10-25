@@ -143,27 +143,45 @@ export class Profile implements IComponent {
         my-[10px] border-b border-gray-500`;
 
  // Friends Title
-    const friendsTitle = document.createElement("h3");
+    const friendsTitle = document.createElement("button");
     friendsTitle.className = `
-        text-[16px] font-semibold cursor-pointer
-        hover:text-[--color-button] active:text-[--color-button]
+        text-[18px] font-semibold cursor-pointer h-[full]
+        hover:text-[--color-button]
     `;
     friendsTitle.textContent = "Friends";
-    friendsTitle.addEventListener("click", () => this.switchToFriends());
 
     // Requests Title
-    const requestTitle = document.createElement("h4");
-    requestTitle.className = `
-        text-[16px] font-semibold cursor-pointer
-        hover:text-[--color-button] active:text-[--color-button]
-    `;
+    const requestTitle = document.createElement("button");
     requestTitle.textContent = "Request";
-    requestTitle.addEventListener("click", () => this.switchToRequests());
+    requestTitle.className = `
+        text-[18px] font-semibold cursor-pointer h-[full]
+        hover:text-[--color-button] transition-all duration-200
+    `;
 
+      // Highlight active tab
+    const setActive = (active: "friends" | "requests") => {
+      if (active === "friends") {
+        friendsTitle.classList.add("text-[#77AB55]", "font-bold");
+        requestTitle.classList.remove("text-[#77AB55]", "font-bold");
+      } else {
+        requestTitle.classList.add("text-[#77AB55]", "font-bold");
+        friendsTitle.classList.remove("text-[#77AB55]", "font-bold");
+      }
+    };
+    // Add click events
+    friendsTitle.addEventListener("click", () => {
+      this.switchToFriends();
+      setActive("friends");
+    });
+    requestTitle.addEventListener("click", () => {
+      this.switchToRequests();
+      setActive("requests");
+    });
+    setActive("friends");
     // Add Friend Button
     const addFriendBtn = document.createElement("button");
     addFriendBtn.className = `
-       w-[135px] h-[34px] flex justify-center items-center
+       w-[140px] h-[full] flex justify-center items-center
     text-[16px] font-pixel font-semibold
     border border-[#77AB55] rounded-[7px]
     gap-[6px]
@@ -182,6 +200,7 @@ export class Profile implements IComponent {
     const friendsList = document.createElement("div");
     friendsList.className = "friends-list";
     this.switchToFriends();
+    setActive("friends");
     friends.appendChild(friendsHeader);
     friends.appendChild(friendsList);
 
@@ -472,10 +491,12 @@ private updateFriendsList(): void {
     }
 
     // Update active class for tabs
-    const friendsTitle = this.container.querySelector("h3")!;
-    const requestTitle = this.container.querySelector("h4")!;
-    friendsTitle.className = this.isFriendsActive ? "active" : "";
-    requestTitle.className = this.isFriendsActive ? "" : "active";
+    // Use classes or tag selectors matching your buttons
+    const friendsTitle = this.container.querySelector(".friends-tab")!;
+    const requestTitle = this.container.querySelector(".requests-tab")!;
+    friendsTitle.className = this.isFriendsActive ? "friends-tab active" : "friends-tab";
+    requestTitle.className = this.isFriendsActive ? "requests-tab" : "requests-tab active";
+    
 }
 
 
@@ -570,10 +591,11 @@ private openAddFriendPopup(): void {
   // Modal popup
   const modal = document.createElement("div");
   modal.className = `modal
-    w-[570px] h-[740px] rounded-[16px] bg-[#77AB55]
+    w-[570px] h-[740px] rounded-[16px] bg-[#7EA2DD]
     flex flex-col p-4 relative
     opacity-100
   `;
+  //#7EA2DD
   
   const header = document.createElement("div");
   header.className = `modal-header w-full h-[30px] m-[10px]`;
@@ -610,7 +632,12 @@ private openAddFriendPopup(): void {
   `;
 
   const resultsContainer = document.createElement("div");
-  // resultsContainer.className = "search-results";
+  resultsContainer.className = `flex flex-col gap-3
+          w-[calc(100%-50px)] ml-[10px]
+          mt-4 pb-2
+          max-h-[550px] overflow-y-auto
+          scrollbar-thin scrollbar-thumb-[#183B76] scrollbar-track-[#7EA2DD]
+        `;
 
   modal.appendChild(header);
   modal.appendChild(searchInput);
@@ -634,23 +661,36 @@ private openAddFriendPopup(): void {
       return;
     }
 
-    data.forEach((user) => {
+    data.forEach((user, index) => {
       console.log(`${user.username}: ${user.friendStatus}`);
       const userDiv = document.createElement("div");
-      userDiv.className = "search-item";
+      userDiv.className = `
+        flex items-center justify-between  h-[55px]
+        rounded-[10px] px-4 py-3
+        ${index % 2 === 0 ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"}
+        text-[#183B76] font-pixel
+        transition hover:opacity-90
+      `;
+
+      const avatarNameContainer = document.createElement("div");
+      avatarNameContainer.className = "flex items-center";
 
       const avatar = document.createElement("div");
       avatar.style.backgroundImage = `url(${backendUrl}${user.avatar})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
-      avatar.className = "search-userAvatar";
+      avatar.className = `
+          w-[45px] h-[45px]
+          rounded-full border-2 border-white
+          shadow-md flex-shrink-0
+        `;
 
       const name = document.createElement("span");
-      name.className = "search-username";
+      name.className = "ml-2 text-[16px] font-semibold text-[#183B76] text-left ";
       name.textContent = user.username;
 
       const action = document.createElement("div");
-      action.className = "search-action";
+      action.className = "flex items-center";
 
       const isPending =
         user.friendStatus === "pending_sent" || localPending.has(user.username);
@@ -658,12 +698,23 @@ private openAddFriendPopup(): void {
       if (isPending) {
         const pendingLabel = document.createElement("span");
         pendingLabel.textContent = "Pending";
-        pendingLabel.className = "pending-label";
+        pendingLabel.className = `
+          px-4 py-1 rounded-[7px]
+          border border-[#77AB55] text-[#77AB55]
+          text-[14px] font-semibold
+          cursor-default select-none
+        `;
         action.appendChild(pendingLabel);
       } else {
         const addBtn = document.createElement("button");
         addBtn.textContent = "Add Friend";
-        addBtn.className = "addFriend-btn";
+        addBtn.className = `
+            px-4 py-1 rounded-[7px]
+            border border-[#77AB55]
+            text-[#77AB55] font-semibold text-[14px]
+            hover:bg-[#77AB55] hover:text-white
+            transition-all duration-200
+          `;
 
         addBtn.addEventListener("click", async () => {
           const res = await service.sendFriendRequest(user.username);
@@ -672,7 +723,12 @@ private openAddFriendPopup(): void {
             // Swap the button for a non-interactive Pending label immediately
             const pendingLabel = document.createElement("span");
             pendingLabel.textContent = "Pending";
-            pendingLabel.className = "pending-label";
+            pendingLabel.className = `
+                px-4 py-1 rounded-[7px]
+                border border-[#77AB55] text-[#77AB55]
+                text-[14px] font-semibold
+                cursor-default select-none
+              `;
             action.innerHTML = "";
             action.appendChild(pendingLabel);
           } else {
@@ -683,8 +739,9 @@ private openAddFriendPopup(): void {
         action.appendChild(addBtn);
       }
 
-      userDiv.appendChild(avatar);
-      userDiv.appendChild(name);
+      avatarNameContainer.appendChild(avatar);
+      avatarNameContainer.appendChild(name);
+      userDiv.appendChild(avatarNameContainer);
       userDiv.appendChild(action);
       resultsContainer.appendChild(userDiv);
     });
