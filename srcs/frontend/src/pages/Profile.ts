@@ -144,7 +144,7 @@ export class Profile implements IComponent {
 
  // Friends Title
     const friendsTitle = document.createElement("button");
-    friendsTitle.className = `
+    friendsTitle.className = `friends-tab
         text-[18px] font-semibold cursor-pointer h-[full]
         hover:text-[--color-button]
     `;
@@ -153,7 +153,7 @@ export class Profile implements IComponent {
     // Requests Title
     const requestTitle = document.createElement("button");
     requestTitle.textContent = "Request";
-    requestTitle.className = `
+    requestTitle.className = `requests-tab
         text-[18px] font-semibold cursor-pointer h-[full]
         hover:text-[--color-button] transition-all duration-200
     `;
@@ -196,13 +196,29 @@ export class Profile implements IComponent {
     friendsHeader.appendChild(requestTitle);
     friendsHeader.appendChild(addFriendBtn);
 
-    // Conditionally render friends or requests list
+    // Create the friends/requests container
     const friendsList = document.createElement("div");
-    friendsList.className = "friends-list";
-    this.switchToFriends();
-    setActive("friends");
+    friendsList.className = `friends-list
+    flex flex-col gap-3
+    w-full
+    mt-4
+    max-h-[400px] overflow-y-auto
+    px-2
+    scrollbar-thin scrollbar-thumb-[#77AB55] scrollbar-track-[#21447E]
+  `;
+
+    // Append to DOM first
     friends.appendChild(friendsHeader);
     friends.appendChild(friendsList);
+
+    // Initialize after elements are in the DOM
+    setActive("friends");
+    this.isFriendsActive = true;
+    
+    // Fetch and display data
+    this.fetchProfileData().then(() => {
+      this.updateFriendsList();
+    });
 
 
 // ----------------------------------------------------------------------------------------------
@@ -289,17 +305,29 @@ export class Profile implements IComponent {
   // friends
 private createFriend(avatarURL: string, name: string, online: boolean): HTMLElement {
   const item = document.createElement("div");
-  item.className = "friend-item";
+   item.className = `
+    w-full h-[65px]
+    flex items-center justify-between
+    rounded-[10px] px-4 py-3
+    ${online ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"}
+    text-[#183B76] font-pixel
+    hover:opacity-90 transition
+  `;
 
   const inner = document.createElement("div");
   inner.className = "friend-item-inner";
 
   // Frame for avatar + name
   const profileText = document.createElement("div");
-  profileText.className = "friend-profile-text";
+  profileText.className = `
+    flex items-center gap-3
+  `;
 
   const avatar = document.createElement("div");
-  avatar.className = "friend-avatar";
+  avatar.className = `
+    w-[45px] h-[45px]
+    rounded-full border-2 border-white shadow-md
+  `;
 
   // Use background-image for the avatar
   const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
@@ -309,7 +337,9 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
   avatar.textContent = ""; // clear any fallback text
 
   const friendName = document.createElement("span");
-  friendName.className = "friend-name";
+  friendName.className = `
+    text-[16px] font-semibold text-[#183B76]
+  `;
   friendName.textContent = name;
 
   profileText.appendChild(avatar);
@@ -317,11 +347,23 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
   // Status circle
   const status = document.createElement("span");
-  status.className = `friend-status ${online ? "online" : "offline"}`;
+  status.className = `
+    w-[14px] h-[14px]
+    rounded-full
+    ${online ? "bg-[#77AB55]" : "bg-gray-400"}
+  `;
 
   
   const removeBtn = document.createElement("button");
-  removeBtn.className = "remove-friend";
+  removeBtn.className = `
+    w-[28px] h-[28px]
+    flex items-center justify-center
+    rounded-full border border-[#77AB55]
+    text-[#77AB55] text-[18px] font-bold
+    hover:bg-[#77AB55] hover:text-white
+    transition-all duration-200
+    cursor-pointer
+  `;
   removeBtn.innerHTML = "&times;";
  
   const profileServices = this.profileService;
@@ -383,17 +425,31 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 // requests
   private createRequest(avatarURL: string, name: string, reqId: number): HTMLElement {
     const item = document.createElement("div");
-    item.className = "request-item";
+    item.className = `
+    w-full h-[65px]
+    flex items-center justify-between
+    rounded-[10px] px-4 py-3 mb-3
+    bg-[#C7D6F0] text-[#183B76] font-pixel
+    hover:opacity-90 transition
+  `;
+  // Alternate row background for visual variation
+  if (reqId % 2 !== 0) {
+    item.classList.remove("bg-[#C7D6F0]");
+    item.classList.add("bg-[#EBF1FA]");
+  }
 
     const inner = document.createElement("div");
     inner.className = "request-item-inner";
 
     // Avatar + Username
     const profileText = document.createElement("div");
-    profileText.className = "request-profile-text";
+    profileText.className = `flex items-center gap-3`;
 
     const avatar = document.createElement("div");
-    avatar.className = "request-avatar";
+    avatar.className = `
+    w-[45px] h-[45px]
+    rounded-full border-2 border-white shadow-md
+  `;
     const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
     avatar.style.backgroundImage = `url(${backendUrl}${avatarURL})`;
     avatar.style.backgroundSize = "cover";
@@ -401,7 +457,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     avatar.textContent = ""
 
     const userName = document.createElement("span");
-    userName.className = "request-name";
+    userName.className = `text-[16px] font-semibold text-[#183B76]`
     userName.textContent = name;
 
     profileText.appendChild(avatar);
@@ -409,10 +465,16 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
     // Buttons
     const buttons = document.createElement("div");
-    buttons.className = "request-buttons";
+    buttons.className = `flex items-center gap-3`;
     const profileServices = this.profileService;
     const acceptBtn = document.createElement("button");
-    acceptBtn.className = "accept-btn";
+    acceptBtn.className = `
+    px-4 py-1 rounded-[7px]
+    border border-[#77AB55]
+    text-[#77AB55] font-semibold text-[14px]
+    hover:bg-[#77AB55] hover:text-white
+    transition-all duration-200
+  `;
     acceptBtn.textContent = "Accept";
     acceptBtn.addEventListener("click", async () => {
       // console.log(`Accepted friend request from ${name}`);
@@ -433,7 +495,13 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     });
 
     const declineBtn = document.createElement("button");
-    declineBtn.className = "decline-btn";
+    declineBtn.className = `
+    px-4 py-1 rounded-[7px]
+    border border-[#C44C4C]
+    text-[#C44C4C] font-semibold text-[14px]
+    hover:bg-[#C44C4C] hover:text-white
+    transition-all duration-200
+  `;
     declineBtn.textContent = "Decline";
     declineBtn.addEventListener("click", async () => {
     const res = await profileServices.respondToRequest(name, "reject");
@@ -470,33 +538,61 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
   }
 
 private updateFriendsList(): void {
+    // Check if container exists first
+    if (!this.container) {
+        console.log('Container not found');
+        return;
+    }
+
     const friendsList = this.container.querySelector(".friends-list");
-    if (!friendsList) return;
+    if (!friendsList) {
+        console.log('Friends list not found');
+        return;
+    }
 
     // Clear current items
     friendsList.innerHTML = "";
 
+    console.log('Updating friends list. Active:', this.isFriendsActive);
+    console.log('Friends data:', this.friendsListData);
+    console.log('Requests data:', this.requestsListData);
+
     // Add new items
     if (this.isFriendsActive) {
-        this.friendsListData.forEach(f =>
-            friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online))
-        );
+        if (this.friendsListData.length === 0) {
+            const emptyState = document.createElement("div");
+            emptyState.textContent = "No friends yet";
+            emptyState.className = "text-center text-gray-400 mt-4";
+            friendsList.appendChild(emptyState);
+        } else {
+            this.friendsListData.forEach(f =>
+                friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online))
+            );
+        }
     } else {
-      this.requestsListData.forEach(r => {
-        if (!r.from) return; // safety check
-        friendsList.appendChild(
-            this.createRequest(r.from.avatar, r.from.username, r.id)
-        );
-    });
+        if (this.requestsListData.length === 0) {
+            const emptyState = document.createElement("div");
+            emptyState.textContent = "No pending requests";
+            emptyState.className = "text-center text-gray-400 mt-4";
+            friendsList.appendChild(emptyState);
+        } else {
+            this.requestsListData.forEach(r => {
+                if (!r.from) return; // safety check
+                friendsList.appendChild(
+                    this.createRequest(r.from.avatar, r.from.username, r.id)
+                );
+            });
+        }
     }
 
-    // Update active class for tabs
-    // Use classes or tag selectors matching your buttons
-    const friendsTitle = this.container.querySelector(".friends-tab")!;
-    const requestTitle = this.container.querySelector(".requests-tab")!;
-    friendsTitle.className = this.isFriendsActive ? "friends-tab active" : "friends-tab";
-    requestTitle.className = this.isFriendsActive ? "requests-tab" : "requests-tab active";
+    // Try to update tab classes only if the elements exist
+    const friendsTitle = this.container.querySelector(".friends-tab");
+    const requestTitle = this.container.querySelector(".requests-tab");
     
+    if (friendsTitle && requestTitle) {
+        friendsTitle.className = this.isFriendsActive ? "friends-tab active" : "friends-tab";
+        requestTitle.className = this.isFriendsActive ? "requests-tab" : "requests-tab active";
+    }
 }
 
 
@@ -508,11 +604,13 @@ private async fetchProfileData(): Promise<void> {
   this.setLoadingState(true);
   try {
       const profileResponse: ApiResponse<ProfileData> = await this.profileService.getProfile();
-      if (profileResponse.success) {
-          this.username = profileResponse.data?.username || "Hi Test!";
-          this.email = profileResponse.data?.email || "test@email.com";
-          this.avatar = profileResponse.data?.avatar || "";
+      if (profileResponse.success && profileResponse.data) {
+          this.username = profileResponse.data.username;
+          this.email = profileResponse.data.email;
+          this.avatar = profileResponse.data.avatar || "";
           this.updateProfileUI();
+      } else {
+          console.error('Failed to fetch profile data:', profileResponse.message);
       }
       const friendsResponse: ApiResponse<FriendsData> = await this.profileService.getFriends();
       if (friendsResponse.success) {
@@ -527,8 +625,6 @@ private async fetchProfileData(): Promise<void> {
         }
   } catch (error: any) {
       console.error('Error fetching profile data:', error);
-      this.username = "Hi Test!";
-      this.avatar = ""; 
       this.updateProfileUI();
   } finally {
       this.setLoadingState(false);
@@ -548,7 +644,7 @@ private async fetchProfileData(): Promise<void> {
     if (!nameEl || !avatarEl) return;
   
     // Update name
-    nameEl.textContent = this.username || "Hi Test!";
+    nameEl.textContent = this.username || "";
   
     // Update avatar
     if (this.avatar) {
@@ -560,6 +656,8 @@ private async fetchProfileData(): Promise<void> {
     }
     else {
       avatarEl.style.backgroundImage = "";
+      // Only show first letter if we have a username
+      avatarEl.textContent = this.username ? this.username.charAt(0).toUpperCase() : "";
       avatarEl.textContent = this.username.charAt(0).toUpperCase() || "";
     }
   }
@@ -591,7 +689,7 @@ private openAddFriendPopup(): void {
   // Modal popup
   const modal = document.createElement("div");
   modal.className = `modal
-    w-[570px] h-[740px] rounded-[16px] bg-[#7EA2DD]
+    w-[570px] h-[740px] rounded-[16px] bg-[#183B76]
     flex flex-col p-4 relative
     opacity-100
   `;
@@ -627,7 +725,7 @@ private openAddFriendPopup(): void {
   searchInput.placeholder = "Search username...";
   searchInput.className = `
      w-[calc(100%-30px)] h-[50px] rounded-[10px] px-3
-    bg-[#183B76] text-white border border-gray-500
+     bg-[#7EA2DD] text-white border border-gray-500
     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500
   `;
 
