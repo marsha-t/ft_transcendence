@@ -36,6 +36,17 @@ export class Profile implements IComponent {
       this.profileService = new ProfileServices();
   }
 
+  // Return a full avatar URL with a cache-busting timestamp to avoid stale images
+  private getAvatarUrl(path?: string): string {
+    if (!path) return "";
+    const backendUrl = "http://localhost:5001";
+    // if path already looks like a full URL, use it
+    const full = path.startsWith("http://") || path.startsWith("https://");
+    const base = full ? path : `${backendUrl}${path}`;
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}t=${Date.now()}`;
+  }
+
   public render():  HTMLElement {
     this.container = document.createElement('div');
         this.container.className = `
@@ -47,13 +58,16 @@ export class Profile implements IComponent {
   // (do not load external Profile.css as per project convention)
   this.fetchProfileData();
         
-        const subContainer = document.createElement('div');
-        subContainer.className = `
-            grid gap-4 grid-cols-1 sm:grid-cols-[1fr_1.3fr]
-            grid-rows-[250px_auto]  /* <-- top row fixed, bottom row auto */
-            bg-background rounded-[16px] shadow-lg
-            mx-[23px] w-[calc(100%-46px)]
-            py-6 px-10`;
+    const subContainer = document.createElement('div');
+    subContainer.className = `
+      grid gap-4 grid-cols-1 sm:grid-cols-[1fr_1.3fr]
+      grid-rows-[250px_1fr] min-h-0
+      bg-background rounded-[16px] shadow-lg
+      mx-[23px] w-[calc(100%-46px)]
+      py-6 px-10`;
+    // Constrain height so the bottom row can take the remaining space (1fr) and not overflow
+    subContainer.style.maxHeight = 'calc(100vh - 46px)';
+    subContainer.style.overflow = 'hidden';
 
     // Profile card
     // ***************************************
@@ -90,8 +104,7 @@ export class Profile implements IComponent {
         mt-6`;
     // set an initial rendering; updateProfileUI will overwrite after fetch
     if (this.avatar) {
-      const backendUrl = "http://localhost:5001";
-      avatar.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatar.style.backgroundImage = `url(${this.getAvatarUrl(this.avatar)})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
       avatar.textContent = "";
@@ -121,17 +134,18 @@ export class Profile implements IComponent {
 // ----------------------------------------------------------------------------------------------
 // heatmap
  //renderheatmap()
-    const heatmap = document.createElement('div');
-    // heatmap.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
-    this.createHeatmap(heatmap, 2025);
+   const heatmap = document.createElement('div');
+   // ensure heatmap doesn't force parent to grow
+   heatmap.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-hidden`;
+   this.createHeatmap(heatmap, 2025);
 
 // ----------------------------------------------------------------------------------------------
 
   // Friends
   // renderFriends()
   // ***************************************
-    const friends = document.createElement("div");
-    friends.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
+  const friends = document.createElement("div");
+  friends.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-hidden`;
 
     const friendsHeader = document.createElement("div");
     friendsHeader.className = `
@@ -203,10 +217,13 @@ export class Profile implements IComponent {
     flex flex-col gap-3
     w-full
     mt-4
-    max-h-[400px] overflow-y-auto
+    max-h-[400px]
     px-2
     scrollbar-thin scrollbar-thumb-[#77AB55] scrollbar-track-[#21447E]
   `;
+    // ensure internal scrolling without expanding the parent card
+    friendsList.style.overflowY = 'auto';
+    friendsList.style.maxHeight = 'calc(100% - 80px)';
 
     // Append to DOM first
     friends.appendChild(friendsHeader);
@@ -226,8 +243,8 @@ export class Profile implements IComponent {
 
     // Match history
     // ***************************************
-    const matchHistory = document.createElement("div");
-    matchHistory.className = `match-history-table rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
+  const matchHistory = document.createElement("div");
+  matchHistory.className = `match-history-table rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-hidden`;
 
     const matchTitle = document.createElement("h3");
     matchTitle.className = " h-[30px] text-[24px] font-pixel font-[400] text-color_white mb-[10px]";
@@ -323,7 +340,8 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
   `;
 
   const inner = document.createElement("div");
-  inner.className = "friend-item-inner";
+  // layout: left = avatar+name, middle = status, right = remove button
+  inner.className = "friend-item-inner w-full flex items-center justify-between";
 
   // Frame for avatar + name
   const profileText = document.createElement("div");
@@ -339,7 +357,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
   // Use background-image for the avatar
   const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
-  avatar.style.backgroundImage = `url(${backendUrl}${avatarURL})`;
+  avatar.style.backgroundImage = `url(${this.getAvatarUrl(avatarURL)})`;
   avatar.style.backgroundSize = "cover";
   avatar.style.backgroundPosition = "center";
   avatar.textContent = ""; // clear any fallback text
@@ -389,9 +407,14 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     }
   });
 
-  inner.appendChild(profileText);
+  // place status near the name and keep remove button at the far right
+  const leftGroup = document.createElement('div');
+  leftGroup.className = 'flex items-center gap-3';
+  leftGroup.appendChild(profileText);
+  leftGroup.appendChild(status);
+
+  inner.appendChild(leftGroup);
   inner.appendChild(removeBtn);
-  inner.appendChild(status); // outside profileText
   item.appendChild(inner);
 
   return item;
@@ -457,8 +480,9 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     item.classList.add("bg-[#EBF1FA]");
   }
 
-    const inner = document.createElement("div");
-    inner.className = "request-item-inner";
+  const inner = document.createElement("div");
+  // make the inner container stretch full width and arrange left/right
+  inner.className = "request-item-inner w-full flex items-center justify-between";
 
     // Avatar + Username
     const profileText = document.createElement("div");
@@ -469,8 +493,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     w-[45px] h-[45px]
     rounded-full border-2 border-white shadow-md
   `;
-    const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
-    avatar.style.backgroundImage = `url(${backendUrl}${avatarURL})`;
+  avatar.style.backgroundImage = `url(${this.getAvatarUrl(avatarURL)})`;
     avatar.style.backgroundSize = "cover";
     avatar.style.backgroundPosition = "center";
     avatar.textContent = ""
@@ -483,14 +506,15 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     profileText.appendChild(userName);
 
     // Buttons
-    const buttons = document.createElement("div");
-    buttons.className = `flex items-center gap-3`;
+  const buttons = document.createElement("div");
+  // compact buttons aligned to the right
+  buttons.className = `flex items-center gap-2`;
     const profileServices = this.profileService;
     const acceptBtn = document.createElement("button");
     acceptBtn.className = `
-    px-4 py-1 rounded-[7px]
+    px-3 py-1 rounded-[6px]
     border border-[#77AB55]
-    text-[#77AB55] font-semibold text-[14px]
+    text-[#77AB55] font-semibold text-[12px]
     hover:bg-[#77AB55] hover:text-white
     transition-all duration-200
   `;
@@ -515,9 +539,9 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
     const declineBtn = document.createElement("button");
     declineBtn.className = `
-    px-4 py-1 rounded-[7px]
+    px-3 py-1 rounded-[6px]
     border border-[#C44C4C]
-    text-[#C44C4C] font-semibold text-[14px]
+    text-[#C44C4C] font-semibold text-[12px]
     hover:bg-[#C44C4C] hover:text-white
     transition-all duration-200
   `;
@@ -707,8 +731,7 @@ private async fetchProfileData(): Promise<void> {
   
     // Update avatar
     if (this.avatar) {
-      const backendUrl = "http://localhost:5001";
-      avatarEl.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatarEl.style.backgroundImage = `url(${this.getAvatarUrl(this.avatar)})`;
       avatarEl.style.backgroundSize = "cover";
       avatarEl.style.backgroundPosition = "center";
       avatarEl.textContent = "";
@@ -725,10 +748,8 @@ private async fetchProfileData(): Promise<void> {
   private updatePopupAvatar(): void {
     if (!this.popupAvatarEl) return;
   
-    const backendUrl = "http://localhost:5001";
-  
     if (this.avatar) {
-      this.popupAvatarEl.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      this.popupAvatarEl.style.backgroundImage = `url(${this.getAvatarUrl(this.avatar)})`;
       this.popupAvatarEl.style.backgroundSize = "cover";
       this.popupAvatarEl.style.backgroundPosition = "center";
       this.popupAvatarEl.textContent = "";
@@ -833,7 +854,7 @@ private openAddFriendPopup(): void {
       avatarNameContainer.className = "flex items-center";
 
       const avatar = document.createElement("div");
-      avatar.style.backgroundImage = `url(${backendUrl}${user.avatar})`;
+      avatar.style.backgroundImage = `url(${this.getAvatarUrl(user.avatar)})`;
       avatar.style.backgroundSize = "cover";
       avatar.style.backgroundPosition = "center";
       avatar.className = `
@@ -938,7 +959,7 @@ private openAddFriendPopup(): void {
   header.className = `flex items-start justify-between w-full mb-4`;
     
   const closeBtn = document.createElement("button");
-  closeBtn.className = `absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-white bg-transparent hover:brightness-90`;
+  closeBtn.className = `absolute top-3 right-3 w-[48px] h-[48px] flex items-center justify-center text-white bg-transparent hover:brightness-90 font-pixel text-[36px]`;
   closeBtn.innerHTML = "&times;"; // HTML  '×'
   closeBtn.addEventListener("click", () => overlay.remove());
     
@@ -954,8 +975,7 @@ private openAddFriendPopup(): void {
   const avatarPlaceholder = document.createElement("div");
   avatarPlaceholder.className = `avatar-placeholder w-[132px] h-[132px] rounded-full border-[9.95px] border-white bg-background-yellow flex items-center justify-center text-3xl font-pixel`;
     if (this.avatar) {
-      const backendUrl = "http://localhost:5001";
-      avatarPlaceholder.style.backgroundImage = `url(${backendUrl}${this.avatar})`;
+      avatarPlaceholder.style.backgroundImage = `url(${this.getAvatarUrl(this.avatar)})`;
       avatarPlaceholder.style.backgroundSize = "cover";
       avatarPlaceholder.style.backgroundPosition = "center";
     } else {
@@ -964,24 +984,71 @@ private openAddFriendPopup(): void {
 
     this.popupAvatarEl = avatarPlaceholder;
 
-   // Pen icon (edit)
-    const penIcon = document.createElement("img");
-    penIcon.src = "/assets/icons/pen.svg";
-    penIcon.alt = "Edit avatar";
-    penIcon.className = `absolute top-[172px] left-[230px] w-[20px] h-[20px] cursor-pointer inline-flex items-center justify-center transition duration-200 hover:brightness-90 hover:text-[#297138]`;
-    penIcon.addEventListener("click", () => this.handleAvatarEdit());
+   // Action area: show a row of 4 small avatar circles (placeholders for quick picks)
+    const avatarActions = document.createElement('div');
+    avatarActions.className = 'flex flex-col gap-2 ml-4';
 
-    // Trash icon (delete)
-    const trashIcon = document.createElement("img");
-    trashIcon.src = "/assets/icons/trash.svg";
-    trashIcon.alt = "Delete avatar";
-  trashIcon.className = `absolute top-[172px] left-[307px] w-[20px] h-[20px] cursor-pointer inline-flex items-center justify-center transition duration-200 hover:brightness-90 hover:text-[#d32f2f]`;
-    trashIcon.addEventListener("click", () => this.handleAvatarDelete());
+    // Row of 4 small avatar images
+    const smallRow = document.createElement('div');
+    smallRow.className = 'flex items-center gap-2';
+    const avatarPaths = [
+  'http://localhost:5001/uploads/avatars/user_avatar-1.jpg',
+  'http://localhost:5001/uploads/avatars/user_avatar-2.jpg',
+  'http://localhost:5001/uploads/avatars/user_avatar-3.png',
+  'http://localhost:5001/uploads/avatars/user_avatar-4.jpg'
+    ];
+    for (let i = 0; i < 4; i++) {
+      const small = document.createElement('button');
+      small.type = 'button';
+      small.className = `w-[40px] h-[40px] rounded-full border-2 border-white bg-background-yellow flex items-center justify-center text-sm font-pixel text-color_white focus:outline-none focus:ring-2 focus:ring-[#297138]`;
+      small.style.backgroundImage = `url('${avatarPaths[i]}')`;
+      small.style.backgroundSize = 'cover';
+      small.style.backgroundPosition = 'center';
+      small.title = `Select avatar ${i+1}`;
+      small.addEventListener('click', async () => {
+  // Call backend to set avatar to this preset
+  // Send only the filename, backend will copy it from uploads/avatars
+        const presetFilename = avatarPaths[i].split('/').pop() || '';
+        if (presetFilename) {
+          const response = await this.profileService.uploadAvatarFromPreset(presetFilename);
+          if (response.success && response.data) {
+            this.avatar = response.data.avatar;
+            this.updatePopupAvatar();
+            this.updateProfileUI();
+          } else {
+            alert(response.message || 'Failed to set avatar');
+          }
+        } else {
+          alert('Invalid preset avatar filename');
+        }
+      });
+      smallRow.appendChild(small);
+    }
 
+    // Buttons under the small avatars
+    const btnRow = document.createElement('div');
+    btnRow.className = 'flex gap-2 mt-2';
+
+    const changeBtn = document.createElement('button');
+    changeBtn.type = 'button';
+  changeBtn.textContent = 'Change';
+    changeBtn.className = `px-3 py-1 rounded-[8px] bg-[#297138] text-white font-pixel text-[13px] hover:brightness-95 transition`;
+    changeBtn.addEventListener('click', () => this.handleAvatarEdit());
+
+    const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.textContent = 'Remove';
+  removeBtn.className = `px-3 py-1 rounded-[8px] bg-[#2b3b59] text-white font-pixel text-[13px] hover:brightness-95 transition`;
+    removeBtn.addEventListener('click', () => this.handleAvatarDelete());
+
+    btnRow.appendChild(changeBtn);
+    btnRow.appendChild(removeBtn);
+
+    avatarActions.appendChild(smallRow);
+    avatarActions.appendChild(btnRow);
 
     avatarSection.appendChild(avatarPlaceholder);
-    avatarSection.appendChild(penIcon);
-    avatarSection.appendChild(trashIcon);
+    avatarSection.appendChild(avatarActions);
 
     header.appendChild(closeBtn);
     header.appendChild(avatarSection);

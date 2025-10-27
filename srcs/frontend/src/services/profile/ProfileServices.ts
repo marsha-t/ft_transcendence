@@ -1,3 +1,4 @@
+// ...existing code...
 
 import { ProfileData, FriendsData,UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, MatchHistory, ApiResponse } from './types';
 
@@ -8,6 +9,43 @@ export class ProfileServices {
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
+  // Set avatar from a preset image path (frontend/public/assets/avatar/...)
+  async uploadAvatarFromPreset(presetPath: string): Promise<ApiResponse<AvatarUploadResponse>> {
+    try {
+      // Send the preset filename to the backend; backend will copy/set it for the user
+      const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-current-user-id": "1",
+        },
+        body: JSON.stringify({ presetFilename: presetPath }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || "Preset avatar set failed",
+          errors: [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: data,
+        message: "Preset avatar set successfully",
+      };
+    } catch (error) {
+      console.error("API error (preset avatar)", error);
+      return {
+        success: false,
+        status: 0,
+        message: "Network error",
+        errors: [],
+      };
+    }
+  }
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
