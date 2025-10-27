@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices";
+import { GameDashboard } from "../services/dashboard/types";
 import { navigate } from "../utils";
 
 declare const Plotly: any;
@@ -8,6 +9,7 @@ export class GameResults implements IComponent {
   private sessionId: number;
   private isTournament: boolean;
   private onMatchEnd?: () => void;
+  private dashboardData: GameDashboard | null;
 
   constructor(state?: any) {
     this.sessionId = state?.sessionId;
@@ -45,6 +47,7 @@ export class GameResults implements IComponent {
       btnContainer.appendChild(nextBtn);
     }
     container.appendChild(btnContainer);
+
 
     // Draw chart after elements are in DOM
     requestAnimationFrame(() => this.renderChart());
