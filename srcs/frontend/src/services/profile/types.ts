@@ -22,12 +22,6 @@ export interface FriendRequest {
         avatar: string;
         status: string;
     };
-
-    // to?: {
-    //     username: string;
-    //     avatar: string;
-    //     status: string;
-    // };
 }
 
 export interface FriendRequestsData {
@@ -37,7 +31,7 @@ export interface FriendRequestsData {
 
 export interface AvatarUploadResponse {
     message: string;
-    avatar: string; // the new avatar URL returned by backend
+    avatar: string;
 }
 
 export interface AvatarDeleteResponse {
@@ -51,6 +45,17 @@ export interface UserSearchResult {
     avatar: string;
     friendStatus: 'not_friend' | 'pending_sent';
 }
+
+// types.ts
+export interface MatchHistory {
+    date: string;       
+    opponent: string;
+    userScore: number;
+    opponentScore: number;
+    result: "WIN" | "LOSS";
+    isTournament: boolean;
+  }
+  
 
 export interface ApiResponse<T> {
     success: boolean;

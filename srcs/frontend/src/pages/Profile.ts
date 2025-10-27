@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
-import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from '../services/profile/types';
+import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, MatchHistory,  ApiResponse, } from '../services/profile/types';
 
 // ***************************************
 /*
@@ -22,8 +22,9 @@ export class Profile implements IComponent {
   private email: string = "";
   private avatar: string = "";
   private friendsListData: { avatarURL: string; name: string; online: boolean }[] = [];
-  private popupAvatarEl: HTMLElement | null = null;
   private requestsListData: FriendRequest[] = [];
+  private matchHistoryData: MatchHistory[] = [];
+  private popupAvatarEl: HTMLElement | null = null;
   private profileService: ProfileServices;
   private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
@@ -226,33 +227,48 @@ export class Profile implements IComponent {
     // Match history
     // ***************************************
     const matchHistory = document.createElement("div");
-    matchHistory.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
+    matchHistory.className = `match-history-table rounded-2xl bg-[#21447E] opacity-100 p-4 text-white`;
 
     const matchTitle = document.createElement("h3");
+    matchTitle.className = " h-[30px] text-[24px] font-pixel font-[400] text-color_white mb-[10px]";
     matchTitle.textContent = "Match History";
     matchHistory.appendChild(matchTitle);
 
     const table = document.createElement("table");
+    table.className = "w-full border-collapse rounded-[20px] overflow-hidden font-pixel";
+    table.style.borderSpacing = "0"; // remove gaps for border-collapse
     const thead = document.createElement("thead");
-    thead.innerHTML = `
-      <tr>
-        <th>Opponent</th>
-        <th>Result</th>
-        <th>Score</th>
-        <th>Date</th>
-      </tr>`;
+    thead.className = "w-[1014px] h-[47px] font-pixel font-[400] text-color_white";
+    const headerRow = document.createElement("tr");
+    headerRow.className = ` w-full
+        p-2 font-pixel font-[400]
+        text-color_white
+        gap-[50px] 
+        text-[16px] font-semibold text-color_white bg-none
+        mb-[10px] border-b border-gray-500 rounded-l-lg`;
+        // headerRow.style.borderBottomLeftRadius = "20px";
+        // headerRow.style.borderBottomRightRadius = "20px";
+
+    const columns = ["Opponent", "Result", "Score", "Date"];
+    columns.forEach((col) => {
+      const th = document.createElement("th");
+      th.className = "text-center text-[16px] leading-[18px] uppercase text-left px-4 py-3 font-pixel font-[400] text-color_white";
+      th.textContent = col;
+      headerRow.appendChild(th);
+    });
+  
+    thead.appendChild(headerRow);
     table.appendChild(thead);
 
     const tbody = document.createElement("tbody");
-    tbody.appendChild(this.createMatch("John Doe", "Win", "5 - 3", "Oct 26, 2025"));
-    tbody.appendChild(this.createMatch("John Doe", "Win", "5 - 3", "Oct 26, 2025"));
-    tbody.appendChild(this.createMatch("John Doe", "Win", "5 - 3", "Oct 26, 2025"));
-    tbody.appendChild(this.createMatch("John Doe", "Win", "5 - 3", "Oct 26, 2025"));
-    tbody.appendChild(this.createMatch("John Doe", "Win", "5 - 3", "Oct 26, 2025"));
-
+    tbody.id = "match-history-body"
+    
     table.appendChild(tbody);
     matchHistory.appendChild(table);
-
+    
+    this.fetchProfileData().then(() => {
+      this.updateMatchHistory();
+    });
     // Append everything
     subContainer.appendChild(profileInfo);
     subContainer.appendChild(heatmap);
@@ -271,14 +287,6 @@ export class Profile implements IComponent {
     return this.container;
   }
 
-
-  // ----------------------------------------------------------------------------------------------
-
-  private loadPageStyles(): void {
-    // No-op: styles for the profile are defined inline using Tailwind classes
-    // and this project no longer uses an external Profile.css for this page.
-    return;
-  }
 
   // ----------------------------------------------------------------------------------------------
 
@@ -393,22 +401,33 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
 // ***************************************
 // match history
-  private createMatch(opponent: string, result: "Win" | "Loss", score: string, date: string): HTMLElement {
+  private createMatch(opponent: string, result: "WIN" | "LOSS", score: string, date: string, index: number): HTMLElement {
+    
     const row = document.createElement("tr");
-
+    row.className = `w-[full] h-[65px] justify-between  text-center px-4 py-3 m-3
+    ${index % 2 === 0 ? "bg-[#7EA2DD]" : "bg-[none]"} `;
+    row.style.overflow = "hidden";  
     const opponentCell = document.createElement("td");
     opponentCell.textContent = opponent;
+    opponentCell.style.borderTopLeftRadius = "20px";
+    opponentCell.style.borderBottomLeftRadius = "20px";
 
     const resultCell = document.createElement("td");
-    resultCell.className = `match-result ${result === "Win" ? "win" : "loss"}`;
     resultCell.textContent = result;
+    resultCell.className = result === "WIN" ? "text-green-600" : "text-red-600";
 
     const scoreCell = document.createElement("td");
     scoreCell.textContent = score;
 
     const dateCell = document.createElement("td");
     dateCell.textContent = date;
+    dateCell.style.borderTopRightRadius = "20px";
+    dateCell.style.borderBottomRightRadius = "20px";
 
+    [opponentCell, resultCell, scoreCell, dateCell].forEach(cell => {
+      cell.classList.add("font-pixel"); 
+      cell.classList.add("px-4", "py-2");
+    });
     row.appendChild(opponentCell);
     row.appendChild(resultCell);
     row.appendChild(scoreCell);
@@ -595,7 +614,34 @@ private updateFriendsList(): void {
     }
 }
 
+private updateMatchHistory(): void {
+  
+  const tableBody = this.container?.querySelector<HTMLTableSectionElement>("#match-history-body");
+  if (!tableBody) {
+      console.warn("updateMatchHistory: tbody not found (#match-history-body)");
+      return;
+    }
+  tableBody.innerHTML = ""; //clear old matches first
+  if (!this.matchHistoryData || this.matchHistoryData.length === 0) {
+    const emptyRow = document.createElement("tr");
+    const emptyCell = document.createElement("td");
+    emptyCell.colSpan = 4;
+    emptyCell.textContent = "No matches played yet.";
+    emptyCell.className = "text-gray-400 text-center py-3";
+    emptyRow.appendChild(emptyCell);
+    tableBody.appendChild(emptyRow);
+    return;
+  }
+  console.log("Match history data:", this.matchHistoryData);
 
+  this.matchHistoryData.forEach((match, index) => { 
+    const formattedDate = new Date(match.date).toLocaleDateString();
+    const score = `${match.userScore} - ${match.opponentScore}`;
+    const row = this.createMatch(match.opponent, match.result, score, formattedDate, index);
+    tableBody.appendChild(row);
+  });
+
+}
 
 //-----------------------
  // ***************************************
@@ -623,6 +669,19 @@ private async fetchProfileData(): Promise<void> {
             this.requestsListData = requestsResponse.data;
             this.updateFriendsList(); // update UI for requests
         }
+        const matchHistoryResponse: ApiResponse<MatchHistory[]> =
+        await this.profileService.getMatchHistory(1); // or this.currentUserId if dynamic
+  
+      if (matchHistoryResponse.success && matchHistoryResponse.data) {
+        this.matchHistoryData = matchHistoryResponse.data;
+        this.updateMatchHistory(); // ✅ Create or call a function to render it
+        console.log(this.matchHistoryData[0].opponent);
+        console.log(this.matchHistoryData[1].opponent);
+        console.log(this.matchHistoryData[2].opponent);
+
+      } else {
+        console.warn("No match history found or failed to fetch:", matchHistoryResponse.message);
+      }
   } catch (error: any) {
       console.error('Error fetching profile data:', error);
       this.updateProfileUI();

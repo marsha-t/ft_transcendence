@@ -1,5 +1,5 @@
 
-import { ProfileData, FriendsData,UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from './types';
+import { ProfileData, FriendsData,UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, MatchHistory, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -344,22 +344,6 @@ export class ProfileServices {
         };
         }
     }
-    
-      // 🟡 Get friendship status with another user
-      // async getFriendStatus(targetUserId: string): Promise<ApiResponse<{ status: string }>> {
-      //   try {
-      //     const res = await fetch(`${this.baseUrl}/friends/status/${targetUserId}`, {
-      //       credentials: "include",
-      //     });
-      //     const data = await res.json();
-      //     return data;
-      //   } catch (err) {
-      //     console.error("Error checking friend status:", err);
-      //     return { success: false, message: "Failed to check friend status" };
-      //   }
-      // }
-  
-
   
   // Respond to a friend request (accept/decline)
     async respondToRequest(username: string, action: "accept" | "reject"): Promise<ApiResponse<null>> {
@@ -397,7 +381,53 @@ export class ProfileServices {
         };
         }
     }
+    async getMatchHistory(userId: number): Promise<ApiResponse<MatchHistory[]>> {
+      try {
+          const response = await fetch(`${this.baseUrl}/stats/users/match-history`, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+                  "x-current-user-id": "1", // replace with dynamic current user ID
+              },
+          });
   
+          
+          const data = await response.json();
+          if (!response.ok) {
+              return {
+                  success: false,
+                  status: response.status,
+                  message: data.error || data.message || "Failed to fetch match history",
+                  errors: data.errors || [],
+              };
+          }
+          const matches: MatchHistory[] = Array.isArray(data)
+              ? data.map((m: any) => ({
+                date: m.date,
+                opponent: m.opponent,
+                userScore: m.userScore,
+                opponentScore: m.opponentScore,
+                result: m.result === "WIN" ? "WIN" : "LOSS",
+                isTournament: Boolean(m.isTournament),
+                }))
+              : [];
+  
+          return {
+              success: true,
+              status: response.status,
+              data: matches,
+              message: "Users fetched successfully",
+          };
+      } catch (error: any) {
+          console.error("API error", error);
+          return {
+              success: false,
+              status: 0,
+              message: error?.message || "Network error",
+              errors: [],
+          };
+      }
+  }
     
 }
 
