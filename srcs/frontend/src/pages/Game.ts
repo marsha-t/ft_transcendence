@@ -595,25 +595,16 @@ export class Game implements IComponent {
                 const winnerName = this.currentSession.winnerName ?? "Unknown";
                 alert(`Game Over! ${winnerName} wins!`);
                 
-                // version 1 = blank box 
-                // this.container.innerHTML = "";
+                this.container.innerHTML = "";
 
-                // const results = new GameResults({
-                //     sessionId: this.currentSession.sessionId,
-                //     isTournament: this.opts?.isTournament,
-                //     onMatchEnd: this.opts?.onMatchEnd,
-                // });
+                const results = new GameResults({
+                    sessionId: this.currentSession.sessionId,
+                    isTournament: this.opts?.isTournament,
+                    onMatchEnd: this.opts?.onMatchEnd,
+                });
 
-                // const resultsElement = results.render();
-                // this.container.appendChild(resultsElement);
-                
-                // original
-                // if (this.opts?.isTournament && this.opts.onMatchEnd) {
-                //     this.opts.onMatchEnd();
-                // }
-                // else {
-                //     this.resetGame();
-                // }
+                const resultsElement = results.render();
+                this.container.appendChild(resultsElement);
             }
         } catch (error) {
             console.error('Failed to finish game:', error);

@@ -19,28 +19,36 @@ export class GameResults implements IComponent {
     const container = document.createElement("div");
     container.className = "game-dashboard";
 
+    // Title
     const title = document.createElement("h1");
     title.textContent = "Game Results";
     title.className = "dashboard-title";
     container.appendChild(title);
 
+    // Chart container
     const chartDiv = document.createElement("div");
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
     container.appendChild(chartDiv);
 
-    setTimeout(() => this.renderChart(), 0);
-
+    // Button section
     const btnContainer = document.createElement("div");
     btnContainer.className = "results-buttons";
+
     if (this.isTournament && this.onMatchEnd) {
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Next";
       nextBtn.onclick = () => {
         this.onMatchEnd!();
       }
+      btnContainer.appendChild(nextBtn);
     }
+    container.appendChild(btnContainer);
+
+    // Draw chart after elements are in DOM
+    requestAnimationFrame(() => this.renderChart());
+
     return container;
   }
 
