@@ -7,6 +7,7 @@ import { Profile } from './pages/Profile.js';
 import { TournamentSetup } from './pages/TournamentSetup.js';
 import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
+import { GameResults } from './pages/GameResults.js';
 
 export class Router {
   private currentPage: any = null;
@@ -45,6 +46,11 @@ export class Router {
           this.currentPage = new Game();
           container.appendChild(this.currentPage.render());
           break;
+        case '/game/results':
+          const sessionId = state?.sessionId;
+          this.currentPage = new GameResults(sessionId);
+          container.appendChild(this.currentPage.render());
+          break; 
         case '/':
         case '/main':
           this.currentPage = new Main();

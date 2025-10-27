@@ -138,18 +138,38 @@ async function gameSessionPlayersRoutes(app, options) {
 
 		try {
 			const session = await checkSession(prisma, sessionId);
+
+			// Update player score
 			const player = await prisma.gameSessionPlayer.update({
 				where: { sessionId_side: { sessionId: Number(sessionId), side } },
 				data: { score: { increment: 1 }, },
 				include: { tournamentPlayer: { select: { id: true } } },
 			});
+			
+			// Fetch both players to record updated scores in game event
+			const players = await prisma.gameSessionPlayer.findMany({
+				where: { sessionId: Number(sessionId) },
+				select: { id: true, side: true, score: true},
+			});
+
+			const leftScore = players.find(p => p.side === "LEFT")?.score ?? 0;
+			const rightScore = players.find(p => p.side === "RIGHT")?.score ?? 0;
+			
+			// Log POINT event in GameEvent
+			await prisma.gameEvent.create({
+				data: {
+					sessionId: Number(sessionId),
+					playerId: player.id,
+					type: "POINT",
+					scoreLeft: leftScore, 
+					scoreRight: rightScore,
+				}
+			});
 
 			let finishedGame = null;
 			
-			// console.log(`Player ${side} scored! New score: ${player.score}`); //for testing why it ends at 4
-
+			// Handle match completion
 			if (player.score >= 5) {
-				// console.log('Game finished - winning condition met!');
 				finishedGame = await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
@@ -160,8 +180,19 @@ async function gameSessionPlayersRoutes(app, options) {
 					},
 					include: { players: true },
 				});
+
+				await prisma.gameEvent.create({
+					data: {
+						sessionId: session.id,
+						playerId: player.id, 
+						type: 'FINISH',
+						scoreLeft: leftScore,
+						scoreRight: rightScore,
+					}
+				});
 			}
 
+			// Tournmament progression
 			if (finishedGame) {
 				const match = await prisma.tournamentMatch.findFirst({
 					where: { gameSessionId: finishedGame.id },
@@ -222,6 +253,7 @@ async function gameSessionPlayersRoutes(app, options) {
 				}
 			}
 
+			// Return updated session 
 			const updatedSession = await prisma.gameSession.findUnique({
 				where: { id: Number(sessionId) },
 				include: {players: true},
