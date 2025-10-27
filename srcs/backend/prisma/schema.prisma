@@ -25,6 +25,14 @@ enum PlayerSide {
   RIGHT
 }
 
+enum EventType {
+  START
+  POINT
+  PAUSE
+  RESUME
+  FINISH
+}
+
 enum TournamentStatus {
   CREATED
   STARTED
@@ -81,7 +89,21 @@ model GameSession {
   winnerPlayer  GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
   players       GameSessionPlayer[]
   tournamentMatch TournamentMatch?
+  events        GameEvent[]
+}
 
+model GameEvent {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  playerId    Int?        
+  type   EventType
+  timestamp   DateTime    @default(now())
+  scoreLeft   Int?
+  scoreRight  Int?
+
+  // relations
+  session     GameSession @relation(fields: [sessionId], references: [id])
+  player      GameSessionPlayer? @relation(fields: [playerId], references: [id])
 }
 
 model GameSessionPlayer {
@@ -99,6 +121,7 @@ model GameSessionPlayer {
   user              User?             @relation(fields: [userId], references: [id])
   winnerOfGame      GameSession?      @relation("GamePlayerWinner")
   tournamentPlayer  TournamentPlayer? @relation(fields: [tournamentPlayerId], references: [id])
+  events        GameEvent[]
 
   @@unique([sessionId, side])
   @@unique([sessionId, displayName])
