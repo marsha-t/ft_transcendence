@@ -27,5 +27,5 @@ export const matchHistorySchema = {
 		404: { type: 'object', properties: { error: { type: 'string' }, }, },
 		500: { type: 'object', properties: { error: { type: 'string' }, }, },
 	}
-};
+}; 
 
