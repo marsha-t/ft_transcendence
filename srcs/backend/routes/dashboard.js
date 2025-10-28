@@ -78,7 +78,7 @@ async function dashboardRoutes(app, options) {
 			if (session.status !== "FINISHED") return reply.code(400).send({ error: "Session has not ended" });
 			
 			// Compute duration (minus paused time)
-			const startedAt = session.startAt || session.createdAt;
+			const startedAt = session.startedAt || session.createdAt;
 			const endedAt = session.endedAt || new Date();
 
 			let pausedMs = 0;
@@ -89,7 +89,7 @@ async function dashboardRoutes(app, options) {
 				}
 			}
 
-			const totalDuration = endedAt.getTime() - startAt.getTime();
+			const totalDuration = endedAt.getTime() - startedAt.getTime();
 			const activeDuration = totalDuration - pausedMs;
 
 			// Build timeline
