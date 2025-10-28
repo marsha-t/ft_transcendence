@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { apiServices } from "../services/ApiServices";
+import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
 import { navigate } from "../utils";
 
@@ -9,7 +9,8 @@ export class GameResults implements IComponent {
   private sessionId: number;
   private isTournament: boolean;
   private onMatchEnd?: () => void;
-  private dashboardData: GameDashboard | null;
+  private dashboardData: GameDashboard | null = null;
+  private container!: HTMLElement;
 
   constructor(state?: any) {
     this.sessionId = state?.sessionId;
@@ -18,21 +19,21 @@ export class GameResults implements IComponent {
   }
 
   public render(): HTMLElement {
-    const container = document.createElement("div");
-    container.className = "game-dashboard";
+    this.container = document.createElement("div");
+    this.container.className = "game-dashboard";
 
     // Title
     const title = document.createElement("h1");
     title.textContent = "Game Results";
     title.className = "dashboard-title";
-    container.appendChild(title);
+    this.container.appendChild(title);
 
     // Chart container
     const chartDiv = document.createElement("div");
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
-    container.appendChild(chartDiv);
+    this.container.appendChild(chartDiv);
 
     // Button section
     const btnContainer = document.createElement("div");
@@ -43,16 +44,42 @@ export class GameResults implements IComponent {
       nextBtn.textContent = "Next";
       nextBtn.onclick = () => {
         this.onMatchEnd!();
-      }
+      };
       btnContainer.appendChild(nextBtn);
     }
-    container.appendChild(btnContainer);
+    this.container.appendChild(btnContainer);
 
+    // Fetch data
+    this.fetchAndRender();
 
     // Draw chart after elements are in DOM
-    requestAnimationFrame(() => this.renderChart());
+    // requestAnimationFrame(() => this.renderChart());
 
-    return container;
+    return this.container;
+  }
+
+ 
+  private async fetchAndRender() {
+    try {
+      const response = await apiServices.dashboard.getGameDashboard(
+        Number(this.sessionId)
+      );
+
+      const chartDiv = document.getElementById("scoreChart");
+      if (!chartDiv) return;
+
+      if (!response.success || !response.data) {
+        chartDiv.textContent = response.message || "Failed to load chart data.";
+        return;
+      }
+
+      this.dashboardData = response.data;
+      this.renderChart();
+    } catch (err) {
+      console.error("Error fetching dashboard:", err);
+      const chartDiv = document.getElementById("scoreChart");
+      if (chartDiv) chartDiv.textContent = "Error loading chart data.";
+    }
   }
 
   private renderChart(): void {
@@ -60,28 +87,19 @@ export class GameResults implements IComponent {
     if (!chartDiv) return;
 
     // Dummy timeline data
-    const timeline = [
-      { elapsedSec: 0, left: 0, right: 0 },
-      { elapsedSec: 10, left: 1, right: 0 },
-      { elapsedSec: 25, left: 1, right: 1 },
-      { elapsedSec: 40, left: 2, right: 1 },
-      { elapsedSec: 60, left: 2, right: 2 },
-      { elapsedSec: 75, left: 3, right: 2 },
-      { elapsedSec: 90, left: 4, right: 2 },
-      { elapsedSec: 100, left: 5, right: 2 },
-    ];
+    const timeline = this.dashboardData!.timeline;
 
-	const traceLeft = {
-		x: timeline.map(p => p.elapsedSec),
-		y: timeline.map(p => p.left),
-		mode: "lines+markers",
-		name: "Left Player",
-		line: { color: "#423f6a", width: 3 },
+    const traceLeft = {
+      x: timeline.map((p) => p.elapsedSec),
+      y: timeline.map((p) => p.scoreLeft),
+      mode: "lines+markers",
+      name: "Left Player",
+      line: { color: "#423f6a", width: 3 },
       marker: { size: 6 },
     };
-	const traceRight = {
-      x: timeline.map(p => p.elapsedSec),
-      y: timeline.map(p => p.right),
+    const traceRight = {
+      x: timeline.map((p) => p.elapsedSec),
+      y: timeline.map((p) => p.scoreRight),
       mode: "lines+markers",
       name: "Right Player",
       line: { color: "#E43E64", width: 3 },
@@ -105,6 +123,8 @@ export class GameResults implements IComponent {
       paper_bgcolor: "#F2F1FA",
     };
 
-	Plotly.newPlot(chartDiv, [traceLeft, traceRight], layout, { responsive: true });
+    Plotly.newPlot(chartDiv, [traceLeft, traceRight], layout, {
+      responsive: true,
+    });
   }
 }

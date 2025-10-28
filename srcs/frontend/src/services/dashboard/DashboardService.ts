@@ -8,7 +8,7 @@ export class DashboardService {
 		this.baseUrl = 'http://localhost:5001/api';
 	}
 
-	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard> {
+	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/stats/game`, {
 				method: 'GET',
