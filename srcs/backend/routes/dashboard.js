@@ -1,5 +1,5 @@
 import prisma from '../prisma/prismaClient.js';
-import { matchHistorySchema } from '../schemas/dashboard.js';
+import { matchHistorySchema, gameDashboardSchema } from '../schemas/dashboard.js';
 
 async function dashboardRoutes(app, options) {
 
@@ -62,6 +62,7 @@ async function dashboardRoutes(app, options) {
 	*/
 	app.get('/api/stats/game', { schema: gameDashboardSchema} , async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
+
 		try {
 			const session = await prisma.gameSession.findUnique({ 
 				where: { id: Number(sessionIdHeader) },
@@ -84,6 +85,9 @@ async function dashboardRoutes(app, options) {
 			if (!session) return reply.code(404).send({ error: "Session not found" });
 			if (session.status !== "FINISHED") return reply.code(400).send({ error: "Session has not ended" });
 			
+console.log("🟢 Found session:", session.id);
+console.log("🟢 Events count:", session.events.length);
+console.log("🟢 Players count:", session.players.length);
 			// Summary 
 			const winnerPlayer = session.players.find(p => p.id === session.winnerPlayerId);
 			const winner = winnerPlayer 
@@ -120,7 +124,6 @@ async function dashboardRoutes(app, options) {
 			// Build timeline
 			const timeline = [];
 			let paused = false;
-			let pauseStart = null;
 			let lastTimestamp = startedAt;
 			let elapsedActiveMs = 0;
 
@@ -182,7 +185,7 @@ async function dashboardRoutes(app, options) {
 					winner,
 				},
 				timeline,
-				player, playerStats,
+				players: playerStats,
 			});
 		} catch (err) {
 			request.log.error(err);

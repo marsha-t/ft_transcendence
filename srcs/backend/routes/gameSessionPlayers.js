@@ -195,7 +195,7 @@ async function gameSessionPlayersRoutes(app, options) {
 
 			if (finishedGame) {
 				const winnerUserId = player.userId;
-				const loser = finishedGame.players.find(p => p.userId !== winnerUserId);
+				const losingPlayer = finishedGame.players.find(p => p.userId !== winnerUserId);
 
 				// Update stats for registered users
 				if (winnerUserId) {
@@ -215,9 +215,9 @@ async function gameSessionPlayersRoutes(app, options) {
 					});
 				}
 				
-				if (loser?.userId) {
+				if (losingPlayer?.userId) {
 					const loser = await prisma.user.update({
-						where: { id: loser.userId },
+						where: { id: losingPlayer.userId },
 						data: { totalMatches: { increment: 1 } },
 					});
 
