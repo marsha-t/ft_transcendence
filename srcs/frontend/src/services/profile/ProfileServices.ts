@@ -425,7 +425,7 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  "x-current-user-id": "1", // replace with dynamic current user ID
+                  "x-current-user-id": String(userId),
               },
           });
   
@@ -443,6 +443,7 @@ export class ProfileServices {
               ? data.map((m: any) => ({
                 date: m.date,
                 opponent: m.opponent,
+                opponentAvatar: m.opponentAvatar || "/uploads/avatar/default.png",
                 userScore: m.userScore,
                 opponentScore: m.opponentScore,
                 result: m.result === "WIN" ? "WIN" : "LOSS",

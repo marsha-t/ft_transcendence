@@ -50,6 +50,7 @@ export interface UserSearchResult {
 export interface MatchHistory {
     date: string;       
     opponent: string;
+    opponentAvatar: string;
     userScore: number;
     opponentScore: number;
     result: "WIN" | "LOSS";

@@ -424,21 +424,26 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
 
 // ***************************************
 // match history
-  private createMatch(opponent: string, result: "WIN" | "LOSS", score: string, date: string, index: number): HTMLElement {
-    
+  private createMatch(opponent: string, opponentAvatar: string, result: "WIN" | "LOSS", score: string, date: string, index: number): HTMLElement {
     const row = document.createElement("tr");
     row.className = `w-[full] h-[65px] justify-between  text-center px-4 py-3 m-3
     ${index % 2 === 0 ? "bg-[#7EA2DD]" : "bg-[none]"} `;
     row.style.overflow = "hidden";  
+
     const opponentCell = document.createElement("td");
-    opponentCell.textContent = opponent;
     opponentCell.style.borderTopLeftRadius = "20px";
     opponentCell.style.borderBottomLeftRadius = "20px";
+    opponentCell.innerHTML = `
+      <div class="flex items-center justify-center gap-3">
+        <img src="${this.getAvatarUrl(opponentAvatar)}" 
+            alt="${opponent}'s avatar" 
+            class="w-8 h-8 rounded-full object-cover border border-gray-600" />
+        <span>${opponent}</span>
+      </div>
+    `;
 
     const resultCell = document.createElement("td");
     resultCell.textContent = result;
-    resultCell.className = result === "WIN" ? "text-green-600" : "text-red-600";
-
     const scoreCell = document.createElement("td");
     scoreCell.textContent = score;
 
@@ -661,10 +666,9 @@ private updateMatchHistory(): void {
   this.matchHistoryData.forEach((match, index) => { 
     const formattedDate = new Date(match.date).toLocaleDateString();
     const score = `${match.userScore} - ${match.opponentScore}`;
-    const row = this.createMatch(match.opponent, match.result, score, formattedDate, index);
+    const row = this.createMatch(match.opponent, match.opponentAvatar, match.result, score, formattedDate, index);
     tableBody.appendChild(row);
   });
-
 }
 
 //-----------------------
@@ -698,10 +702,10 @@ private async fetchProfileData(): Promise<void> {
   
       if (matchHistoryResponse.success && matchHistoryResponse.data) {
         this.matchHistoryData = matchHistoryResponse.data;
-        this.updateMatchHistory(); // ✅ Create or call a function to render it
-        console.log(this.matchHistoryData[0].opponent);
-        console.log(this.matchHistoryData[1].opponent);
-        console.log(this.matchHistoryData[2].opponent);
+        this.updateMatchHistory();
+        // console.log(this.matchHistoryData[0].opponent);
+        // console.log(this.matchHistoryData[1].opponent);
+        // console.log(this.matchHistoryData[2].opponent);
 
       } else {
         console.warn("No match history found or failed to fetch:", matchHistoryResponse.message);
@@ -1214,15 +1218,11 @@ private openAddFriendPopup(): void {
       if (!confirmed) return;
       try {
         const result = await this.profileService.deleteAvatar();
-
         if (!result.success) {
-          this.showMessage((result.message || "Failed to remove avatar"), 'error');
-          return;
         }
     
         // Success → reset UI and update avatar field
         this.avatar = result.data?.avatar || ""; // set to default returned by backend
-        this.updatePopupAvatar(); 
         this.updateProfileUI();
     
       } catch (error) {
