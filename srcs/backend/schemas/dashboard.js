@@ -16,12 +16,13 @@ export const matchHistorySchema = {
 			properties: {
 				date: { type: 'string', format: 'date-time' },
 				opponent: { type: 'string' },
+				opponentAvatar: { type: 'string' },
 				userScore: { type: 'integer'},
 				opponentScore: { type: 'integer'},
 				result: { type: 'string', enum: ['WIN', 'LOSS'] },
 				isTournament: { type: 'boolean' }
 			},
-			required: ['date', 'opponent', 'userScore', 'opponentScore', 'result', 'isTournament']
+			required: ['date', 'opponent', 'opponentAvatar','userScore', 'opponentScore', 'result', 'isTournament']
 		}
 		},
 		404: { type: 'object', properties: { error: { type: 'string' }, }, },
