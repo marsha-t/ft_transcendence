@@ -123,6 +123,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Updates player's score
 		- If score reaches win condition (score = 5)
 			- Mark session as FINISHED and records winner in GameSession table (id = GameSessionPlayer.id)
+			- Update stats in User table 
 				- If session is from a tournament, 
 					- update winner in TournamentMatch table (id = TournamentPlayer.id)
 					- If session is last match in tournament, mark tournament as FINISHED
@@ -192,8 +193,43 @@ async function gameSessionPlayersRoutes(app, options) {
 				});
 			}
 
-			// Tournmament progression
 			if (finishedGame) {
+				const winnerUserId = player.userId;
+				const loser = finishedGame.players.find(p => p.userId !== winnerUserId);
+
+				// Update stats for registered users
+				if (winnerUserId) {
+					const winner = await prisma.user.update({
+						where: { id: winnerUserId },
+						data: {
+							totalMatches: { increment: 1 },
+							totalWins: { increment: 1 },
+						}
+					});
+
+					const newWinRate = winner.totalMatches > 0 ? (winner.totalWins /winner.totalMatches) * 100 : 0;
+
+					await prisma.user.update({ 
+						where: { id: winnerUserId },
+						data: { winRate: newWinRate },
+					});
+				}
+				
+				if (loser?.userId) {
+					const loser = await prisma.user.update({
+						where: { id: loser.userId },
+						data: { totalMatches: { increment: 1 } },
+					});
+
+					const newWinRate = loser.totalMatches > 0 ? (loser.totalWins / loser.totalMatches) * 100 : 0;
+					
+					await prisma.user.update({
+						where: { id: loser.id },
+						data: { winRate: newWinRate },
+					});
+				}
+
+				// Tournmament progression
 				const match = await prisma.tournamentMatch.findFirst({
 					where: { gameSessionId: finishedGame.id },
 					include: { tournament: true },
