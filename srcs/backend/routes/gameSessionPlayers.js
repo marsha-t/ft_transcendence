@@ -199,19 +199,23 @@ async function gameSessionPlayersRoutes(app, options) {
 
 				// Update stats for registered users
 				if (winnerUserId) {
-					const winner = await prisma.user.update({
-						where: { id: winnerUserId },
-						data: {
-							totalMatches: { increment: 1 },
-							totalWins: { increment: 1 },
-						}
-					});
-
-					const newWinRate = winner.totalMatches > 0 ? (winner.totalWins /winner.totalMatches) * 100 : 0;
-
+					const winner = await prisma.user.findUnique({ where: { id: winnerUserId }});
+					const totalMatches = winner.totalMatches + 1;
+					const totalWins = winner.totalWins + 1;
+					const winRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
+					const avgScore = (winner.avgScore * (totalMatches - 1) + player.score) / totalMatches;
+					
 					await prisma.user.update({ 
 						where: { id: winnerUserId },
-						data: { winRate: newWinRate },
+						data: { 
+							totalMatches, 
+							totalWins, 
+							winRate, 
+							avgScore, 
+							currentWinStreak: winner.currentWinStreak + 1,  
+							longestWinStreak: Math.max(winner.longestWinStreak, winner.currentWinStreak + 1),
+							lastPlayedAt: new Date(),
+						},
 					});
 				}
 				

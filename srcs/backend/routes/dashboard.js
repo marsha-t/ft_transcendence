@@ -85,9 +85,6 @@ async function dashboardRoutes(app, options) {
 			if (!session) return reply.code(404).send({ error: "Session not found" });
 			if (session.status !== "FINISHED") return reply.code(400).send({ error: "Session has not ended" });
 			
-console.log("🟢 Found session:", session.id);
-console.log("🟢 Events count:", session.events.length);
-console.log("🟢 Players count:", session.players.length);
 			// Summary 
 			const winnerPlayer = session.players.find(p => p.id === session.winnerPlayerId);
 			const winner = winnerPlayer 
@@ -190,6 +187,105 @@ console.log("🟢 Players count:", session.players.length);
 		} catch (err) {
 			request.log.error(err);
 			return reply.code(500).send({ error: err.message || "Failed to fetch game dashbaord" });
+		}
+	});
+
+	app.get('/api/stats/user', /*{ schema: userDashboardSchema }, */ async (request, reply) => {
+		const userId = request.headers['x-current-user-id'];
+		try {
+			// Overview stats
+			const overview = await prisma.user.findUnique({ 
+				where: { id: userId },
+				select: {
+					totalMatches: true, 
+					totalWins: true, 
+					winRate: true,
+					avgScore: true,
+					currentWinStreak: true, 
+					longestWinStreak: true, 
+					lastPlayedAt: true,
+				}
+			});
+
+			// Line chart: win rate over time
+			const sessions = await prisma.gameSession.findMany({
+				where: { status: 'FINISHED', players: { some: { userId } } },
+				include: {
+					players: {
+						include : { user: { select: { id: true, username: true } } }
+					},
+					winnerUser: true,
+				},
+				select: { endedAt: true, winnerUserId: true },
+			});
+			const dailyStatsMap = new Map();
+			for (const s of sessions) {
+				if (!s.endedAt) continue;
+				const date = s.endedAt.toISOString().split('T')[0];
+				const record = dailyStats.get(date) || { wins: 0, total: 0 };
+				record.total += 1;
+				if (s.winnerUserId === userId) record.wins += 1;
+				dailyStatsMap.set(date, record);
+			}
+			const dailyStats = Array.from(dailyStatsMap.entries()).map(([date, { wins, total}]) => ({
+				date,
+				winRate: total > 0 ? wins / total : 0,
+			}));
+
+			// Score histogram
+			const scores = await prisma.gameSessionPlayer.findMany({ 
+				where: { userId },
+				select: { score: true },
+			});
+			const scoreDistribution = scores.map((s) => s.score);
+
+			// Wins per opponent
+			const opponents = new Map();
+
+			for (const s of sessions) {
+				const opponent = s.players.find((p) => p.userId && p.userId !== userId);
+				if (!opponent) continue;
+
+				const existing = opponents.get(opponent.userId) || {
+					name: opponent.user?.username || opponent.displayName, 
+					wins: 0, 
+					total: 0,
+				};
+
+				existing.total += 1;
+				if (s.winnerUserId === userId) existing.wins += 1;
+				opponent.set(opponent.userId, existing);
+			}
+			
+			const winsPerOpponent = Array.from(opponents.values()).map((o) => ({
+				opponent: o.name, 
+				winRate: o.wins / o.total,
+				total: o.total,
+			})).sort((a, b) => b.total - a.total)
+				.slice(0, 5);
+
+			// Leaderboard
+			const users = await prisma.user.findMany({
+				select: { username: true, totalMatches: true, winRate: true, avgScore: true }
+			});
+			const maxMatches = Math.max(...users.map(u => u.totalMatches || 1));
+			const maxAvgScore = Math.max(...users.map(u => u.avgScore || 1));
+			const ranked = users.map(u => {
+				const leaderboardScore = 0.5 * u.winRate + 0.3 * (u.totalMatches / maxMatches) + 0.2 * (u.avgScore / maxAvgScore);
+				return {...u, leaderboardScore};
+
+			});
+			leaderboard = ranked.sort((a, b) => b.leaderboardScore - a.leaderboardScore).slice(0, 10);
+			return reply.send({
+				overview,
+				dailyStats,
+				scoreDistribution,
+				winsPerOpponent,
+				leaderboard,
+			});
+		} catch (err) {
+			request.log.error(err);
+			return reply.code(500).send({ error: err.message || "Failed to fetch user dashboard" });
 		}
 	});
 }
