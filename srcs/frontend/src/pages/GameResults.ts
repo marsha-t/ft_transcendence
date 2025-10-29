@@ -19,6 +19,8 @@ export class GameResults implements IComponent {
   }
 
   public render(): HTMLElement {
+    this.loadStyles();
+
     this.container = document.createElement("div");
     this.container.className = "game-dashboard";
 
@@ -35,6 +37,7 @@ export class GameResults implements IComponent {
 
     // Chart container
     const chartDiv = document.createElement("div");
+    chartDiv.className = "dashboard-chart";
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
@@ -94,7 +97,7 @@ export class GameResults implements IComponent {
   // Render summary section of dashboard
   private renderSummary() {
     if (!this.dashboardData) return;
-    
+
     const summaryDiv = this.container.querySelector(".dashboard-summary");
     if (!summaryDiv) return;
 
@@ -102,19 +105,23 @@ export class GameResults implements IComponent {
 
     summaryDiv.innerHTML = `
       <div class="winner-card">
-        <img src="${summary.winner?.avatar ?? "/uploads/avatars/default.png"}" 
+        <img src="${this.getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" 
              alt="Winner Avatar" class="winner-avatar" />
         <h2>🏆 Winner: ${summary.winner?.displayName ?? "No Winner"}</h2>
       </div>
-      <p class="score-line">Final Score: ${summary.finalScore.left} - ${summary.finalScore.right}</p>
-      <p>Total Duration: ${summary.totalDurationSec.toFixed(1)}s (Active: ${summary.activeDurationSec.toFixed(1)}s)</p>
+      <p class="score-line">Final Score: ${summary.finalScore.left} - ${
+      summary.finalScore.right
+    }</p>
+      <p>Total Duration: ${summary.totalDurationSec.toFixed(
+        1
+      )}s (Active: ${summary.activeDurationSec.toFixed(1)}s)</p>
     `;
   }
 
-  // Render line chart of score progression 
-  private renderChart () {
+  // Render line chart of score progression
+  private renderChart() {
     if (!this.dashboardData) return;
-    
+
     const chartDiv = document.getElementById("scoreChart");
     if (!chartDiv) return;
 
@@ -160,10 +167,10 @@ export class GameResults implements IComponent {
     });
   }
 
-  // Render player statistics 
+  // Render player statistics
   private renderPlayerStats() {
     if (!this.dashboardData) return;
-    
+
     const playersDiv = this.container.querySelector(".dashboard-players");
     if (!playersDiv) return;
 
@@ -171,12 +178,16 @@ export class GameResults implements IComponent {
       .map(
         (p) => `
         <div class="player-card ${p.side.toLowerCase()}">
-          <img src="${p.avatar}" alt="${p.displayName}" class="player-avatar" />
-          <h3>${p.displayName} (${p.side})</h3>
+          <img src="${this.getAvatarUrl(p.avatar)}" alt="${p.displayName}" class="player-avatar" />
+          <h3>${p.displayName}</h3>
           <ul>
             <li><strong>Score:</strong> ${p.score}</li>
-            <li><strong>Time to 1st Point:</strong> ${p.timeToFirstPointSec?.toFixed(1) ?? "-"}s</li>
-            <li><strong>Avg Time per Point:</strong> ${p.avgTimePerPointSec?.toFixed(1) ?? "-"}s</li>
+            <li><strong>Time to 1st Point:</strong> ${
+              p.timeToFirstPointSec?.toFixed(1) ?? "-"
+            }s</li>
+            <li><strong>Avg Time per Point:</strong> ${
+              p.avgTimePerPointSec?.toFixed(1) ?? "-"
+            }s</li>
             <li><strong>Total Matches:</strong> ${p.totalMatches}</li>
             <li><strong>Wins:</strong> ${p.totalWins}</li>
             <li><strong>Win Rate:</strong> ${p.winRate.toFixed(1)}%</li>
@@ -187,8 +198,26 @@ export class GameResults implements IComponent {
       .join("");
 
     playersDiv.innerHTML = `
-      <h2>Player Stats</h2>
       <div class="player-stats-container">${playerCards}</div>
     `;
+  }
+  private loadStyles() {
+    if (document.getElementById("game-result-styles")) return;
+
+    const link = document.createElement("link");
+    link.id = "game-result-styles";
+    link.rel = "stylesheet";
+    link.href = "/styles/GameResults.css";
+    document.head.appendChild(link);
+  }
+private getAvatarUrl(path?: string): string {
+    if (!path) return "";
+    const backendUrl = "http://localhost:5001";
+
+    const full = path.startsWith("http://") || path.startsWith("https://");
+    const base = full ? path : `${backendUrl}${path}`;
+
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}t=${Date.now()}`;
   }
 }
