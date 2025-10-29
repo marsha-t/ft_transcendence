@@ -53,6 +53,10 @@ model User {
   totalMatches Int @default(0)
   totalWins     Int @default(0)
   winRate       Float @default(0)
+  avgScore         Float   @default(0)
+  longestWinStreak Int     @default(0)
+  currentWinStreak Int     @default(0)
+  lastPlayedAt     DateTime?
   
   // relations
   sentRequests     FriendRequest[]  @relation("sentRequests")
