@@ -279,7 +279,7 @@ export class Game implements IComponent {
             return;
         }
         try{
-            await this.gameService.addGuestPlayer(this.currentSession.sessionId, guestName, "LEFT");
+            await this.gameService.addGuestPlayer(this.currentSession.sessionId, guestName, null, "LEFT");
 
             //ui
             const leftPlayerElement = document.getElementById('left-player');

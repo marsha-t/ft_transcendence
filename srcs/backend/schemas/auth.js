@@ -108,6 +108,8 @@ export const loginSchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
+        token: { type: 'string' },  // <-- This line is for the JWT
+        username: { type: 'string'}
       }
     },
     400: {
@@ -142,9 +144,9 @@ export const logoutSchema = {
   headers: {
     type: 'object',
     properties: {
-      'x-current-user-id': { type: 'string' },
+      authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ['x-current-user-id'],
+    required: ['authorization'],
   },
   response: {
     200: {
@@ -173,4 +175,4 @@ export const logoutSchema = {
       }
     }
   }
-};
+};  

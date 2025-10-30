@@ -5,10 +5,9 @@ import { createGameSession, isValidTransition, buildUpdateData, runChecks } from
 async function gameSessionRoutes(app, options) {    
 
   // Create game session with first player
-  app.post('/api/game-sessions', {schema: createGameSessionSchema }, async (request, reply) => {
+  app.post('/api/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    const userId = request.user.id;
     const { guestName, side } = request.body ?? {};
-    const userIdHeader = request.headers['x-current-user-id'];
-    const userId = userIdHeader ? Number(userIdHeader) : null;
 
     if (!userId && !guestName) {
      return reply.code(400).send({ error: "Either X-Current-User-Id or guestName is required" });
@@ -26,7 +25,7 @@ async function gameSessionRoutes(app, options) {
   });
 
   // Get single game session
-  app.get('/api/game-sessions', { schema: getGameSessionByIdSchema }, async (request, reply) => {
+  app.get('/api/game-sessions', { schema: getGameSessionByIdSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const sessionIdHeader = request.headers['x-current-session-id'];
     const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
@@ -55,7 +54,7 @@ async function gameSessionRoutes(app, options) {
     - Update GameSession
     - Return updated session object 
   */
-  app.patch('/api/game-sessions/status', {schema: updateSessionStatusSchema }, async (request, reply) => {
+  app.patch('/api/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const sessionIdHeader = request.headers['x-current-session-id'];
     const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
     const { status: nextStatus } = request.body; 

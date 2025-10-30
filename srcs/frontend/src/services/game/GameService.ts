@@ -7,6 +7,10 @@ export class GameService{
         this.baseUrl = 'http://localhost:5001/api';
     }
 
+    getToken(): string | null {
+      return localStorage.getItem('jwtToken');
+    }
+
     // 1- Create a new game session
     async createGameSession(userId: number, side: PlayerSide): Promise<GameSession>{
         try{
@@ -15,7 +19,7 @@ export class GameService{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Current-User-Id': String(userId),
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
                 body: JSON.stringify({
                     side
@@ -38,16 +42,18 @@ export class GameService{
     }
 
     // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: string, guestName: string, side: PlayerSide): Promise<void>{
+    async addGuestPlayer(sessionId: string, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
         try{
             const response = await fetch(`${this.baseUrl}/game-sessions/players`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Current-Session-Id': String(sessionId),
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
                 body: JSON.stringify({
                     guestName,
+                    playerUserId,
                     side
                 })
             });
@@ -81,6 +87,7 @@ export class GameService{
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Current-Session-Id': String(sessionId),
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
                 body: JSON.stringify({
                     status
@@ -106,6 +113,7 @@ export class GameService{
                headers: {
                     'X-Current-Session-Id': String(sessionId),
                     'X-Player-Side': scoringSide,
+                    'Authorization': `Bearer ${this.getToken()}`,
                } 
             });
             if(!response.ok)
@@ -124,6 +132,7 @@ export class GameService{
                 method: 'GET',
                 headers: {
                     'X-Current-Session-Id': String(sessionId),
+                    'Authorization': `Bearer ${this.getToken()}`,
                 }
             });
 

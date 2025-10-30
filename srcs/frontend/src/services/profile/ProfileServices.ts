@@ -9,43 +9,11 @@ export class ProfileServices {
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
-  // Set avatar from a preset image path (frontend/public/assets/avatar/...)
-  async uploadAvatarFromPreset(presetPath: string): Promise<ApiResponse<AvatarUploadResponse>> {
-    try {
-      // Send the preset filename to the backend; backend will copy/set it for the user
-      const response = await fetch(`${this.baseUrl}/profile/avatar`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "x-current-user-id": "1",
-        },
-        body: JSON.stringify({ presetFilename: presetPath }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        return {
-          success: false,
-          status: response.status,
-          message: data.message || "Preset avatar set failed",
-          errors: [],
-        };
-      }
-      return {
-        success: true,
-        status: response.status,
-        data: data,
-        message: "Preset avatar set successfully",
-      };
-    } catch (error) {
-      console.error("API error (preset avatar)", error);
-      return {
-        success: false,
-        status: 0,
-        message: "Network error",
-        errors: [],
-      };
+
+    getToken(): string | null {
+      return localStorage.getItem('jwtToken');
     }
-  }
+    
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
@@ -53,7 +21,7 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-current-user-id': '1',
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
             });
             const data = await response.json();
@@ -82,40 +50,47 @@ export class ProfileServices {
             };
         }
     }
-  // Get daily play counts for the current user
-  async getPlayCounts(start?: string, end?: string): Promise<ApiResponse<{ date: string; count: number }[]>> {
-    try {
-      const params: string[] = [];
-      if (start) params.push(`start=${encodeURIComponent(start)}`);
-      if (end) params.push(`end=${encodeURIComponent(end)}`);
-      const q = params.length ? `?${params.join('&')}` : '';
-      const response = await fetch(`${this.baseUrl}/profile/play-counts${q}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-current-user-id': '1',
-        },
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        return {
-          success: false,
-          status: response.status,
-          message: data.message || 'Failed to fetch play counts',
-          errors: data.errors || [],
-        };
+
+    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Method to log out the current user
+    async logout(): Promise<ApiResponse<null>> {
+      try {
+          const response = await fetch(`${this.baseUrl}/logout`, {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${this.getToken()}`,
+              },
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+              const msg = data.error || 'Logout failed';
+              return {
+                  success: false,
+                  status: response.status,
+                  message: msg,
+                  errors: data.errors || []
+              };
+          }
+
+          return {
+              success: true,
+              status: response.status,
+              data: null,
+              message: 'Logout successful'
+          };
+      } catch (error) {
+          console.error('Logout API error', error);
+          return {
+              success: false,
+              status: 0,
+              message: 'Network error',
+              errors: []
+          };
       }
-      return {
-        success: true,
-        status: response.status,
-        data: data.data || [],
-        message: data.message || 'Play counts fetched',
-      };
-    } catch (error) {
-      console.error('API error (getPlayCounts)', error);
-      return { success: false, status: 0, message: 'Network error', errors: [] };
     }
-  }
+    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {
@@ -123,7 +98,7 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-current-user-id': '1',
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
             });
             const data = await response.json();
@@ -165,8 +140,7 @@ export class ProfileServices {
           const res = await fetch(`${this.baseUrl}/friends/${encodeURIComponent(username)}`, {
             method: "DELETE",
             headers: {
-              // You may need to include the current user ID header if backend requires it:
-              "x-current-user-id": "1", 
+              'Authorization': `Bearer ${this.getToken()}`,
             },
           });
       
@@ -190,7 +164,7 @@ export class ProfileServices {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "x-current-user-id": "1", // or dynamically get user ID
+              'Authorization': `Bearer ${this.getToken()}`,
             },
             body: JSON.stringify(data),
           });
@@ -257,7 +231,7 @@ export class ProfileServices {
             const response = await fetch(`${this.baseUrl}/profile/avatar`, {
                 method: "PUT",
                 headers: {
-                    "x-current-user-id": "1",
+                    'Authorization': `Bearer ${this.getToken()}`,
                 },
                 body: formData,
             });
@@ -295,7 +269,7 @@ export class ProfileServices {
           const response = await fetch(`${this.baseUrl}/profile/avatar`, {
             method: "DELETE",
             headers: {
-              "x-current-user-id": "1", // or dynamically from auth
+              'Authorization': `Bearer ${this.getToken()}`,
             },
           });
       
@@ -333,7 +307,7 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  "x-current-user-id": "1", // replace with dynamic current user ID
+                  'Authorization': `Bearer ${this.getToken()}`,
               },
           });
   
@@ -381,7 +355,7 @@ export class ProfileServices {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-current-user-id": userId.toString(),
+          'Authorization': `Bearer ${this.getToken()}`,
         },
         body: JSON.stringify({ username }),
       });
@@ -404,7 +378,7 @@ export class ProfileServices {
             method: 'GET',
             headers: {
             'Content-Type': 'application/json',
-            'x-current-user-id': '1',
+            'Authorization': `Bearer ${this.getToken()}`,
             },
         });
     
@@ -452,7 +426,7 @@ export class ProfileServices {
         const response = await fetch(`${this.baseUrl}/friends/${username}/${action}`, {
             method: 'PUT',
             headers: {
-            'x-current-user-id': '1',
+            'Authorization': `Bearer ${this.getToken()}`,
             },
         });
     
@@ -532,7 +506,3 @@ export class ProfileServices {
   }
     
 }
-
-
-
-
