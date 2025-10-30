@@ -144,9 +144,9 @@ export const logoutSchema = {
   headers: {
     type: 'object',
     properties: {
-      'x-current-user-id': { type: 'string' },
+      authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ['x-current-user-id'],
+    required: ['authorization'],
   },
   response: {
     200: {
@@ -175,4 +175,4 @@ export const logoutSchema = {
       }
     }
   }
-};
+};  

@@ -61,6 +61,54 @@ export class Profile implements IComponent {
     card.appendChild(status);
     card.appendChild(settingsBtn);
 
+  // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // Logout button
+  const logoutBtn = document.createElement("button");
+  logoutBtn.textContent = "Logout";
+  logoutBtn.className = `
+    absolute top-[28px] left-[1060px] 
+    bg-red-500 text-white px-3 py-1 rounded
+    cursor-pointer
+    transition duration-200
+    hover:bg-red-600
+  `;
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      // Call your logout API
+      const res = await this.profileService.logout();
+      if (res.success) {
+        // Clear localStorage / JWT
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("currentUsername");
+        // Redirect to main page after successful logout
+        setTimeout(() => {
+          console.log("Current URL before navigation:", window.location.href);
+          console.log("Current pathname:", window.location.pathname);
+          console.log("Current hash:", window.location.hash);
+          
+          //i need to check and clear the path first
+          if(window.location.hash)
+              history.replaceState(null, '', window.location.pathname);
+          
+          //then navigate to destination
+          history.pushState(null, '', '/main');
+          // Trigger router update
+          window.dispatchEvent(new PopStateEvent('popstate'));
+
+          console.log("PopState event dispatched");
+      }, 2000);
+      } else {
+        alert(res.message || "Logout failed");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      alert("Logout failed");
+    }
+  });
+
+  // Append logout button to profile card
+  card.appendChild(logoutBtn);
+  // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // ----------------------------------------------------------------------------------------------
 
