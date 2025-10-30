@@ -23,7 +23,11 @@ async function dashboardRoutes(app, options) {
 				include: {
 					session: {
 						include: { 
-							players: true,
+							players: {
+								include: {
+									user: { select: { avatar: true } },
+								}
+							},
 							tournamentMatch: true,
 						 },
 					},
@@ -40,6 +44,7 @@ async function dashboardRoutes(app, options) {
 					return {
 						date: m.session.createdAt,
 						opponent: opponent?.displayName ?? "Unknown",
+						opponentAvatar: opponent?.user?.avatar ?? "/uploads/avatars/default.png",
 						userScore: m.score,
 						opponentScore: opponent?.score ?? 0,
 						result: m.session.winnerPlayerId === m.id ? "WIN" : "LOSS",
