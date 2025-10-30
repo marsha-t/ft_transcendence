@@ -26,6 +26,7 @@ export class Profile implements IComponent {
   private matchHistoryData: MatchHistory[] = [];
   private popupAvatarEl: HTMLElement | null = null;
   private profileService: ProfileServices;
+  private heatmapContainer: HTMLElement | null = null;
   private messageContainer!: HTMLDivElement;
   private container!: HTMLElement;
   
@@ -78,6 +79,23 @@ export class Profile implements IComponent {
   profileInfo.className = `profile-card rounded-2xl bg-[#21447E] opacity-100 text-color_white
     p-4 relative flex flex-col items-center`;
 
+    const logoutBtn = document.createElement("div");
+    logoutBtn.textContent = "logout";
+    logoutBtn.className = `
+           absolute top-2 left-2
+        w-[105px] h-[32px]
+        rounded-[7px]
+        px-[10px] py-[6px] font-pixel
+        text-color_white
+        border border-[1px] border-border-green
+        inline-flex justify-center items-center
+        no-underline cursor-pointer
+        transition-colors duration-200 ease-in-out
+        hover:bg-color-green
+        hover:text-color_white
+        `;
+  
+    // logoutBtn.addEventListener("click", );
     const editProfileBtn = document.createElement("div");
     editProfileBtn.textContent = "edit";
     editProfileBtn.className = `
@@ -127,6 +145,7 @@ export class Profile implements IComponent {
     // status.innerHTML = "Online"; // Using innerHTML for the dot
 
     profileInfo.appendChild(editProfileBtn);
+    profileInfo.appendChild(logoutBtn);
     profileInfo.appendChild(avatar);
     profileInfo.appendChild(name);
     // profileInfo.appendChild(status);
@@ -137,7 +156,8 @@ export class Profile implements IComponent {
    const heatmap = document.createElement('div');
    // ensure heatmap doesn't force parent to grow
    heatmap.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-hidden`;
-   this.createHeatmap(heatmap, 2025);
+  // Render last 4 months by default
+  void this.createHeatmap(heatmap, 4);
 
 // ----------------------------------------------------------------------------------------------
 
@@ -335,6 +355,7 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     flex items-center justify-between
     rounded-[10px] px-4 py-3
     ${online ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"}
+
     text-[#183B76] font-pixel
     hover:opacity-90 transition
   `;
@@ -476,14 +497,9 @@ private createFriend(avatarURL: string, name: string, online: boolean): HTMLElem
     w-full h-[65px]
     flex items-center justify-between
     rounded-[10px] px-4 py-3 mb-3
-    bg-[#C7D6F0] text-[#183B76] font-pixel
+    ${reqId % 2 === 0 ? "bg-[#7EA2DD]" : "bg-[none]"} text-[color_white] font-pixel
     hover:opacity-90 transition
   `;
-  // Alternate row background for visual variation
-  if (reqId % 2 !== 0) {
-    item.classList.remove("bg-[#C7D6F0]");
-    item.classList.add("bg-[#EBF1FA]");
-  }
 
   const inner = document.createElement("div");
   // make the inner container stretch full width and arrange left/right
@@ -703,9 +719,6 @@ private async fetchProfileData(): Promise<void> {
       if (matchHistoryResponse.success && matchHistoryResponse.data) {
         this.matchHistoryData = matchHistoryResponse.data;
         this.updateMatchHistory();
-        // console.log(this.matchHistoryData[0].opponent);
-        // console.log(this.matchHistoryData[1].opponent);
-        // console.log(this.matchHistoryData[2].opponent);
 
       } else {
         console.warn("No match history found or failed to fetch:", matchHistoryResponse.message);
@@ -1124,6 +1137,56 @@ private openAddFriendPopup(): void {
 
   modal.appendChild(form);
 
+  // === 2FA Toggle ===
+  const twoFactorGroup = document.createElement("div");
+  twoFactorGroup.className = `mt-6 flex items-center justify-between p-4 rounded-[8px] bg-[#183B76]`;
+
+  const twoFactorLabel = document.createElement("div");
+  twoFactorLabel.className = "flex flex-col";
+
+  const twoFactorTitle = document.createElement("span");
+  twoFactorTitle.className = "text-sm font-semibold";
+  twoFactorTitle.textContent = "Two-Factor Authentication";
+
+  const twoFactorDesc = document.createElement("span");
+  twoFactorDesc.className = "text-xs text-gray-400";
+  twoFactorDesc.textContent = "Add an extra layer of security to your account";
+
+  twoFactorLabel.appendChild(twoFactorTitle);
+  twoFactorLabel.appendChild(twoFactorDesc);
+
+  // Toggle switch
+  const toggleSwitch = document.createElement("div");
+  toggleSwitch.className = `
+    w-12 h-6 rounded-full relative
+    bg-[#183B76] border-2 border-[#77AB55] cursor-pointer
+    transition-all duration-200 ease-in-out
+  `;
+
+  const toggleCircle = document.createElement("div");
+  toggleCircle.className = `
+    absolute w-4 h-4 bg-[#77AB55] rounded-full
+    top-1/2 -translate-y-1/2 left-1
+    transition-all duration-200 ease-in-out
+  `;
+
+  toggleSwitch.appendChild(toggleCircle);
+  toggleSwitch.addEventListener("click", () => {
+    const isEnabled = toggleSwitch.classList.contains("enabled");
+    if (isEnabled) {
+      toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+      toggleCircle.style.transform = "translate(-0%, -50%)";
+      toggleCircle.style.left = "4px";
+    } else {
+      toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+      toggleCircle.style.transform = "translate(100%, -50%)";
+      toggleCircle.style.left = "16px";
+    }
+  });
+
+  twoFactorGroup.appendChild(twoFactorLabel);
+  twoFactorGroup.appendChild(toggleSwitch);
+  modal.appendChild(twoFactorGroup);
 
     // Action buttons
     const actions = document.createElement("div");
@@ -1338,75 +1401,112 @@ private openAddFriendPopup(): void {
       );
     });
   }
+  // Public method to refresh the heatmap
+
+
+  // Public method to refresh the heatmap
+  public async refreshHeatmap(): Promise<void> {
+    if (this.heatmapContainer) {
+      await this.createHeatmap(this.heatmapContainer, 4);
+    }
+  }
+
   // Generate a calendar-style heatmap
-  private createHeatmap(container: HTMLElement, year: number = new Date().getFullYear()): void {
+  private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): Promise<void> {
     container.innerHTML = ""; // clear previous content
     container.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white flex flex-col justify-between `;
 
-    // const title = document.createElement("h2");
-    // title.className = "text-xl font-semibold mb-4";
-    // title.textContent = `${year} Activity`;
-    // container.appendChild(title);
-
-    // Grid container for 4 months in one row
+    // Grid container
     const monthsGrid = document.createElement("div");
-    monthsGrid.className = "grid grid-cols-4 gap-4"; // 4 months side by side
+    monthsGrid.className = "grid grid-cols-4 gap-4";
     container.appendChild(monthsGrid);
 
     const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-    for (let m = 0; m < 4; m++) {
-        const monthContainer = document.createElement("div");
-        monthContainer.className = "flex flex-col gap-1";
+    // Compute date range: last `monthsToShow` months ending this month
+    const now = new Date();
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of current month
+    const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - (monthsToShow - 1), 1);
 
-        const monthTitle = document.createElement("span");
-        monthTitle.className = "font-semibold text-center";
-        monthTitle.textContent = monthNames[m];
-        monthContainer.appendChild(monthTitle);
-
-        const grid = document.createElement("div");
-        grid.className = "grid grid-cols-7 gap-[2px] justify-center";
-
-        // Days in month
-        const start = new Date(year, m, 1);
-        const end = new Date(year, m + 1, 0);
-        const firstDayOfWeek = start.getDay();
-
-        // Empty cells to align first day
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            const emptyCell = document.createElement("div");
-            emptyCell.className = "w-3 h-3 sm:w-4 sm:h-4";
-            grid.appendChild(emptyCell);
-        }
-
-        for (let d = 1; d <= end.getDate(); d++) {
-            const cell = document.createElement("div");
-            const count = Math.floor(Math.random() * 6); // replace with real activity
-            const getColor = (c: number) => {
-              switch (c) {
-                  case 0: 
-                      return "bg-white";        // No activity / empty
-                  case 1: 
-                      return "bg-[#99B5E5]";   // Light blue / low activity
-                  case 2: 
-                      return "bg-[#1F4D9A]";   // Medium blue / medium activity
-                  case 3: 
-                      return "bg-[#183B76]";   // Dark blue / high activity
-                  default: 
-                      return "bg-[#183B76]";   // Use same as high activity for any extra value
-              }
-          };
-          
-            cell.className = `w-3 h-3 sm:w-4 sm:h-4 rounded ${getColor(count)} transition hover:scale-110`;
-            cell.title = `${monthNames[m]} ${d}, ${year} — ${count} activity`;
-            grid.appendChild(cell);
-        }
-
-        monthContainer.appendChild(grid);
-        monthsGrid.appendChild(monthContainer);
+    // Fetch play counts for the visible range
+    const startISO = startDate.toISOString().slice(0,10);
+    const endISO = endDate.toISOString().slice(0,10);
+    let dayCounts: Record<string, number> = {};
+    try {
+      const res = await this.profileService.getPlayCounts(startISO, endISO);
+      if (res.success && res.data) {
+        res.data.forEach((item: {date: string, count: number}) => { dayCounts[item.date] = item.count; });
+      } else {
+        console.warn('Failed to fetch play counts', res.message);
+      }
+    } catch (e) {
+      console.warn('Error fetching play counts', e);
     }
 
-    // "Learn More" button
+    // Build month start dates
+    const months: Date[] = [];
+    for (let i = 0; i < monthsToShow; i++) {
+      months.push(new Date(startDate.getFullYear(), startDate.getMonth() + i, 1));
+    }
+
+    // Render each month
+    months.forEach((mDate) => {
+      const monthIndex = mDate.getMonth();
+      const year = mDate.getFullYear();
+
+      const monthContainer = document.createElement("div");
+      monthContainer.className = "flex flex-col gap-1";
+
+      const monthTitle = document.createElement("span");
+      monthTitle.className = "font-semibold text-center";
+      monthTitle.textContent = `${monthNames[monthIndex]} ${year}`;
+      monthContainer.appendChild(monthTitle);
+
+      const grid = document.createElement("div");
+      grid.className = "grid grid-cols-7 gap-[2px] justify-center";
+
+      const start = new Date(year, monthIndex, 1);
+      const end = new Date(year, monthIndex + 1, 0);
+      const firstDayOfWeek = start.getDay();
+
+      // Empty cells to align first day
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "w-3 h-3 sm:w-4 sm:h-4";
+        grid.appendChild(emptyCell);
+      }
+
+      for (let d = 1; d <= end.getDate(); d++) {
+        const cell = document.createElement("div");
+        const cellDate = new Date(year, monthIndex, d);
+        const y = cellDate.getFullYear();
+        const mm = String(cellDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(cellDate.getDate()).padStart(2, '0');
+        const key = `${y}-${mm}-${dd}`;
+        const count = (dayCounts && dayCounts[key]) ? dayCounts[key] : 0;
+
+        const getColor = (c: number) => {
+          // dark if didn't play, lighter for 1, lighter for 2, white if >2
+          if (c <= 0) return "bg-[#183B76]";      // dark when no plays
+          if (c === 1) return "bg-[#1F4D9A]";     // medium
+          if (c === 2) return "bg-[#99B5E5]";     // light
+          return "bg-white";                      // very light / white for 3+
+        };
+
+        cell.className = `w-5 h-5 sm:w-6 sm:h-6 rounded ${getColor(count)} transition hover:scale-110 flex items-center justify-center`;
+        cell.title = `${monthNames[monthIndex]} ${d}, ${year} — ${count} plays`;
+        const dateText = document.createElement("span");
+        dateText.textContent = String(d);
+        dateText.className = "text-[0.5rem] sm:text-[0.6rem] opacity-60";
+        cell.appendChild(dateText);
+        grid.appendChild(cell);
+      }
+
+      monthContainer.appendChild(grid);
+      monthsGrid.appendChild(monthContainer);
+    });
+
+    // "Learn More" button — navigate to dashboard page
     const button = document.createElement("button");
     button.textContent = ">> Learn More";
     button.className = `
@@ -1422,10 +1522,14 @@ private openAddFriendPopup(): void {
                 hover:bg-color-green
                 hover:text-color_white
     `;
-    button.addEventListener("click", () => alert("Redirect to full calendar view")); // replace with actual action
+    button.addEventListener("click", () => {
+      // navigate to dashboard route
+      history.pushState(null, '', '/dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
     container.style.position = "relative";
     container.appendChild(button);
-}
+  }
 
 
 
