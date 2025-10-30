@@ -100,7 +100,51 @@ async function profileRoutes(app, options) {
       const userId = request.user.id;
       if (!userId) return reply.code(400).send({ message: 'Missing user ID in header' });
 
-      // Get file
+      // Check for preset avatar selection
+      if (request.body && request.body.presetFilename) {
+        const presetFilename = request.body.presetFilename;
+        const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        const ext = path.extname(presetFilename).toLowerCase();
+        if (!allowedExts.includes(ext)) {
+          return reply.code(400).send({ message: 'Invalid preset file type.' });
+        }
+        // Only allow preset avatars from uploads/avatars
+        const presetFullPath = path.join(process.cwd(), 'uploads', 'avatars', presetFilename);
+        if (!fs.existsSync(presetFullPath)) {
+          return reply.code(404).send({ message: 'Preset avatar not found.' });
+        }
+        // Copy preset to uploads/avatars/{userId}.{ext}
+        const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+        await fs.promises.mkdir(uploadDir, { recursive: true });
+        const fileName = `${userId}${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        // Delete old avatar if exists and is not default
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        const defaultAvatar = '/uploads/avatars/default.png';
+        if (user?.avatar && user.avatar !== defaultAvatar) {
+          const oldPath = path.join(process.cwd(), user.avatar);
+          try {
+            await fs.promises.unlink(oldPath);
+          } catch (e) {
+            request.log.warn(`Failed to delete old avatar: ${oldPath}`);
+          }
+        }
+
+        // Copy preset file
+        await fs.promises.copyFile(presetFullPath, filePath);
+        const avatarUrl = `/uploads/avatars/${fileName}`;
+
+        // Update DB
+        await prisma.user.update({
+          where: { id: userId },
+          data: { avatar: avatarUrl },
+        });
+
+        return reply.code(200).send({ message: 'Preset avatar set successfully', avatar: avatarUrl });
+      }
+
+      // Otherwise, handle file upload as before
       const data = await request.file().catch(err => {
         console.error('File parsing error:', err);
         return null;
