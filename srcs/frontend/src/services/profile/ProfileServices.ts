@@ -1,5 +1,6 @@
+// ...existing code...
 
-import { ProfileData, FriendsData,UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, ApiResponse } from './types';
+import { ProfileData, FriendsData,UpdateProfileData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, MatchHistory, ApiResponse } from './types';
 
 export class ProfileServices {
     private baseUrl: string;
@@ -8,6 +9,43 @@ export class ProfileServices {
     constructor() {
         this.baseUrl = 'http://localhost:5001/api';
     }
+  // Set avatar from a preset image path (frontend/public/assets/avatar/...)
+  async uploadAvatarFromPreset(presetPath: string): Promise<ApiResponse<AvatarUploadResponse>> {
+    try {
+      // Send the preset filename to the backend; backend will copy/set it for the user
+      const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-current-user-id": "1",
+        },
+        body: JSON.stringify({ presetFilename: presetPath }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || "Preset avatar set failed",
+          errors: [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: data,
+        message: "Preset avatar set successfully",
+      };
+    } catch (error) {
+      console.error("API error (preset avatar)", error);
+      return {
+        success: false,
+        status: 0,
+        message: "Network error",
+        errors: [],
+      };
+    }
+  }
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
@@ -44,6 +82,40 @@ export class ProfileServices {
             };
         }
     }
+  // Get daily play counts for the current user
+  async getPlayCounts(start?: string, end?: string): Promise<ApiResponse<{ date: string; count: number }[]>> {
+    try {
+      const params: string[] = [];
+      if (start) params.push(`start=${encodeURIComponent(start)}`);
+      if (end) params.push(`end=${encodeURIComponent(end)}`);
+      const q = params.length ? `?${params.join('&')}` : '';
+      const response = await fetch(`${this.baseUrl}/profile/play-counts${q}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-current-user-id': '1',
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || 'Failed to fetch play counts',
+          errors: data.errors || [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: data.data || [],
+        message: data.message || 'Play counts fetched',
+      };
+    } catch (error) {
+      console.error('API error (getPlayCounts)', error);
+      return { success: false, status: 0, message: 'Network error', errors: [] };
+    }
+  }
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {
@@ -147,6 +219,35 @@ export class ProfileServices {
           return { success: false, status: 0, message: "Network error", errors: [] };
         }
     }
+  // Log the current user out (sets status to OFFLINE on the backend)
+  async logout(): Promise<ApiResponse<null>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-current-user-id': '1',
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || 'Logout failed',
+          errors: data.errors || [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        message: data.message || 'Logout successful',
+      };
+    } catch (error) {
+      console.error('API error (logout)', error);
+      return { success: false, status: 0, message: 'Network error', errors: [] };
+    }
+  }
     // Method to update the current user's avatar
     async uploadAvatar(file: File): Promise<ApiResponse<AvatarUploadResponse>> {
         try {
@@ -344,22 +445,6 @@ export class ProfileServices {
         };
         }
     }
-    
-      // 🟡 Get friendship status with another user
-      // async getFriendStatus(targetUserId: string): Promise<ApiResponse<{ status: string }>> {
-      //   try {
-      //     const res = await fetch(`${this.baseUrl}/friends/status/${targetUserId}`, {
-      //       credentials: "include",
-      //     });
-      //     const data = await res.json();
-      //     return data;
-      //   } catch (err) {
-      //     console.error("Error checking friend status:", err);
-      //     return { success: false, message: "Failed to check friend status" };
-      //   }
-      // }
-  
-
   
   // Respond to a friend request (accept/decline)
     async respondToRequest(username: string, action: "accept" | "reject"): Promise<ApiResponse<null>> {
@@ -397,7 +482,54 @@ export class ProfileServices {
         };
         }
     }
+    async getMatchHistory(userId: number): Promise<ApiResponse<MatchHistory[]>> {
+      try {
+          const response = await fetch(`${this.baseUrl}/stats/users/match-history`, {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json",
+                  "x-current-user-id": String(userId),
+              },
+          });
   
+          
+          const data = await response.json();
+          if (!response.ok) {
+              return {
+                  success: false,
+                  status: response.status,
+                  message: data.error || data.message || "Failed to fetch match history",
+                  errors: data.errors || [],
+              };
+          }
+          const matches: MatchHistory[] = Array.isArray(data)
+              ? data.map((m: any) => ({
+                date: m.date,
+                opponent: m.opponent,
+                opponentAvatar: m.opponentAvatar || "/uploads/avatar/default.png",
+                userScore: m.userScore,
+                opponentScore: m.opponentScore,
+                result: m.result === "WIN" ? "WIN" : "LOSS",
+                isTournament: Boolean(m.isTournament),
+                }))
+              : [];
+  
+          return {
+              success: true,
+              status: response.status,
+              data: matches,
+              message: "Users fetched successfully",
+          };
+      } catch (error: any) {
+          console.error("API error", error);
+          return {
+              success: false,
+              status: 0,
+              message: error?.message || "Network error",
+              errors: [],
+          };
+      }
+  }
     
 }
 
