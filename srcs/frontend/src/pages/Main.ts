@@ -38,29 +38,53 @@ export class Main implements IComponent {
                                 Sign up or log in to join the fun and test your skills in this timeless arcade classic!`;
     textSection.appendChild(description);
 
-    // Right side (button)
+    // Right side (buttons)
     const rightSection = document.createElement('div')
     rightSection.className = `
-      flex justify-center flex-1`;
+      flex flex-col justify-center items-center flex-1 gap-4`;
 
+    const challengeHeading = document.createElement('h2');
+    challengeHeading.className = `
+      text-white text-[36px] font-pixel mb-6
+      tracking-wider text-center`;
+    challengeHeading.textContent = "Select a Challenge";
+    rightSection.appendChild(challengeHeading);
+
+    const tournamentBtn = document.createElement('a');
+    tournamentBtn.href = "/tournament";
+    tournamentBtn.className = `
+      flex justify-center items-center 
+      w-[322px] h-[50px] px-[7px] py-[20px] rounded-[10px]
+      text-white text-[23px] text-[400] font-pixel cursor-pointer 
+      bg-color_button hover:bg-color-secondary 
+      transition-colors duration-300 
+      border-color_border no-underline`;
+    tournamentBtn.textContent = "TOURNAMENT";
+
+    const aiButton = document.createElement('a');
+    // aiButton.href = "/game"; // add link when AI game is implemented
+    aiButton.className = `
+      flex justify-center items-center 
+      w-[344px] h-[50px] px-[7px] py-[20px] rounded-[10px]
+      text-white text-[23px] text-[400] font-pixel cursor-pointer 
+      bg-color_button hover:bg-color-secondary 
+      transition-colors duration-300 
+      border-color_border no-underline`;
+    aiButton.textContent = "PLAY WITH AI";
+  
     const playButton = document.createElement('a');
     playButton.href = "/game";
     playButton.className = `
       flex justify-center items-center 
-      w-[260px] h-[82px] px-[46px] rounded-[10px] 
-      text-white text-[44px] font-pixel cursor-pointer 
+      w-[447px] h-[50px] px-[7px] py-[20px] rounded-[10px]
+      text-white text-[23px] text-[400] font-pixel cursor-pointer 
       bg-color_button hover:bg-color-secondary 
       transition-colors duration-300 
-      border-color_border no-underline gap-2`;
-    // playButton.textContent = "PLAY NOW";
-    playButton.textContent = "START";
+      border-color_border no-underline`;
+    playButton.textContent = "PLAY WITH FRIEND";
 
-    // const arrow = document.createElement('img');
-    // arrow.src = "/assets/arrow.png"; // Path to arrow.png in public/assets/
-    // arrow.alt = "Arrow icon";
-    // arrow.className =  `w-[30px] h-[30px]`;
-
-    // playButton.appendChild(arrow);
+    rightSection.appendChild(tournamentBtn);
+    rightSection.appendChild(aiButton);
     rightSection.appendChild(playButton);
 
     // Add to subcontainer

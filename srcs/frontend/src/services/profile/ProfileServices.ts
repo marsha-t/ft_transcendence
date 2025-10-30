@@ -82,6 +82,40 @@ export class ProfileServices {
             };
         }
     }
+  // Get daily play counts for the current user
+  async getPlayCounts(start?: string, end?: string): Promise<ApiResponse<{ date: string; count: number }[]>> {
+    try {
+      const params: string[] = [];
+      if (start) params.push(`start=${encodeURIComponent(start)}`);
+      if (end) params.push(`end=${encodeURIComponent(end)}`);
+      const q = params.length ? `?${params.join('&')}` : '';
+      const response = await fetch(`${this.baseUrl}/profile/play-counts${q}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-current-user-id': '1',
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || 'Failed to fetch play counts',
+          errors: data.errors || [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: data.data || [],
+        message: data.message || 'Play counts fetched',
+      };
+    } catch (error) {
+      console.error('API error (getPlayCounts)', error);
+      return { success: false, status: 0, message: 'Network error', errors: [] };
+    }
+  }
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {
@@ -185,6 +219,35 @@ export class ProfileServices {
           return { success: false, status: 0, message: "Network error", errors: [] };
         }
     }
+  // Log the current user out (sets status to OFFLINE on the backend)
+  async logout(): Promise<ApiResponse<null>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-current-user-id': '1',
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || 'Logout failed',
+          errors: data.errors || [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        message: data.message || 'Logout successful',
+      };
+    } catch (error) {
+      console.error('API error (logout)', error);
+      return { success: false, status: 0, message: 'Network error', errors: [] };
+    }
+  }
     // Method to update the current user's avatar
     async uploadAvatar(file: File): Promise<ApiResponse<AvatarUploadResponse>> {
         try {
