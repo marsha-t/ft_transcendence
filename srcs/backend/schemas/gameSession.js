@@ -5,9 +5,10 @@ export const createGameSessionSchema = {
 	headers: {
 		type: 'object',
 		properties: {
-			'x-current-user-id': { type: 'string' }, 
+			authorization: { type: 'string', description: 'Bearer <token>' },
+		  },
+		  required: ['authorization'],
 		},
-	},	
 	body: {
 		type: 'object',
 		required: ['side'],
@@ -53,9 +54,13 @@ export const getGameSessionByIdSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+			  type: 'string', 
+			  description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			},
 			'x-current-session-id': { type: 'string' },
-		},
-		required: ['x-current-session-id'],
+		  },	  
+		required: ['x-current-session-id', 'authorization'],
 	},
   	response: {
 		200: {
@@ -121,9 +126,13 @@ export const updateSessionStatusSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+			  type: 'string', 
+			  description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			},
 			'x-current-session-id': { type: 'string' },
-		},
-		required: ['x-current-session-id'],
+		  },	  
+		required: ['x-current-session-id', 'authorization'],
 	},
 	body: {
 		type: 'object',
