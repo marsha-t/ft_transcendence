@@ -75,6 +75,10 @@ export class AuthServices {
                 if (data.token) {
                     localStorage.setItem('jwtToken', data.token);
                 }
+
+                if (data.username) {
+                    localStorage.setItem('currentUsername', data.username);
+                }
     
                 return {
                     success: true,

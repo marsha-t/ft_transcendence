@@ -77,6 +77,7 @@ async function authRoutes(app, options) {
       return reply.code(200).send({
         message: 'Login successful',
         token, // <--- this is the JWT your frontend will store
+        username: user.username,
       });
 
     } catch (err) {
