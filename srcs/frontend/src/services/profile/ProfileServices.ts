@@ -49,6 +49,47 @@ export class ProfileServices {
             };
         }
     }
+
+    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Method to log out the current user
+    async logout(): Promise<ApiResponse<null>> {
+      try {
+          const response = await fetch(`${this.baseUrl}/logout`, {
+              method: 'POST',
+              headers: {
+                  'Authorization': `Bearer ${this.getToken()}`,
+              },
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+              const msg = data.error || 'Logout failed';
+              return {
+                  success: false,
+                  status: response.status,
+                  message: msg,
+                  errors: data.errors || []
+              };
+          }
+
+          return {
+              success: true,
+              status: response.status,
+              data: null,
+              message: 'Logout successful'
+          };
+      } catch (error) {
+          console.error('Logout API error', error);
+          return {
+              success: false,
+              status: 0,
+              message: 'Network error',
+              errors: []
+          };
+      }
+    }
+    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {

@@ -88,12 +88,9 @@ async function authRoutes(app, options) {
   });
 
   // Logout Route
-  app.post('/api/logout', { schema: logoutSchema }, async (request, reply) => {
+  app.post('/api/logout', { schema: logoutSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      // Get user ID from header
-      const userIdHeader = request.headers['x-current-user-id'];
-      if (!userIdHeader) return reply.code(400).send({ message: 'x-current-user-id header is required' });
-      const userId = Number(userIdHeader);
+      const userId = request.user.id;// safely from JWT
 
       // Find user in database
       const user = await prisma.user.findUnique({

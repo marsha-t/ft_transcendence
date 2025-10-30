@@ -112,8 +112,8 @@ export class AuthServices {
     }
 
     // Method to get JWT token ------------------ if not used later on for logout route, remove it!
-    getToken(): string | null {
-        return localStorage.getItem('jwtToken');
-    }
+    // getToken(): string | null {
+    //     return localStorage.getItem('jwtToken');
+    // }
 }
 export const apiServices = new AuthServices();
