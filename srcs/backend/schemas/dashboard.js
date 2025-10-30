@@ -4,9 +4,9 @@ export const matchHistorySchema = {
 	headers: {
 		type: 'object',
 		properties: {
-			'x-current-user-id': { type: 'integer' },
-		},
-		required: ['x-current-user-id'],
+			authorization: { type: 'string', description: 'Bearer <token>' },
+		  },
+		  required: ['authorization'],
 	},
 	response: {
 		200: {
