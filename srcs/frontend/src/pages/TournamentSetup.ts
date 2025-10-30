@@ -71,14 +71,21 @@ export class TournamentSetup implements IComponent {
     const n = TournamentDraftStore.numberOfPlayers;
     if (!n || n < 2) return alert("Please set at least 2 players");
 
-    // Add current user to draft
-    const currentUser = { userId: 1, displayName: "marsha", isGuest: false }; // TODO hardcoded to 1;
-    if (!currentUser) {
-      alert("No logged-in user found.");
-      return;
+    // Get current username from localStorage
+    const username = localStorage.getItem('currentUsername');
+
+    if (!username) {
+        alert("No logged-in user found.");
+        return;
     }
+
+    const currentUser = {
+        displayName: username,
+        isGuest: false,
+    };
+    
     const alreadyHas = TournamentDraftStore.players.some(
-      (p) => p.userId === currentUser.userId
+      (p) => p.displayName === currentUser.displayName
     ); // Reset draft (in case user clicks 'back' to return to setup page and changes number of players)
     if (!alreadyHas) TournamentDraftStore.addPlayer(currentUser);
 

@@ -14,18 +14,18 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Check that player in session doesn't already use the same displayname
 		- Add player to GameSessionPlayer table
 	*/
-	app.post('/api/game-sessions/players', { schema: joinSessionSchema }, async (request, reply) => {
+	app.post('/api/game-sessions/players', { schema: joinSessionSchema, preHandler: [app.authenticate]  }, async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
-		const { userId, guestName, side } = request.body ?? {};
+		const { playerUserId, guestName, side } = request.body ?? {};
 
 		if (!sessionId) {
 			return reply.code(400).send({ error: "X-Current-Session-Id header is required" });
 		}
 
-		if (!userId && !guestName) {
-			return reply.code(400).send({ error: "Either X-Current-User-Id header or guestName is required" });
+		if (!playerUserId && !guestName) {
+			return reply.code(400).send({ error: "Must provide playerUserId or guestName" });
 		}
 		try {
 			const session = await prisma.gameSession.findUnique({
@@ -46,9 +46,9 @@ async function gameSessionPlayersRoutes(app, options) {
 			}
 			
 			let displayName;
-			if (userId) {
+			if (playerUserId) {
 				const user = await prisma.user.findUnique({
-					where: { id: Number(userId) },
+					where: { id: Number(playerUserId) },
 					select: { username: true },
 				});
 				if (!user) {
@@ -68,8 +68,8 @@ async function gameSessionPlayersRoutes(app, options) {
 			const newPlayer = await prisma.gameSessionPlayer.create({
 				data: {
 					sessionId: Number(sessionId),
-					userId: userId ? Number(userId) : null,
-					isGuest: !userId,
+					userId: playerUserId ? Number(playerUserId) : null,
+					isGuest: !playerUserId,
 					displayName,
 					side,
 				},
@@ -89,7 +89,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		- If no players found, rturns empty array 
 		- Otherwise, returns array of player objects
 	*/
-	app.get('/api/game-sessions/players', { schema: listPlayersSessionSchema }, async (request, reply) => {
+	app.get('/api/game-sessions/players', { schema: listPlayersSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
@@ -131,7 +131,7 @@ async function gameSessionPlayersRoutes(app, options) {
 						- if parent match has two players, create new game session
 		- returns updated session 
 	*/
-	app.patch('/api/game-sessions/players/score', { schema: updateScoreSchema }, async (request, reply) => {
+	app.patch('/api/game-sessions/players/score', { schema: updateScoreSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 		const side = request.headers['x-player-side'];
@@ -265,7 +265,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Checks session and player exists
 		- Delete from GameSessionPlayer
 	*/
-	app.delete('/api/game-sessions/players', { schema: deletePlayerSchema }, async (request, reply) => {
+	app.delete('/api/game-sessions/players', { schema: deletePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 		const side = request.headers['x-player-side'];

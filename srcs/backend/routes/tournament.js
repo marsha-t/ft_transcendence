@@ -148,7 +148,7 @@ async function tournamentRoutes(app, options) {
 				- If only one player exists, auto-advance them as winner 
     - Return updated tournament object 
 	*/
-	app.patch('/api/tournaments/status', { schema: updateTournamentStatusSchema}, async (request, reply) => {
+	app.patch('/api/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
  		const tournamentId = Number(request.headers['x-current-tournament-id']);
 		const { status } = request.body;
 	
@@ -283,7 +283,7 @@ async function tournamentRoutes(app, options) {
 	// Validate player
 	/*
 	*/
-	app.post('/api/tournaments/validate-player', {schema: validatePlayerSchema }, async (request, reply) => {
+	app.post('/api/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const { username, password } = request.body;
 
 		try {
@@ -352,7 +352,7 @@ async function tournamentRoutes(app, options) {
 		- If exists, return match with player info
 		- Else, fetch full tournament and its matches and build results object 
 	*/
-	app.get('/api/tournaments/next-match', { schema: getNextMatchSchema }, async (request, reply) => {
+	app.get('/api/tournaments/next-match', { schema: getNextMatchSchema, preHandler: [app.authenticate] }, async (request, reply) => {
  		const tournamentId = Number(request.headers['x-current-tournament-id']);
 		try {
 			const nextMatch = await prisma.tournamentMatch.findFirst({

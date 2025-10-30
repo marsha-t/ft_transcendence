@@ -6,8 +6,21 @@ import swaggerUi from '@fastify/swagger-ui';
 import cors from '@fastify/cors';
 import AjvErrors from 'ajv-errors';
 
-// needed imports for the avatar
+// ------- JWT ---------------------
+import fastifyJwt from '@fastify/jwt';
+import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Resolve the parent directory (one level up from backend/)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from the parent folder
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// --------------------------------
+
+// needed imports for the avatar
 import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 
@@ -50,6 +63,18 @@ await app.register(swagger, {
       servers: [
         { url: 'http://localhost:5001/' },
       ],
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+            description: 'Enter your token as: **Bearer <JWT>**',
+          },
+        },
+      },
+      // 👇 This makes all routes require JWT by default (visually in docs)
+      security: [{ BearerAuth: [] }],
     },
   });
 
@@ -69,6 +94,24 @@ app.register(fastifyStatic, {
 });
 
 app.register(fastifyMultipart);
+
+// ------------ JWT ------------------
+if (!process.env.JWT_SECRET) {
+  throw new Error("❌ Missing JWT_SECRET in environment variables!");
+}
+
+app.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET,
+});
+
+app.decorate('authenticate', async function (request, reply) {
+  try {
+    await request.jwtVerify();
+  } catch (err) {
+    reply.code(401).send({ error: 'Unauthorized' });
+  }
+});
+// ----------------------------------
 
 // Register our routes in the server
 app.register(authRoutes);

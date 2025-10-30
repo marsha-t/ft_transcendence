@@ -94,7 +94,41 @@ export class Profile implements IComponent {
         hover:bg-color-green
         hover:text-color_white
         `;
-  
+   
+    logoutBtn.addEventListener("click", async () => {
+    try {
+      // Call your logout API
+      const res = await this.profileService.logout();
+      if (res.success) {
+        // Clear localStorage / JWT
+        localStorage.removeItem("jwtToken");
+        localStorage.removeItem("currentUsername");
+        // Redirect to main page after successful logout
+        setTimeout(() => {
+          console.log("Current URL before navigation:", window.location.href);
+          console.log("Current pathname:", window.location.pathname);
+          console.log("Current hash:", window.location.hash);
+          
+          //i need to check and clear the path first
+          if(window.location.hash)
+              history.replaceState(null, '', window.location.pathname);
+          
+          //then navigate to destination
+          history.pushState(null, '', '/main');
+          // Trigger router update
+          window.dispatchEvent(new PopStateEvent('popstate'));
+
+          console.log("PopState event dispatched");
+      }, 2000);
+      } else {
+        alert(res.message || "Logout failed");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      alert("Logout failed");
+    }
+  });
+
     // logoutBtn.addEventListener("click", );
     const editProfileBtn = document.createElement("div");
     editProfileBtn.textContent = "edit";
@@ -149,6 +183,7 @@ export class Profile implements IComponent {
     profileInfo.appendChild(avatar);
     profileInfo.appendChild(name);
     // profileInfo.appendChild(status);
+
 
 // ----------------------------------------------------------------------------------------------
 // heatmap

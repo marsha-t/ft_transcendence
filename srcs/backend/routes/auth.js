@@ -67,8 +67,18 @@ async function authRoutes(app, options) {
         data: { status: "ONLINE" },
       });
 
-      // Success
-      return reply.code(200).send({ message: 'Login successful' });
+        // Generate JWT token --------------------------------
+      const token = app.jwt.sign(
+        { id: user.id, username: user.username }, // payload
+        { expiresIn: '1h' }                     // optional expiration
+      );
+
+      // Send token back to frontend --------------------------------
+      return reply.code(200).send({
+        message: 'Login successful',
+        token, // <--- this is the JWT your frontend will store
+        username: user.username,
+      });
 
     } catch (err) {
       request.log.error(err);
@@ -78,12 +88,9 @@ async function authRoutes(app, options) {
   });
 
   // Logout Route
-  app.post('/api/logout', { schema: logoutSchema }, async (request, reply) => {
+  app.post('/api/logout', { schema: logoutSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      // Get user ID from header
-      const userIdHeader = request.headers['x-current-user-id'];
-      if (!userIdHeader) return reply.code(400).send({ message: 'x-current-user-id header is required' });
-      const userId = Number(userIdHeader);
+      const userId = request.user.id;// safely from JWT
 
       // Find user in database
       const user = await prisma.user.findUnique({

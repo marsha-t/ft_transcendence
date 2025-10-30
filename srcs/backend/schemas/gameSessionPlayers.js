@@ -5,30 +5,34 @@ export const joinSessionSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+			  type: 'string', 
+			  description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			},
 			'x-current-session-id': { type: 'string' },
-		},
-		required: ['x-current-session-id'],
+		  },	  
+		required: ['x-current-session-id', 'authorization'],
 	},
 	body: {
 		type: 'object',
 		properties: {
-			userId: { type: 'integer' },
-			guestName: { type: 'string' },
-			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
+		  playerUserId: { 
+			type: 'integer', 
+		  },
+		  guestName: { 
+			type: 'string', 
+		  },
+		  side: { 
+			type: 'string', 
+			enum: ['LEFT', 'RIGHT'], 
+		  },
 		},
 		required: ['side'],
 		anyOf: [
-			{ required: ['userId'] },
-			{ required: ['guestName'] },
+		  { required: ['playerUserId'] },
+		  { required: ['guestName'] },
 		],
-	},
-	body: {
-		type: 'object',
-		required: ['side'],
-		properties: {
-		guestName: { type: 'string' },
-		side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-		},
+		additionalProperties: false,
 	},
 	response: {
 		201: {
@@ -68,9 +72,13 @@ export const listPlayersSessionSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+			  type: 'string', 
+			  description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			},
 			'x-current-session-id': { type: 'string' },
-		},
-		required: ['x-current-session-id'],
+		  },	  
+		required: ['x-current-session-id', 'authorization'],
 	},
 	response: {
 		200: {
@@ -113,10 +121,14 @@ export const updateScoreSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+				type: 'string', 
+				description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			  },
 			'x-current-session-id': { type: 'string' },
 			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['x-current-session-id', 'x-player-side'],
+		required: ['x-current-session-id', 'x-player-side', 'authorization'],
 	},
 	response: {
 		200: {
@@ -174,10 +186,14 @@ export const deletePlayerSchema = {
 	headers: {
 		type: 'object',
 		properties: {
+			authorization: { 
+				type: 'string', 
+				description: 'Optional JWT token if user is logged in (Bearer <token>)',
+			  },
 			'x-current-session-id': { type: 'string' },
 			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
-		required: ['x-current-session-id', 'x-player-side'],
+		required: ['x-current-session-id', 'x-player-side', 'authorization'],
 	},
 	response: {
 		200: {
