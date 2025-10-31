@@ -4,16 +4,14 @@ import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
-import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema, getAvatarSchema  } from '../schemas/profile.js';
+import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema } from '../schemas/profile.js';
 
 async function profileRoutes(app, options) {
 
   // 1- Get current user's profile by ID 
-  app.get('/api/profile', { schema: getCurrentUserSchema }, async (request, reply) => {
+  app.get('/api/profile', { schema: getCurrentUserSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      // Extract user ID from header (temporary)
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
+      const userId = request.user.id; // <- JWT payload gives user info
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -38,10 +36,9 @@ async function profileRoutes(app, options) {
   });
 
   // 2- Update username, password, or email of the current user
-  app.put('/api/profile', { schema: updateProfileSchema }, async (request, reply) => {
+  app.put('/api/profile', { schema: updateProfileSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
+      const userId = request.user.id;
       if (!userId) return reply.code(400).send({ message: 'Missing user ID' });
   
       // Fetch the user from DB
@@ -98,14 +95,56 @@ async function profileRoutes(app, options) {
   });  
 
   // 3- Update avatar through upload
-  app.put('/api/profile/avatar', { schema: avatarUploadSchema }, async (request, reply) => {
+  app.put('/api/profile/avatar', { schema: avatarUploadSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
-
+      const userId = request.user.id;
       if (!userId) return reply.code(400).send({ message: 'Missing user ID in header' });
 
-      // Get file
+      // Check for preset avatar selection
+      if (request.body && request.body.presetFilename) {
+        const presetFilename = request.body.presetFilename;
+        const allowedExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        const ext = path.extname(presetFilename).toLowerCase();
+        if (!allowedExts.includes(ext)) {
+          return reply.code(400).send({ message: 'Invalid preset file type.' });
+        }
+        // Only allow preset avatars from uploads/avatars
+        const presetFullPath = path.join(process.cwd(), 'uploads', 'avatars', presetFilename);
+        if (!fs.existsSync(presetFullPath)) {
+          return reply.code(404).send({ message: 'Preset avatar not found.' });
+        }
+        // Copy preset to uploads/avatars/{userId}.{ext}
+        const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
+        await fs.promises.mkdir(uploadDir, { recursive: true });
+        const fileName = `${userId}${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        // Delete old avatar if exists and is not default
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        const defaultAvatar = '/uploads/avatars/default.png';
+        if (user?.avatar && user.avatar !== defaultAvatar) {
+          const oldPath = path.join(process.cwd(), user.avatar);
+          try {
+            await fs.promises.unlink(oldPath);
+          } catch (e) {
+            request.log.warn(`Failed to delete old avatar: ${oldPath}`);
+          }
+        }
+
+        // Copy preset file
+        await fs.promises.copyFile(presetFullPath, filePath);
+        const avatarUrl = `/uploads/avatars/${fileName}`;
+
+        // Update DB
+        await prisma.user.update({
+          where: { id: userId },
+          data: { avatar: avatarUrl },
+        });
+
+        return reply.code(200).send({ message: 'Preset avatar set successfully', avatar: avatarUrl });
+      }
+
+      // Otherwise, handle file upload as before
       const data = await request.file().catch(err => {
         console.error('File parsing error:', err);
         return null;
@@ -174,10 +213,9 @@ async function profileRoutes(app, options) {
   });
 
   // 4- Remove avatar (reset to default)
-  app.delete('/api/profile/avatar', { schema: removeAvatarSchema }, async (request, reply) => {
+  app.delete('/api/profile/avatar', { schema: removeAvatarSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
-      const userIdHeader = request.headers['x-current-user-id'];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
+      const userId = request.user.id;
 
       const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) return reply.code(404).send({ message: 'User not found' });
@@ -209,29 +247,26 @@ async function profileRoutes(app, options) {
     }
   });
 
-  // 5- Get avatar only (optional helper route)
-  app.get('/api/profile/:id/avatar', { schema: getAvatarSchema }, async (request, reply) => {
-    try {
-      const { id } = request.params;
+  // // 5- Get avatar only (optional helper route)
+  // app.get('/api/profile/:id/avatar', { schema: getAvatarSchema }, async (request, reply) => {
+  //   try {
+  //     const { id } = request.params;
 
-      const user = await prisma.user.findUnique({
-        where: { id: Number(id) },
-        select: { avatar: true },
-      });
+  //     const user = await prisma.user.findUnique({
+  //       where: { id: Number(id) },
+  //       select: { avatar: true },
+  //     });
 
-      if (!user) return reply.code(404).send({ message: 'User not found' });
+  //     if (!user) return reply.code(404).send({ message: 'User not found' });
 
-      return reply.code(200).send({ avatar: user.avatar });
+  //     return reply.code(200).send({ avatar: user.avatar });
 
-    } catch (err) {
-      request.log.error(err);
-      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-      return reply.code(500).send({ error: 'Failed to fetch avatar' });
-    }
-  });
+  //   } catch (err) {
+  //     request.log.error(err);
+  //     if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
+  //     return reply.code(500).send({ error: 'Failed to fetch avatar' });
+  //   }
+  // });
 }
 
 export default profileRoutes;
-
-// To test avatar uploads using CURL:
-// curl -X PUT http://localhost:5001/api/profile/1/avatar   -F "file=@$(pwd)/uploads/test-avatar.webp"

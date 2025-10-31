@@ -14,12 +14,8 @@ async function tournamentRoutes(app, options) {
   /* 
 		- Checks that registered user credentials are correct
 	*/
-  app.post(
-    "/api/tournaments/validate-player",
-    { schema: validatePlayerSchema },
-    async (request, reply) => {
-      const { username, password } = request.body;
-
+  app.post('/api/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+		const { username, password } = request.body;
       try {
         if (username && password) {
           const user = await prisma.user.findUnique({ where: { username } });
@@ -65,11 +61,8 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-  app.post(
-    "/api/tournaments/finalize",
-    { schema: finalizeTournamentSchema },
-    async (request, reply) => {
-      const { numberOfPlayers, players } = request.body;
+  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema }, async(request, reply) => {
+		const { numberOfPlayers, players } = request.body;
       if (players.length != numberOfPlayers)
         return reply
           .code(400)
@@ -230,12 +223,9 @@ async function tournamentRoutes(app, options) {
 		- If updating to 'ABORTED', abort tournament and its linked game sessions
     - Return updated tournament object 
 	*/
-  app.patch(
-    "/api/tournaments/status",
-    { schema: updateTournamentStatusSchema },
-    async (request, reply) => {
-      const tournamentId = Number(request.headers["x-current-tournament-id"]);
-      const { status } = request.body;
+  app.patch('/api/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+ 		const tournamentId = Number(request.headers['x-current-tournament-id']);
+		const { status } = request.body;
 
       try {
         const tournament = await prisma.tournament.findUnique({

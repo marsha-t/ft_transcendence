@@ -72,8 +72,9 @@ export const updateTournamentStatusSchema = {
     	type: 'object',
 		properties: {
 			'x-current-tournament-id': { type: 'string'}, 
+			authorization: { type: 'string', description: 'Bearer <token>' },
 		},
-	    required: ['x-current-tournament-id'],
+	    required: ['x-current-tournament-id', 'authorization'],
   	},
 	body: {
 		type: 'object',
@@ -99,6 +100,13 @@ export const updateTournamentStatusSchema = {
 export const validatePlayerSchema = {
 	tags: ['Tournament'],
 	summary: 'Validate tournament player',
+	headers: {
+    	type: 'object',
+		properties: {
+			authorization: { type: 'string', description: 'Bearer <token>' },
+		},
+	    required: ['authorization'],
+	},
 	body: {
 		type: 'object',
 		required: ['username', 'password'],
@@ -123,6 +131,13 @@ export const validatePlayerSchema = {
 
 // Finalise tournament details
 export const finalizeTournamentSchema = {
+	headers: {
+    	type: 'object',
+		properties: {
+			authorization: { type: 'string', description: 'Bearer <token>' },
+		},
+	    required: ['authorization'],
+	},
 	body: {
 		type: 'object',
 		required: ['numberOfPlayers', 'players'],
@@ -163,8 +178,9 @@ export const getNextMatchSchema = {
     	type: 'object',
 		properties: {
 			'x-current-tournament-id': { type: 'string'}, 
+			authorization: { type: 'string', description: 'Bearer <token>' },
 		},
-	    required: ['x-current-tournament-id'],
+	    required: ['x-current-tournament-id', 'authorization'],
   	},
 	response: {
 		200: {

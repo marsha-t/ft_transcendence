@@ -49,22 +49,19 @@ export class AuthServices {
         }
     }
 
-     // Method for login
-
+    // Method for login
     async login(userData: LoginData): Promise<ApiResponse<any>> {
         try {
             const response = await fetch(`${this.baseUrl}/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: userData.username,
                     password: userData.password,
                 }),
             });
     
-            // Try to parse JSON safely to get backend data
+            // Safely parse JSON
             let data: any = {};
             try {
                 data = await response.json();
@@ -72,28 +69,36 @@ export class AuthServices {
                 data = {};
             }
     
-            //if response is not correct
-            if (!response.ok) {
-                let msg = data.validation?.[0]?.message || data.error;
-                // if (!msg && Array.isArray(data.errors)) {
-                //     msg = data.errors[0]?.message || 'Login Unknown error';
-                // }
+            // Success case -------------------
+            if (response.ok) {
+                // Store JWT if returned
+                if (data.token) {
+                    localStorage.setItem('jwtToken', data.token);
+                }
+
+                if (data.username) {
+                    localStorage.setItem('currentUsername', data.username);
+                }
     
                 return {
-                    success: false,
+                    success: true,
                     status: response.status,
-                    message: msg || 'Login failed',
-                    errors: data.errors || [],
+                    data: data,
+                    message: data.message || 'Login successful',
+                    errors: [],
                 };
             }
     
-            // Success case
+            // Error case
+            let msg = data.validation?.[0]?.message || data.error || 'Login failed';
             return {
-                success: true,
+                success: false,
                 status: response.status,
-                data: data,
-                message: data.message || 'Login successful'
+                message: msg,
+                errors: data.errors || [],
+                data: null,
             };
+    
         } catch (error) {
             console.error('Login API error', error);
             return {
@@ -101,9 +106,14 @@ export class AuthServices {
                 status: 0,
                 message: 'Login API, network error',
                 errors: [],
+                data: null,
             };
         }
     }
-    
+
+    // Method to get JWT token ------------------ if not used later on for logout route, remove it!
+    // getToken(): string | null {
+    //     return localStorage.getItem('jwtToken');
+    // }
 }
 export const apiServices = new AuthServices();

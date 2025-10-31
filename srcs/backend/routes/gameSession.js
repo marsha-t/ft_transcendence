@@ -13,13 +13,9 @@ import {
 
 async function gameSessionRoutes(app, options) {
   // Create game session with first player
-  app.post(
-    "/api/game-sessions",
-    { schema: createGameSessionSchema },
-    async (request, reply) => {
-      const { guestName, side } = request.body ?? {};
-      const userIdHeader = request.headers["x-current-user-id"];
-      const userId = userIdHeader ? Number(userIdHeader) : null;
+  app.post('/api/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    const userId = request.user.id;
+    const { guestName, side } = request.body ?? {};
 
       if (!userId && !guestName) {
         return reply
@@ -44,12 +40,9 @@ async function gameSessionRoutes(app, options) {
   );
 
   // Get single game session
-  app.get(
-    "/api/game-sessions",
-    { schema: getGameSessionByIdSchema },
-    async (request, reply) => {
-      const sessionIdHeader = request.headers["x-current-session-id"];
-      const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
+  app.get('/api/game-sessions', { schema: getGameSessionByIdSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    const sessionIdHeader = request.headers['x-current-session-id'];
+    const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
       try {
         const session = await prisma.gameSession.findUnique({
@@ -81,13 +74,11 @@ async function gameSessionRoutes(app, options) {
     - Update GameSession
     - Return updated session object 
   */
-  app.patch(
-    "/api/game-sessions/status",
-    { schema: updateSessionStatusSchema },
-    async (request, reply) => {
-      const sessionIdHeader = request.headers["x-current-session-id"];
-      const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
-      const { status: nextStatus } = request.body;
+  
+  app.patch('/api/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    const sessionIdHeader = request.headers['x-current-session-id'];
+    const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
+    const { status: nextStatus } = request.body; 
 
       try {
         const session = await prisma.gameSession.findUnique({
