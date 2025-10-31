@@ -7,9 +7,8 @@ async function dashboardRoutes(app, options) {
 	/*
 		- 
 	*/
-	app.get('/api/stats/users/match-history', { schema: matchHistorySchema }, async(request, reply) => {
-		const userIdHeader = request.headers['x-current-user-id'];
-  		const id = userIdHeader ? Number(userIdHeader) : null;
+	app.get('/api/stats/users/match-history', { schema: matchHistorySchema, preHandler: [app.authenticate] }, async(request, reply) => {
+		const userId = request.user.id;
 
 		try {
 			const user = await prisma.user.findUnique({ where: { id: Number(id) } });
@@ -24,7 +23,11 @@ async function dashboardRoutes(app, options) {
 				include: {
 					session: {
 						include: { 
-							players: true,
+							players: {
+								include: {
+									user: { select: { avatar: true } },
+								}
+							},
 							tournamentMatch: true,
 						 },
 					},
@@ -41,6 +44,7 @@ async function dashboardRoutes(app, options) {
 					return {
 						date: m.session.createdAt,
 						opponent: opponent?.displayName ?? "Unknown",
+						opponentAvatar: opponent?.user?.avatar ?? "/uploads/avatars/default.png",
 						userScore: m.score,
 						opponentScore: opponent?.score ?? 0,
 						result: m.session.winnerPlayerId === m.id ? "WIN" : "LOSS",

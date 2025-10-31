@@ -8,6 +8,10 @@ export class TournamentService {
 		this.baseUrl = 'http://localhost:5001/api';
 	}
 
+	getToken(): string | null {
+		return localStorage.getItem('jwtToken');
+	}
+
 	async updateTournamentStatus(tournamentId: number, status: TournamentStatus): Promise<ApiResponse<Tournament>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/tournaments/status`, {
@@ -15,6 +19,7 @@ export class TournamentService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-Tournament-Id': String(tournamentId),
+					'Authorization': `Bearer ${this.getToken()}`,
 				},
 				body: JSON.stringify({ status })
 			});
@@ -44,7 +49,10 @@ export class TournamentService {
 		try {
 			const response = await fetch(`${this.baseUrl}/tournaments/validate-player`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json'},
+				headers: { 
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.getToken()}`,
+				},
 				body: JSON.stringify(player),
 			});
 			const data = await response.json();
@@ -68,7 +76,10 @@ export class TournamentService {
 		try {
 			const response = await fetch(`${this.baseUrl}/tournaments/finalize`, {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json'},
+				headers: { 
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${this.getToken()}`,
+				},
 				body: JSON.stringify({ numberOfPlayers, players }),
 			});
 			const data = await response.json();
@@ -99,6 +110,7 @@ export class TournamentService {
 				method: 'GET',
 				headers: {
 					'X-Current-Tournament-Id': String(tournamentId),
+					'Authorization': `Bearer ${this.getToken()}`,
 				},
 			});
 			const data = await response.json();
