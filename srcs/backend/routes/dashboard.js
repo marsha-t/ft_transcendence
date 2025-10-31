@@ -1,5 +1,5 @@
 import prisma from '../prisma/prismaClient.js';
-import { matchHistorySchema, gameDashboardSchema } from '../schemas/dashboard.js';
+import { matchHistorySchema, gameDashboardSchema, userDashboardSchema } from '../schemas/dashboard.js';
 
 async function dashboardRoutes(app, options) {
 
@@ -190,12 +190,13 @@ async function dashboardRoutes(app, options) {
 		}
 	});
 
-	app.get('/api/stats/user', /*{ schema: userDashboardSchema }, */ async (request, reply) => {
+	// Fetch data for user dashboard
+	app.get('/api/stats/user', { schema: userDashboardSchema }, async (request, reply) => {
 		const userId = request.headers['x-current-user-id'];
 		try {
 			// Overview stats
-			const overview = await prisma.user.findUnique({ 
-				where: { id: userId },
+			const overviewData = await prisma.user.findUnique({ 
+				where: { id: Number(userId) },
 				select: {
 					totalMatches: true, 
 					totalWins: true, 
@@ -207,37 +208,46 @@ async function dashboardRoutes(app, options) {
 				}
 			});
 
+			const overview = overviewData && {
+				totalMatches: overviewData.totalMatches, 
+				totalWins: overviewData.totalWins, 
+				winRate: Math.round(overviewData.winRate),
+				avgScore: Math.round(overviewData.avgScore),
+				currentWinStreak: overviewData.currentWinStreak, 
+				longestWinStreak: overviewData.longestWinStreak, 
+				lastPlayedAt: overviewData.lastPlayedAt,
+			};
+
 			// Line chart: win rate over time
 			const sessions = await prisma.gameSession.findMany({
-				where: { status: 'FINISHED', players: { some: { userId } } },
+				where: { status: 'FINISHED', players: { some: { userId: Number(userId) } } },
 				include: {
 					players: {
 						include : { user: { select: { id: true, username: true } } }
 					},
-					winnerUser: true,
+					winnerUser: { select: { id: true, username: true }},
 				},
-				select: { endedAt: true, winnerUserId: true },
 			});
 			const dailyStatsMap = new Map();
 			for (const s of sessions) {
 				if (!s.endedAt) continue;
 				const date = s.endedAt.toISOString().split('T')[0];
-				const record = dailyStats.get(date) || { wins: 0, total: 0 };
+				const record = dailyStatsMap.get(date) || { wins: 0, total: 0 };
 				record.total += 1;
 				if (s.winnerUserId === userId) record.wins += 1;
 				dailyStatsMap.set(date, record);
 			}
 			const dailyStats = Array.from(dailyStatsMap.entries()).map(([date, { wins, total}]) => ({
 				date,
-				winRate: total > 0 ? wins / total : 0,
+				winRate: total > 0 ? Math.round((wins / total) * 100) / 100 : 0,
 			}));
 
 			// Score histogram
 			const scores = await prisma.gameSessionPlayer.findMany({ 
-				where: { userId },
+				where: { userId: Number(userId) },
 				select: { score: true },
 			});
-			const scoreDistribution = scores.map((s) => s.score);
+			const scoreDistribution = scores.map((s) => Math.round(s.score));
 
 			// Wins per opponent
 			const opponents = new Map();
@@ -246,7 +256,7 @@ async function dashboardRoutes(app, options) {
 				const opponent = s.players.find((p) => p.userId && p.userId !== userId);
 				if (!opponent) continue;
 
-				const existing = opponents.get(opponent.userId) || {
+				const existing = opponents.get(opponents.userId) || {
 					name: opponent.user?.username || opponent.displayName, 
 					wins: 0, 
 					total: 0,
@@ -259,7 +269,7 @@ async function dashboardRoutes(app, options) {
 			
 			const winsPerOpponent = Array.from(opponents.values()).map((o) => ({
 				opponent: o.name, 
-				winRate: o.wins / o.total,
+				winRate: Math.round((o.wins / o.total) * 100),
 				total: o.total,
 			})).sort((a, b) => b.total - a.total)
 				.slice(0, 5);
@@ -272,10 +282,13 @@ async function dashboardRoutes(app, options) {
 			const maxAvgScore = Math.max(...users.map(u => u.avgScore || 1));
 			const ranked = users.map(u => {
 				const leaderboardScore = 0.5 * u.winRate + 0.3 * (u.totalMatches / maxMatches) + 0.2 * (u.avgScore / maxAvgScore);
-				return {...u, leaderboardScore};
+				return {...u, 
+					winRate: Math.round(u.winRate),
+					avgScore: Math.round(u.avgScore),
+					leaderboardScore: Math.round(leaderboardScore)};
 
 			});
-			leaderboard = ranked.sort((a, b) => b.leaderboardScore - a.leaderboardScore).slice(0, 10);
+			const leaderboard = ranked.sort((a, b) => b.leaderboardScore - a.leaderboardScore).slice(0, 10);
 			return reply.send({
 				overview,
 				dailyStats,

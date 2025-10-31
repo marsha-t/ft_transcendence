@@ -1,4 +1,3 @@
-
 export interface GameDashboard {
 	summary: GameSummary;
 	timeline: GameTimelinePoint[];
@@ -39,4 +38,41 @@ export interface PlayerStats {
 	totalMatches: number;
 	totalWins: number;
 	winRate: number;
+}
+
+export interface UserDashboard {
+	overview: UserOverview;
+	dailyStats: DailyStat[];
+	scoreDistribution: number[];
+	winsPerOpponent: OpponentStat[];
+	leaderboard: LeaderboardEntry[];
+}
+
+export interface UserOverview {
+	totalMatches: number;
+	totalWins: number;	
+	winRate: number;	
+	avgScore: number;	
+	currentWinStreak: number;	
+	longestWinStreak: number;	
+	lastPlayedAt: string | null;
+}
+
+export interface DailyStat {
+	date: string; 
+	winRate: number;
+}
+
+export interface OpponentStat {
+	opponent: string;
+	winRate: number;
+	total: number;
+}
+
+export interface LeaderboardEntry {
+	username: string;
+	totalMatches: number;
+	winRate: number;
+	avgScore: number;
+	leaderboardScore: number;
 }

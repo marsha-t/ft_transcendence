@@ -8,6 +8,7 @@ import { TournamentSetup } from './pages/TournamentSetup.js';
 import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
 import { GameResults } from './pages/GameResults.js';
+import { ProfileDashboard } from './pages/UserDashboard.js';
 
 export class Router {
   private currentPage: any = null;
@@ -60,6 +61,10 @@ export class Router {
           this.currentPage = new Profile();
           container.appendChild(this.currentPage.render());
           break;
+        case '/dashboard':
+          this.currentPage = new ProfileDashboard(1); // hardcoded
+          container.appendChild(this.currentPage.render());
+          break ;
         case '/tournament':
         case '/tournament/setup':
           this.currentPage = new TournamentSetup();

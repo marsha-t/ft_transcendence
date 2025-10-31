@@ -140,3 +140,100 @@ export const gameDashboardSchema = {
     500: { type: "object", properties: { error: { type: "string" } } },
   },
 };
+
+export const userDashboardSchema = {
+  tags: ["Dashboard"],
+  summary: "Return overall user dashboard stats",
+  headers: {
+    type: "object",
+    properties: {
+      "x-current-user-id": { type: "integer" },
+    },
+    required: ["x-current-user-id"],
+  },
+  response: {
+    200: {
+      type: "object",
+      properties: {
+        overview: {
+          type: "object",
+          properties: {
+            totalMatches: { type: "integer" },
+            totalWins: { type: "integer" },
+            winRate: { type: "number" },
+            avgScore: { type: "number" },
+            currentWinStreak: { type: "integer" },
+            longestWinStreak: { type: "integer" },
+            lastPlayedAt: { type: ["string", "null"], format: "date-time" },
+          },
+          required: [
+            "totalMatches",
+            "totalWins",
+            "winRate",
+            "avgScore",
+            "currentWinStreak",
+            "longestWinStreak",
+            "lastPlayedAt",
+          ],
+        },
+        dailyStats: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              date: { type: "string", format: "date" },
+              winRate: { type: "number" },
+            },
+            required: ["date", "winRate"],
+          },
+        },
+        scoreDistribution: {
+          type: "array",
+          items: { type: "integer" },
+        },
+        winsPerOpponent: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              opponent: { type: "string" },
+              winRate: { type: "number" },
+              total: { type: "integer" },
+            },
+            required: ["opponent", "winRate", "total"],
+          },
+        },
+
+        leaderboard: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              username: { type: "string" },
+              totalMatches: { type: "integer" },
+              winRate: { type: "number" },
+              avgScore: { type: "number" },
+              leaderboardScore: { type: "number" },
+            },
+            required: [
+              "username",
+              "totalMatches",
+              "winRate",
+              "avgScore",
+              "leaderboardScore",
+            ],
+          },
+        },
+      },
+      required: [
+        "overview",
+        "dailyStats",
+        "scoreDistribution",
+        "winsPerOpponent",
+        "leaderboard",
+      ],
+    },
+    404: { type: "object", properties: { error: { type: "string" } } },
+    500: { type: "object", properties: { error: { type: "string" } } },
+  },
+};
