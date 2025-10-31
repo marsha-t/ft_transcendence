@@ -1,7 +1,9 @@
 import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide } from "../services/game/types.js";
-import { enableLeaveWarning } from "../utils.js";
+import { enableLeaveWarning, navigate } from "../utils.js";
+import { apiServices } from "../services/ApiServices.js";
+import { GameResults } from "./GameResults.js";
 
 type GameOptions = {
   sessionId?: string;
@@ -11,6 +13,7 @@ type GameOptions = {
 };
 
 export class Game implements IComponent {
+    private container!: HTMLElement;
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
     private gameService: GameService;
@@ -43,11 +46,15 @@ export class Game implements IComponent {
     }
 
     public render(): HTMLElement {
-        const container = document.createElement('div');
-        container.className = 'game_page';
+        this.container = document.createElement('div');
+        this.container.className = 'game_page';
 
-        this.cleanupWarning = enableLeaveWarning("Leaving will stop the current match.");
-        
+        this.cleanupWarning = enableLeaveWarning("Leaving will stop the current match.",
+        async () => {
+            const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
+            if (sessionId) await apiServices.game.updateGameStatus(sessionId, "ABORTED");
+        });
+
         //Load css
         this.loadPageStyles();
 
@@ -72,14 +79,14 @@ export class Game implements IComponent {
         titleContainer.appendChild(userLeft);
         titleContainer.appendChild(VS);
         titleContainer.appendChild(userRight);
-        container.appendChild(titleContainer);
+        this.container.appendChild(titleContainer);
         
         // Canvas container
         this.canvas.className = 'game_canvas';
         const canvasContainer = document.createElement('div');
         canvasContainer.className = 'canvas_container';
         canvasContainer.appendChild(this.canvas);
-        container.appendChild(canvasContainer);
+        this.container.appendChild(canvasContainer);
 
         // Controls container
         const controlsContainer = document.createElement('div');
@@ -120,7 +127,7 @@ export class Game implements IComponent {
         controlsContainer.prepend(setupSection);
         }
 
-        container.appendChild(controlsContainer);
+        this.container.appendChild(controlsContainer);
 
         this.drawInitialScreen();
         
@@ -130,7 +137,7 @@ export class Game implements IComponent {
         } else {
             this.initializeStandalone();
         }
-        return container;
+        return this.container;
     }
 
     // -------------------------------------------------
@@ -587,12 +594,17 @@ export class Game implements IComponent {
                 
                 const winnerName = this.currentSession.winnerName ?? "Unknown";
                 alert(`Game Over! ${winnerName} wins!`);
-                if (this.opts?.isTournament && this.opts.onMatchEnd) {
-                    this.opts.onMatchEnd();
-                }
-                else {
-                    this.resetGame();
-                }
+                
+                this.container.innerHTML = "";
+
+                const results = new GameResults({
+                    sessionId: this.currentSession.sessionId,
+                    isTournament: this.opts?.isTournament,
+                    onMatchEnd: this.opts?.onMatchEnd,
+                });
+
+                const resultsElement = results.render();
+                this.container.appendChild(resultsElement);
             }
         } catch (error) {
             console.error('Failed to finish game:', error);
