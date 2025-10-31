@@ -75,11 +75,8 @@ export class GameResults implements IComponent {
         Number(this.sessionId)
       );
 
-      const chartDiv = document.getElementById("scoreChart");
-      if (!chartDiv) return;
-
       if (!response.success || !response.data) {
-        chartDiv.textContent = response.message || "Failed to load chart data.";
+        console.log("Dashboard data not available:", response.message);
         return;
       }
 
@@ -89,8 +86,6 @@ export class GameResults implements IComponent {
       this.renderPlayerStats();
     } catch (err) {
       console.error("Error fetching dashboard:", err);
-      const chartDiv = document.getElementById("scoreChart");
-      if (chartDiv) chartDiv.textContent = "Error loading chart data.";
     }
   }
 
@@ -105,7 +100,9 @@ export class GameResults implements IComponent {
 
     summaryDiv.innerHTML = `
       <div class="winner-card">
-        <img src="${this.getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" 
+        <img src="${this.getAvatarUrl(
+          summary.winner?.avatar ?? "/uploads/avatars/default.png"
+        )}" 
              alt="Winner Avatar" class="winner-avatar" />
         <h2>🏆 Winner: ${summary.winner?.displayName ?? "No Winner"}</h2>
       </div>
@@ -178,7 +175,9 @@ export class GameResults implements IComponent {
       .map(
         (p) => `
         <div class="player-card ${p.side.toLowerCase()}">
-          <img src="${this.getAvatarUrl(p.avatar)}" alt="${p.displayName}" class="player-avatar" />
+          <img src="${this.getAvatarUrl(p.avatar)}" alt="${
+          p.displayName
+        }" class="player-avatar" />
           <h3>${p.displayName}</h3>
           <ul>
             <li><strong>Score:</strong> ${p.score}</li>
@@ -210,7 +209,8 @@ export class GameResults implements IComponent {
     link.href = "/styles/GameResults.css";
     document.head.appendChild(link);
   }
-private getAvatarUrl(path?: string): string {
+  
+  private getAvatarUrl(path?: string): string {
     if (!path) return "";
     const backendUrl = "http://localhost:5001";
 
