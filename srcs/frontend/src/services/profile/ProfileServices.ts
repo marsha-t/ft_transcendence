@@ -50,7 +50,75 @@ export class ProfileServices {
             };
         }
     }
-
+    async uploadAvatarFromPreset(presetPath: string): Promise<ApiResponse<AvatarUploadResponse>> {
+    try {
+      // Send the preset filename to the backend; backend will copy/set it for the user
+      const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${this.getToken()}`,
+        },
+        body: JSON.stringify({ presetFilename: presetPath }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || "Preset avatar set failed",
+          errors: [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: data,
+        message: "Preset avatar set successfully",
+      };
+    } catch (error) {
+      console.error("API error (preset avatar)", error);
+      return {
+        success: false,
+        status: 0,
+        message: "Network error",
+        errors: [],
+      };
+    }
+  }
+    async getPlayCounts(start?: string, end?: string): Promise<ApiResponse<{ date: string; count: number }[]>> {
+    try {
+      const params: string[] = [];
+      if (start) params.push(`start=${encodeURIComponent(start)}`);
+      if (end) params.push(`end=${encodeURIComponent(end)}`);
+      const q = params.length ? `?${params.join('&')}` : '';
+      const response = await fetch(`${this.baseUrl}/profile/play-counts${q}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getToken()}`,
+        },
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          status: response.status,
+          message: data.message || data.error || 'Failed to fetch play counts',
+          errors: data.errors || [],
+        };
+      }
+      return {
+        success: true,
+        status: response.status,
+        data: Array.isArray(data) ? data : (data.data || []),
+        message: data.message || 'Play counts fetched',
+      };
+    } catch (error) {
+      console.error('API error (getPlayCounts)', error);
+      return { success: false, status: 0, message: 'Network error', errors: [] };
+    }
+  }
     // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Method to log out the current user
     async logout(): Promise<ApiResponse<null>> {
@@ -193,35 +261,6 @@ export class ProfileServices {
           return { success: false, status: 0, message: "Network error", errors: [] };
         }
     }
-  // Log the current user out (sets status to OFFLINE on the backend)
-  async logout(): Promise<ApiResponse<null>> {
-    try {
-      const response = await fetch(`${this.baseUrl}/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-current-user-id': '1',
-        },
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        return {
-          success: false,
-          status: response.status,
-          message: data.message || 'Logout failed',
-          errors: data.errors || [],
-        };
-      }
-      return {
-        success: true,
-        status: response.status,
-        message: data.message || 'Logout successful',
-      };
-    } catch (error) {
-      console.error('API error (logout)', error);
-      return { success: false, status: 0, message: 'Network error', errors: [] };
-    }
-  }
     // Method to update the current user's avatar
     async uploadAvatar(file: File): Promise<ApiResponse<AvatarUploadResponse>> {
         try {
@@ -462,10 +501,9 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  "x-current-user-id": String(userId),
-              },
+                  "Authorization": `Bearer ${this.getToken()}`,
+              }
           });
-  
           
           const data = await response.json();
           if (!response.ok) {
