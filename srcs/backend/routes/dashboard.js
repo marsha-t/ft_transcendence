@@ -11,13 +11,13 @@ async function dashboardRoutes(app, options) {
 		const userId = request.user.id;
 
 		try {
-			const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+			const user = await prisma.user.findUnique({ where: { id: userId } });
 			if (!user) {
 				return reply.code(404).send({ error: "User not found" });
 			}
 			const matches = await prisma.gameSessionPlayer.findMany({
 				where: { 
-					userId: Number(id), 
+					userId: userId, 
 					session: { status: 'FINISHED' },
 				},
 				include: {
