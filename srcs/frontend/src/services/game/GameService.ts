@@ -79,7 +79,7 @@ export class GameService{
             throw error;
         }
     }
-    // 3- uptade game session status
+    // 3- update game session status
     async updateGameStatus(sessionId: string, status: GameStatus): Promise<GameSession> {
         try {
             const response = await fetch(`${this.baseUrl}/game-sessions/status`, {
@@ -105,7 +105,7 @@ export class GameService{
             throw error;
         }
     }
-    // 4- uptade player score
+    // 4- update player score
     async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<GameSession>{
         try{
             const response = await fetch(`${this.baseUrl}/game-sessions/players/score`, {
@@ -125,28 +125,6 @@ export class GameService{
                 throw error
         }
     }
-    // 5- Get game session by ID
-    async getGameSession(sessionId: string): Promise<GameSession> {
-        try {
-            const response = await fetch(`${this.baseUrl}/game-sessions/`, {
-                method: 'GET',
-                headers: {
-                    'X-Current-Session-Id': String(sessionId),
-                    'Authorization': `Bearer ${this.getToken()}`,
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to get game session: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return this.transformApiResponseToGameSession(data);
-        } catch (error) {
-            console.error('Error getting game session:', error);
-            throw error;
-        }
-    }
     // 6- Start game
     async startGame(sessionId: string):Promise<GameSession>{
         return this.updateGameStatus(sessionId, "PLAYING");
@@ -159,10 +137,6 @@ export class GameService{
     async abortGame(sessionId: string): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "ABORTED");
     }
-    // 9- Finish game
-    // async finishGame(sessionId: string): Promise<GameSession> {
-    //     return this.updateGameStatus(sessionId, "FINISHED");
-    // }
     // 10- Transform API response to match our GameSession interface
     private transformApiResponseToGameSession(apiResponse: any){
         return {
