@@ -12,9 +12,11 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Checks session exists and is of 'CREATED' status
 		- Checks that side is not already taken and session isn't already full
 		- Check that player in session doesn't already use the same displayname
+		- Check that request user is in the game
 		- Add player to GameSessionPlayer table
 	*/
 	app.post('/api/game-sessions/players', { schema: joinSessionSchema, preHandler: [app.authenticate]  }, async (request, reply) => {
+		const userId = request.user.id;
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 
@@ -44,7 +46,10 @@ async function gameSessionPlayersRoutes(app, options) {
 			if (session.players.length >= 2) {
 				throw { code: 409, message: 'Session already full' };
 			}
-			
+			const isUserPlayer = session.players.some(p => p.userId === userId);
+			if (!isUserPlayer) {
+				return reply.code(403).send({ error: "You are not a player in this game session"});
+			}
 			let displayName;
 			if (playerUserId) {
 				const user = await prisma.user.findUnique({
@@ -83,40 +88,6 @@ async function gameSessionPlayersRoutes(app, options) {
 		}
 	});
 
-	// List players in session
-	/*
-		- Check session exists
-		- If no players found, rturns empty array 
-		- Otherwise, returns array of player objects
-	*/
-	app.get('/api/game-sessions/players', { schema: listPlayersSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-		const sessionIdHeader = request.headers['x-current-session-id'];
-		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
-
-		try {
-			await checkSession(prisma, sessionId);
-			const players = await prisma.gameSessionPlayer.findMany({
-				where: { sessionId: Number(sessionId) }, 
-				orderBy: { side: 'asc' },
-			});
-			if (players.length === 0) {
-				return reply.send([]);
-			}
-			const formatted = players.map((p) => ({
-				playerId: p.id,
-				displayName: p.displayName,
-				side: p.side,
-				isGuest: p.isGuest,
-				score: p.score,
-			}));
-
-			return reply.send(formatted);
-		} catch (err) {
-			request.log.error(err);
-      		return reply.code(err.code || 500).send({ error: err.message || "Failed to fetch players in session" });
-		}
-	});
-
 	// Update player score
 	/* 
 		- Checks session exists
@@ -133,13 +104,14 @@ async function gameSessionPlayersRoutes(app, options) {
 		- returns updated session 
 	*/
 	app.patch('/api/game-sessions/players/score', { schema: updateScoreSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+		const userId = request.user.id;
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
 		const side = request.headers['x-player-side'];
 
 		try {
-			const session = await checkSession(prisma, sessionId);
-
+			const session = await checkSession(prisma, userId, sessionId);
+			
 			// Update player score
 			const player = await prisma.gameSessionPlayer.update({
 				where: { sessionId_side: { sessionId: Number(sessionId), side } },
@@ -329,29 +301,6 @@ async function gameSessionPlayersRoutes(app, options) {
 		} catch (err) {
 			request.log.error(err);
       		return reply.code(err.code || 500).send({ error: err.message || "Failed to update player score" });
-		}
-	});
-
-	// Delete player
-	/*
-		- Checks session and player exists
-		- Delete from GameSessionPlayer
-	*/
-	app.delete('/api/game-sessions/players', { schema: deletePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-		const sessionIdHeader = request.headers['x-current-session-id'];
-		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
-		const side = request.headers['x-player-side'];
-	
-		try {
-			await checkSession(prisma, sessionId);
-			await checkPlayer(prisma, sessionId, side);
-			await prisma.gameSessionPlayer.delete({
-				where: { sessionId_side: { sessionId: Number(id), side }, },
-			});
-      return reply.code(200).send({ message: 'Game session deleted' });
-		} catch (err) {
-			request.log.error(err);
-      		return reply.code(err.code || 500).send({ error: err.message || "Failed to delete player from game session" });
 		}
 	});
 }

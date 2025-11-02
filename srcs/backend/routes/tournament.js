@@ -64,10 +64,11 @@ async function tournamentRoutes(app, options) {
   app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate ], }, async(request, reply) => {
     const creatorId = request.user?.id;
     const { numberOfPlayers, players } = request.body;
-      if (players.length != numberOfPlayers - 1)
+      if (players.length != numberOfPlayers - 1) {
         return reply
       .code(400)
       .send({ error: "Wrong number of players credentials given" });
+      }
       
       try {
         const creator = await prisma.user.findUnique({
@@ -125,7 +126,8 @@ async function tournamentRoutes(app, options) {
   );
   // Get next match
   /*
-		- Look for next match in tournament
+		- Check that request user is in the tournament
+    - Look for next match in tournament
 		- If exists, return match with player info
 		- Else, fetch full tournament and its matches and build results object 
 	*/
@@ -136,6 +138,23 @@ async function tournamentRoutes(app, options) {
       const userId = request.user.id;
       const tournamentId = Number(request.headers["x-current-tournament-id"]);
       try {
+        const tournament = await prisma.tournament.findUnique({
+          where: { id: Number(tournamentId) },
+          include: {
+            players: true,
+            matches: {
+              include: { gameSession: true, player1: true, player2: true },
+              orderBy: { matchIndex: "asc" },
+            },
+          },
+        });
+        if (!tournament) {
+          return reply.code(404).send({ error: "Tournament not found" });
+        }
+        const isParticipant = tournament.players.some(p => p.userId === userId);
+        if (!isParticipant) {
+          return reply.code(403).send({ error: "You are not a participant in this tournament" });
+        }
         const nextMatch = await prisma.tournamentMatch.findFirst({
           where: {
             tournamentId: Number(tournamentId),
@@ -176,18 +195,6 @@ async function tournamentRoutes(app, options) {
           });
         }
 
-        const tournament = await prisma.tournament.findUnique({
-          where: { id: Number(tournamentId) },
-          include: {
-            matches: {
-              include: { gameSession: true, player1: true, player2: true },
-              orderBy: { matchIndex: "asc" },
-            },
-          },
-        });
-        if (!tournament) {
-          return reply.code(404).send({ error: "Tournament not found" });
-        }
         const finalMatch = tournament.matches[tournament.matches.length - 1];
         return reply.send({
           tournamentId: tournament.id,
@@ -230,6 +237,7 @@ async function tournamentRoutes(app, options) {
 
   // Update tournament status
   /*
+		- Check that request user is in the tournament
 		- Check tournament exists
 		- Check that status transition is allowed
     	- Update timestamps where appropriate
@@ -243,19 +251,26 @@ async function tournamentRoutes(app, options) {
     - Return updated tournament object 
 	*/
   app.patch('/api/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
- 		const tournamentId = Number(request.headers['x-current-tournament-id']);
+ 		const userId = request.user.id;
+    const tournamentId = Number(request.headers['x-current-tournament-id']);
 		const { status } = request.body;
 
       try {
         const tournament = await prisma.tournament.findUnique({
           where: { id: Number(tournamentId) },
-	        include: { matches: { include: { gameSession: true } } }, 
-
+	        include: { 
+            players: true, 
+            matches: { include: { gameSession: true } } }, 
+          
         });
         if (!tournament) {
           return reply.code(404).send({ error: "Tournament not found" });
         }
-
+        
+        const isParticipant = tournament.players.some(p => p.userId === userId);
+        if (!isParticipant) {
+          return reply.code(403).send({ error: "You are not a participant in this tournament" });
+        }
         const current = tournament.status;
         const validTransitions = {
           CREATED: new Set(["STARTED", "ABORTED"]),
