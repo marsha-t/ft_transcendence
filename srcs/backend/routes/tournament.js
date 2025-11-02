@@ -61,16 +61,25 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema }, async(request, reply) => {
-		const { numberOfPlayers, players } = request.body;
-      if (players.length != numberOfPlayers)
+  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate], }, async(request, reply) => {
+    const creatorId = request.user?.id;
+    const { numberOfPlayers, players } = request.body;
+      if (players.length != numberOfPlayers - 1)
         return reply
-          .code(400)
-          .send({ error: "Wrong number of players credentials given" });
+      .code(400)
+      .send({ error: "Wrong number of players credentials given" });
+      
       try {
+        const creator = await prisma.user.findUnique({
+          where: { id: creatorId },
+          select: { username: true },
+        });
+        if (!creator)
+          return reply.code(404).send({ error: "Creator user not found" });
+
         const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
         const numMatches = bracketSize - 1;
-
+        
         const tournament = await prisma.tournament.create({
           data: {
             status: "CREATED",
@@ -79,12 +88,21 @@ async function tournamentRoutes(app, options) {
           },
         });
 
-        const tournamentPlayers = players.map((p) => ({
+        const tournamentPlayers = [
+        {
+          tournamentId: tournament.id,
+          displayName: creator.username,
+          userId: creatorId,
+          isGuest: false,
+        },
+        ...players.map((p) => ({
           tournamentId: tournament.id,
           displayName: p.displayName,
           userId: p.userId ?? null,
           isGuest: !p.userId,
-        }));
+        })),
+      ];
+
         await prisma.tournamentPlayer.createMany({ data: tournamentPlayers });
 
         const matches = Array.from({ length: numMatches }, (_, i) => ({
