@@ -61,7 +61,7 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate], }, async(request, reply) => {
+  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate ], }, async(request, reply) => {
     const creatorId = request.user?.id;
     const { numberOfPlayers, players } = request.body;
       if (players.length != numberOfPlayers - 1)
@@ -131,8 +131,9 @@ async function tournamentRoutes(app, options) {
 	*/
   app.get(
     "/api/tournaments/next-match",
-    { schema: getNextMatchSchema },
+    { schema: getNextMatchSchema, preHandler: [ app.authenticate ] },
     async (request, reply) => {
+      const userId = request.user.id;
       const tournamentId = Number(request.headers["x-current-tournament-id"]);
       try {
         const nextMatch = await prisma.tournamentMatch.findFirst({

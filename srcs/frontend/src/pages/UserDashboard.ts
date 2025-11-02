@@ -66,9 +66,7 @@ export class ProfileDashboard implements IComponent {
 
   private async fetchAndRender() {
     try {
-      const response = await apiServices.dashboard.getUserDashboard(
-        Number(this.userId)
-      );
+      const response = await apiServices.dashboard.getUserDashboard();
       if (!response.success || !response.data) {
         console.log("Dashboard data not available: ", response.message);
         return;
