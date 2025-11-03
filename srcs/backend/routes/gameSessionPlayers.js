@@ -90,7 +90,7 @@ async function gameSessionPlayersRoutes(app, options) {
 
 	// Update player score
 	/* 
-		- Checks session exists
+		- Checks session exists and that it is 'PLAYING'
 		- Updates player's score
 		- If score reaches win condition (score = 5)
 			- Mark session as FINISHED and records winner in GameSession table (id = GameSessionPlayer.id)
@@ -111,7 +111,11 @@ async function gameSessionPlayersRoutes(app, options) {
 
 		try {
 			const session = await checkSession(prisma, userId, sessionId);
-			
+			if (session.status !== "PLAYING") {
+				return reply
+					.code(400)
+					.send({ error: `Cannot update score when game status is '${session.status}'.` });
+			}
 			// Update player score
 			const player = await prisma.gameSessionPlayer.update({
 				where: { sessionId_side: { sessionId: Number(sessionId), side } },
