@@ -1,4 +1,5 @@
 import { Router } from './Router.js';
+import { getRouter } from './utils.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 
@@ -18,5 +19,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const footerComponent = new Footer();
     footerContainer.appendChild(footerComponent.render());
 
-    new Router(contentContainer);
+    // new Router(contentContainer);
+    getRouter(contentContainer); 
+      window.dispatchEvent(new PopStateEvent('popstate'));
+
 });
