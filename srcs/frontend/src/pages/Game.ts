@@ -575,6 +575,10 @@ export class Game implements IComponent {
                         this.endGame();
                     }, 500) // adding 0,5 sec delay to update the ui to show score 5
                 }
+                else if (this.currentSession.status === "ABORTED") {
+                    this.stopGameLoop();
+                    return ;
+                }
             }
 
         }catch(error){
