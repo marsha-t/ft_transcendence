@@ -15,7 +15,15 @@ export class Router {
 
   constructor(container: HTMLElement) {
     const renderRoute = async () => {
-      
+      // Check if current page allows navigation
+      if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
+        const canLeave = await this.currentPage.canDeactivate();
+        if (!canLeave) {
+          history.pushState({}, "", window.location.pathname);
+          return;
+        }
+      }
+
       // Clean up previous page
       if (this.currentPage && typeof this.currentPage.cleanup === "function") {
         try {
@@ -92,7 +100,8 @@ export class Router {
       }
     };
 
-    renderRoute();
+    // renderRoute();
+    window.removeEventListener('popstate', renderRoute);
     window.addEventListener('popstate', renderRoute);
   }
 }
