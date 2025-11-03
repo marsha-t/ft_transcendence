@@ -39,6 +39,46 @@ export const getCurrentUserSchema = {
   },
 };
 
+  export const getPlayCountsSchema = {
+    tags: ['Profile'],
+    summary: 'Get user play counts within a date range',
+    headers: {
+      type: 'object',
+      properties: {
+        authorization: { type: 'string', description: 'Bearer <token>' },
+      },
+      required: ['authorization'],
+    },
+    querystring: {
+      type: 'object',
+      properties: {
+        start: { type: 'string', format: 'date' },
+        end: { type: 'string', format: 'date' }
+      },
+      required: ['start', 'end']
+    },
+    response: {
+      200: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            date: { type: 'string', format: 'date' },
+            count: { type: 'integer' }
+          },
+          required: ['date', 'count']
+        }
+      },
+      400: {
+        type: 'object',
+        properties: { error: { type: 'string' } },
+      },
+      401: {
+        type: 'object',
+        properties: { error: { type: 'string' } },
+      }
+    }
+  };
 export const updateProfileSchema = {
   tags: ['Profile'],
   summary: 'Update username, password, or email of the current user',

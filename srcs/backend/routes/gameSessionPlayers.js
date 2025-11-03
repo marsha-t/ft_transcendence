@@ -123,6 +123,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Updates player's score
 		- If score reaches win condition (score = 5)
 			- Mark session as FINISHED and records winner in GameSession table (id = GameSessionPlayer.id)
+			- Update stats in User table 
 				- If session is from a tournament, 
 					- update winner in TournamentMatch table (id = TournamentPlayer.id)
 					- If session is last match in tournament, mark tournament as FINISHED
@@ -138,18 +139,38 @@ async function gameSessionPlayersRoutes(app, options) {
 
 		try {
 			const session = await checkSession(prisma, sessionId);
+
+			// Update player score
 			const player = await prisma.gameSessionPlayer.update({
 				where: { sessionId_side: { sessionId: Number(sessionId), side } },
 				data: { score: { increment: 1 }, },
 				include: { tournamentPlayer: { select: { id: true } } },
 			});
+			
+			// Fetch both players to record updated scores in game event
+			const players = await prisma.gameSessionPlayer.findMany({
+				where: { sessionId: Number(sessionId) },
+				select: { id: true, side: true, score: true},
+			});
+
+			const leftScore = players.find(p => p.side === "LEFT")?.score ?? 0;
+			const rightScore = players.find(p => p.side === "RIGHT")?.score ?? 0;
+			
+			// Log POINT event in GameEvent
+			await prisma.gameEvent.create({
+				data: {
+					sessionId: Number(sessionId),
+					playerId: player.id,
+					type: "POINT",
+					scoreLeft: leftScore, 
+					scoreRight: rightScore,
+				}
+			});
 
 			let finishedGame = null;
 			
-			// console.log(`Player ${side} scored! New score: ${player.score}`); //for testing why it ends at 4
-
+			// Handle match completion
 			if (player.score >= 5) {
-				// console.log('Game finished - winning condition met!');
 				finishedGame = await prisma.gameSession.update({
 					where: { id: session.id },
 					data: {
@@ -160,9 +181,59 @@ async function gameSessionPlayersRoutes(app, options) {
 					},
 					include: { players: true },
 				});
+
+				await prisma.gameEvent.create({
+					data: {
+						sessionId: session.id,
+						playerId: player.id, 
+						type: 'FINISH',
+						scoreLeft: leftScore,
+						scoreRight: rightScore,
+					}
+				});
 			}
 
 			if (finishedGame) {
+				const winnerUserId = player.userId;
+				const losingPlayer = finishedGame.players.find(p => p.userId !== winnerUserId);
+
+				// Update stats for registered users
+				if (winnerUserId) {
+					const winner = await prisma.user.findUnique({ where: { id: winnerUserId }});
+					const totalMatches = winner.totalMatches + 1;
+					const totalWins = winner.totalWins + 1;
+					const winRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
+					const avgScore = (winner.avgScore * (totalMatches - 1) + player.score) / totalMatches;
+					
+					await prisma.user.update({ 
+						where: { id: winnerUserId },
+						data: { 
+							totalMatches, 
+							totalWins, 
+							winRate, 
+							avgScore, 
+							currentWinStreak: winner.currentWinStreak + 1,  
+							longestWinStreak: Math.max(winner.longestWinStreak, winner.currentWinStreak + 1),
+							lastPlayedAt: new Date(),
+						},
+					});
+				}
+				
+				if (losingPlayer?.userId) {
+					const loser = await prisma.user.update({
+						where: { id: losingPlayer.userId },
+						data: { totalMatches: { increment: 1 } },
+					});
+
+					const newWinRate = loser.totalMatches > 0 ? (loser.totalWins / loser.totalMatches) * 100 : 0;
+					
+					await prisma.user.update({
+						where: { id: loser.id },
+						data: { winRate: newWinRate },
+					});
+				}
+
+				// Tournmament progression
 				const match = await prisma.tournamentMatch.findFirst({
 					where: { gameSessionId: finishedGame.id },
 					include: { tournament: true },
@@ -222,6 +293,7 @@ async function gameSessionPlayersRoutes(app, options) {
 				}
 			}
 
+			// Return updated session 
 			const updatedSession = await prisma.gameSession.findUnique({
 				where: { id: Number(sessionId) },
 				include: {players: true},
