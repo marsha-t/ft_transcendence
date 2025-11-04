@@ -5,13 +5,8 @@ import { UserDashboard } from "../services/dashboard/types";
 declare const Plotly: any;
 
 export class ProfileDashboard implements IComponent {
-  private userId: number;
   private container!: HTMLElement;
   private dashboardData: UserDashboard | null = null;
-
-  constructor(userId: number) {
-    this.userId = userId;
-  }
 
   public render(): HTMLElement {
     this.loadStyles();
@@ -72,15 +67,22 @@ export class ProfileDashboard implements IComponent {
         return;
       }
       this.dashboardData = response.data;
+      const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
+
       this.renderOverview();
-      this.renderWinRateChart();
-      this.renderScoreHistogram();
-      this.renderOpponentBarChart();
-      this.renderLeaderboard();
+      if (totalMatches > 0) {
+        this.renderWinRateChart();
+        this.renderScoreHistogram();
+        this.renderOpponentBarChart();
+        this.renderLeaderboard();
+      } else {
+        this.renderNoDataMessages();
+      }
     } catch (err) {
       console.error("Error fetching dashboard: ", err);
     }
   }
+
   private renderOverview() {
     if (!this.dashboardData) return;
 
@@ -137,10 +139,16 @@ export class ProfileDashboard implements IComponent {
       x: scoreDistribution,
       type: "histogram",
       marker: { color: "#E43E64" },
+      xbins: { start: -0.5, end: 5.5, size: 1 },
     };
     const layout = {
       title: "Score Distribution",
-      xaxis: { title: "Score" },
+      xaxis: {
+        title: "Score",
+        dtick: 1,
+        range: [-0.5, 5.5],
+        tickvals: [0, 1, 2, 3, 4, 5],
+      },
       yaxis: { title: "Frequency" },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
@@ -183,16 +191,16 @@ export class ProfileDashboard implements IComponent {
     const { leaderboard } = this.dashboardData;
     const rows = leaderboard
       .map(
-        (p, i) => `
-		<tr>
-			<td>${i + 1}</td>
-			<td>${p.username}</td>
-			<td>${p.totalMatches}</td>
-			<td>${p.winRate}</td>
-			<td>${p.avgScore}</td>
-			<td>${p.leaderboardScore}</td>
-		</tr>
-	`
+        (p) => `
+        <tr class="${p.isCurrentUser ? "highlight-user" : ""}">
+          <td>${p.rank}</td>
+          <td>${p.username}</td>
+          <td>${p.totalMatches}</td>
+          <td>${p.winRate}</td>
+          <td>${p.avgScore}</td>
+          <td>${p.leaderboardScore}</td>
+        </tr>
+      `
       )
       .join("");
     leaderboardDiv.innerHTML = `
@@ -211,6 +219,23 @@ export class ProfileDashboard implements IComponent {
 	`;
   }
 
+  private renderNoDataMessages() {
+    const placeholders = [
+      { id: "winRateChart", title: "Win Rate Over Time" },
+      { id: "scoreHistogram", title: "Score Distribution" },
+      { id: "winsPerOpponent", title: "Wins per Opponent" },
+      { id: "leaderboard", title: "Leaderboard" },
+    ];
+    placeholders.forEach(({ id, title }) => {
+      const div = document.getElementById(id);
+      if (div) {
+        div.innerHTML = `
+          <h2>${title}</h2>
+          <p class="no-data">Not enough matches yet — play a few games to unlock insights!</p>
+        `;
+      }
+    });
+  }
   private loadStyles() {
     if (document.getElementById("user-dashboard-styles")) return;
 
