@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/auth/AuthServices.js";
 import { LoginData } from "../services/auth/types";
+import { AuthUtils } from "../utils/authUtils.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
@@ -177,6 +178,8 @@ export class Login implements IComponent {
             if(response.success){
                 this.showMessage(response.message,  'success');
 
+                // ✅ SET USER AS LOGGED IN
+                AuthUtils.setLoggedIn({ username: userData.username });
                 this.form.reset(); //I need to clean th form after getting data
                 
                 //here i redirect login page to userprofile
