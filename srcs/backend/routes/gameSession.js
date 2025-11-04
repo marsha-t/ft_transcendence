@@ -1,6 +1,5 @@
 import {
   createGameSessionSchema,
-  getGameSessionByIdSchema,
   updateSessionStatusSchema,
 } from "../schemas/gameSession.js";
 import prisma from "../prisma/prismaClient.js";
@@ -39,33 +38,11 @@ async function gameSessionRoutes(app, options) {
     }
   );
 
-  // Get single game session
-  app.get('/api/game-sessions', { schema: getGameSessionByIdSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-    const sessionIdHeader = request.headers['x-current-session-id'];
-    const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
-
-      try {
-        const session = await prisma.gameSession.findUnique({
-          where: { id: Number(sessionId) },
-          include: { players: true, winnerUser: true, winnerPlayer: true },
-        });
-
-        if (!session) {
-          return reply.code(404).send({ error: "Game session not found" });
-        }
-        return reply.send(session);
-      } catch (err) {
-        request.log.error(err);
-        return reply
-          .code(err.code || 500)
-          .send({ error: err.message || "Failed to fetch game session" });
-      }
-    }
-  );
 
   // Update game session status
   /*
     - Check session exists
+    - Checks: request user is a player in game
     - Check that status transition is allowed (via isValidTransition())
     - Run additional checks specific to transition (via runChecks())
     - Update timestamps where appropriate
@@ -76,6 +53,7 @@ async function gameSessionRoutes(app, options) {
   */
   
   app.patch('/api/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    const userId = request.user.id;
     const sessionIdHeader = request.headers['x-current-session-id'];
     const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
     const { status: nextStatus } = request.body; 
@@ -91,6 +69,24 @@ async function gameSessionRoutes(app, options) {
         if (!session) {
           return reply.code(404).send({ error: "Game session not found" });
         }
+        
+        let isAuthorized = false;
+
+        if (!session.tournamentMatch) {
+          isAuthorized = session.players.some(p => p.userId === userId);
+        } 
+        else {
+          const tournamentPlayers = await prisma.tournamentPlayer.findMany({
+            where: { tournamentId: session.tournamentMatch.tournamentId },
+            select: { userId: true },
+          });
+          isAuthorized = tournamentPlayers.some(p => p.userId === userId);
+        }
+
+        if (!isAuthorized) {
+          return reply.code(403).send({ error: "You are not authorized to modify this game session" });
+        }
+
         if (!isValidTransition(session.status, nextStatus)) {
           return reply
             .code(400)
@@ -135,7 +131,7 @@ async function gameSessionRoutes(app, options) {
             type = "PAUSE";
             break;
           case "ABORTED":
-            type = "ABORTED";
+            type = "FINISH";
             break;
           default:
             break;

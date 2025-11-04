@@ -60,13 +60,14 @@ async function dashboardRoutes(app, options) {
 
 	// Fetch game session results 
 	/*
+		- Checks: session exists, session is finished, request user is in the game
 		- Fetches summary: winner avatar, final score, duration
 		- Fetches timeline of score progression (removing paused time)
 		- Fetches player info: avatar, score, time to first point, average time per point, total matches, total wins, win rate
 	*/
-	app.get('/api/stats/game', { schema: gameDashboardSchema} , async (request, reply) => {
+	app.get('/api/stats/game', { schema: gameDashboardSchema, preHandler: [ app.authenticate ]} , async (request, reply) => {
+		const userId = request.user.id;
 		const sessionIdHeader = request.headers['x-current-session-id'];
-
 		try {
 			const session = await prisma.gameSession.findUnique({ 
 				where: { id: Number(sessionIdHeader) },
@@ -88,7 +89,12 @@ async function dashboardRoutes(app, options) {
 
 			if (!session) return reply.code(404).send({ error: "Session not found" });
 			if (session.status !== "FINISHED") return reply.code(400).send({ error: "Session has not ended" });
-			
+
+			const isUserPlayer = session.players.some(p => p.userId === userId);
+			if (!isUserPlayer) {
+				return reply.code(403).send({ error: "You are not a player in this game session"});
+			}
+
 			// Summary 
 			const winnerPlayer = session.players.find(p => p.id === session.winnerPlayerId);
 			const winner = winnerPlayer 
@@ -195,8 +201,9 @@ async function dashboardRoutes(app, options) {
 	});
 
 	// Fetch data for user dashboard
-	app.get('/api/stats/user', { schema: userDashboardSchema }, async (request, reply) => {
-		const userId = request.headers['x-current-user-id'];
+	app.get('/api/stats/user', { schema: userDashboardSchema, preHandler: [ app.authenticate ] }, async (request, reply) => {
+		const userId = request.user.id;
+
 		try {
 			// Overview stats
 			const overviewData = await prisma.user.findUnique({ 
