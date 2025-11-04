@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { ProfileServices } from '../services/profile/ProfileServices.js';
 import { ProfileData, FriendsData, AvatarUploadResponse, AvatarDeleteResponse, UserSearchResult, FriendRequest, MatchHistory,  ApiResponse, } from '../services/profile/types';
-
+import { AuthUtils } from '../utils/authUtils.js';
 // ***************************************
 /*
   - profile
@@ -97,12 +97,17 @@ export class Profile implements IComponent {
    
     logoutBtn.addEventListener("click", async () => {
     try {
+      const confirmed = await this.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
+          if (!confirmed) return;
       // Call your logout API
       const res = await this.profileService.logout();
       if (res.success) {
         // Clear localStorage / JWT
         localStorage.removeItem("jwtToken");
         localStorage.removeItem("currentUsername");
+
+         // ✅ Clear auth state and trigger header update
+         AuthUtils.logout();
         // Redirect to main page after successful logout
         setTimeout(() => {
           console.log("Current URL before navigation:", window.location.href);
@@ -119,7 +124,7 @@ export class Profile implements IComponent {
           window.dispatchEvent(new PopStateEvent('popstate'));
 
           console.log("PopState event dispatched");
-      }, 2000);
+      }, 100);
       } else {
         alert(res.message || "Logout failed");
       }
@@ -129,7 +134,6 @@ export class Profile implements IComponent {
     }
   });
 
-    // logoutBtn.addEventListener("click", );
     const editProfileBtn = document.createElement("div");
     editProfileBtn.textContent = "edit";
     editProfileBtn.className = `
