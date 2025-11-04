@@ -36,9 +36,10 @@ export const gameDashboardSchema = {
   headers: {
     type: "object",
     properties: {
+			authorization: { type: 'string', description: 'Bearer <token>' },
       "x-current-session-id": { type: "integer" },
     },
-    required: ["x-current-session-id"],
+    required: ['authorization', "x-current-session-id" ],
   },
   response: {
     200: {
@@ -141,9 +142,9 @@ export const userDashboardSchema = {
   headers: {
     type: "object",
     properties: {
-      "x-current-user-id": { type: "integer" },
+			authorization: { type: 'string', description: 'Bearer <token>' },
     },
-    required: ["x-current-user-id"],
+    required: ["authorization"],
   },
   response: {
     200: {
