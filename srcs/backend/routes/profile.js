@@ -119,6 +119,10 @@ async function profileRoutes(app, options) {
       }
 
       // --- Password ---
+      if ((oldPassword && !newPassword) || (!oldPassword && newPassword)) {
+        reply.code(400).send({ message: 'Both oldPassword and newPassword are required to change password' });
+      }
+      
       if (oldPassword && newPassword) {
         const isValid = await bcrypt.compare(oldPassword, user.password);
         if (!isValid) return reply.code(401).send({ message: 'Old password is incorrect' });
@@ -299,27 +303,6 @@ async function profileRoutes(app, options) {
       return reply.code(500).send({ message: 'Failed to remove avatar' });
     }
   });
-
-  // // 5- Get avatar only (optional helper route)
-  // app.get('/api/profile/:id/avatar', { schema: getAvatarSchema }, async (request, reply) => {
-  //   try {
-  //     const { id } = request.params;
-
-  //     const user = await prisma.user.findUnique({
-  //       where: { id: Number(id) },
-  //       select: { avatar: true },
-  //     });
-
-  //     if (!user) return reply.code(404).send({ message: 'User not found' });
-
-  //     return reply.code(200).send({ avatar: user.avatar });
-
-  //   } catch (err) {
-  //     request.log.error(err);
-  //     if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-  //     return reply.code(500).send({ error: 'Failed to fetch avatar' });
-  //   }
-  // });
 }
 
 export default profileRoutes;

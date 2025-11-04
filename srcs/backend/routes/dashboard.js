@@ -64,7 +64,7 @@ async function dashboardRoutes(app, options) {
 		- Fetches timeline of score progression (removing paused time)
 		- Fetches player info: avatar, score, time to first point, average time per point, total matches, total wins, win rate
 	*/
-	app.get('/api/stats/game', { schema: gameDashboardSchema} , async (request, reply) => {
+	app.get('/api/stats/game', { schema: gameDashboardSchema, preHandler: [app.authenticate] } , async (request, reply) => {
 		const sessionIdHeader = request.headers['x-current-session-id'];
 
 		try {
@@ -195,7 +195,7 @@ async function dashboardRoutes(app, options) {
 	});
 
 	// Fetch data for user dashboard
-	app.get('/api/stats/user', { schema: userDashboardSchema }, async (request, reply) => {
+	app.get('/api/stats/user', { schema: userDashboardSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const userId = request.headers['x-current-user-id'];
 		try {
 			// Overview stats

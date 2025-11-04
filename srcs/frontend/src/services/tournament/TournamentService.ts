@@ -5,11 +5,7 @@ export class TournamentService {
 	private baseUrl: string;
 
 	constructor(){
-		this.baseUrl = 'http://localhost:5001/api';
-	}
-
-	getToken(): string | null {
-		return localStorage.getItem('jwtToken');
+		this.baseUrl = '/api';
 	}
 
 	async updateTournamentStatus(tournamentId: number, status: TournamentStatus): Promise<ApiResponse<Tournament>> {
@@ -19,8 +15,8 @@ export class TournamentService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-Tournament-Id': String(tournamentId),
-					'Authorization': `Bearer ${this.getToken()}`,
 				},
+				credentials: 'include',
 				body: JSON.stringify({ status })
 			});
 			const data = await response.json();
@@ -51,8 +47,8 @@ export class TournamentService {
 				method: 'POST',
 				headers: { 
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${this.getToken()}`,
 				},
+				credentials: 'include',
 				body: JSON.stringify(player),
 			});
 			const data = await response.json();
@@ -78,8 +74,8 @@ export class TournamentService {
 				method: 'POST',
 				headers: { 
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${this.getToken()}`,
 				},
+				credentials: 'include',
 				body: JSON.stringify({ numberOfPlayers, players }),
 			});
 			const data = await response.json();
@@ -110,8 +106,8 @@ export class TournamentService {
 				method: 'GET',
 				headers: {
 					'X-Current-Tournament-Id': String(tournamentId),
-					'Authorization': `Bearer ${this.getToken()}`,
 				},
+				credentials: 'include',
 			});
 			const data = await response.json();
 			if (!response.ok) {

@@ -5,7 +5,7 @@ export class DashboardService {
 	private baseUrl: string;
 
 	constructor() {
-		this.baseUrl = 'http://localhost:5001/api';
+		this.baseUrl = '/api';
 	}
 
 	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard>> {
@@ -15,7 +15,8 @@ export class DashboardService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-Session-Id': String(sessionId),
-				}
+				},
+				credentials: 'include',
 			});
 			const data = await response.json();
 			if (!response.ok) {
@@ -46,7 +47,8 @@ export class DashboardService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-User-Id': String(userId),
-				}
+				},
+				credentials: 'include',
 			});
 			const data = await response.json();
 			if (!response.ok) {

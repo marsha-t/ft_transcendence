@@ -6,7 +6,7 @@ export class AuthServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = 'http://localhost:5001/api';
+        this.baseUrl = '/api';
     }
     // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {
@@ -71,11 +71,7 @@ export class AuthServices {
     
             // Success case -------------------
             if (response.ok) {
-                // Store JWT if returned
-                if (data.token) {
-                    localStorage.setItem('jwtToken', data.token);
-                }
-
+                
                 if (data.username) {
                     localStorage.setItem('currentUsername', data.username);
                 }
@@ -110,10 +106,5 @@ export class AuthServices {
             };
         }
     }
-
-    // Method to get JWT token ------------------ if not used later on for logout route, remove it!
-    // getToken(): string | null {
-    //     return localStorage.getItem('jwtToken');
-    // }
 }
 export const apiServices = new AuthServices();

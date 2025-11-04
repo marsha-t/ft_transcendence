@@ -100,8 +100,7 @@ export class Profile implements IComponent {
       // Call your logout API
       const res = await this.profileService.logout();
       if (res.success) {
-        // Clear localStorage / JWT
-        localStorage.removeItem("jwtToken");
+        // Clear localStorage
         localStorage.removeItem("currentUsername");
         // Redirect to main page after successful logout
         setTimeout(() => {
