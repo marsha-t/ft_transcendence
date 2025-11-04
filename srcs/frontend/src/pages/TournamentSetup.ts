@@ -6,6 +6,7 @@ import { apiServices } from "../services/ApiServices.js";
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
   private modal!: HTMLElement;
+  private creatorUsername: string = "Creator";
 
   public render(): HTMLElement {
     this.loadStyles();
@@ -67,7 +68,7 @@ export class TournamentSetup implements IComponent {
   //----------------------------------------
   // Pop up window functions
   //----------------------------------------
-  private openAddPlayersPopup() {
+  private async openAddPlayersPopup() {
     const n = TournamentDraftStore.numberOfPlayers;
     if (!n || n < 2) return alert("Please set at least 2 players");
 
@@ -93,7 +94,7 @@ export class TournamentSetup implements IComponent {
     body.className = "modal-body";
 
     const left = this.createAddPlayerForm();
-    const right = this.createLineupSection();
+    const right = await this.createLineupSection();
 
     body.append(left, right);
     modalContent.append(header, body);
@@ -245,7 +246,7 @@ export class TournamentSetup implements IComponent {
     if (remaining <= 0) this.showConfirmButton();
   }
 
-  private createLineupSection(): HTMLElement {
+  private async createLineupSection(): Promise<HTMLElement> {
     const section = document.createElement("div");
     section.className = "lineup-section";
 
@@ -257,7 +258,8 @@ export class TournamentSetup implements IComponent {
     ul.id = "lineup-list";
 
     const li = document.createElement("li");
-    li.textContent = `1. Creator`;
+    await this.fetchCreatorUsername();
+    li.textContent = `1. ${this.creatorUsername} (Creator)`;
     ul.appendChild(li);
 
     section.appendChild(ul);
@@ -281,7 +283,7 @@ export class TournamentSetup implements IComponent {
     ul.innerHTML = "";
     const creator = document.createElement("li");
     const creatorNameSpan = document.createElement("span");
-    creatorNameSpan.textContent = "1. Creator";
+    creatorNameSpan.textContent = `1. ${this.creatorUsername} (Creator)`;
     creator.appendChild(creatorNameSpan);
     ul.appendChild(creator);
 
@@ -312,10 +314,23 @@ export class TournamentSetup implements IComponent {
     else this.hideConfirmButton();
   }
 
+  private async fetchCreatorUsername() {
+    try {
+      const response = await apiServices.profile.getProfile();
+      const username = response.data?.username;
+      if (response.success && username) {
+        this.creatorUsername = username;
+      } 
+    } catch (err) {
+      console.log("Failed to fetch creator username: ", err);
+    }
+  }
+
   private showConfirmButton() {
     const confirmBtn = document.getElementById("confirm-btn");
     if (confirmBtn) confirmBtn.style.display = "block";
   }
+
   private hideConfirmButton() {
     const confirmBtn = document.getElementById("confirm-btn");
     if (confirmBtn) confirmBtn.style.display = "none";

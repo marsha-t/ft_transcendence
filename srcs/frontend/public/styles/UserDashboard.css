@@ -116,6 +116,11 @@
   background-color: #f7f6ff;
 }
 
+.highlight-user {
+  background-color: rgba(228, 62, 100, 0.1); /* subtle red tint */
+  font-weight: 600;
+  color: #e43e64;
+}
 
 /* Plotly charts */
 /* Center Plotly charts within their card containers */

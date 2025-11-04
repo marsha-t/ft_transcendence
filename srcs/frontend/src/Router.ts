@@ -70,7 +70,7 @@ export class Router {
           container.appendChild(this.currentPage.render());
           break;
         case '/dashboard':
-          this.currentPage = new ProfileDashboard(1); // hardcoded
+          this.currentPage = new ProfileDashboard();
           container.appendChild(this.currentPage.render());
           break ;
         case '/tournament':
