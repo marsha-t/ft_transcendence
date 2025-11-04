@@ -84,17 +84,36 @@ async function dashboardRoutes(app, options) {
 							user: { select: { avatar: true } },
 						}
 					},
+					tournamentMatch: {
+						include: { tournament: true },
+					}
 				}
 			});
 
 			if (!session) return reply.code(404).send({ error: "Session not found" });
 			if (session.status !== "FINISHED") return reply.code(400).send({ error: "Session has not ended" });
 
-			const isUserPlayer = session.players.some(p => p.userId === userId);
-			if (!isUserPlayer) {
-				return reply.code(403).send({ error: "You are not a player in this game session"});
+			// const isUserPlayer = session.players.some(p => p.userId === userId);
+			// if (!isUserPlayer) {
+			// 	return reply.code(403).send({ error: "You are not a player in this game session"});
+			// }
+
+			let isAuthorized = false;
+
+			if (!session.tournamentMatch) {
+				isAuthorized = session.players.some(p => p.userId === userId);
+			} else {
+				const tournamentPlayers = await prisma.tournamentPlayer.findMany({
+					where: { tournamentId: session.tournamentMatch.tournamentId },
+					select: { userId: true },
+				});
+				isAuthorized = tournamentPlayers.some(p => p.userId === userId);
 			}
 
+			if (!isAuthorized) {
+				return reply.code(403).send({ error: "You are not authorized to view this game session" });
+			}
+			
 			// Summary 
 			const winnerPlayer = session.players.find(p => p.id === session.winnerPlayerId);
 			const winner = winnerPlayer 
