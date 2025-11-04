@@ -151,8 +151,8 @@ export class Profile implements IComponent {
     const avatar = document.createElement("div");
     // add `profile-avatar` so updateProfileUI() can find and update it
     avatar.className = `profile-avatar w-[132px] h-[132px]
-        rounded-full border-[9.95px] border-white
-        bg-background-yellow
+        rounded-full border-[7px] border-white
+        bg-[#21447E]
         mt-6`;
     // set an initial rendering; updateProfileUI will overwrite after fetch
     if (this.avatar) {
