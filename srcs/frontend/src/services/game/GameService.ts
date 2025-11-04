@@ -4,11 +4,7 @@ export class GameService{
     private baseUrl: string;
 
     constructor(){
-        this.baseUrl = 'http://localhost:5001/api';
-    }
-
-    getToken(): string | null {
-      return localStorage.getItem('jwtToken');
+        this.baseUrl = '/api';
     }
 
     // 1- Create a new game session
@@ -19,8 +15,8 @@ export class GameService{
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getToken()}`,
                 },
+				credentials: 'include',
                 body: JSON.stringify({
                     side
                 })
@@ -49,8 +45,8 @@ export class GameService{
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Current-Session-Id': String(sessionId),
-                    'Authorization': `Bearer ${this.getToken()}`,
                 },
+				credentials: 'include',
                 body: JSON.stringify({
                     guestName,
                     playerUserId,
@@ -87,8 +83,8 @@ export class GameService{
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Current-Session-Id': String(sessionId),
-                    'Authorization': `Bearer ${this.getToken()}`,
                 },
+				credentials: 'include',
                 body: JSON.stringify({
                     status
                 })
@@ -113,8 +109,8 @@ export class GameService{
                headers: {
                     'X-Current-Session-Id': String(sessionId),
                     'X-Player-Side': scoringSide,
-                    'Authorization': `Bearer ${this.getToken()}`,
-               } 
+               },
+				credentials: 'include',
             });
             if(!response.ok)
                 throw new Error(`Failed to update player score: ${response.status}`);
@@ -132,8 +128,8 @@ export class GameService{
                 method: 'GET',
                 headers: {
                     'X-Current-Session-Id': String(sessionId),
-                    'Authorization': `Bearer ${this.getToken()}`,
-                }
+                },
+				credentials: 'include',
             });
 
             if (!response.ok) {

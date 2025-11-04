@@ -3,10 +3,6 @@ export const matchHistorySchema = {
 	summary: 'Return match history for given user',
 	headers: {
 		type: 'object',
-		properties: {
-			authorization: { type: 'string', description: 'Bearer <token>' },
-		  },
-		  required: ['authorization'],
 	},
 	response: {
 		200: {
