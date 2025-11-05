@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { ProfileServices } from "../services/profile/ProfileServices.js";
-
+import { AuthServices } from "../services/auth/AuthServices.js";
 export class Header implements IComponent {
     private buttonsGroup!: HTMLElement;
     private linksGroup!: HTMLElement;
@@ -60,21 +60,19 @@ export class Header implements IComponent {
 
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
-        rightNav.className = 'flex items-center gap-[32px]';
+        rightNav.className = 'flex items-center gap-[32px] w-[500px] h-[45px]';
 
         this.linksGroup = document.createElement('div');
-        this.linksGroup.className = 'flex items-center gap-[24px] font-pixel';
+        this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
 
         this.buttonsGroup = document.createElement('div');
-        this.buttonsGroup.className = 'flex items-center gap-[24px]';
+        this.buttonsGroup.className = 'flex items-center gap-[17px] w-[312px] h-[42px] text-[900] text-[18px]';
 
         const links = [
             {text: 'Home', href: '/main', type: 'link'},
             {text: 'Creators', href: '/creators', type: 'link'},
-            {text: 'Profile', href: '/profile', type: 'link'},
         ];
 
-        // Add navigation links
         links.forEach(link => {
             const a = this.createLink(link);
             this.linksGroup.appendChild(a);
@@ -83,11 +81,15 @@ export class Header implements IComponent {
         rightNav.appendChild(this.linksGroup);
         rightNav.appendChild(this.buttonsGroup);
 
-        this.updateAuthButtons();
-         //  Listen for login/logout changes
-        window.addEventListener('authChange', (event: any) => {
-            this.updateAuthButtons();
+        // Setup event listener BEFORE initial update
+        window.addEventListener('authChange', async () => {
+            await this.updateAuthButtons();
         });
+
+        // Initial update - use setTimeout to ensure it runs after render
+        setTimeout(() => {
+            this.updateAuthButtons();
+        }, 0);
         
         // Setup active link updating
         this.setupActiveLinks(this.linksGroup, this.buttonsGroup);
@@ -95,36 +97,109 @@ export class Header implements IComponent {
         return rightNav;
     }
 
-    private updateAuthButtons(): void {
-        // Clear existing buttons
+    private async updateAuthButtons(): Promise<void> {
         this.buttonsGroup.innerHTML = '';
         const isLoggedIn = AuthUtils.isLoggedIn();
+    
         // Hide or show Profile link based on login status
-        const profileLink = this.linksGroup.querySelector('a[href="/profile"]') as HTMLElement;
-        if (profileLink) {
-            profileLink.style.display = isLoggedIn ? "inline-flex" : "none";
+        const profileLinkNav = this.linksGroup.querySelector('a[href="/profile"]') as HTMLElement;
+        if (profileLinkNav) {
+            profileLinkNav.style.display = isLoggedIn ? "inline-flex" : "none";
         }
-        // Only show Login/Register if user is NOT logged in
+    
         if (!isLoggedIn) {
-            const loginLink = {text: 'Login', href: '/login', type: 'button'};
-            const registerLink = {text: 'Register', href: '/register', type: 'button'};
-            
-            const loginBtn = this.createLink(loginLink);
-            const registerBtn = this.createLink(registerLink);
-            
-            this.buttonsGroup.appendChild(loginBtn);
-            this.buttonsGroup.appendChild(registerBtn);
+            // Show Login & Register buttons
+            const loginLink = this.createLink({ text: 'Login', href: '/login', type: 'button' });
+            const registerLink = this.createLink({ text: 'Register', href: '/register', type: 'button' });
+            this.buttonsGroup.appendChild(loginLink);
+            this.buttonsGroup.appendChild(registerLink);
+            return;
         }
-        else {
-            const profileService = new ProfileServices();
-            const logoutBtn = document.createElement('a');
+    
+       // Logged in → Play button
+        const playBtnWrapper = document.createElement('div');
+        playBtnWrapper.className = 'relative inline-block';
+
+        const playBtn = document.createElement('a');
+        playBtn.textContent = 'Play';
+        playBtn.href = '#';
+        playBtn.className = `
+            w-[110px] h-[42px]
+            px-4 rounded-[8px] tracking-[0.4em]
+            text-[16px] font-pixel text-color_white
+            border border-[1px] border-border-green
+            inline-flex justify-center items-center
+            no-underline cursor-pointer transition-colors duration-200 ease-in-out
+            hover:bg-color-green hover:text-color_white
+            `;
+        playBtnWrapper.appendChild(playBtn);
+
+        // Dropdown menu
+        const dropdown: HTMLDivElement = document.createElement('div');
+        dropdown.className = `
+            absolute left-0 mt-2 w-[180px] rounded-lg bg-[none]
+             shadow-lg z-50 hidden flex flex-col space-y-[3px]
+        `;
+
+        // Define dropdown items (with text + href)
+        interface DropdownItem {
+            label: string;
+            href: string;
+        }
+
+        const dropdownItems: DropdownItem[] = [
+            { label: 'AI', href: '/game' }, //put ai link
+            { label: 'Friend', href: '/game' },
+            { label: 'Tournament', href: '/tournament' },
+        ];
+
+        // Populate dropdown
+        dropdownItems.forEach((item: DropdownItem): void => {
+            const option: HTMLAnchorElement = document.createElement('a');
+            option.href = item.href;
+            option.textContent = item.label;
+            option.className = `
+                w-[fit-content] h-[32px] rounded-[8px] px-4 py-2 text-[14px] text-[900] text-white bg-color-green
+                cursor-pointer no-underline
+                transition-colors duration-200 ease-in-out
+            `;
+            option.addEventListener('click', (e: MouseEvent) => {
+                e.preventDefault();
+                history.pushState(null, '', item.href);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+                dropdown.classList.add('hidden');
+            });
+            dropdown.appendChild(option);
+        });
+
+        playBtnWrapper.appendChild(dropdown);
+
+        // Toggle dropdown on click
+        playBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!playBtnWrapper.contains(e.target as Node)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        this.buttonsGroup.appendChild(playBtnWrapper);
+
+    
+        const profileService = new ProfileServices();
+    
+        // Logout button
+        const logoutBtn = document.createElement('a');
         logoutBtn.textContent = 'Logout';
         logoutBtn.href = '#';
         logoutBtn.className = `
-            w-[138px] h-[36px]
+            w-[128px] h-[42px]
             px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel
-            text-color_white
+            text-[16px] font-pixel text-color_white
             border border-[1px] border-border-green
             inline-flex justify-center items-center
             no-underline cursor-pointer
@@ -132,48 +207,60 @@ export class Header implements IComponent {
             hover:bg-color-green hover:text-color_white
         `;
         logoutBtn.addEventListener("click", async () => {
-            try {
-              const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
-                  if (!confirmed) return;
-              // Call your logout API
-              const res = await profileService.logout();
-              if (res.success) {
-                // Clear localStorage / JWT
+            const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
+            if (!confirmed) return;
+    
+            const res = await profileService.logout();
+            if (res.success) {
                 localStorage.removeItem("jwtToken");
                 localStorage.removeItem("currentUsername");
-        
-                 // ✅ Clear auth state and trigger header update
-                 AuthUtils.logout();
-                // Redirect to main page after successful logout
-                setTimeout(() => {
-                  console.log("Current URL before navigation:", window.location.href);
-                  console.log("Current pathname:", window.location.pathname);
-                  console.log("Current hash:", window.location.hash);
-                  
-                  //i need to check and clear the path first
-                  if(window.location.hash)
-                      history.replaceState(null, '', window.location.pathname);
-                  
-                  //then navigate to destination
-                  history.pushState(null, '', '/main');
-                  // Trigger router update
-                  window.dispatchEvent(new PopStateEvent('popstate'));
-        
-                  console.log("PopState event dispatched");
-              }, 100);
-              } else {
+                AuthUtils.logout();
+                history.pushState(null, '', '/main');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            } else {
                 alert(res.message || "Logout failed");
-              }
-            } catch (err) {
-              console.error("Logout error:", err);
-              alert("Logout failed");
             }
-          });
-            this.buttonsGroup.appendChild(logoutBtn);
-            console.log('[Header] User IS logged in → hiding buttons');
+        });
+        this.buttonsGroup.appendChild(logoutBtn);
+    
+        // Fetch user info and add avatar
+        try {
+            const authService = new AuthServices();
+            const userInfo = await authService.getCurrentUser();
+            
+            let avatarUrl = "/uploads/avatars/default.png";
+            
+            if (userInfo.success && userInfo.data?.avatar) {
+                avatarUrl = AuthUtils.getAvUrl(userInfo.data.avatar);
+            }
+            
+            const avatarLink = document.createElement("a");
+            avatarLink.href = "/profile";
+            avatarLink.className = `
+                w-[40px] h-[40px]
+                rounded-full overflow-hidden
+                border border-[3px] border-border-green
+                inline-flex justify-center items-center cursor-pointer
+            `;
+            
+            const avatarDiv = document.createElement("div");
+            avatarDiv.className = "w-full h-full rounded-full bg-center bg-cover";
+            avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
+            
+            avatarLink.appendChild(avatarDiv);
+            
+            avatarLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                history.pushState(null, '', '/profile');
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+            
+            this.buttonsGroup.appendChild(avatarLink);
+        } catch (error) {
+            console.error("Error loading avatar:", error);
         }
-        // If logged in, buttonsGroup stays empty (no buttons shown)
     }
+    
 
     private createLink(link: {text: string, href: string, type: string}): HTMLElement {
         const a = document.createElement('a');

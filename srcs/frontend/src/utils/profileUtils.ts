@@ -1,40 +1,31 @@
 
-export class AuthUtils {
-    private static readonly AUTH_KEY = 'isLoggedIn';
-    private static readonly USER_KEY = 'userData';
 
-    /**
-     * Set user as logged in
-     */
-    static setLoggedIn(userData?: any): void {
-        localStorage.setItem(this.AUTH_KEY, 'true');
-        if (userData) {
-            localStorage.setItem(this.USER_KEY, JSON.stringify(userData));
-        }
-        // Dispatch custom event to notify components
-        window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: true } }));
-    }
+export function getAvatarUrl(avatarPath: string): string {
+  const backendUrl = "http://localhost:5001";
 
-    /**
-     * Check if user is logged in
-     */
-    static isLoggedIn(): boolean {
-        return localStorage.getItem(this.AUTH_KEY) === 'true';
-    }
+  if (!avatarPath) return `${backendUrl}/uploads/default-avatar.png`;
+  if (avatarPath.startsWith("http")) return avatarPath;
 
+  return `${backendUrl}${avatarPath.startsWith("/") ? avatarPath : "/" + avatarPath}`;
+}
 
-    /**
-     * Logout user
-     */
-    static logout(): void {
-        localStorage.removeItem(this.AUTH_KEY);
-        localStorage.removeItem(this.USER_KEY);
-        // Dispatch custom event to notify components (this updates the header)
-        window.dispatchEvent(new CustomEvent('authChange', { detail: { isLoggedIn: false } }));
-        // Note: Redirect is handled by the Profile component's logout handler
-    }
+export function showMessage(
+  message: string,
+  type: "success" | "error" = "success"
+): void {
+  const msg = document.createElement("div");
+  msg.textContent = message;
+  msg.className = `
+    fixed bottom-4 left-1/2 transform -translate-x-1/2
+    px-6 py-3 rounded-xl text-white z-50
+    ${type === "success" ? "bg-green-600" : "bg-red-600"}
+  `;
+  document.body.appendChild(msg);
 
-  static async showConfirmation(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
+  setTimeout(() => msg.remove(), 2500);
+}
+
+export async function showConfirmation(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
     return new Promise((resolve) => {
       const overlay = document.createElement("div");
       overlay.style.position = "fixed";
@@ -127,14 +118,3 @@ export class AuthUtils {
       );
     });
   }
-  static getAvUrl(path?: string): string {
-    if (!path) return "";
-    const backendUrl = "http://localhost:5001";
-    // if path already looks like a full URL, use it
-    const full = path.startsWith("http://") || path.startsWith("https://");
-    const base = full ? path : `${backendUrl}${path}`;
-    const sep = base.includes("?") ? "&" : "?";
-    return `${base}${sep}t=${Date.now()}`;
-  }
-    
-}
