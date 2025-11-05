@@ -3,6 +3,7 @@ import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { GameResults } from "./GameResults.js";
+import { BabylonScene } from "../graphics/BabylonScene.js";
 
 type GameOptions = {
   sessionId?: string;
@@ -14,7 +15,7 @@ type GameOptions = {
 export class Game implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
+  private babylonScene!: BabylonScene;
   private gameService: GameService;
   private currentSession: GameSession | null = null;
   private opts?: GameOptions;
@@ -31,16 +32,17 @@ export class Game implements IComponent {
 
   constructor(opts?: GameOptions) {
     this.opts = opts;
+    
+    // Create canvas
     this.canvas = document.createElement("canvas");
     this.canvas.width = 900;
     this.canvas.height = 600;
-
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) throw new Error("Failed to get canvas context");
-    this.context = ctx;
-
+    
+    // Initialize Babylon.js scene (replaces 2D context)
+    this.babylonScene = new BabylonScene(this.canvas);
+  
     this.gameService = new GameService();
-
+  
     this.setupKeyboardControls();
   }
 
@@ -132,8 +134,6 @@ export class Game implements IComponent {
 
     this.container.appendChild(controlsContainer);
 
-    this.drawInitialScreen();
-
     // Initialise logic
     if (this.opts?.isTournament && this.opts.sessionId) {
       this.initializeTournament();
@@ -145,8 +145,6 @@ export class Game implements IComponent {
 
   // -------------------------------------------------
   // SETUP HELPERS
-  // - sets up UI scaffolding, drawing primitives
-  // - don't depend on backend session or game logic
   // -------------------------------------------------
   private loadPageStyles(): void {
     if (document.getElementById("game-styles")) return;
@@ -184,92 +182,12 @@ export class Game implements IComponent {
     return btn;
   }
 
-  private drawInitialScreen() {
-    if (!this.context) return;
-
-    //background
-    this.context.fillStyle = "#F2F1FA";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    //ball
-    this.context.fillStyle = "#423f6a";
-    this.context.beginPath();
-    this.context.arc(
-      this.canvas.width / 2,
-      this.canvas.height / 2,
-      12,
-      0,
-      Math.PI * 2
-    );
-    this.context.fill();
-
-    /// Left paddle
-    this.drawRoundedRect(
-      20,
-      this.canvas.height / 2 - 40,
-      10,
-      100,
-      5,
-      "#423f6a"
-    );
-
-    // Right paddle
-    this.drawRoundedRect(
-      this.canvas.width - 30,
-      this.canvas.height / 2 - 40,
-      10,
-      100,
-      5,
-      "#423f6a"
-    );
-
-    //divider
-    this.context.beginPath();
-    this.context.setLineDash([10, 15]);
-    this.context.strokeStyle = "#423f6a";
-    this.context.lineWidth = 4;
-    this.context.moveTo(this.canvas.width / 2, 0);
-    this.context.lineTo(this.canvas.width / 2, this.canvas.height);
-    this.context.stroke();
-    this.context.setLineDash([]); // reset dashes
-  }
-
-  private drawRoundedRect(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    radius: number,
-    fillColor: string
-    // strokeColor?: string
-  ) {
-    if (!this.context) return;
-    const ctx = this.context;
-
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + width - radius, y);
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-    ctx.lineTo(x + width, y + height - radius);
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-    ctx.lineTo(x + radius, y + height);
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-
-    ctx.fillStyle = fillColor;
-    ctx.fill();
-  }
-
   // -------------------------------------------------
   // INITIALISATION
-  // - prepare game session before gameplay begins
-  // - configures UI according to whether standalone or tournament game
   // -------------------------------------------------
   private async initializeStandalone(): Promise<void> {
     try {
-      const userId = 1; // TODO For test case only, later i need to replace with actual id from backend;
+      const userId = 1; // TODO For test case only
       this.currentSession = await this.gameService.createGameSession(
         userId,
         "RIGHT"
@@ -277,7 +195,7 @@ export class Game implements IComponent {
 
       console.log(`Current Session: ${this.currentSession}`);
 
-      //show the user one the right
+      //show the user on the right
       const rightPlayerElement = document.getElementById("right-player");
       if (rightPlayerElement && this.currentSession?.players[0])
         rightPlayerElement.textContent =
@@ -343,7 +261,6 @@ export class Game implements IComponent {
     } catch (error: any) {
       console.log("Error adding guest player", error);
       if (error.status === 409) {
-        // Custom handling for duplicate display name
         alert(error.message);
       } else {
         alert("Error adding guest player");
@@ -353,8 +270,6 @@ export class Game implements IComponent {
 
   // -------------------------------------------------
   // GAME LOOP + CONTROLS
-  // - controls how game runs frame-by-frame
-  // - manages runtime flow
   // -------------------------------------------------
   private startGameLoop(): void {
     this.isGameRunning = true;
@@ -372,7 +287,7 @@ export class Game implements IComponent {
   private async gameLoop(): Promise<void> {
     if (!this.isGameRunning) return;
     await this.updateGame();
-    this.drawGame();
+    // Note: Babylon.js handles rendering automatically in BabylonScene
 
     this.animationId = requestAnimationFrame(() => this.gameLoop());
   }
@@ -385,7 +300,6 @@ export class Game implements IComponent {
 
     try {
       if (!this.isGameRunning) {
-        // Start the game
         await this.gameService.startGame(this.currentSession.sessionId);
         this.startGameLoop();
         this.updateGameButtons(true);
@@ -435,8 +349,6 @@ export class Game implements IComponent {
     this.ball.dx = 5;
     this.ball.dy = 3;
 
-    this.drawInitialScreen();
-
     // Reset UI
     const setupSection = document.getElementById("setup-section");
     const startBtn = document.getElementById("start-btn");
@@ -479,8 +391,6 @@ export class Game implements IComponent {
 
   // -------------------------------------------------
   // GAME STATE UPDATES
-  // - defines what happens each frame in gameplay
-  // - handles physics, scoring, drawing and determining winners
   // -------------------------------------------------
   private updatePaddleMovement(): void {
     if (this.key["w"] && this.leftPaddle.y > 0) {
@@ -512,80 +422,6 @@ export class Game implements IComponent {
     this.rightPaddle.y = Math.max(
       0,
       Math.min(this.rightPaddle.y, this.canvas.height - this.rightPaddle.height)
-    );
-  }
-
-  private drawGame(): void {
-    // Clear canvas
-    this.context.fillStyle = "#F2F1FA";
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    //  ball
-    this.context.fillStyle = "#423f6a";
-    this.context.beginPath();
-    this.context.arc(
-      this.ball.x,
-      this.ball.y,
-      this.ball.radius,
-      0,
-      Math.PI * 2
-    );
-    this.context.fill();
-
-    //  paddles
-    this.drawRoundedRect(
-      this.leftPaddle.x,
-      this.leftPaddle.y,
-      this.leftPaddle.width,
-      this.leftPaddle.height,
-      5,
-      "#423f6a"
-    );
-    this.drawRoundedRect(
-      this.rightPaddle.x,
-      this.rightPaddle.y,
-      this.rightPaddle.width,
-      this.rightPaddle.height,
-      5,
-      "#423f6a"
-    );
-
-    //  divider
-    this.context.beginPath();
-    this.context.setLineDash([10, 15]);
-    this.context.strokeStyle = "#423f6a";
-    this.context.lineWidth = 4;
-    this.context.moveTo(this.canvas.width / 2, 0);
-    this.context.lineTo(this.canvas.width / 2, this.canvas.height);
-    this.context.stroke();
-    this.context.setLineDash([]);
-
-    // Draw scores
-    this.drawScores();
-  }
-
-  private drawScores(): void {
-    if (!this.currentSession) return;
-
-    this.context.fillStyle = "#423f6a";
-    this.context.font = "48px Arial";
-    this.context.textAlign = "center";
-
-    const leftPlayer = this.currentSession.players.find(
-      (p) => p.side === "LEFT"
-    );
-    const rightPlayer = this.currentSession.players.find(
-      (p) => p.side === "RIGHT"
-    );
-
-    const rightScore = rightPlayer ? rightPlayer.score : 0;
-    const leftScore = leftPlayer ? leftPlayer.score : 0;
-
-    this.context.fillText(leftScore.toString(), this.canvas.width / 4, 80);
-    this.context.fillText(
-      rightScore.toString(),
-      (3 * this.canvas.width) / 4,
-      80
     );
   }
 
@@ -633,7 +469,7 @@ export class Game implements IComponent {
         return;
       }
     }
-    const safeZone = this.canvas.width / 4; // 25% away from center
+    const safeZone = this.canvas.width / 4;
     if (this.isScoring) {
       const centerX = this.canvas.width / 2;
       if (Math.abs(this.ball.x - centerX) > safeZone) {
@@ -652,7 +488,7 @@ export class Game implements IComponent {
         if (this.currentSession.status === "FINISHED") {
           setTimeout(() => {
             this.endGame();
-          }, 500); // adding 0,5 sec delay to update the ui to show score 5
+          }, 500);
         } else if (this.currentSession.status === "ABORTED") {
           this.stopGameLoop();
           return;
@@ -664,7 +500,7 @@ export class Game implements IComponent {
     // Reset ball position
     this.ball.x = this.canvas.width / 2;
     this.ball.y = this.canvas.height / 2;
-    this.ball.dx = -this.ball.dx; // Change direction
+    this.ball.dx = -this.ball.dx;
   }
 
   private async endGame(): Promise<void> {
@@ -696,6 +532,10 @@ export class Game implements IComponent {
     if (this.cleanupWarning) {
       this.cleanupWarning();
       this.cleanupWarning = undefined;
+    }
+    // Dispose Babylon.js scene
+    if (this.babylonScene) {
+      this.babylonScene.dispose();
     }
   }
 
