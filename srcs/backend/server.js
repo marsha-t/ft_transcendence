@@ -48,7 +48,7 @@ const app = Fastify({ logger: true,
 });
 
 await app.register(cors, {
-  origin: 'https://shiny-journey-q77xxwxvw97gh9496-443.app.github.dev',
+  origin: 'https://silver-space-winner-977xxpx6p6j4h79q-443.app.github.dev/',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
