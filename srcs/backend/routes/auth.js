@@ -3,6 +3,8 @@
 import { registerSchema, loginSchema, logoutSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { sendEmail } from '../services/emailService.js';
 
 async function authRoutes(app, options) {
 
@@ -76,7 +78,7 @@ async function authRoutes(app, options) {
       // Send token back to frontend --------------------------------
       return reply.setCookie('token', token, {
               httpOnly: true,       // 🚫 not accessible by JavaScript
-              secure: true,         // 🔒 only sent over HTTPS
+              secure: false,         // 🔒 only sent over HTTPS
               sameSite: 'strict',   // Prevents CSFR attack
               path: '/',            // 🍪 available to all routes
               maxAge: 60 * 60,      // 1 hour in seconds
@@ -90,6 +92,90 @@ async function authRoutes(app, options) {
       return reply.code(500).send({ error: 'Login failed' });
     }
   });
+
+  // 2FA --------------------------------------------
+  // Route to enable 2FA
+  app.post('/api/2fa/enable', { preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id; // from JWT
+  
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
+
+      // Generate OTP and expiry
+      const code = crypto.randomInt(100000, 999999).toString();
+      const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  
+      // Save to DB
+      await prisma.user.update({
+        where: { id: userId },
+        data: { twoFactorCode: code, twoFactorExpiry: expiry },
+      });
+  
+      // Send OTP via email
+      await sendEmail(user.email, 'Your 2FA Verification Code', `Your verification code is: ${code}`);
+  
+      reply.send({ message: 'Verification code sent to email' });
+    } catch (err) {
+      request.log.error(err);
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
+      return reply.code(500).send({ error: '2FA enable failed' });
+    }
+  });  
+
+  // Route to verify 2FA
+  app.post('/api/2fa/verify', { preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const { code } = request.body;
+
+      if (!code) return reply.code(400).send({ message: 'Code is required' });
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
+
+      // Check if code matches and is not expired
+      if (user.twoFactorCode !== code) {
+        return reply.code(401).send({ message: 'Invalid verification code' });
+      }
+
+      if (!user.twoFactorExpiry || new Date() > user.twoFactorExpiry) {
+        return reply.code(401).send({ message: 'Verification code expired' });
+      }
+
+      // Enable 2FA and clear code
+      await prisma.user.update({
+        where: { id: userId },
+        data: { twoFactorEnabled: true, twoFactorCode: null, twoFactorExpiry: null },
+      });
+
+      return reply.send({ message: '2FA verified and enabled successfully' });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: '2FA verification failed' });
+    }
+  });
+
+  //  Route to disable 2FA
+  // app.post('/api/2fa/disable', { preHandler: [app.authenticate] }, async (request, reply) => {
+  //   try {
+  //     const userId = request.user.id;
+
+  //     const user = await prisma.user.findUnique({ where: { id: userId } });
+  //     if (!user) return reply.code(404).send({ message: 'User not found' });
+
+  //     await prisma.user.update({
+  //       where: { id: userId },
+  //       data: { twoFactorEnabled: false },
+  //     });
+
+  //     return reply.send({ message: '2FA disabled successfully' });
+  //   } catch (err) {
+  //     request.log.error(err);
+  //     return reply.code(500).send({ error: 'Failed to disable 2FA' });
+  //   }
+  // });
+  // ------------------------------------------------
 
   // Logout Route
   app.post('/api/logout', { schema: logoutSchema, preHandler: [app.authenticate] }, async (request, reply) => {

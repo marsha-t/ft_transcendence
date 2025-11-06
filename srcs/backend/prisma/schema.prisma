@@ -50,6 +50,13 @@ model User {
   password String
   avatar   String   @default("/uploads/avatars/default.png")
   status   String   @default("OFFLINE")
+
+  // 2FA
+  twoFactorEnabled   Boolean  @default(false)
+  twoFactorCode      String?  
+  twoFactorExpiry    DateTime?
+
+  // Game stats
   totalMatches Int @default(0)
   totalWins     Int @default(0)
   winRate       Float @default(0)
