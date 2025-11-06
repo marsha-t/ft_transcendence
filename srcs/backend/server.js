@@ -63,20 +63,10 @@ await app.register(swagger, {
         version: '1.0.0',
       },
       servers: [
-        { url: 'http://localhost:5001/' },
+        { url: 'http://127.0.0.1:5001/' }, // Use this when working on codespaces!
+        { url: 'http://localhost:5001/' }, // Use this when working locally!
       ],
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            description: 'Enter your token as: **Bearer <JWT>**',
-          },
-        },
-      },
-      // 👇 This makes all routes require JWT by default (visually in docs)
-      security: [{ BearerAuth: [] }],
+      
     },
   });
 
@@ -85,6 +75,15 @@ await app.register(swagger, {
     uiConfig: {
       docExpansion: 'full',
       deepLinking: false,
+    },
+    uiHooks: {
+      onComplete: () => {
+        // 👇 Make Swagger send cookies automatically with every request
+        window.ui.getConfigs().requestInterceptor = (req) => {
+          req.withCredentials = true;
+          return req;
+        };
+      },
     },
   });
 // ------------------------------------------------------
@@ -142,10 +141,6 @@ app.register(dashboardRoutes);
 // To save openapi.json file (needs to be after registering routes and before app.listen)
 // To save, uncomment the code
 await app.ready(); // wait until all routes are registered
-app.ready().then(() => {
-  console.log(app.printRoutes());
-});
-
 // fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
 
 const start = async () => {

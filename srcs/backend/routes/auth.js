@@ -67,7 +67,7 @@ async function authRoutes(app, options) {
         data: { status: "ONLINE" },
       });
 
-        // Generate JWT token --------------------------------
+      // Generate JWT token --------------------------------
       const token = app.jwt.sign(
         { id: user.id, username: user.username }, // payload
         { expiresIn: '1h' }                     // optional expiration
@@ -77,7 +77,7 @@ async function authRoutes(app, options) {
       return reply.setCookie('token', token, {
               httpOnly: true,       // 🚫 not accessible by JavaScript
               secure: true,         // 🔒 only sent over HTTPS
-              sameSite: 'strict',
+              sameSite: 'strict',   // Prevents CSFR attack
               path: '/',            // 🍪 available to all routes
               maxAge: 60 * 60,      // 1 hour in seconds
             })
