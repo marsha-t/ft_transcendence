@@ -5,10 +5,6 @@ export const sendFriendRequestSchema = {
   summary: 'Send a friend request to another user by username',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   body: {
     type: 'object',
@@ -44,10 +40,6 @@ export const acceptFriendRequestSchema = {
   summary: 'Accept a pending friend request',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   params: {
     type: 'object',
@@ -79,10 +71,6 @@ export const rejectFriendRequestSchema = {
   summary: 'Reject a pending friend request',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   params: {
     type: 'object',
@@ -101,10 +89,6 @@ export const removeFriendSchema = {
   summary: 'Remove an existing friend (unfriend)',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   params: {
     type: 'object',
@@ -123,10 +107,6 @@ export const getFriendsSchema = {
   summary: 'Get the list of all accepted friends of the current user',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   response: {
     200: {
@@ -149,10 +129,6 @@ export const getIncomingRequestsSchema = {
   summary: 'Get incoming friend requests (users who added me, still pending)',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   response: {
     200: {
@@ -177,46 +153,11 @@ export const getIncomingRequestsSchema = {
   }
 };
 
-// export const getOutgoingRequestsSchema = {
-//   tags: ['Friends'],
-//   summary: 'Get outgoing friend requests (users I added, still pending)',
-//   headers: {
-//     type: 'object',
-//     properties: { 'x-current-user-id': { type: 'string' } },
-//     required: ['x-current-user-id'],
-//   },
-//   response: {
-//     200: {
-//       type: 'array',
-//       items: {
-//         type: 'object',
-//         properties: {
-//           id: { type: 'integer' },
-//           to: { 
-//             type: 'object', 
-//             properties: { 
-//               username: { type: 'string' },
-//               avatar: { type: 'string' },
-//               status: { type: 'string' }
-//             } 
-//           },
-//           status: { type: 'string' }
-//         }
-//       }
-//     },
-//     500: { type: 'object', properties: { error: { type: 'string' } } },
-//   }
-// };
-
 export const searchFriendsSchema = {
   tags: ['Friends'],
   summary: 'Search for users by username',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   querystring: {
     type: 'object',
