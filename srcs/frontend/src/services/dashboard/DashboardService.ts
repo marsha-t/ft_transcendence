@@ -7,7 +7,11 @@ export class DashboardService {
 	constructor() {
 		this.baseUrl = '/api';
 	}
-
+	
+	getToken(): string | null {
+		return localStorage.getItem('jwtToken');
+	}
+		
 	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/stats/game`, {
@@ -40,13 +44,12 @@ export class DashboardService {
 		}
 	}
 	
-	async getUserDashboard(userId: number): Promise<ApiResponse<UserDashboard>> {
+	async getUserDashboard(): Promise<ApiResponse<UserDashboard>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/stats/user`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
-					'X-Current-User-Id': String(userId),
 				},
 				credentials: 'include',
 			});

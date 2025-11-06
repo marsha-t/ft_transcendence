@@ -71,24 +71,6 @@ export class TournamentSetup implements IComponent {
     const n = TournamentDraftStore.numberOfPlayers;
     if (!n || n < 2) return alert("Please set at least 2 players");
 
-    // Get current username from localStorage
-    const username = localStorage.getItem('currentUsername');
-
-    if (!username) {
-        alert("No logged-in user found.");
-        return;
-    }
-
-    const currentUser = {
-        displayName: username,
-        isGuest: false,
-    };
-    
-    const alreadyHas = TournamentDraftStore.players.some(
-      (p) => p.displayName === currentUser.displayName
-    ); // Reset draft (in case user clicks 'back' to return to setup page and changes number of players)
-    if (!alreadyHas) TournamentDraftStore.addPlayer(currentUser);
-
     // overlay
     this.modal = document.createElement("div");
     this.modal.className = "tournament-modal";
@@ -259,9 +241,10 @@ export class TournamentSetup implements IComponent {
 
     // Check if full
     const added = TournamentDraftStore.players.length;
-    const remaining = totalNeeded - added;
+    const remaining = totalNeeded - added - 1;
     if (remaining <= 0) this.showConfirmButton();
   }
+
   private createLineupSection(): HTMLElement {
     const section = document.createElement("div");
     section.className = "lineup-section";
@@ -273,12 +256,9 @@ export class TournamentSetup implements IComponent {
     const ul = document.createElement("ul");
     ul.id = "lineup-list";
 
-    const creator = TournamentDraftStore.players[0];
-    if (creator) {
-      const li = document.createElement("li");
-      li.textContent = `1. ${creator.displayName} (creator)`;
-      ul.appendChild(li);
-    }
+    const li = document.createElement("li");
+    li.textContent = `1. Creator`;
+    ul.appendChild(li);
 
     section.appendChild(ul);
 
@@ -299,16 +279,17 @@ export class TournamentSetup implements IComponent {
     const ul = document.getElementById("lineup-list");
     if (!ul) return;
     ul.innerHTML = "";
+    const creator = document.createElement("li");
+    const creatorNameSpan = document.createElement("span");
+    creatorNameSpan.textContent = "1. Creator";
+    creator.appendChild(creatorNameSpan);
+    ul.appendChild(creator);
 
     TournamentDraftStore.players.forEach((p, i) => {
       const li = document.createElement("li");
       const nameSpan = document.createElement("span");
 
-      nameSpan.textContent = `${i + 1}. ${p.displayName}`;
-      if (!p.isGuest && p.userId === 1) {
-        // ✅ hardcoded creator check for now
-        nameSpan.textContent += " (Creator)";
-      }
+      nameSpan.textContent = `${i + 2}. ${p.displayName}`;
       li.appendChild(nameSpan);
 
       // Add delete button for non-creator players
@@ -326,7 +307,7 @@ export class TournamentSetup implements IComponent {
     });
 
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
-    if (TournamentDraftStore.players.length >= totalNeeded)
+    if (TournamentDraftStore.players.length >= totalNeeded - 1)
       this.showConfirmButton();
     else this.hideConfirmButton();
   }

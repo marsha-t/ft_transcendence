@@ -78,6 +78,7 @@ export class TournamentService {
 				credentials: 'include',
 				body: JSON.stringify({ numberOfPlayers, players }),
 			});
+			
 			const data = await response.json();
 			if (!response.ok) {
 				let msg = data.validation?.[0]?.message || data.error;
