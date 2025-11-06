@@ -222,7 +222,6 @@ async function dashboardRoutes(app, options) {
 	// Fetch data for user dashboard
 	app.get('/api/stats/user', { schema: userDashboardSchema, preHandler: [ app.authenticate ] }, async (request, reply) => {
 		const userId = request.user.id;
-
 		try {
 			// Overview stats
 			const overviewData = await prisma.user.findUnique({ 
