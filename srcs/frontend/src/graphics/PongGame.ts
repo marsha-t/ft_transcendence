@@ -75,7 +75,7 @@ export class PongGame {
         while (currentZ < totalDepth / 2) {
             const dash = BABYLON.MeshBuilder.CreateBox(
                 "dash",
-                { width: 0.2, height: 0.1, depth: dashLength },
+                { width: 0.2, height: 0.08, depth: dashLength },
                 this.scene
             );
             dash.position.y = 0.4;
@@ -102,20 +102,20 @@ export class PongGame {
         // Top wall
         const topWall = BABYLON.MeshBuilder.CreateBox(
             "topWall",
-            { width: 20, height: 0.5, depth: 0.1 },
+            { width: 20, height: 0.3, depth: 0.1 },
             this.scene
         );
-        topWall.position.set(0, 0.1, -5); // along Z-axis
+        topWall.position.set(0, 0.5, -5); // along Z-axis
         topWall.material = wallMaterial;
         topWall.parent = table;
     
         // Bottom wall
         const bottomWall = BABYLON.MeshBuilder.CreateBox(
             "bottomWall",
-            { width: 20, height: 0.5, depth: 0.1 },
+            { width: 18, height: 0.3, depth: 0.1 },
             this.scene
         );
-        bottomWall.position.set(0, 0.1, 5);
+        bottomWall.position.set(0, 0.5, 4.8); // here chnage the wall's size and location
         bottomWall.material = wallMaterial;
         bottomWall.parent = table;
     }
