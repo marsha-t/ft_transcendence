@@ -1,6 +1,6 @@
 // routes/auth.js
 
-import { registerSchema, loginSchema, logoutSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -95,7 +95,7 @@ async function authRoutes(app, options) {
 
   // 2FA --------------------------------------------
   // Route to enable 2FA
-  app.post('/api/2fa/enable', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/api/2fa/enable', { schema: enable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // from JWT
   
@@ -113,9 +113,10 @@ async function authRoutes(app, options) {
       });
   
       // Send OTP via email
-      await sendEmail(user.email, 'Your 2FA Verification Code', `Your verification code is: ${code}`);
+      await sendEmail(user.email, '2FA Verification Code', `Your verification code is: ${code}`);
   
       reply.send({ message: 'Verification code sent to email' });
+
     } catch (err) {
       request.log.error(err);
       if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
@@ -124,7 +125,7 @@ async function authRoutes(app, options) {
   });  
 
   // Route to verify 2FA
-  app.post('/api/2fa/verify', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/api/2fa/verify', { schema: verify2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
       const { code } = request.body;
@@ -139,7 +140,7 @@ async function authRoutes(app, options) {
         return reply.code(401).send({ message: 'Invalid verification code' });
       }
 
-      if (!user.twoFactorExpiry || new Date() > user.twoFactorExpiry) {
+      if (new Date() > user.twoFactorExpiry) {
         return reply.code(401).send({ message: 'Verification code expired' });
       }
 
@@ -150,31 +151,53 @@ async function authRoutes(app, options) {
       });
 
       return reply.send({ message: '2FA verified and enabled successfully' });
+
     } catch (err) {
       request.log.error(err);
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
       return reply.code(500).send({ error: '2FA verification failed' });
     }
   });
 
+  // 2FA status route
+  app.get('/api/2fa/status', { schema: status2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
+
+      return reply.send({ enabled: !!user.twoFactorEnabled });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to fetch 2FA status' });
+    }
+  });
+
   //  Route to disable 2FA
-  // app.post('/api/2fa/disable', { preHandler: [app.authenticate] }, async (request, reply) => {
-  //   try {
-  //     const userId = request.user.id;
+  app.post('/api/2fa/disable', { schema: disable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
 
-  //     const user = await prisma.user.findUnique({ where: { id: userId } });
-  //     if (!user) return reply.code(404).send({ message: 'User not found' });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
 
-  //     await prisma.user.update({
-  //       where: { id: userId },
-  //       data: { twoFactorEnabled: false },
-  //     });
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          twoFactorEnabled: false,
+          twoFactorCode: null,
+          twoFactorExpiry: null,
+        },
+      });
 
-  //     return reply.send({ message: '2FA disabled successfully' });
-  //   } catch (err) {
-  //     request.log.error(err);
-  //     return reply.code(500).send({ error: 'Failed to disable 2FA' });
-  //   }
-  // });
+      return reply.send({ message: '2FA disabled successfully' });
+
+    } catch (err) {
+      request.log.error(err);
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
+      return reply.code(500).send({ error: 'Failed to disable 2FA' });
+    }
+  });
   // ------------------------------------------------
 
   // Logout Route
