@@ -1,5 +1,4 @@
-import { RegisterData, ApiResponse, LoginData } from './types';
-
+import { RegisterData, ApiResponse, LoginApiResponse, LoginData, Login2FAData } from './types';
 
 export class AuthServices {
     private baseUrl: string;
@@ -8,6 +7,7 @@ export class AuthServices {
     constructor() {
         this.baseUrl = '/api';
     }
+
     // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {
         try {
@@ -50,7 +50,7 @@ export class AuthServices {
     }
 
     // Method for login
-    async login(userData: LoginData): Promise<ApiResponse<any>> {
+    async login(userData: LoginData): Promise<LoginApiResponse<any>> {
         try {
             const response = await fetch(`${this.baseUrl}/login`, {
                 method: 'POST',
@@ -71,7 +71,19 @@ export class AuthServices {
     
             // Success case -------------------
             if (response.ok) {
-                
+                // If 2FA required, return that info to frontend
+                if (data.twoFactorRequired) {
+                    return {
+                        success: true,
+                        status: response.status,
+                        data: data,
+                        message: data.message || '2FA code sent to your email',
+                        errors: [],
+                        twoFactorRequired: true
+                    };
+                }
+
+                // Normal login → store username locally
                 if (data.username) {
                     localStorage.setItem('currentUsername', data.username);
                 }
@@ -82,6 +94,7 @@ export class AuthServices {
                     data: data,
                     message: data.message || 'Login successful',
                     errors: [],
+                    twoFactorRequired: false
                 };
             }
     
@@ -93,6 +106,7 @@ export class AuthServices {
                 message: msg,
                 errors: data.errors || [],
                 data: null,
+                twoFactorRequired: false
             };
     
         } catch (error) {
@@ -103,8 +117,61 @@ export class AuthServices {
                 message: 'Login API, network error',
                 errors: [],
                 data: null,
+                twoFactorRequired: false
+            };
+        }
+    }
+
+    // ⚡ New method for 2FA verification during login
+    async login2FA(payload: { username: string; code: string }): Promise<LoginApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/login/2fa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            let data: any = {};
+            try { data = await response.json(); } catch { data = {}; }
+
+            if (response.ok) {
+                // Clear localStorage and set username
+                if (data.username) {
+                    localStorage.setItem('currentUsername', data.username);
+                }
+
+                return {
+                    success: true,
+                    status: response.status,
+                    data: data,
+                    message: data.message || 'Login successful',
+                    errors: [],
+                    twoFactorRequired: false
+                };
+            }
+
+            let msg = data.message || data.error || '2FA verification failed';
+            return {
+                success: false,
+                status: response.status,
+                message: msg,
+                errors: data.errors || [],
+                data: null,
+                twoFactorRequired: false
+            };
+
+        } catch (error) {
+            console.error('2FA API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: '2FA API network error',
+                errors: [],
+                data: null,
+                twoFactorRequired: false
             };
         }
     }
 }
+
 export const apiServices = new AuthServices();

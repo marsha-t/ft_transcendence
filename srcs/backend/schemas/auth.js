@@ -51,7 +51,8 @@ export const registerSchema = {
     201: {
       type: 'object',
       properties: {
-        message: { type: 'string' }
+        message: { type: 'string' },
+        twoFactorRequired: { type: 'boolean' } // optional, only if 2FA is enabled
       }
     },
     400: {
@@ -108,7 +109,8 @@ export const loginSchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        username: { type: 'string'}
+        username: { type: 'string'},
+        twoFactorRequired: { type: 'boolean' }
       }
     },
     400: {
@@ -133,6 +135,52 @@ export const loginSchema = {
       properties: {
         error: { type: 'string' }
       }
+    }
+  }
+};
+
+export const login2FASchema = {
+  tags: ['Authentication'],
+  summary: 'Log in a user with 2FA',
+  body: {
+    type: 'object',
+    required: ['username', 'code'],
+    properties: {
+      username: { type: 'string', minLength: 3 },
+      code: {
+        type: 'string',
+        minLength: 6,
+        maxLength: 6,
+        errorMessage: {
+          minLength: 'Code must be 6 digits',
+          maxLength: 'Code must be 6 digits',
+        },
+      },
+    },
+    additionalProperties: false
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' }
+      }
+    },
+    400: {
+      type: 'object',
+      properties: { message: { type: 'string' } }
+    },
+    401: {
+      type: 'object',
+      properties: { message: { type: 'string' } }
+    },
+    404: {
+      type: 'object',
+      properties: { message: { type: 'string' } }
+    },
+    500: {
+      type: 'object',
+      properties: { error: { type: 'string' } }
     }
   }
 };
