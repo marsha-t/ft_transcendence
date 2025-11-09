@@ -229,7 +229,6 @@ export class Header implements IComponent {
             const userInfo = await authService.getCurrentUser();
             
             let avatarUrl = "/uploads/avatars/default.png";
-            
             if (userInfo.success && userInfo.data?.avatar) {
                 avatarUrl = AuthUtils.getAvUrl(userInfo.data.avatar);
             }
