@@ -76,12 +76,6 @@ export class PongGame {
         this.createCenterLine(table, lineMaterial);
     }
 
-    private createPaddles(): void {
-        this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(-9, -0.75, 0), "leftPaddle");
-        this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(9, -0.75, 0), "rightPaddle");
-
-    }
-
     private createCenterLine(table: BABYLON.Mesh, lineMaterial: BABYLON.StandardMaterial): void {
         const dashLength = 0.35;
         const dashGap = 0.075;
@@ -134,6 +128,12 @@ export class PongGame {
         // Your table y is -1 and paddles y ~ -0.75, so set ball y slightly above paddles.
         const startPos = new BABYLON.Vector3(0, -0.5, 0);
         this.ball = new Ball(this.scene, startPos, 0.5); // diameter 0.5 world units
-      }
+    }
+
+    private createPaddles(): void {
+        this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(-9, -0.75, 0), "leftPaddle");
+        this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(9, -0.75, 0), "rightPaddle");
+
+    }
       
 }
