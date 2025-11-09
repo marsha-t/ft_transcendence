@@ -3,7 +3,7 @@ import { Paddle }  from "./Paddle";
 export class InputHandler {
     private leftPaddle: Paddle;
     private rightPaddle: Paddle;
-    private paddleSpeed = 0.15;
+    private paddleSpeed = 0.55;
 
     constructor (leftPaddle: Paddle, rightPaddle: Paddle){
         this.leftPaddle = leftPaddle;
@@ -25,9 +25,11 @@ export class InputHandler {
                     break;
 
                 case "ArrowUp":
+                    ev.preventDefault();
                     this.rightPaddle.move(this.paddleSpeed);
                     break;
                 case "ArrowDown":
+                    ev.preventDefault();
                     this.rightPaddle.move(-this.paddleSpeed);
                     break;
             }
