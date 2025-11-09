@@ -6,8 +6,8 @@ import { Game } from "./Game.js";
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
   private tournamentId: number;
-  private cleanupWarning?: () => void;
   private gameInstance: Game | null = null;
+  private hasEnded: boolean = false;
 
   constructor(tournamentId: number) {
     this.tournamentId = tournamentId;
@@ -40,6 +40,7 @@ export class TournamentMatch implements IComponent {
       }
       const data = response.data;
       if (!data?.nextMatch) {
+        this.hasEnded = true;
         this.cleanup();
         navigate("/tournament/results", { tournamentId: this.tournamentId });
         return;
@@ -88,10 +89,6 @@ export class TournamentMatch implements IComponent {
   }
 
   private startGame(gameSessionId: number, p1: any, p2: any) {
-    if (this.cleanupWarning) {
-      this.cleanupWarning();
-      this.cleanupWarning = undefined;
-    }
     this.container.innerHTML = "";
     this.gameInstance = new Game({
       sessionId: String(gameSessionId),
@@ -114,16 +111,13 @@ export class TournamentMatch implements IComponent {
   }
 
   public cleanup() {
-    if (this.cleanupWarning) {
-      this.cleanupWarning();
-      this.cleanupWarning = undefined;
-    }
     if (this.gameInstance) {
       this.gameInstance.terminate?.();
       this.gameInstance = null;
     }
   }
   public async canDeactivate(): Promise<boolean> {
+    if (this.hasEnded) return true;
     const confirmLeave = confirm(
       "A tournament is in progress. Leaving will abort it."
     );

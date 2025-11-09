@@ -6,7 +6,7 @@ export class AuthServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = 'http://localhost:5001/api';
+        this.baseUrl = '/api';
     }
     // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {
@@ -71,11 +71,7 @@ export class AuthServices {
     
             // Success case -------------------
             if (response.ok) {
-                // Store JWT if returned
-                if (data.token) {
-                    localStorage.setItem('jwtToken', data.token);
-                }
-
+                
                 if (data.username) {
                     localStorage.setItem('currentUsername', data.username);
                 }
@@ -122,9 +118,7 @@ export class AuthServices {
             // Changed from /api/me to /api/userInfo to match your backend route
             const response = await fetch(`${this.baseUrl}/userInfo`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                credentials: 'include',
             });
 
             const data = await response.json();

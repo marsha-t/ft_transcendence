@@ -5,10 +5,6 @@ export const getCurrentUserSchema = {
   summary: 'Fetch currently authenticated user',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   response: {
     200: {
@@ -44,10 +40,6 @@ export const getCurrentUserSchema = {
     summary: 'Get user play counts within a date range',
     headers: {
       type: 'object',
-      properties: {
-        authorization: { type: 'string', description: 'Bearer <token>' },
-      },
-      required: ['authorization'],
     },
     querystring: {
       type: 'object',
@@ -84,10 +76,6 @@ export const updateProfileSchema = {
   summary: 'Update username, password, or email of the current user',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   body: {
     type: 'object',
@@ -160,10 +148,6 @@ export const avatarUploadSchema = {
   summary: 'Upload or update the avatar of the current user',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   consumes: ['multipart/form-data'],
   response: {
@@ -190,10 +174,6 @@ export const removeAvatarSchema = {
   summary: 'Remove user avatar and reset to default',
   headers: {
     type: 'object',
-    properties: {
-      authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ['authorization'],
   },
   response: {
     200: {
@@ -215,26 +195,3 @@ export const removeAvatarSchema = {
     },
   },
 };
-
-// export const getAvatarSchema = {
-//   tags: ['Profile'],
-//   summary: 'Fetch user avatar by ID',
-//   response: {
-//     200: {
-//       type: 'object',
-//       properties: {
-//         avatar: { type: 'string' } // URL/path to avatar
-//       }
-//     },
-//     404: {
-//       type: 'object',
-//       properties: {
-//         error: { type: 'string' }
-//       }
-//     },
-//     500: {
-//       type: 'object',
-//       properties: { error: { type: 'string' } },
-//     },
-//   },
-// };

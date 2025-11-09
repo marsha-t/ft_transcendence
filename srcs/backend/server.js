@@ -8,6 +8,7 @@ import AjvErrors from 'ajv-errors';
 
 // ------- JWT ---------------------
 import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -47,7 +48,8 @@ const app = Fastify({ logger: true,
 });
 
 await app.register(cors, {
-  origin: '*',
+  origin: 'https://silver-space-winner-977xxpx6p6j4h79q-443.app.github.dev/',
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
 
@@ -61,20 +63,10 @@ await app.register(swagger, {
         version: '1.0.0',
       },
       servers: [
-        { url: 'http://localhost:5001/' },
+        { url: 'http://127.0.0.1:5001/' }, // Use this when working on codespaces!
+        { url: 'http://localhost:5001/' }, // Use this when working locally!
       ],
-      components: {
-        securitySchemes: {
-          BearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-            description: 'Enter your token as: **Bearer <JWT>**',
-          },
-        },
-      },
-      // 👇 This makes all routes require JWT by default (visually in docs)
-      security: [{ BearerAuth: [] }],
+      
     },
   });
 
@@ -83,6 +75,15 @@ await app.register(swagger, {
     uiConfig: {
       docExpansion: 'full',
       deepLinking: false,
+    },
+    uiHooks: {
+      onComplete: () => {
+        // 👇 Make Swagger send cookies automatically with every request
+        window.ui.getConfigs().requestInterceptor = (req) => {
+          req.withCredentials = true;
+          return req;
+        };
+      },
     },
   });
 // ------------------------------------------------------
@@ -104,11 +105,26 @@ app.register(fastifyJwt, {
   secret: process.env.JWT_SECRET,
 });
 
+app.register(fastifyCookie);
+
 app.decorate('authenticate', async function (request, reply) {
   try {
-    await request.jwtVerify();
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.code(401).send({ error: 'Missing token' });
+    }
+
+    const decoded = await app.jwt.verify(token);
+    request.user = decoded;
   } catch (err) {
-    reply.code(401).send({ error: 'Unauthorized' });
+    // err.name can help differentiate
+    if (err.name === 'TokenExpiredError') {
+      return reply.code(401).send({ error: 'Token expired' });
+    } else if (err.name === 'JsonWebTokenError') {
+      return reply.code(401).send({ error: 'Invalid token' });
+    } else {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
   }
 });
 // ----------------------------------
