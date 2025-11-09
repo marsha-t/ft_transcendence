@@ -107,15 +107,8 @@ export class AuthServices {
         }
     }
     // Get current user (username + avatar)
-    // Get current user (username + avatar)
     async getCurrentUser(): Promise<ApiResponse<any>> {
         try {
-            const token = localStorage.getItem('jwtToken');
-            if (!token) {
-                return { success: false, status: 401, message: 'No token found', data: null, errors: [] };
-            }
-
-            // Changed from /api/me to /api/userInfo to match your backend route
             const response = await fetch(`${this.baseUrl}/userInfo`, {
                 method: 'GET',
                 credentials: 'include',
@@ -132,7 +125,7 @@ export class AuthServices {
                     errors: [],
                 };
             }
-
+            
             return {
                 success: true,
                 status: response.status,
