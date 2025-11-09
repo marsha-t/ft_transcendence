@@ -285,7 +285,7 @@ async function dashboardRoutes(app, options) {
 				const opponent = s.players.find((p) => p.userId && p.userId !== userId);
 				if (!opponent) continue;
 
-				const existing = opponents.get(opponents.userId) || {
+				const existing = opponents.get(opponent.userId) || {
 					name: opponent.user?.username || opponent.displayName, 
 					wins: 0, 
 					total: 0,
@@ -293,7 +293,7 @@ async function dashboardRoutes(app, options) {
 
 				existing.total += 1;
 				if (s.winnerUserId === userId) existing.wins += 1;
-				opponent.set(opponent.userId, existing);
+				opponents.set(opponent.userId, existing);
 			}
 			
 			const winsPerOpponent = Array.from(opponents.values()).map((o) => ({
