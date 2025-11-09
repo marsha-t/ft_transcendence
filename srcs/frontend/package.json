@@ -16,8 +16,11 @@
   "author": "bmakhama",
   "license": "ISC",
   "dependencies": {
-    "serve": "^14.2.3"
-  },
+  "serve": "^14.2.3",
+  "babylonjs": "^6.0.0",
+  "@babylonjs/core": "^6.0.0",
+  "@babylonjs/materials": "^6.0.0"
+},
   "devDependencies": {
     "typescript": "^5.4.5",
     "@types/node": "^20.0.0",

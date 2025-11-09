@@ -3,6 +3,9 @@ export async function checkSession(client, userId, sessionId) {
     where: { id: Number(sessionId) },
     include: {
       players: true,
+      tournamentMatch: {
+        include: { tournament: true }
+      }
     },
   });
 
@@ -16,7 +19,7 @@ export async function checkSession(client, userId, sessionId) {
   if (!session.tournamentMatch) {
     isAuthorized = session.players.some((p) => p.userId === userId);
   } else {
-    const tournamentPlayers = await prisma.tournamentPlayer.findMany({
+    const tournamentPlayers = await client.tournamentPlayer.findMany({
       where: { tournamentId: session.tournamentMatch.tournamentId },
       select: { userId: true },
     });
@@ -24,9 +27,9 @@ export async function checkSession(client, userId, sessionId) {
   }
 
   if (!isAuthorized) {
-    return reply
-      .code(403)
-      .send({ error: "You are not authorized to modify this game session" });
+    const err = new Error("User is not authorized to modify game session");
+    err.code = 403;
+    throw err;
   }
 
   return session;

@@ -5,7 +5,7 @@ export class DashboardService {
 	private baseUrl: string;
 
 	constructor() {
-		this.baseUrl = 'http://localhost:5001/api';
+		this.baseUrl = '/api';
 	}
 	
 	getToken(): string | null {
@@ -19,8 +19,8 @@ export class DashboardService {
 				headers: {
 					'Content-Type': 'application/json',
 					'X-Current-Session-Id': String(sessionId),
-					'Authorization': `Bearer ${this.getToken()}`,
-				}
+				},
+				credentials: 'include',
 			});
 			const data = await response.json();
 			if (!response.ok) {
@@ -50,8 +50,8 @@ export class DashboardService {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${this.getToken()}`,
-				}
+				},
+				credentials: 'include',
 			});
 			const data = await response.json();
 			if (!response.ok) {

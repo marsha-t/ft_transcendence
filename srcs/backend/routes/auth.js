@@ -67,18 +67,22 @@ async function authRoutes(app, options) {
         data: { status: "ONLINE" },
       });
 
-        // Generate JWT token --------------------------------
+      // Generate JWT token --------------------------------
       const token = app.jwt.sign(
         { id: user.id, username: user.username }, // payload
         { expiresIn: '1h' }                     // optional expiration
       );
 
       // Send token back to frontend --------------------------------
-      return reply.code(200).send({
-        message: 'Login successful',
-        token, // <--- this is the JWT your frontend will store
-        username: user.username,
-      });
+      return reply.setCookie('token', token, {
+              httpOnly: true,       // 🚫 not accessible by JavaScript
+              secure: true,         // 🔒 only sent over HTTPS
+              sameSite: 'strict',   // Prevents CSFR attack
+              path: '/',            // 🍪 available to all routes
+              maxAge: 60 * 60,      // 1 hour in seconds
+            })
+            .code(200)
+            .send({ message: 'Login successful' });
 
     } catch (err) {
       request.log.error(err);
@@ -112,6 +116,7 @@ async function authRoutes(app, options) {
         data: { status: "OFFLINE" },
       });
 
+      reply.clearCookie('token', { path: '/' });
       return reply.code(200).send({ message: 'Logout successful' });
       
     } catch (err) {
