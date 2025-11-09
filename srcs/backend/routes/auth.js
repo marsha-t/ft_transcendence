@@ -1,6 +1,6 @@
 // routes/auth.js
 
-import { registerSchema, loginSchema, login2FASchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema, login2FASchema, resendOTPSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -135,6 +135,44 @@ async function authRoutes(app, options) {
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: '2FA verification failed' });
+    }
+  });
+
+  // Resend OTP route
+  app.post('/api/login/resend-otp', { schema: resendOTPSchema }, async (request, reply) => {
+    try {
+      const { username } = request.body;
+      if (!username) return reply.code(400).send({ message: 'Username is required' });
+  
+      const user = await prisma.user.findUnique({ where: { username } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
+  
+      if (!user.twoFactorEnabled) {
+        return reply.code(400).send({ message: '2FA is not enabled for this user' });
+      }
+  
+      // Generate new OTP
+      const otpCode = crypto.randomInt(100000, 999999).toString();
+      const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  
+      // Save to DB
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { twoFactorCode: otpCode, twoFactorExpiry: otpExpiry },
+      });
+  
+      // Send OTP via email
+      await sendEmail(user.email, '2FA Verification Code', `Your new OTP is: ${otpCode}`);
+  
+      return reply.code(200).send({
+        success: true,
+        message: 'OTP resent successfully',
+        twoFactorRequired: true
+      });
+  
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to resend OTP' });
     }
   });
 

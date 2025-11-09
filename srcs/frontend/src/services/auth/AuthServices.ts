@@ -172,6 +172,36 @@ export class AuthServices {
             };
         }
     }
+
+    async resendOTP(payload: { username: string }): Promise<LoginApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/login/resend-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+    
+            const data = await response.json();
+            return {
+                success: response.ok,
+                status: response.status,
+                data,
+                message: data.message || 'OTP resent',
+                errors: [],
+                twoFactorRequired: true
+            };
+        } catch (error) {
+            console.error('Resend OTP API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                errors: [],
+                data: null,
+                twoFactorRequired: true
+            };
+        }
+    }    
 }
 
 export const apiServices = new AuthServices();

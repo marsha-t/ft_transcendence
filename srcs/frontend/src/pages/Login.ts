@@ -14,6 +14,7 @@ export class Login implements IComponent {
     private otpGroup!: HTMLDivElement;
     private otpInput!: HTMLInputElement;
     private otpSubmitButton!: HTMLButtonElement;
+    private otpResendButton!: HTMLButtonElement;
     private is2FAActive: boolean = false;
     private currentUsername: string = '';
 
@@ -69,9 +70,16 @@ export class Login implements IComponent {
         this.otpSubmitButton.textContent = 'Verify';
         this.otpSubmitButton.className = this.submitButton.className;
 
+        // Resend OTP button
+        this.otpResendButton = document.createElement('button');
+        this.otpResendButton.type = 'button';
+        this.otpResendButton.textContent = 'Resend OTP';
+        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
+
         this.otpGroup.appendChild(otpLabel);
         this.otpGroup.appendChild(this.otpInput);
         this.otpGroup.appendChild(this.otpSubmitButton);
+        this.otpGroup.appendChild(this.otpResendButton);
 
         // Message container
         this.messageContainer = document.createElement('div');
@@ -114,6 +122,7 @@ export class Login implements IComponent {
     private attachEventListeners() {
         this.form.addEventListener('submit', this.handleLogin.bind(this));
         this.otpSubmitButton.addEventListener('click', this.handle2FA.bind(this));
+        this.otpResendButton.addEventListener('click', this.handleResendOTP.bind(this));
     }
 
     private async handleLogin(event: Event) {
@@ -132,7 +141,6 @@ export class Login implements IComponent {
             const data = response?.data || response;
 
             if (data.twoFactorRequired) {
-                // Store username and show OTP only
                 this.currentUsername = userData.username;
                 this.is2FAActive = true;
 
@@ -193,10 +201,32 @@ export class Login implements IComponent {
         }
     }
 
+    private async handleResendOTP() {
+        if (!this.currentUsername) return this.showMessage('No user to resend OTP for', 'error');
+
+        this.setLoadingState(true);
+        try {
+            const response = await apiServices.resendOTP({ username: this.currentUsername });
+            if (response.success) {
+                this.showMessage(response.message || 'OTP resent successfully', 'success');
+                this.otpInput.value = '';
+                this.otpInput.focus();
+            } else {
+                this.showMessage(response.message || 'Failed to resend OTP', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            this.showMessage('Resend OTP failed', 'error');
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+
     private setLoadingState(loading: boolean) {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
         this.otpSubmitButton.disabled = loading;
+        this.otpResendButton.disabled = loading;
         this.form.querySelectorAll('input').forEach((input) => (input as HTMLInputElement).disabled = loading);
     }
 

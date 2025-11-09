@@ -185,6 +185,59 @@ export const login2FASchema = {
   }
 };
 
+export const resendOTPSchema = {
+  tags: ['Authentication'],
+  summary: 'Resend OTP for Two-Factor Authentication',
+  body: {
+    type: 'object',
+    required: ['username'],
+    properties: {
+      username: {
+        type: 'string',
+        minLength: 3,
+        errorMessage: {
+          minLength: 'Username must be at least 3 characters'
+        }
+      }
+    },
+    additionalProperties: false,
+    errorMessage: {
+      required: {
+        username: 'Username is required'
+      },
+      additionalProperties: 'No extra fields are allowed'
+    }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        message: { type: 'string' },
+        twoFactorRequired: { type: 'boolean' }
+      }
+    },
+    400: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' }
+      }
+    },
+    404: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
+  }
+};
+
 export const enable2FASchema = {
   tags: ['Authentication'],
   summary: 'Enable Two-Factor Authentication (sends OTP via email)',
