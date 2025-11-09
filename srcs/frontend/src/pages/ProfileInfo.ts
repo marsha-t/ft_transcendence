@@ -73,7 +73,7 @@ export class ProfileInfo implements IComponent {
                 this.username = profileResponse.data.username;
                 this.email = profileResponse.data.email;
                 this.avatar = profileResponse.data.avatar || "";
-                this.updateProfileUI();
+                await this.updateProfileUI();
             } else {
                 console.error('Failed to fetch profile data:', profileResponse.message);
             }
@@ -81,14 +81,35 @@ export class ProfileInfo implements IComponent {
             console.error('Error fetching profile data:', error);
         }
     }
-
-    private updateProfileUI(): void {
+    private async fetchUsername(): Promise<string> {
+        // Simulating an async API call to fetch the username
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve("Alice");
+            }, 1000);  // Simulate a 1-second delay
+        });
+    }
+    
+    private async fetchAvatarUrl(): Promise<string | null> {
+        // Simulating an async API call to fetch the avatar URL
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve("https://example.com/avatar.jpg");
+            }, 1000);  // Simulate a 1-second delay
+        });
+    }
+    private async updateProfileUI(): Promise<void> {
         if (!this.container) return;
 
         const nameEl = this.container.querySelector(".profile-name") as HTMLElement;
         const avatarEl = this.container.querySelector(".profile-avatar") as HTMLElement;
       
         if (!nameEl || !avatarEl) return;
+           // Simulate an async call to fetch username from an API or load data asynchronously
+        const username = await this.fetchUsername();
+
+        // If you are fetching the avatar asynchronously (e.g., an API call to get the avatar URL)
+        const avatarUrl = await this.fetchAvatarUrl();
       
         nameEl.textContent = this.username || "";
       
@@ -103,7 +124,7 @@ export class ProfileInfo implements IComponent {
         }
     }
 
-    private updatePopupAvatar(): void {
+    private async updatePopupAvatar(): Promise<void> {
         if (!this.popupAvatarEl) return;
 
         if (this.avatar) {
@@ -180,16 +201,17 @@ export class ProfileInfo implements IComponent {
             small.addEventListener('click', async () => {
                 const presetFilename = avatarPaths[i].split('/').pop() || '';
                 if (presetFilename) {
-                    const response = await apiServices.profile.uploadAvatarFromPreset(presetFilename);
-                    if (response.success && response.data) {
-                        this.avatar = response.data.avatar;
-                        this.updatePopupAvatar();
-                        this.updateProfileUI();
-                        window.dispatchEvent(new CustomEvent('authChange'));
-                        if (this.onProfileUpdate) this.onProfileUpdate();
-                    } else {
-                        alert(response.message || 'Failed to set avatar');
-                    }
+                    // const response = await apiServices.profile.uploadAvatarFromPreset(presetFilename);
+                    // if (response.success && response.data) {
+                    //     this.avatar = response.data.avatar;
+                    //     this.updatePopupAvatar();
+                    //     // this.updateProfileUI();
+                    //     // window.dispatchEvent(new CustomEvent('authChange'));
+                    //     if (this.onProfileUpdate) this.onProfileUpdate();
+                    // } else {
+                    //     alert(response.message || 'Failed to set avatar');
+                    // }
+                    this.handleAvatarEdit('preset', presetFilename);
                 }
             });
             smallRow.appendChild(small);
@@ -202,7 +224,7 @@ export class ProfileInfo implements IComponent {
         changeBtn.type = 'button';
         changeBtn.textContent = 'Change';
         changeBtn.className = `px-3 py-1 rounded-[8px] bg-[#297138] text-white font-pixel text-[13px] hover:brightness-95 transition`;
-        changeBtn.addEventListener('click', () => this.handleAvatarEdit());
+        changeBtn.addEventListener('click', () => this.handleAvatarEdit('external', ""));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
@@ -348,32 +370,41 @@ export class ProfileInfo implements IComponent {
         cancelBtn.textContent = "Cancel";
 
         saveBtn.addEventListener("click", async () => {
-            const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
-            const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
-            const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
-            const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='New Password']");
-
-            const data: any = {
-                username: usernameInput?.value || undefined,
-                newEmail: emailInput?.value || undefined,
-                oldPassword: oldPasswordInput?.value || undefined,
-                newPassword: newPasswordInput?.value || undefined,
-            };
-
-            const response = await apiServices.profile.updateProfile(data);
-
-            if (!response.success) {
-                this.showMessage((response.message || "Failed to update profile"), 'error');
-                return;
+            if (await this.showConfirmation("Do you Want to save changes?", "Update Profile", true) ===true)  
+            {
+                const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
+                const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
+                const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
+                const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='New Password']");
+    
+                const data: any = {
+                    username: usernameInput?.value || undefined,
+                    newEmail: emailInput?.value || undefined,
+                    oldPassword: oldPasswordInput?.value || undefined,
+                    newPassword: newPasswordInput?.value || undefined,
+                };
+    
+                const response = await apiServices.profile.updateProfile(data);
+    
+                if (!response.success) {
+                    this.showMessage((response.message || "Failed to update profile"), 'error');
+                    return;
+                }
+    
+                if (response.data.username) this.username = response.data.username;
+                if (response.data.email) this.email = response.data.email;
+    
+                this.showMessage("Profile updated successfully!", 'success');
+                await this.fetchProfileData();
+                if (this.onProfileUpdate) this.onProfileUpdate();
+                overlay.remove();
             }
-
-            if (response.data.username) this.username = response.data.username;
-            if (response.data.email) this.email = response.data.email;
-
-            await this.fetchProfileData();
-            if (this.onProfileUpdate) this.onProfileUpdate();
-            this.showMessage("Profile updated successfully!", 'success');
-            setTimeout(() => overlay.remove(), 1000);
+            else
+            {
+                overlay.remove();
+                return ;
+            }
+            
         });
 
         cancelBtn.addEventListener("click", () => overlay.remove());
@@ -383,32 +414,54 @@ export class ProfileInfo implements IComponent {
         return actions;
     }
 
-    private handleAvatarEdit(): void {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = "image/*";
-
-        input.addEventListener("change", async (e: Event) => {
-            const file = (e.target as HTMLInputElement).files?.[0];
-            if (file) {
+    private async handleAvatarEdit(avPath: 'preset' | 'external', avatarPath : string): Promise<void> {
+        try {
+            if (avPath === 'preset') {
                 const confirmed = await this.showConfirmation("Set this image as your new avatar?", "Change Avatar", true);
                 if (!confirmed) return;
-
-                const response = await apiServices.profile.uploadAvatar(file);
-
+                const response = await apiServices.profile.uploadAvatarFromPreset(avatarPath);
                 if (response.success && response.data) {
                     this.avatar = response.data.avatar;
-                    this.updatePopupAvatar();
-                    this.updateProfileUI();
+                    await this.updatePopupAvatar();
+                    await this.updateProfileUI();
                     window.dispatchEvent(new CustomEvent('authChange'));
                     if (this.onProfileUpdate) this.onProfileUpdate();
                 } else {
-                    alert(response.message);
+                    alert(response.message || 'Failed to set avatar');
                 }
+                return ;
             }
-        });
+            else {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
 
-        input.click();
+                input.addEventListener("change", async (e: Event) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                        const confirmed = await this.showConfirmation("Set this image as your new avatar?", "Change Avatar", true);
+                        if (!confirmed) return;
+
+                        const response = await apiServices.profile.uploadAvatar(file);
+
+                        if (response.success && response.data) {
+                            this.avatar = response.data.avatar;
+                            await this.updatePopupAvatar();
+                            await this.updateProfileUI();
+                            window.dispatchEvent(new CustomEvent('authChange'));
+                            if (this.onProfileUpdate) this.onProfileUpdate();
+                        } else {
+                            alert(response.message || 'Failed to set avatar');
+                        }
+                    }
+                });
+
+                input.click();
+            }
+    } catch (error) {
+        console.error("Error updating avatar:", error);
+        alert("An error occurred while updating your avatar.");
+    }
     }
 
     private async handleAvatarDelete(): Promise<void> {
@@ -420,8 +473,8 @@ export class ProfileInfo implements IComponent {
             if (!result.success) return;
 
             this.avatar = result.data?.avatar || "";
-            this.updatePopupAvatar();
-            this.updateProfileUI();
+            await this.updatePopupAvatar();
+            await this.updateProfileUI();
             window.dispatchEvent(new CustomEvent('authChange'));
             if (this.onProfileUpdate) this.onProfileUpdate();
         } catch (error) {
@@ -434,7 +487,20 @@ export class ProfileInfo implements IComponent {
         if (!this.messageContainer) return;
         
         this.messageContainer.style.display = 'block';
-        this.messageContainer.className = `message_container ${type} w-full p-3 rounded-md mb-3 text-sm`;
+        const baseClass = `
+            mt-6 px-4 py-3 position:absolute top-2 right-2
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-mono text-[20px]
+            text-center          
+            flex items-center justify-center 
+            transition-opacity duration-300
+        `;
+
+        const typeClasses = type === 'error' 
+            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
+            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+        
+        this.messageContainer.className = `${baseClass} ${typeClasses}`;
         this.messageContainer.textContent = message;
         
         setTimeout(() => {
@@ -447,7 +513,7 @@ export class ProfileInfo implements IComponent {
                     }
                 }, 300);
             }
-        }, 3000);
+        }, 1000);
     }
 
     private async showConfirmation(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
