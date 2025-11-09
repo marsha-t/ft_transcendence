@@ -21,7 +21,6 @@ export class Profile implements IComponent {
     }
   }
 
-
   constructor() {
     this.profileInfo = new ProfileInfo(() => this.onProfileUpdate());
     this.friendsAndUsers = new friendsAndUsers(() => this.onProfileUpdate());
@@ -56,13 +55,10 @@ export class Profile implements IComponent {
 
     // Profile card
     const profileInfo = this.profileInfo.render();
-    
     // Heatmap
     const heatmap = this.heatMap.render();
-
     // Friends
     const friendsAndUsers = this.friendsAndUsers.render();
-
     // Match history
     const matchHistory = this.matchHistory.render();
 
