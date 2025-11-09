@@ -1,5 +1,7 @@
 import * as BABYLON from "babylonjs";
 import { Paddle } from "../graphics/Paddle";
+import { Ball } from "../graphics/Ball";
+import { InputHandler } from "../graphics/InputHandler";
 
 export class PongGame {
     private canvas: HTMLCanvasElement;
@@ -8,6 +10,8 @@ export class PongGame {
 
     private rightPaddle!: Paddle;
     private leftPaddle!: Paddle;
+    private ball!: Ball;
+    private input!: InputHandler;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -23,6 +27,8 @@ export class PongGame {
         this.createLight();
         this.createTable();
         this.createPaddles();
+        this.createBall();
+        this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
         // Render loop
         this.engine.runRenderLoop(() => {
@@ -32,14 +38,15 @@ export class PongGame {
 
     private createCamera(): void {
         const camera = new BABYLON.ArcRotateCamera(
-                "Camera",
-                Math.PI / 2,
-                Math.PI / 4,
-                18,
-                new BABYLON.Vector3(0, 1, 1),
-                this.scene
-            );
-            camera.attachControl(this.canvas, true);
+            "Camera",
+            3 * Math.PI / 2,  // alpha: rotate 180° to flip the view
+            Math.PI / 3,      // beta: angled view
+            18,               // radius: distance
+            new BABYLON.Vector3(0, 0, 0), // target: table center
+            this.scene
+        );
+        camera.attachControl(this.canvas, true);
+        camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
     }
 
     private createLight(): void {
@@ -66,33 +73,35 @@ export class PongGame {
 
         this.createSideWalls(table);
 
-        //center line
-        const dashLength = 1;
-        const dashGap = 0.5;
-        const totalDepth = 10;
-        let currentZ = -totalDepth / 2;
-
-        while (currentZ < totalDepth / 2) {
-            const dash = BABYLON.MeshBuilder.CreateBox(
-                "dash",
-                { width: 0.2, height: 0.08, depth: dashLength },
-                this.scene
-            );
-            dash.position.y = 0.4;
-            dash.position.z = currentZ + dashLength / 2; // center the dash
-            dash.material = lineMaterial;
-
-            dash.parent = table; // optional: attach to table
-
-            currentZ += dashLength + dashGap;
-        }
-        // centerLine.material = lineMaterial;
+        this.createCenterLine(table, lineMaterial);
     }
 
     private createPaddles(): void {
         this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(-9, -0.75, 0), "leftPaddle");
         this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(9, -0.75, 0), "rightPaddle");
 
+    }
+
+    private createCenterLine(table: BABYLON.Mesh, lineMaterial: BABYLON.StandardMaterial): void {
+        const dashLength = 0.35;
+        const dashGap = 0.075;
+        const totalDepth = 8.8;
+        let currentZ = -totalDepth / 2;
+
+        while (currentZ < totalDepth / 2) {
+            const dash = BABYLON.MeshBuilder.CreateBox(
+                "dash",
+                { width: 0.1, height: 0.08, depth: dashLength },
+                this.scene
+            );
+            dash.position.x = 0; // Center on X-axis
+            dash.position.y = 0.25; // Match table surface
+            dash.position.z = currentZ + dashLength / 2;
+            dash.material = lineMaterial;
+            dash.parent = table;
+
+            currentZ += dashLength + dashGap;
+        }
     }
 
     private createSideWalls(table: BABYLON.Mesh): void {
@@ -102,10 +111,10 @@ export class PongGame {
         // Top wall
         const topWall = BABYLON.MeshBuilder.CreateBox(
             "topWall",
-            { width: 20, height: 0.3, depth: 0.1 },
+            { width: 18, height: 0.3, depth: 0.1 },
             this.scene
         );
-        topWall.position.set(0, 0.5, -5); // along Z-axis
+        topWall.position.set(0, 0.5, -4.8); // along Z-axis
         topWall.material = wallMaterial;
         topWall.parent = table;
     
@@ -120,5 +129,11 @@ export class PongGame {
         bottomWall.parent = table;
     }
     
-    
+    private createBall(): void {
+        // Place the ball at the center above the table surface.
+        // Your table y is -1 and paddles y ~ -0.75, so set ball y slightly above paddles.
+        const startPos = new BABYLON.Vector3(0, -0.5, 0);
+        this.ball = new Ball(this.scene, startPos, 0.5); // diameter 0.5 world units
+      }
+      
 }
