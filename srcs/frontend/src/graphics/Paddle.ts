@@ -19,11 +19,9 @@ export class Paddle {
         this.mesh.material = mat;
     }
 
-    // ✅ Move along Z axis (forward/back on table)
     public move(deltaZ: number) {
         const newZ = this.mesh.position.z + deltaZ;
 
-        // ✅ Table boundaries (adjust if your table changes size)
         if (newZ > 4) return;   // bottom side
         if (newZ < -4) return;  // top side
 
