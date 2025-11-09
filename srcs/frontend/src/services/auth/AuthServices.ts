@@ -106,5 +106,55 @@ export class AuthServices {
             };
         }
     }
+    // Get current user (username + avatar)
+    // Get current user (username + avatar)
+    async getCurrentUser(): Promise<ApiResponse<any>> {
+        try {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                return { success: false, status: 401, message: 'No token found', data: null, errors: [] };
+            }
+
+            // Changed from /api/me to /api/userInfo to match your backend route
+            const response = await fetch(`${this.baseUrl}/userInfo`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.message || 'Failed to get user info',
+                    data: null,
+                    errors: [],
+                };
+            }
+
+            return {
+                success: true,
+                status: response.status,
+                data: data, // This will be { username: "...", avatar: "..." }
+                message: 'User info fetched successfully',
+                errors: [],
+            };
+        } catch (error) {
+            console.error('Get current user API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                data: null,
+                errors: [],
+            };
+        }
+    }
+  
+    // Method to get JWT token ------------------ if not used later on for logout route, remove it!
+    // getToken(): string | null {
+    //     return localStorage.getItem('jwtToken');
+    // }
 }
 export const apiServices = new AuthServices();
