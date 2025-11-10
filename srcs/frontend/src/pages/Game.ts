@@ -3,48 +3,468 @@ import { GameService } from "../services/game/GameService.js";
 import { GameSession, PlayerSide, GameOptions } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { GameResults } from "./GameResults.js";
-
 import { PongGame } from "../graphics/PongGame.js";
-
-
 
 export class Game implements IComponent {
     private container!: HTMLElement;
     private canvas: HTMLCanvasElement;
-
+    private pongGame!: PongGame;
+    
+    private gameService: GameService;
     private currentSession: GameSession | null = null;
     private opts?: GameOptions;
-    private gameService: GameService | undefined;
+    private cleanupWarning?: () => void;
+    private isScoring: boolean = false;
+    private isGameRunning: boolean = false;
 
-
-    constructor (){
-      this.canvas = document.createElement("canvas");
-      this.canvas.width = 900;
-      this.canvas.height = 600;
+    constructor(opts?: GameOptions) {
+        this.opts = opts;
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = 900;
+        this.canvas.height = 600;
+        this.gameService = new GameService();
     }
 
-    public render():HTMLElement {
-      this.container = document.createElement('div');
-      this.container.className = "flex flex-col min-h-screen bg-gray-100 p-6";
+    public render(): HTMLElement {
+        this.container = document.createElement('div');
+        this.container.className = "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ";
 
-      this.createCanvas();
-      return this.container;
-  }
+        this.createTitleContainer();
+        this.createCanvas();
+        this.createControlsContainer();
+        
+        // Initialize
+        if (this.opts?.isTournament && this.opts.sessionId) {
+            this.initializeTournament();
+        } else {
+            this.initializeStandalone();
+        }
+        
+        return this.container;
+    }
 
+    private createTitleContainer(): void {
+        const titleContainer = document.createElement("div");
+        // titleContainer.className = "title_container";
+        titleContainer.className = "flex flex-row items-center justify-between w-[800px]";
 
-  private createCanvas():void {
-    const canvasContainer = document.createElement('div');
-    canvasContainer.className = "flex justify-center items-center w-full p-4";
+        const userLeft = document.createElement("h2");
+        userLeft.textContent = this.opts?.displayNames?.leftName ?? "User 1";
+        userLeft.className = "user";
+        userLeft.id = "left-player";
 
-    this.canvas.className = "rounded-lg shadow-2xl";
-    canvasContainer.appendChild(this.canvas);
+        const VS = document.createElement("h1");
+        VS.textContent = "VS";
+        VS.className = "VS";
 
-    this.container.appendChild(canvasContainer);
-    new PongGame(this.canvas);
-  }
+        const userRight = document.createElement("h2");
+        userRight.textContent = this.opts?.displayNames?.rightName ?? "User 2";
+        userRight.className = "user";
+        userRight.id = "right-player";
 
+        titleContainer.appendChild(userLeft);
+        titleContainer.appendChild(VS);
+        titleContainer.appendChild(userRight);
+        this.container.appendChild(titleContainer);
+    }
 
+    private createCanvas(): void {
+        const canvasContainer = document.createElement('div');
+        // canvasContainer.className = "canvas_container";
+        this.canvas.className = "border-2 border-[var(--color-secondary)] max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
+
+        // this.canvas.className = "border-2 border-[var(--color-secondary)] max-w-full h-auto rounded-[30px]";
+        canvasContainer.appendChild(this.canvas);
+
+        this.container.appendChild(canvasContainer);
+        
+        // Initialize 3D game with scoring callback
+        this.pongGame = new PongGame(this.canvas, (side: 'LEFT' | 'RIGHT') => {
+            if (!this.isScoring) {
+                this.isScoring = true;
+                this.scorePoint(side).then(() => {
+                    setTimeout(() => this.isScoring = false, 1000);
+                });
+            }
+        });
+    }
+
+    private createControlsContainer(): void {
+        const controlsContainer = document.createElement("div");
+        controlsContainer.className = "controls_container";
+
+        const startBtn = this.makeButton("Start Game", "start-btn", () => this.toggleGame());
+        const pauseBtn = this.makeButton("Pause", "pause-btn", () => this.pauseGame());
+        const quitBtn = this.makeButton("Quit Game", "quit-btn", () => this.quitGame());
+
+        if (this.opts?.isTournament) {
+            startBtn.style.display = "block";
+            controlsContainer.appendChild(startBtn);
+            controlsContainer.appendChild(pauseBtn);
+        } else {
+            controlsContainer.appendChild(startBtn);
+            controlsContainer.appendChild(pauseBtn);
+            controlsContainer.appendChild(quitBtn);
+
+            // Add guest player setup
+            const setupSection = document.createElement("div");
+            setupSection.className = "setup_section";
+            setupSection.id = "setup-section";
+
+            const guestInput = document.createElement("input");
+            guestInput.type = "text";
+            guestInput.placeholder = "Enter guest name";
+            guestInput.className = "guest_input";
+            guestInput.id = "guest-input";
+
+            const addGuestBtn = this.makeButton("Add Guest Player", "add-guest-btn", () => this.addGuestPlayer());
+            addGuestBtn.style.display = "block";
+
+            setupSection.appendChild(guestInput);
+            setupSection.appendChild(addGuestBtn);
+            controlsContainer.prepend(setupSection);
+        }
+
+        this.container.appendChild(controlsContainer);
+    }
+
+    // For all buttons - update makeButton method
+    private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
+        const btn = document.createElement("button");
+        btn.textContent = label;
+        btn.id = id;
+        btn.className = "px-6 py-3 rounded-[50px] bg-[var(--color-secondary)] text-white text-base border-none cursor-pointer transition-colors duration-300 ease-in-out hover:bg-[var(--color-secondary-hover)] mt-5";
+        btn.style.display = "none";
+        btn.addEventListener("click", handler);
+        return btn;
+    }
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    private async initializeStandalone(): Promise<void> {
+        try {
+            const userId = 1; // TODO: Replace with actual user ID from backend
+            this.currentSession = await this.gameService.createGameSession(userId, "RIGHT");
+
+            console.log(`Current Session:`, this.currentSession);
+
+            // Show user on the right
+            const rightPlayerElement = document.getElementById("right-player");
+            if (rightPlayerElement && this.currentSession?.players[0]) {
+                rightPlayerElement.textContent = this.currentSession.players[0].displayName;
+            }
+        } catch (error) {
+            console.error("Failed to initialize game:", error);
+            alert("Failed to initialize game");
+        }
+    }
+
+    private async initializeTournament(): Promise<void> {
+        const left = this.opts?.displayNames?.leftName ?? "Player 1";
+        const right = this.opts?.displayNames?.rightName ?? "Player 2";
+
+        this.currentSession = {
+            sessionId: this.opts!.sessionId!,
+            status: "PLAYING",
+            players: [
+                { side: "LEFT", displayName: left, score: 0 },
+                { side: "RIGHT", displayName: right, score: 0 },
+            ],
+        } as GameSession;
+    }
+
+    private async addGuestPlayer(): Promise<void> {
+        const guestInput = document.getElementById("guest-input") as HTMLInputElement;
+        const guestName = guestInput.value.trim();
+
+        if (!guestName) {
+            alert("Please enter a guest name");
+            return;
+        }
+        if (!this.currentSession) {
+            alert("Game session not initialized");
+            return;
+        }
+
+        try {
+            await this.gameService.addGuestPlayer(
+                this.currentSession.sessionId,
+                guestName,
+                null,
+                "LEFT"
+            );
+
+            // Update UI
+            const leftPlayerElement = document.getElementById("left-player");
+            if (leftPlayerElement) {
+                leftPlayerElement.textContent = guestName;
+            }
+
+            // Hide setup, show game controls
+            const setupSection = document.getElementById("setup-section");
+            const startBtn = document.getElementById("start-btn");
+            const quitBtn = document.getElementById("quit-btn");
+
+            if (setupSection) setupSection.style.display = "none";
+            if (startBtn) startBtn.style.display = "block";
+            if (quitBtn) quitBtn.style.display = "block";
+
+            guestInput.value = "";
+        } catch (error: any) {
+            console.error("Error adding guest player:", error);
+            if (error.status === 409) {
+                alert(error.message);
+            } else {
+                alert("Error adding guest player");
+            }
+        }
+    }
+
+    // ============================================
+    // GAME LOOP CONTROLS
+    // ============================================
+
+    private startGameLoop(): void {
+        this.isGameRunning = true;
+        // The Babylon engine is already running in PongGame
+        // We just need to track the state
+    }
+
+    private stopGameLoop(): void {
+        this.isGameRunning = false;
+        // Babylon engine keeps running but we stop processing scores
+    }
+
+    private async toggleGame(): Promise<void> {
+        if (!this.currentSession) {
+            alert("Game session not initialized");
+            return;
+        }
+
+        try {
+            if (!this.isGameRunning) {
+                await this.gameService.startGame(this.currentSession.sessionId);
+                this.startGameLoop();
+                this.updateGameButtons(true);
+            }
+        } catch (error) {
+            console.error("Failed to start game:", error);
+            alert("Failed to start game. Please try again.");
+        }
+    }
+
+    private async pauseGame(): Promise<void> {
+        if (!this.currentSession) return;
+
+        try {
+            if (this.isGameRunning) {
+                await this.gameService.pauseGame(this.currentSession.sessionId);
+                this.stopGameLoop();
+                this.updateGameButtons(false);
+            } else {
+                await this.gameService.startGame(this.currentSession.sessionId);
+                this.startGameLoop();
+                this.updateGameButtons(true);
+            }
+        } catch (error) {
+            console.error("Failed to pause/resume game:", error);
+        }
+    }
+
+    private async quitGame(): Promise<void> {
+        if (!this.currentSession) return;
+
+        const confirmed = confirm("Are you sure you want to quit the game?");
+        if (!confirmed) return;
+
+        try {
+            await this.gameService.abortGame(this.currentSession.sessionId);
+            this.stopGameLoop();
+            this.resetGame();
+        } catch (error) {
+            console.error("Failed to quit game:", error);
+        }
+    }
+
+    private updateGameButtons(isPlaying: boolean): void {
+        const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+        const pauseBtn = document.getElementById("pause-btn") as HTMLButtonElement;
+        const quitBtn = document.getElementById("quit-btn") as HTMLButtonElement;
+
+        if (isPlaying) {
+            if (startBtn) startBtn.style.display = "none";
+            if (pauseBtn) {
+                pauseBtn.style.display = "block";
+                pauseBtn.textContent = "Pause";
+            }
+            if (quitBtn) quitBtn.style.display = "block";
+        } else {
+            if (startBtn) startBtn.style.display = "none";
+            if (pauseBtn) {
+                pauseBtn.style.display = "block";
+                pauseBtn.textContent = "Resume";
+            }
+            if (quitBtn) quitBtn.style.display = "block";
+        }
+    }
+
+    // ============================================
+    // SCORING & GAME END
+    // ============================================
+
+    private async scorePoint(scoringSide: PlayerSide): Promise<void> {
+        if (!this.isGameRunning) return; // Don't score if game not running
+
+        try {
+            if (this.currentSession) {
+                this.currentSession = await this.gameService.updatePlayerScore(
+                    this.currentSession.sessionId,
+                    scoringSide
+                );
+                
+                this.updateScoreDisplay();
+                
+                if (this.currentSession.status === "FINISHED") {
+                    setTimeout(() => this.endGame(), 500);
+                } else if (this.currentSession.status === "ABORTED") {
+                    this.stopGameLoop();
+                }
+            }
+        } catch (error) {
+            console.error("Failed to update score:", error);
+        }
+    }
+
+    private updateScoreDisplay(): void {
+        const leftPlayer = this.currentSession?.players.find(p => p.side === "LEFT");
+        const rightPlayer = this.currentSession?.players.find(p => p.side === "RIGHT");
+        
+        const leftScore = leftPlayer?.score ?? 0;
+        const rightScore = rightPlayer?.score ?? 0;
+        
+        console.log(`Score - Left: ${leftScore}, Right: ${rightScore}`);
+        
+        // TODO: Create score display elements on screen
+        // You can add score overlays above the canvas here
+    }
+
+    private async endGame(): Promise<void> {
+        try {
+            if (this.currentSession) {
+                this.stopGameLoop();
+                
+                const winnerName = this.currentSession.winnerName ?? "Unknown";
+                alert(`Game Over! ${winnerName} wins!`);
+
+                this.container.innerHTML = "";
+
+                const results = new GameResults({
+                    sessionId: this.currentSession.sessionId,
+                    isTournament: this.opts?.isTournament,
+                    onMatchEnd: this.opts?.onMatchEnd,
+                });
+
+                const resultsElement = results.render();
+                this.container.appendChild(resultsElement);
+            }
+        } catch (error) {
+            console.error("Failed to finish game:", error);
+        }
+    }
+
+    private resetGame(): void {
+        // Reset session
+        this.currentSession = null;
+        
+        // Reset UI
+        const setupSection = document.getElementById("setup-section");
+        const startBtn = document.getElementById("start-btn");
+        const pauseBtn = document.getElementById("pause-btn");
+        const quitBtn = document.getElementById("quit-btn");
+
+        if (setupSection) setupSection.style.display = "block";
+        if (startBtn) startBtn.style.display = "none";
+        if (pauseBtn) pauseBtn.style.display = "none";
+        if (quitBtn) quitBtn.style.display = "none";
+
+        // Reset player names
+        const leftPlayerElement = document.getElementById("left-player");
+        const rightPlayerElement = document.getElementById("right-player");
+        if (leftPlayerElement) leftPlayerElement.textContent = "Player 1";
+        if (rightPlayerElement) rightPlayerElement.textContent = "Player 2";
+
+        // Reinitialize
+        this.initializeStandalone();
+    }
+
+    // ============================================
+    // CLEANUP
+    // ============================================
+
+    public async canDeactivate(): Promise<boolean> {
+        const confirmLeave = confirm("Leaving will stop the current match.");
+        if (confirmLeave) {
+            const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
+            if (sessionId) {
+                try {
+                    await apiServices.game.updateGameStatus(sessionId, "ABORTED");
+                } catch (err) {
+                    console.error("Error aborting game:", err);
+                }
+            }
+            this.stopGameLoop();
+        }
+        return confirmLeave;
+    }
+
+    public terminate(): void {
+        this.stopGameLoop();
+        if (this.cleanupWarning) {
+            this.cleanupWarning();
+            this.cleanupWarning = undefined;
+        }
+    }
 }
+
+// export class Game implements IComponent {
+//     private container!: HTMLElement;
+//     private canvas: HTMLCanvasElement;
+
+//     private currentSession: GameSession | null = null;
+//     private opts?: GameOptions;
+//     private gameService: GameService | undefined;
+
+
+//     constructor (){
+//       this.canvas = document.createElement("canvas");
+//       this.canvas.width = 900;
+//       this.canvas.height = 600;
+//     }
+
+//     public render():HTMLElement {
+//       this.container = document.createElement('div');
+//       this.container.className = "flex flex-col min-h-screen bg-gray-100 p-6";
+
+//       this.createCanvas();
+//       return this.container;
+//   }
+
+
+  // private createCanvas():void {
+  //   const canvasContainer = document.createElement('div');
+  //   canvasContainer.className = "flex justify-center items-center w-full p-4";
+
+  //   this.canvas.className = "rounded-lg shadow-2xl";
+  //   canvasContainer.appendChild(this.canvas);
+
+  //   this.container.appendChild(canvasContainer);
+  //   new PongGame(this.canvas);
+  // }
+
+
+// }
 
 
 // type GameOptions = {
@@ -420,42 +840,42 @@ export class Game implements IComponent {
 //     this.animationId = requestAnimationFrame(() => this.gameLoop());
 //   }
 
-//   private async toggleGame(): Promise<void> {
-//     if (!this.currentSession) {
-//       alert("Game session not initialized, toggleGame()");
-//       return;
-//     }
+  // private async toggleGame(): Promise<void> {
+  //   if (!this.currentSession) {
+  //     alert("Game session not initialized, toggleGame()");
+  //     return;
+  //   }
 
-//     try {
-//       if (!this.isGameRunning) {
-//         // Start the game
-//         await this.gameService.startGame(this.currentSession.sessionId);
-//         this.startGameLoop();
-//         this.updateGameButtons(true);
-//       }
-//     } catch (error) {
-//       console.error("Failed to start game:", error);
-//       alert("Failed to start game. Please try again.");
-//     }
-//   }
+  //   try {
+  //     if (!this.isGameRunning) {
+  //       // Start the game
+  //       await this.gameService.startGame(this.currentSession.sessionId);
+  //       this.startGameLoop();
+  //       this.updateGameButtons(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to start game:", error);
+  //     alert("Failed to start game. Please try again.");
+  //   }
+  // }
 
-//   private async pauseGame(): Promise<void> {
-//     if (!this.currentSession) return;
+  // private async pauseGame(): Promise<void> {
+  //   if (!this.currentSession) return;
 
-//     try {
-//       if (this.isGameRunning) {
-//         await this.gameService.pauseGame(this.currentSession.sessionId);
-//         this.stopGameLoop();
-//         this.updateGameButtons(false);
-//       } else {
-//         await this.gameService.startGame(this.currentSession.sessionId);
-//         this.startGameLoop();
-//         this.updateGameButtons(true);
-//       }
-//     } catch (error) {
-//       console.log("failed to pause/resume the game");
-//     }
-//   }
+  //   try {
+  //     if (this.isGameRunning) {
+  //       await this.gameService.pauseGame(this.currentSession.sessionId);
+  //       this.stopGameLoop();
+  //       this.updateGameButtons(false);
+  //     } else {
+  //       await this.gameService.startGame(this.currentSession.sessionId);
+  //       this.startGameLoop();
+  //       this.updateGameButtons(true);
+  //     }
+  //   } catch (error) {
+  //     console.log("failed to pause/resume the game");
+  //   }
+  // }
 
 //   private async quitGame(): Promise<void> {
 //     if (!this.currentSession) return;

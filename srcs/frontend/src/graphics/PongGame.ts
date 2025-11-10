@@ -3,7 +3,6 @@ import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
-import { Game } from "../pages/Game";
 
 export class PongGame {
     private canvas: HTMLCanvasElement;
@@ -14,16 +13,14 @@ export class PongGame {
     private leftPaddle!: Paddle;
     private ball!: Ball;
     private input!: InputHandler;
+    private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, onScore?: (side: 'LEFT' | 'RIGHT') => void) {
         this.canvas = canvas;
+        this.onScoreCallback = onScore; // Store callback
 
-        // Corrected Engine
         this.engine = new BABYLON.Engine(this.canvas, true);
-
-        // Scene
         this.scene = new BABYLON.Scene(this.engine);
-
 
         this.createCamera();
         this.createLight();
@@ -36,8 +33,43 @@ export class PongGame {
         this.engine.runRenderLoop(() => {
             this.ball.update();
             this.checkCollisions();
+            this.checkScoring(); // ADD THIS
             this.scene.render();
         });
+    }
+
+    private checkScoring(): void {
+        const t = GameConfig.table;
+        const ball = this.ball.mesh;
+        const xMin = -t.width / 2;
+        const xMax = t.width / 2;
+
+        // Ball went past left paddle - RIGHT player scores
+        if (ball.position.x < xMin) {
+            if (this.onScoreCallback) {
+                this.onScoreCallback('RIGHT');
+            }
+            this.resetBall();
+        }
+        // Ball went past right paddle - LEFT player scores
+        else if (ball.position.x > xMax) {
+            if (this.onScoreCallback) {
+                this.onScoreCallback('LEFT');
+            }
+            this.resetBall();
+        }
+    }
+
+    // ADD THIS METHOD - resets ball to center after scoring
+    private resetBall(): void {
+        const t = GameConfig.table;
+        const tableY = -1;
+        const ballRadius = 0.3;
+        const ballY = tableY + t.height / 2 + ballRadius;
+
+        this.ball.mesh.position.set(0, ballY, 0);
+        // Optionally reverse ball direction
+        this.ball.speed.x *= -1;
     }
 
     // private createCamera(): void {
