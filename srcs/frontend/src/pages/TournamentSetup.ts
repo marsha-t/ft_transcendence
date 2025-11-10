@@ -441,10 +441,10 @@ export class TournamentSetup implements IComponent {
   // Styles
   //--------------------------------------
   private loadStyles() {
-    if (document.getElementById("tournament-styles")) return;
+    if (document.getElementById("tournament-setup-styles")) return;
 
     const link = document.createElement("link");
-    link.id = "tournament-styles";
+    link.id = "tournament-setup-styles";
     link.rel = "stylesheet";
     link.href = "/styles/TournamentSetup.css";
     document.head.appendChild(link);

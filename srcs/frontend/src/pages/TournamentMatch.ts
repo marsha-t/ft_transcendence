@@ -67,11 +67,23 @@ export class TournamentMatch implements IComponent {
     h3.textContent = `Match ${matchIndex}`;
     matchInfo.appendChild(h3);
 
-    const playersInfo = document.createElement("p");
-    playersInfo.textContent = `${p1?.displayName ?? "?"} vs ${
-      p2?.displayName ?? "?"
-    }`;
-    matchInfo.appendChild(playersInfo);
+const playerContainer = document.createElement('div');
+playerContainer.className = 'player-container';
+
+const p1Box = document.createElement('div');
+p1Box.className = 'player-box';
+p1Box.textContent = p1?.displayName ?? "Player 1";
+
+const vs = document.createElement('div');
+vs.className = 'vs-text';
+vs.textContent = "VS";
+
+const p2Box = document.createElement('div');
+p2Box.className = 'player-box';
+p2Box.textContent = p2?.displayName ?? "Player 2";
+
+playerContainer.append(p1Box, vs, p2Box);
+matchInfo.appendChild(playerContainer);
 
     this.container.appendChild(matchInfo);
 
@@ -102,11 +114,11 @@ export class TournamentMatch implements IComponent {
     this.container.appendChild(this.gameInstance.render());
   }
   private loadStyles() {
-    if (document.getElementById("tournament-styles")) return;
+    if (document.getElementById("tournament-match-styles")) return;
     const link = document.createElement("link");
-    link.id = "tournament-styles";
+    link.id = "tournament-match-styles";
     link.rel = "stylesheet";
-    link.href = "/styles/Tournament.css";
+    link.href = "/styles/TournamentMatch.css";
     document.head.appendChild(link);
   }
 
