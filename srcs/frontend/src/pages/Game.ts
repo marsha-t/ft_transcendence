@@ -9,59 +9,28 @@ import { PongGame } from "../graphics/PongGame.js";
 
 
 export class Game implements IComponent {
-  private container!: HTMLElement;
-  private canvas: HTMLCanvasElement;
+    private container!: HTMLElement;
+    private canvas: HTMLCanvasElement;
 
-  private currentSession: GameSession | null = null;
-  private opts?: GameOptions;
-  private gameService: GameService | undefined;
+    private currentSession: GameSession | null = null;
+    private opts?: GameOptions;
+    private gameService: GameService | undefined;
 
 
-  constructor (){
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = 900;
-    this.canvas.height = 600;
+    constructor (){
+      this.canvas = document.createElement("canvas");
+      this.canvas.width = 900;
+      this.canvas.height = 600;
+    }
+
+    public render():HTMLElement {
+      this.container = document.createElement('div');
+      this.container.className = "flex flex-col min-h-screen bg-gray-100 p-6";
+
+      this.createCanvas();
+      return this.container;
   }
 
-  public render():HTMLElement {
-    this.container = document.createElement('div');
-    this.container.className = "flex flex-col min-h-screen bg-gray-100 p-6";
-
-    this.createTitle();
-    this.createCanvas();
-    this.createButtons();
-    return this.container;
-  }
-
-
-  private createTitle(): void {
-    // Create title container
-    const titleContainer = document.createElement("div");
-    titleContainer.className = "flex flex-row justify-center items-center w-full";
-
-    const userLeft = document.createElement("h2");
-    // ❌ Problem: this.opts doesn't exist yet!
-    // We'll add it in the next step
-    userLeft.textContent = "User 1"; // Temporary for now
-    userLeft.className = "ml-20";
-    userLeft.id = "left-player";
-
-    const VS = document.createElement("h1");
-    VS.textContent = "VS";
-    VS.className = "ml-20 mr-20";
-
-    const userRight = document.createElement("h2");
-    userRight.textContent = "User 2"; // Temporary for now
-    userRight.className = "mr-20";
-    userRight.id = "right-player";
-
-    titleContainer.appendChild(userLeft);
-    titleContainer.appendChild(VS);
-    titleContainer.appendChild(userRight);
-    
-    // Append to container
-    this.container.appendChild(titleContainer);
-  }
 
   private createCanvas():void {
     const canvasContainer = document.createElement('div');
@@ -70,173 +39,11 @@ export class Game implements IComponent {
     this.canvas.className = "rounded-lg shadow-2xl";
     canvasContainer.appendChild(this.canvas);
 
-    // Add wrapper to main container
     this.container.appendChild(canvasContainer);
     new PongGame(this.canvas);
   }
 
 
-  private createButtons():void {
-    // Controls container
-    const controlsContainer = document.createElement("div");
-    controlsContainer.className = "controls_container";
-
-    const startBtn = this.makeButton("Start Game", "start-btn", () =>
-      this.toggleGame()
-    );
-    const pauseBtn = this.makeButton("Pause", "pause-btn", () =>
-      this.pauseGame()
-    );
-    const quitBtn = this.makeButton("Quit Game", "quit-btn", () =>
-      this.quitGame()
-    );
-
-    // --- Tournament ---
-    if (this.opts?.isTournament) {
-      startBtn.style.display = "block";
-      controlsContainer.appendChild(startBtn);
-      controlsContainer.appendChild(pauseBtn);
-    }
-    // --- Standalone ---
-    else {
-      controlsContainer.appendChild(startBtn);
-      controlsContainer.appendChild(pauseBtn);
-      controlsContainer.appendChild(quitBtn);
-
-      // Player setup section
-      const setupSection = document.createElement("div");
-      setupSection.className = "setup_section";
-      setupSection.id = "setup-section";
-
-      const guestInput = document.createElement("input");
-      guestInput.type = "text";
-      guestInput.placeholder = "Enter guest name";
-      guestInput.className = "guest_input";
-      guestInput.id = "guest-input";
-
-      const addGuestBtn = this.makeButton(
-        "Add Guest Player",
-        "add-guest-btn",
-        () => this.addGuestPlayer()
-      );
-      addGuestBtn.style.display = "block";
-
-      setupSection.appendChild(guestInput);
-      setupSection.appendChild(addGuestBtn);
-      controlsContainer.prepend(setupSection);
-    }
-
-    this.container.appendChild(controlsContainer);
-  }
-
-  private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.id = id;
-    btn.className = id.replace("-", "_");
-    btn.style.display = "none";
-    btn.addEventListener("click", handler);
-    return btn;
-  }
-
-  private async addGuestPlayer(): Promise<void> {
-    const guestInput = document.getElementById("guest-input") as HTMLInputElement;
-    const guestName = guestInput.value.trim();
-
-    if (!guestName) {
-      alert("Please, enter a guest name");
-      return;
-    }
-    if (!this.currentSession) {
-      alert("Game session not initialized");
-      return;
-    }
-    try {
-      // await this.gameService.addGuestPlayer(
-      //   this.currentSession.sessionId,
-      //   guestName,
-      //   null,
-      //   "LEFT"
-      // );
-
-      //ui
-      const leftPlayerElement = document.getElementById("left-player");
-      if (leftPlayerElement) {
-        leftPlayerElement.textContent = guestName;
-      }
-
-      //hide setup
-      const setupSection = document.getElementById("setup-section");
-      const startBtn = document.getElementById("start-btn");
-      const quitBtn = document.getElementById("quit-btn");
-
-      if (setupSection) setupSection.style.display = "none";
-      if (startBtn) startBtn.style.display = "block";
-      if (quitBtn) quitBtn.style.display = "block";
-
-      guestInput.value = "";
-    } catch (error: any) {
-        console.log("Error adding guest player", error);
-        if (error.status === 409) {
-          // Custom handling for duplicate display name
-          alert(error.message);
-        } else {
-            alert("Error adding guest player");
-          }
-    }
-  }
-
-  private async toggleGame(): Promise<void> {
-        // if (!this.currentSession) {
-        //   alert("Game session not initialized, toggleGame()");
-        //   return;
-        // }
-    
-        // try {
-        //   if (!this.isGameRunning) {
-        //     // Start the game
-        //     await this.gameService.startGame(this.currentSession.sessionId);
-        //     this.startGameLoop();
-        //     this.updateGameButtons(true);
-        //   }
-        // } catch (error) {
-        //   console.error("Failed to start game:", error);
-        //   alert("Failed to start game. Please try again.");
-        // }
-  }
-
-  private async pauseGame(): Promise<void> {
-    if (!this.currentSession) return;
-
-    // try {
-    //   if (this.isGameRunning) {
-    //     await this.gameService.pauseGame(this.currentSession.sessionId);
-    //     this.stopGameLoop();
-    //     this.updateGameButtons(false);
-    //   } else {
-    //     await this.gameService.startGame(this.currentSession.sessionId);
-    //     this.startGameLoop();
-    //     this.updateGameButtons(true);
-    //   }
-    // } catch (error) {
-    //   console.log("failed to pause/resume the game");
-    // }
-  }
-
-  private async quitGame(): Promise<void> {
-    // if (!this.currentSession) return;
-
-    // const confirmed = confirm("Are you sure you want to quit the game?");
-
-    // if (!confirmed) return;
-    // try {
-    //   await this.gameService.abortGame(this.currentSession.sessionId);
-    //   this.stopGameLoop();
-    //   this.resetGame();
-    // } catch (error) {
-    //   console.error("Failed to quit game:", error);
-    // }
-  }
 }
 
 
