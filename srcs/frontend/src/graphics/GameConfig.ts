@@ -25,6 +25,14 @@ export const GameConfig =  {
     tableBounds: {
         zMin: -4.4, // adjust if your table depth changes
         zMax: 4.4
+    }, 
+    ball: {
+        diameter: 0.6,
+        radius: 0.3,
+        speed: {
+            x: 0.1,
+            z: 0.07
+        }
     }
 
 }
