@@ -61,8 +61,8 @@ export class TournamentSetup implements IComponent {
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
     actions.appendChild(nextBtn);
-    counterContainer.appendChild(actions); 
-    this.container.appendChild(counterContainer); 
+    counterContainer.appendChild(actions);
+    this.container.appendChild(counterContainer);
     page.appendChild(this.container);
 
     return page;
@@ -145,56 +145,102 @@ export class TournamentSetup implements IComponent {
     toggleContainer.className = "toggle-container";
 
     const guestBtn = document.createElement("button");
-    guestBtn.textContent = "GUEST PLAYER";
-    guestBtn.className = "toggle-btn actuve";
+    guestBtn.textContent = "GUEST";
+    guestBtn.className = "toggle-btn active";
 
     const userBtn = document.createElement("div");
-    userBtn.textContent = "REGISTERED USER PLAYER"
+    userBtn.textContent = "REGISTERED USER";
     userBtn.className = "toggle-btn";
 
-    // Registered user section
-    const userTitle = document.createElement("h3");
-    userTitle.textContent = "Registered User";
-    const userHint = document.createElement("p");
-    userHint.className = "hint";
-    userHint.textContent =
-      "Enter your username and password if you already have an account.";
+    toggleContainer.append(guestBtn, userBtn);
+    form.appendChild(toggleContainer);
 
-    const username = document.createElement("input");
-    username.placeholder = "Username";
-    const password = document.createElement("input");
-    password.type = "password";
-    password.placeholder = "Password";
+    // --- Guest form ---
+    const guestForm = document.createElement("div");
+    guestForm.className = "guest-form";
+    guestForm.innerHTML = `
+    <p>If you don’t have an account, enter a guest name to join temporarily.</p>
+    <label>GUEST NAME</label>
+    <input placeholder="Guest Name" />
+    `;
+
+    // --- Registered form ---
+    const userForm = document.createElement("div");
+    userForm.className = "user-form hidden";
+    userForm.innerHTML = `
+    <p>Enter your username and password if you already have an account.</p>
+    <label>USERNAME</label>
+    <input placeholder="Username" />
+    <label>PASSWORD</label>
+    <input type="password" placeholder="Password" />
+    `;
+
+    // Registered user section
+    // const userTitle = document.createElement("h3");
+    // userTitle.textContent = "Registered User";
+    // const userHint = document.createElement("p");
+    // userHint.className = "hint";
+    // userHint.textContent =
+    //   "Enter your username and password if you already have an account.";
+
+    // const username = document.createElement("input");
+    // username.placeholder = "Username";
+    // const password = document.createElement("input");
+    // password.type = "password";
+    // password.placeholder = "Password";
 
     // Guest section
-    const guestTitle = document.createElement("h3");
-    guestTitle.textContent = "Play as Guest";
-    const guestHint = document.createElement("p");
-    guestHint.className = "hint";
-    guestHint.textContent =
-      "If you don’t have an account, enter a guest name to join temporarily.";
+    // const guestTitle = document.createElement("h3");
+    // guestTitle.textContent = "Play as Guest";
+    // const guestHint = document.createElement("p");
+    // guestHint.className = "hint";
+    // guestHint.textContent =
+    //   "If you don’t have an account, enter a guest name to join temporarily.";
 
-    const guestName = document.createElement("input");
-    guestName.placeholder = "Guest Name";
+    // const guestName = document.createElement("input");
+    // guestName.placeholder = "Guest Name";
 
     const addBtn = document.createElement("button");
-    addBtn.textContent = "Add Player";
+    addBtn.textContent = "ADD PLAYER";
+    addBtn.className = "add-player-btn";
     addBtn.addEventListener("click", async () => {
+      const isGuest = guestBtn.classList.contains("active");
+      const guestName = guestForm.querySelector("input") as HTMLInputElement;
+      const username = userForm.querySelectorAll(
+        "input"
+      )[0] as HTMLInputElement;
+      const password = userForm.querySelectorAll(
+        "input"
+      )[1] as HTMLInputElement;
       await this.handleAddPlayer(username, password, guestName);
       username.value = password.value = guestName.value = "";
       this.updateLineup();
     });
 
     form.append(
-      userTitle,
-      userHint,
-      username,
-      password,
-      guestTitle,
-      guestHint,
-      guestName,
+      // userTitle,
+      // userHint,
+      // username,
+      // password,
+      // guestTitle,
+      // guestHint,
+      // guestName,
       addBtn
     );
+    guestBtn.addEventListener("click", () => {
+      guestBtn.classList.add("active");
+      userBtn.classList.remove("active");
+      guestForm.classList.remove("hidden");
+      userForm.classList.add("hidden");
+    });
+    userBtn.addEventListener("click", () => {
+      userBtn.classList.add("active");
+      guestBtn.classList.remove("active");
+      userForm.classList.remove("hidden");
+      guestForm.classList.add("hidden");
+    });
+    form.append(guestForm, userForm, addBtn);
+
     return form;
   }
   private async handleAddPlayer(
@@ -214,6 +260,11 @@ export class TournamentSetup implements IComponent {
     }
 
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
+    const currentCount = TournamentDraftStore.players.length + 1; // +1 includes the creator
+    if (currentCount >= totalNeeded) {
+      alert(`You already have ${totalNeeded} players.`);
+      return;
+    }
 
     let newPlayerDisplayName: string | undefined;
     let newPlayer: {
@@ -282,7 +333,7 @@ export class TournamentSetup implements IComponent {
 
     const confirmBtn = document.createElement("button");
     confirmBtn.id = "confirm-btn";
-    confirmBtn.textContent = "Confirm & Create Tournament";
+    confirmBtn.textContent = "Confirm & Start Game";
     confirmBtn.style.display = "none";
     confirmBtn.addEventListener(
       "click",
@@ -336,7 +387,7 @@ export class TournamentSetup implements IComponent {
       const username = response.data?.username;
       if (response.success && username) {
         this.creatorUsername = username;
-      } 
+      }
     } catch (err) {
       console.log("Failed to fetch creator username: ", err);
     }
