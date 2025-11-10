@@ -18,16 +18,19 @@ export class TournamentSetup implements IComponent {
     this.container.className = "tournament-setup";
 
     const title = document.createElement("h2");
-    title.textContent = "🏆 Tournament Setup";
+    title.textContent = "Tournament Setup";
     this.container.appendChild(title);
 
     // --- Input section ---
     const counterContainer = document.createElement("div");
     counterContainer.className = "counter-container";
 
+    const counter = document.createElement("div");
+    counter.className = "counter";
+
     const label = document.createElement("label");
-    label.textContent = "Number of Players:";
-    counterContainer.appendChild(label);
+    label.textContent = "NUMBER OF PLAYERS";
+    counter.appendChild(label);
 
     const input = document.createElement("input");
     input.type = "number";
@@ -49,17 +52,17 @@ export class TournamentSetup implements IComponent {
       TournamentDraftStore.setNumberOfPlayers(newNum);
     });
 
-    counterContainer.appendChild(input);
-    this.container.appendChild(counterContainer);
-
+    counter.appendChild(input);
+    counterContainer.appendChild(counter);
     // --- Buttons actions ---
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
-    nextBtn.textContent = "Next";
+    nextBtn.textContent = "NEXT";
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
     actions.appendChild(nextBtn);
-    this.container.appendChild(actions);
+    counterContainer.appendChild(actions); 
+    this.container.appendChild(counterContainer); 
     page.appendChild(this.container);
 
     return page;
@@ -99,6 +102,7 @@ export class TournamentSetup implements IComponent {
     body.append(left, right);
     modalContent.append(header, body);
     this.modal.appendChild(modalContent);
+    console.log("Modal appended: ", this.modal);
     document.body.appendChild(this.modal);
   }
 
@@ -135,6 +139,18 @@ export class TournamentSetup implements IComponent {
   private createAddPlayerForm(): HTMLElement {
     const form = document.createElement("div");
     form.className = "add-player-form";
+
+    // Toggle buttons
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
+
+    const guestBtn = document.createElement("button");
+    guestBtn.textContent = "GUEST PLAYER";
+    guestBtn.className = "toggle-btn actuve";
+
+    const userBtn = document.createElement("div");
+    userBtn.textContent = "REGISTERED USER PLAYER"
+    userBtn.className = "toggle-btn";
 
     // Registered user section
     const userTitle = document.createElement("h3");
@@ -379,7 +395,7 @@ export class TournamentSetup implements IComponent {
     const link = document.createElement("link");
     link.id = "tournament-styles";
     link.rel = "stylesheet";
-    link.href = "/styles/Tournament.css";
+    link.href = "/styles/TournamentSetup.css";
     document.head.appendChild(link);
   }
 }
