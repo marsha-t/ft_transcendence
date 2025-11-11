@@ -10,7 +10,7 @@
 }
 
 .tournament-match {
-  background-color: var(--color-background);
+  background: transparent;
   border-radius: 12px;
   padding: 2rem 4rem;
   text-align: center;
