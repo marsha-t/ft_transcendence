@@ -1,60 +1,73 @@
-/* -----------------------------
-   USER DASHBOARD STYLES
------------------------------ */
+/* ============================================
+   USER DASHBOARD — Arcade Theme (fixed layout)
+=============================================== */
+
 .user-dashboard {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 2rem;
-  background: #f9f9fb;
+  background-color: #0b1b44;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: "DM Sans", sans-serif;
+  color: var(--color-text-yellow);
 }
 
-/* Title */
+/* ---------- Title ---------- */
 .user-dashboard h1.dashboard-title {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #423f6a;
-  margin-bottom: 1rem;
+  color: var(--color-text-yellow);
+  text-shadow: 2px 2px #000;
   text-align: center;
+  margin-bottom: 1rem;
 }
 
-/* Grid Layout */
+/* ---------- Grid ---------- */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 2rem;
+  width: 90%;
+  max-width: 1400px;
+  justify-content: center;
+  align-items: stretch;
 }
 
-
-/* Card container */
+/* ---------- Card Container ---------- */
 .dashboard-card {
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
+  background-color: #12285f;
+  border-radius: 10px;
+  padding: 1.8rem 2rem;
+  text-align: left;
+  color: var(--color-text-yellow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  width: 100%;
+  min-height: 380px;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 #000;
 }
 
-/* Section titles inside cards */
+/* ---------- Section Titles ---------- */
 .dashboard-card h2 {
-  font-size: 1.25rem;
-  color: #423f6a;
-  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--color-text-yellow);
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+  text-align: center;
+  display: inline-block;
+  padding-top: 0.8rem;
 }
 
-/* Overview Card */
+/* ---------- Overview Card ---------- */
+#overviewCard {
+  background-color: var(--color-background);
+}
+
 #overviewCard ul {
   list-style: none;
   padding: 0;
@@ -64,66 +77,35 @@
 #overviewCard li {
   display: flex;
   justify-content: space-between;
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #f0f0f5;
-  font-size: 0.95rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px dotted rgba(255, 212, 0, 0.3);
+  font-size: 1rem;
+  color: var(--color-text-white);
+  text-align: left;
+}
+
+#overviewCard li span {
+  text-align: right;
+  flex: 1;
+  margin-left: 1rem;
 }
 
 #overviewCard li strong {
-  color: #423f6a;
+  color: var(--color-text-yellow);
 }
 
-/* Plotly Chart Containers */
+/* ---------- Plotly Chart Containers ---------- */
 #winRateChart,
 #scoreHistogram,
 #winsPerOpponent {
   width: 100%;
   height: 360px;
+  background-color: var(--color-background);
+  border-radius: 8px;
+  padding: 0.5rem;
 }
 
-/* Leaderboard Table */
-#leaderboard {
-  grid-column: span 2;
-}
-#leaderboard table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-}
-
-#leaderboard th,
-#leaderboard td {
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-}
-
-#leaderboard th {
-  color: #423f6a;
-  border-bottom: 2px solid #e3e3f3;
-  font-weight: 600;
-}
-
-#leaderboard tr:nth-child(even) {
-  background-color: #faf9ff;
-}
-
-#leaderboard tr.highlight {
-  background-color: #f2f1fa;
-  font-weight: 600;
-}
-
-#leaderboard tr:hover {
-  background-color: #f7f6ff;
-}
-
-.highlight-user {
-  background-color: rgba(228, 62, 100, 0.1); /* subtle red tint */
-  font-weight: 600;
-  color: #e43e64;
-}
-
-/* Plotly charts */
-/* Center Plotly charts within their card containers */
 .dashboard-card > .js-plotly-plot {
   display: flex;
   justify-content: center;
@@ -132,6 +114,54 @@
   height: 100%;
 }
 
-.dashboard-card .main-svg {
-  margin: 0 auto;
+/* ---------- Leaderboard ---------- */
+#leaderboard {
+  grid-column: span 2;
+  background-color: var(--color-background);
+  margin-top: 0;
+}
+
+#leaderboard h2 {
+  text-align: center;
+  color: var(--color-text-yellow);
+}
+
+#leaderboard table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "DM Sans", sans-serif;
+  font-size: 1rem;
+  color: var(--color-text-white);
+}
+
+#leaderboard th,
+#leaderboard td {
+  text-align: center;
+  padding: 0.6rem;
+}
+
+#leaderboard th {
+  background-color: rgba(255, 212, 0, 0.08);
+  color: var(--color-text-yellow);
+}
+
+#leaderboard tr:nth-child(even) {
+  background-color: rgba(255, 212, 0, 0.08);
+}
+
+#leaderboard tr:hover {
+  background-color: rgba(255, 212, 0, 0.15);
+}
+
+.highlight-user {
+  color: var(--color-text-yellow);
+  font-weight: 700;
+}
+
+/* ---------- No Data Placeholder ---------- */
+.no-data {
+  font-size: 1rem;
+  color: #ddd;
+  margin-top: 1rem;
+  text-align: center;
 }
