@@ -18,7 +18,23 @@ services:
       - db-data:/app/prisma/data # database is in a docker volume
       - ./backend/uploads:/app/uploads
     restart: always
-  
+  auth:
+    build:
+      context: ./backend/auth-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: authservice
+    ports:
+      - 5002:5002
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+
   elasticsearch:
     image: elasticsearch:8.17.0
     container_name: elasticsearch
