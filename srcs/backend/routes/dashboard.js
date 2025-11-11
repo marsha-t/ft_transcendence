@@ -353,7 +353,7 @@ async function dashboardRoutes(app, options) {
             winRate: Math.round((o.wins / o.total) * 100),
             total: o.total,
           }))
-          .sort((a, b) => b.total - a.total)
+          .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 5);
 
         // Leaderboard
