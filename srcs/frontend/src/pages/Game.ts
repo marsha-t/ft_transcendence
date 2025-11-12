@@ -146,13 +146,36 @@ export class Game implements IComponent {
     }
 
     // For all buttons - update makeButton method
+    // private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = label;
+    //     btn.id = id;
+    //     btn.className = "px-6 py-3 rounded-[50px] bg-[var(--color-secondary)] text-white text-base border-none cursor-pointer transition-colors duration-300 ease-in-out hover:bg-[var(--color-secondary-hover)] mt-5";
+    //     btn.style.display = "none";
+    //     btn.addEventListener("click", handler);
+    //     return btn;
+    // }
+
     private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
         const btn = document.createElement("button");
-        btn.textContent = label;
         btn.id = id;
-        btn.className = "px-6 py-3 rounded-[50px] bg-[var(--color-secondary)] text-white text-base border-none cursor-pointer transition-colors duration-300 ease-in-out hover:bg-[var(--color-secondary-hover)] mt-5";
+
+        // Tailwind 3D Pop button style
+        btn.className =
+            "px-6 py-3 bg-red-500 text-white font-bold rounded-lg " +
+            "shadow-[0_5px_0_theme(colors.red.700)] " +
+            "hover:shadow-[0_2px_0_theme(colors.red.700)] active:shadow-none " +
+            "hover:translate-y-1 active:translate-y-2 " +
+            "transition-all duration-150 mt-5";
+
         btn.style.display = "none";
+
+        // Label text
+        btn.textContent = label;
+
+        // Click handler
         btn.addEventListener("click", handler);
+
         return btn;
     }
 
