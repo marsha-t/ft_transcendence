@@ -8,7 +8,7 @@ import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAv
 
 async function profileRoutes(app, options) {
   // Get play counts for heatmap (top-level route inside profileRoutes)
-  app.get('/api/profile/play-counts', {
+  app.get('/profile/play-counts', {
     schema: getPlayCountsSchema,
     preHandler: [app.authenticate]
   }, async (request, reply) => {
@@ -61,7 +61,7 @@ async function profileRoutes(app, options) {
   });
 
   // 1- Get current user's profile by ID 
-  app.get('/api/profile', { schema: getCurrentUserSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/profile', { schema: getCurrentUserSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // <- JWT payload gives user info
 
@@ -89,7 +89,7 @@ async function profileRoutes(app, options) {
   });
 
   // 2- Update username, password, or email of the current user
-  app.put('/api/profile', { schema: updateProfileSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.put('/profile', { schema: updateProfileSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
       if (!userId) return reply.code(400).send({ message: 'Missing user ID' });
@@ -152,7 +152,7 @@ async function profileRoutes(app, options) {
   });  
 
   // 3- Update avatar through upload
-  app.put('/api/profile/avatar', { schema: avatarUploadSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.put('/profile/avatar', { schema: avatarUploadSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
       if (!userId) return reply.code(400).send({ message: 'Missing user ID in header' });
@@ -270,7 +270,7 @@ async function profileRoutes(app, options) {
   });
 
   // 4- Remove avatar (reset to default)
-  app.delete('/api/profile/avatar', { schema: removeAvatarSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.delete('/profile/avatar', { schema: removeAvatarSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
 

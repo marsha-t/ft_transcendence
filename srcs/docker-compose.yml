@@ -34,7 +34,38 @@ services:
       - db-data:/app/prisma/data
       - ./backend/uploads:/app/uploads
     restart: always
-
+  profile:
+    build:
+      context: ./backend/profile-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: profileservice
+    ports:
+      - 5003:5003
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  friends:
+    build:
+      context: ./backend/friends-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: friendsservice
+    ports:
+      - 5004:5004
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
   # elasticsearch:
   #   image: elasticsearch:8.17.0
   #   container_name: elasticsearch

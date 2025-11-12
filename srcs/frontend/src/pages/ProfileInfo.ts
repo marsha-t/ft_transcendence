@@ -201,16 +201,6 @@ export class ProfileInfo implements IComponent {
             small.addEventListener('click', async () => {
                 const presetFilename = avatarPaths[i].split('/').pop() || '';
                 if (presetFilename) {
-                    // const response = await apiServices.profile.uploadAvatarFromPreset(presetFilename);
-                    // if (response.success && response.data) {
-                    //     this.avatar = response.data.avatar;
-                    //     this.updatePopupAvatar();
-                    //     // this.updateProfileUI();
-                    //     // window.dispatchEvent(new CustomEvent('authChange'));
-                    //     if (this.onProfileUpdate) this.onProfileUpdate();
-                    // } else {
-                    //     alert(response.message || 'Failed to set avatar');
-                    // }
                     this.handleAvatarEdit('preset', presetFilename);
                 }
             });
