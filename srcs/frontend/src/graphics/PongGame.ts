@@ -14,6 +14,7 @@ export class PongGame {
     private ball!: Ball;
     private input!: InputHandler;
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
+    private isPaused: boolean = true;
 
     constructor(canvas: HTMLCanvasElement, onScore?: (side: 'LEFT' | 'RIGHT') => void) {
         this.canvas = canvas;
@@ -31,11 +32,25 @@ export class PongGame {
 
         // Render loop
         this.engine.runRenderLoop(() => {
-            this.ball.update();
-            this.checkCollisions();
-            this.checkScoring(); // ADD THIS
+            if (!this.isPaused){
+                this.ball.update();
+                this.checkCollisions();
+                this.checkScoring();
+                this.scene.render();
+            }
             this.scene.render();
         });
+    }
+    public pause(): void {
+        this.isPaused = true;
+    }
+
+    public resume(): void {
+        this.isPaused = false;
+    }
+
+    public isRunning(): boolean {
+        return !this.isPaused;
     }
 
     private checkScoring(): void {
@@ -46,6 +61,7 @@ export class PongGame {
 
         // Ball went past left paddle - RIGHT player scores
         if (ball.position.x < xMin) {
+            console.log("Ball went left! RIGHT scores");
             if (this.onScoreCallback) {
                 this.onScoreCallback('RIGHT');
             }
@@ -53,6 +69,7 @@ export class PongGame {
         }
         // Ball went past right paddle - LEFT player scores
         else if (ball.position.x > xMax) {
+            console.log("Ball went right! LEFT scores");
             if (this.onScoreCallback) {
                 this.onScoreCallback('LEFT');
             }
@@ -60,7 +77,6 @@ export class PongGame {
         }
     }
 
-    // ADD THIS METHOD - resets ball to center after scoring
     private resetBall(): void {
         const t = GameConfig.table;
         const tableY = -1;
@@ -71,19 +87,6 @@ export class PongGame {
         // Optionally reverse ball direction
         this.ball.speed.x *= -1;
     }
-
-    // private createCamera(): void {
-    //     const camera = new BABYLON.ArcRotateCamera(
-    //         "Camera",
-    //         3 * Math.PI / 2,  // alpha: rotate 180° to flip the view
-    //         Math.PI / 3,      // beta: angled view
-    //         18,               // radius: distance
-    //         new BABYLON.Vector3(0, 0, 0), // target: table center
-    //         this.scene
-    //     );
-    //     camera.attachControl(this.canvas, true);
-    //     camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
-    // }
 
     private createCamera(): void {
         const c = GameConfig.camera;
@@ -118,7 +121,6 @@ export class PongGame {
         tableMaterial.diffuseColor = new BABYLON.Color3(0, 0.6, 0);
         table.material = tableMaterial;
 
-        // Optional: Add border lines (as thin boxes)
         const lineMaterial = new BABYLON.StandardMaterial("lineMat", this.scene);
         lineMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1); // white
 
@@ -149,85 +151,60 @@ export class PongGame {
         }
     }
 
-    // private createSideWalls(table: BABYLON.Mesh): void {
-    //     const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
-    //     wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1); // white
-    
-    //     // Top wall
-    //     const topWall = BABYLON.MeshBuilder.CreateBox(
-    //         "topWall",
-    //         { width: 18, height: 0.3, depth: 0.1 },
-    //         this.scene
-    //     );
-    //     topWall.position.set(0, 0.5, -4.8); // along Z-axis
-    //     topWall.material = wallMaterial;
-    //     topWall.parent = table;
-    
-    //     // Bottom wall
-    //     const bottomWall = BABYLON.MeshBuilder.CreateBox(
-    //         "bottomWall",
-    //         { width: 18, height: 0.3, depth: 0.1 },
-    //         this.scene
-    //     );
-    //     bottomWall.position.set(0, 0.5, 4.8); // here chnage the wall's size and location
-    //     bottomWall.material = wallMaterial;
-    //     bottomWall.parent = table;
-    // }
-
     private createSideWalls(table: BABYLON.Mesh): void {
-    const t = GameConfig.table;
-    const w = GameConfig.wall;
+        const t = GameConfig.table;
+        const w = GameConfig.wall;
 
-    const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
-    wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+        const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
+        wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
-    // Z position offset (half depth minus a small gap)
-    const zOffset = (t.depth / 2) - w.thickness;
+        // Z position offset (half depth minus a small gap)
+        const zOffset = (t.depth / 2) - w.thickness;
 
-    // Top wall
-    const topWall = BABYLON.MeshBuilder.CreateBox(
-        "topWall",
-        {
-            width: t.width - 2,      // slightly shorter than table width
-            height: w.height,
-            depth: w.thickness
-        },
-        this.scene
-    );
-    topWall.position.set(0, t.height / 2, -zOffset);
-    topWall.material = wallMaterial;
-    topWall.parent = table;
+        // Top wall
+        const topWall = BABYLON.MeshBuilder.CreateBox(
+            "topWall",
+            {
+                width: t.width - 2,      // slightly shorter than table width
+                height: w.height,
+                depth: w.thickness
+            },
+            this.scene
+        );
+        topWall.position.set(0, t.height / 2, -zOffset);
+        topWall.material = wallMaterial;
+        topWall.parent = table;
 
-    const bottomWall = BABYLON.MeshBuilder.CreateBox(
-        "bottomWall",
-        {
-            width: t.width - 2,
-            height: w.height,
-            depth: w.thickness
-        },
-        this.scene
-    );
-    bottomWall.position.set(0, t.height / 2, zOffset);
-    bottomWall.material = wallMaterial;
-    bottomWall.parent = table;
-}
+        const bottomWall = BABYLON.MeshBuilder.CreateBox(
+            "bottomWall",
+            {
+                width: t.width - 2,
+                height: w.height,
+                depth: w.thickness
+            },
+            this.scene
+        );
+        bottomWall.position.set(0, t.height / 2, zOffset);
+        bottomWall.material = wallMaterial;
+        bottomWall.parent = table;
+    }
 
     
-private createBall(): void {
-    const t = GameConfig.table;
+    private createBall(): void {
+        const t = GameConfig.table;
 
-    const tableY = -1; // same value used for table.position.y
-    const ballRadius = 0.3; // diameter = 0.6 → radius = 0.3
+        const tableY = -1; // same value used for table.position.y
+        const ballRadius = 0.3; // diameter = 0.6 → radius = 0.3
 
-    // Put ball on table surface
-    const ballY = tableY + t.height / 2 + ballRadius;
+        // Put ball on table surface
+        const ballY = tableY + t.height / 2 + ballRadius;
 
-    this.ball = new Ball(
-        this.scene,
-        new BABYLON.Vector3(0, ballY, 0),
-        0.6
-    );
-}
+        this.ball = new Ball(
+            this.scene,
+            new BABYLON.Vector3(0, ballY, 0),
+            0.6
+        );
+    }
 
 
     private createPaddles(): void {
@@ -260,9 +237,9 @@ private createBall(): void {
     const r = 0.3; // ball radius
 
     if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
-        this.ball.bounceZ();
+            this.ball.bounceZ();
+        }
     }
-}
 
 
     private checkPaddleBounce(): void {
@@ -288,10 +265,8 @@ private createBall(): void {
         ball.position.x + r >= right.position.x - halfW &&
         ball.position.x <= right.position.x + halfW &&
         Math.abs(ball.position.z - right.position.z) <= halfD
-    ) {
-        this.ball.bounceX();
+        ) {
+            this.ball.bounceX();
+        }
     }
-}
-
-
 }
