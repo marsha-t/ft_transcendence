@@ -6,7 +6,7 @@ export class AuthServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = '/api';
+        this.baseUrl = '/api/auth';
     }
     // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {

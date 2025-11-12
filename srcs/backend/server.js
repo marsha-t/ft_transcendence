@@ -26,7 +26,7 @@ import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 
 // import routes
-import authRoutes from './routes/auth.js';
+// import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
 import friendsRoutes from './routes/friends.js';
 import gameSessionRoutes from './routes/gameSession.js' 
@@ -130,7 +130,7 @@ app.decorate('authenticate', async function (request, reply) {
 // ----------------------------------
 
 // Register our routes in the server
-app.register(authRoutes);
+// app.register(authRoutes);
 app.register(profileRoutes);
 app.register(friendsRoutes);
 app.register(gameSessionRoutes);
