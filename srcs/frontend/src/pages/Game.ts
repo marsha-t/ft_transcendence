@@ -108,7 +108,8 @@ export class Game implements IComponent {
 
     private createControlsContainer(): void {
         const controlsContainer = document.createElement("div");
-        controlsContainer.className = "controls_container";
+        controlsContainer.className = "flex flex-row gap-4 items-center justify-between pt-10";
+
 
         const startBtn = this.makeButton("Start Game", "start-btn", () => this.toggleGame());
         const pauseBtn = this.makeButton("Pause", "pause-btn", () => this.pauseGame());
@@ -125,13 +126,13 @@ export class Game implements IComponent {
 
             // Add guest player setup
             const setupSection = document.createElement("div");
-            setupSection.className = "setup_section";
+            setupSection.className = "flex flex-row items-center gap-2";
             setupSection.id = "setup-section";
 
             const guestInput = document.createElement("input");
             guestInput.type = "text";
             guestInput.placeholder = "Enter guest name";
-            guestInput.className = "guest_input";
+            guestInput.className = "w-48 h-12 rounded-lg mt-6";
             guestInput.id = "guest-input";
 
             const addGuestBtn = this.makeButton("Add Guest Player", "add-guest-btn", () => this.addGuestPlayer());
@@ -159,25 +160,22 @@ export class Game implements IComponent {
     private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
         const btn = document.createElement("button");
         btn.id = id;
-
-        // Tailwind 3D Pop button style
+    
         btn.className =
-            "px-6 py-3 bg-red-500 text-white font-bold rounded-lg " +
-            "shadow-[0_5px_0_theme(colors.red.700)] " +
-            "hover:shadow-[0_2px_0_theme(colors.red.700)] active:shadow-none " +
+            "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
+            "shadow-[0_5px_0_var(--color-button-second)] " +
+            "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
             "hover:translate-y-1 active:translate-y-2 " +
             "transition-all duration-150 mt-5";
 
+    
         btn.style.display = "none";
-
-        // Label text
         btn.textContent = label;
-
-        // Click handler
         btn.addEventListener("click", handler);
-
+    
         return btn;
     }
+    
 
     // INITIALIZATION
     
