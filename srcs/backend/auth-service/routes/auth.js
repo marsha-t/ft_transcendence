@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt';
 async function authRoutes(app, options) {
 
   // Register route
-  app.post('/api/register', { schema: registerSchema }, async (request, reply) => {
+  app.post('/register', { schema: registerSchema }, async (request, reply) => {
     try {
       const { username, email, password } = request.body;
 
@@ -48,7 +48,7 @@ async function authRoutes(app, options) {
   });
 
   // Login Route
-  app.post('/api/login', { schema: loginSchema }, async (request, reply) => {
+  app.post('/login', { schema: loginSchema }, async (request, reply) => {
     try {
       const { username, password } = request.body;
 
@@ -92,7 +92,7 @@ async function authRoutes(app, options) {
   });
 
   // Logout Route
-  app.post('/api/logout', { schema: logoutSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/logout', { schema: logoutSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;// safely from JWT
 
@@ -116,7 +116,7 @@ async function authRoutes(app, options) {
         data: { status: "OFFLINE" },
       });
 
-      reply.clearCookie('token', { path: '/' });
+      reply.clearCookie('token', {path: '/',});
       return reply.code(200).send({ message: 'Logout successful' });
       
     } catch (err) {
@@ -126,7 +126,7 @@ async function authRoutes(app, options) {
     }
   });
   // ✅ Get current user info (username + avatar)
-  app.get('/api/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // extracted from JWT
 

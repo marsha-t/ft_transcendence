@@ -119,7 +119,7 @@ export class ProfileServices {
     // Method to log out the current user
     async logout(): Promise<ApiResponse<null>> {
       try {
-          const response = await fetch(`${this.baseUrl}/logout`, {
+          const response = await fetch(`${this.baseUrl}/auth/logout`, {
               method: 'POST',
 				      credentials: 'include',
           });

@@ -7,19 +7,33 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.js'; // your existing auth routes
+import AjvErrors from 'ajv-errors';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  ajv: {
+    customOptions: {
+      allErrors: true,
+      strict: false,
+    },
+    plugins: [AjvErrors],
+  },
+});
 
 // CORS setup (adjust origin for your frontend)
+const allowedOrigins = (process.env.CORS_ORIGINS || 'https://localhost,https://localhost:443,http://localhost:3000').split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 await app.register(cors, {
-  origin: 'http://localhost:3000', // frontend URL
+  origin: allowedOrigins,
   credentials: true,
 });
 
@@ -40,7 +54,7 @@ app.decorate('authenticate', async (request, reply) => {
 });
 
 // Register Auth Routes
-app.register(authRoutes);
+app.register(authRoutes, { prefix: '/api/auth' });
 
 // Start server
 const PORT = process.env.AUTH_PORT || 5002;

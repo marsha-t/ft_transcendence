@@ -35,44 +35,44 @@ services:
       - ./backend/uploads:/app/uploads
     restart: always
 
-  elasticsearch:
-    image: elasticsearch:8.17.0
-    container_name: elasticsearch
-    ports:
-      - 9200:9200
-    environment:
-      - discovery.type=single-node
-    volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    networks:
-      - web
-    restart: always
+  # elasticsearch:
+  #   image: elasticsearch:8.17.0
+  #   container_name: elasticsearch
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     - discovery.type=single-node
+  #   volumes:
+  #     - elasticsearch-data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - web
+  #   restart: always
   
-  kibana:
-    image: kibana:8.17.0
-    container_name: kibana
-    ports:
-      - 5601:5601
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - web
-    restart: always
+  # kibana:
+  #   image: kibana:8.17.0
+  #   container_name: kibana
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - web
+  #   restart: always
 
-  logstash:
-    image: logstash:8.17.0
-    container_name: logstash
-    ports:
-      - 5044:5044
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    networks:
-      - web
-    restart: always
+  # logstash:
+  #   image: logstash:8.17.0
+  #   container_name: logstash
+  #   ports:
+  #     - 5044:5044
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - web
+  #   restart: always
 
   
 
@@ -106,6 +106,7 @@ services:
       - 443:443
     depends_on:
       - backend
+      - auth
     networks:
       - web
     # volumes:
