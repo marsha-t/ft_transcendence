@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
+import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 export class TournamentResults implements IComponent {
   private container!: HTMLElement;
@@ -13,6 +14,10 @@ export class TournamentResults implements IComponent {
   public render(): HTMLElement {
     this.loadStyles();
     localStorage.removeItem("activeTournament");
+
+    TournamentStore.tournamentId = null;
+    TournamentStore.onMatchEnd = null;
+    TournamentStore.tournamentId = null;
 
     const page = document.createElement("div");
     page.className = "tournament-page";
@@ -65,21 +70,20 @@ export class TournamentResults implements IComponent {
     this.container.appendChild(championDiv);
   }
 
-
   private renderBracket(bracket: any[]) {
-  const bracketDiv = document.createElement("div");
-  bracketDiv.className = "bracket-tree";
+    const bracketDiv = document.createElement("div");
+    bracketDiv.className = "bracket-tree";
 
-  const rounds = this.organizeRounds(bracket);
+    const rounds = this.organizeRounds(bracket);
 
-  rounds.forEach((round, i) => {
-    const roundDiv = document.createElement("div");
-    roundDiv.className = "round";
+    rounds.forEach((round, i) => {
+      const roundDiv = document.createElement("div");
+      roundDiv.className = "round";
 
-    round.forEach((match) => {
-      const matchDiv = document.createElement("div");
-      matchDiv.className = "match";
-      matchDiv.innerHTML = `
+      round.forEach((match) => {
+        const matchDiv = document.createElement("div");
+        matchDiv.className = "match";
+        matchDiv.innerHTML = `
         <div class="player ${match.winner === match.player1 ? "winner" : ""}">
           ${match.player1 ?? "-"}
         </div>
@@ -87,46 +91,44 @@ export class TournamentResults implements IComponent {
           ${match.player2 ?? "-"}
         </div>
       `;
-      roundDiv.appendChild(matchDiv);
+        roundDiv.appendChild(matchDiv);
+      });
+
+      bracketDiv.appendChild(roundDiv);
     });
 
-    bracketDiv.appendChild(roundDiv);
-  });
+    // Add final winner box to the rightmost end
+    const lastRound = rounds[rounds.length - 1];
+    if (lastRound && lastRound.length > 0) {
+      const finalWinner = lastRound[0].winner;
+      if (finalWinner) {
+        const winnerRound = document.createElement("div");
+        winnerRound.className = "round final-round";
 
-  // Add final winner box to the rightmost end
-  const lastRound = rounds[rounds.length - 1];
-  if (lastRound && lastRound.length > 0) {
-    const finalWinner = lastRound[0].winner;
-    if (finalWinner) {
-      const winnerRound = document.createElement("div");
-      winnerRound.className = "round final-round";
-
-      const winnerBox = document.createElement("div");
-      winnerBox.className = "winner-box";
-      winnerBox.innerHTML = `
+        const winnerBox = document.createElement("div");
+        winnerBox.className = "winner-box";
+        winnerBox.innerHTML = `
         <div class="player winner">${finalWinner}</div>
       `;
 
-      winnerRound.appendChild(winnerBox);
-      bracketDiv.appendChild(winnerRound);
+        winnerRound.appendChild(winnerBox);
+        bracketDiv.appendChild(winnerRound);
+      }
     }
+
+    this.container.appendChild(bracketDiv);
   }
 
-  this.container.appendChild(bracketDiv);
-}
-
-
-/**
- * Group matches by round — this depends on your backend structure.
- * If each match has `round` info, just group by that.
- * Otherwise, this is a simple mock to create one or two rounds visually.
- */
-private organizeRounds(bracket: any[]) {
-  // Example: if you have 4 players, this creates two rounds
-  if (bracket.length <= 2) return [bracket];
-  const half = Math.ceil(bracket.length / 2);
-  return [bracket.slice(0, half), bracket.slice(half)];
-}
+  /**
+   * Group matches by round — this depends on your backend structure.
+   * If each match has `round` info, just group by that.
+   * Otherwise, this is a simple mock to create one or two rounds visually.
+   */
+  private organizeRounds(bracket: any[]) {
+    if (bracket.length <= 2) return [bracket];
+    const half = Math.ceil(bracket.length / 2);
+    return [bracket.slice(0, half), bracket.slice(half)];
+  }
 
   private renderStats(stats: any) {
     const statsDiv = document.createElement("div");

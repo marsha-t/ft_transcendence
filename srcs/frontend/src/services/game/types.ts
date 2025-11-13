@@ -1,10 +1,10 @@
 export type PlayerSide = "LEFT" | "RIGHT";
 
 export type GameOptions = {
-    sessionId?: string;
+    sessionId?: number;
     isTournament?: boolean;
+    tournamentId?: number;
     displayNames?: { leftName: string; rightName: string };
-    onMatchEnd?: () => void;
   };
 
 export type GameStatus =
@@ -23,7 +23,7 @@ export interface Player{
 }
 
 export interface GameSession{
-    sessionId: string;
+    sessionId: number;
     status: GameStatus;
     players: Player[];
     winner?: PlayerSide;

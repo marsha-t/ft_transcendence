@@ -8,7 +8,7 @@ export class GameService{
     }
 
     // 1- Create a new game session
-    async createGameSession(userId: number, side: PlayerSide): Promise<GameSession>{
+    async createGameSession(side: PlayerSide): Promise<GameSession>{
         try{
             //Send POST request to backend with user + side
             const response = await fetch(`${this.baseUrl}/game-sessions`, {
@@ -38,7 +38,7 @@ export class GameService{
     }
 
     // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: string, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
+    async addGuestPlayer(sessionId: number, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
         try{
             const response = await fetch(`${this.baseUrl}/game-sessions/players`, {
                 method: 'POST',
@@ -76,7 +76,7 @@ export class GameService{
         }
     }
     // 3- update game session status
-    async updateGameStatus(sessionId: string, status: GameStatus): Promise<GameSession> {
+    async updateGameStatus(sessionId: number, status: GameStatus): Promise<GameSession> {
         try {
             const response = await fetch(`${this.baseUrl}/game-sessions/status`, {
                 method: 'PATCH',
@@ -102,7 +102,7 @@ export class GameService{
         }
     }
     // 4- update player score
-    async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<GameSession>{
+    async updatePlayerScore(sessionId: number, scoringSide: PlayerSide): Promise<GameSession>{
         try{
             const response = await fetch(`${this.baseUrl}/game-sessions/players/score`, {
                method: 'PATCH',
@@ -122,15 +122,15 @@ export class GameService{
         }
     }
     // 6- Start game
-    async startGame(sessionId: string):Promise<GameSession>{
+    async startGame(sessionId: number):Promise<GameSession>{
         return this.updateGameStatus(sessionId, "PLAYING");
     }
     // 7- Pause game;
-    async pauseGame(sessionId: string): Promise<GameSession> {
+    async pauseGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "PAUSED");
     }
     // 8- Abort game
-    async abortGame(sessionId: string): Promise<GameSession> {
+    async abortGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "ABORTED");
     }
     // 10- Transform API response to match our GameSession interface
