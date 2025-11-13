@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
-import { navigate } from "../utils";
+import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 declare const Plotly: any;
 
@@ -11,11 +11,16 @@ export class GameResults implements IComponent {
   private onMatchEnd?: () => void;
   private dashboardData: GameDashboard | null = null;
   private container!: HTMLElement;
+  private tournamentId: number | null = null;
 
   constructor(state?: any) {
     this.sessionId = state?.sessionId;
     this.isTournament = state?.isTournament ?? false;
-    this.onMatchEnd = state?.onMatchEnd;
+    this.tournamentId = state?.tournamentId ?? null;
+
+    if (this.isTournament) {
+      this.onMatchEnd = TournamentStore.onMatchEnd;
+    }
   }
 
   public render(): HTMLElement {
@@ -24,16 +29,9 @@ export class GameResults implements IComponent {
     this.container = document.createElement("div");
     this.container.className = "game-dashboard";
 
-    // Title
-    // const title = document.createElement("h1");
-    // title.textContent = "Game Results";
-    // title.className = "dashboard-title";
-    // this.container.appendChild(title);
-
     // Summary container
     const summaryDiv = document.createElement("div");
     summaryDiv.className = "dashboard-summary";
-    // this.container.appendChild(summaryDiv);
 
     // Chart container
     const chartDiv = document.createElement("div");
@@ -41,12 +39,10 @@ export class GameResults implements IComponent {
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
-    // this.container.appendChild(chartDiv);
 
     // Player stats container
     const playersDiv = document.createElement("div");
     playersDiv.className = "dashboard-players";
-    // this.container.appendChild(playersDiv);
 
     const resultsContainer = document.createElement("div");
     resultsContainer.className = "results-container";
@@ -74,6 +70,7 @@ export class GameResults implements IComponent {
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Next";
       nextBtn.onclick = () => {
+        TournamentStore.isNavigatingToNextMatch = true;
         this.onMatchEnd!();
       };
       btnContainer.appendChild(nextBtn);
@@ -134,9 +131,7 @@ export class GameResults implements IComponent {
     }</p>
       </div>
       <div class="duration-box">
-        <p>Total Duration: ${summary.totalDurationSec.toFixed(
-          1
-        )}s</p>
+        <p>Total Duration: ${summary.totalDurationSec.toFixed(1)}s</p>
       </div>
     `;
   }
@@ -253,5 +248,34 @@ export class GameResults implements IComponent {
 
     const sep = base.includes("?") ? "&" : "?";
     return `${base}${sep}t=${Date.now()}`;
+  }
+  public async canDeactivate(): Promise<boolean> {
+    // Only enforce warning during tournament flow
+    if (!this.isTournament) return true;
+
+    if (TournamentStore.isNavigatingToNextMatch) {
+      TournamentStore.isNavigatingToNextMatch = false;
+      return true;
+    }
+    const confirmLeave = confirm(
+      "You are in the middle of a tournament. Leaving now will abort the tournament."
+    );
+
+    if (!confirmLeave) return false;
+
+    // If user confirms, abort the tournament
+    try {
+      const tournamentId = this.tournamentId;
+      if (tournamentId) {
+        await apiServices.tournament.updateTournamentStatus(
+          tournamentId,
+          "ABORTED"
+        );
+      }
+    } catch (err) {
+      console.error("Failed to abort tournament:", err);
+    }
+
+    return true;
   }
 }

@@ -293,7 +293,13 @@ export class Header implements IComponent {
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
-
+        if (link.type === 'link') {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                history.pushState(null, '', link.href);
+                window.dispatchEvent(new PopStateEvent('popstate'));
+            });
+        }
         return a;
     }
 

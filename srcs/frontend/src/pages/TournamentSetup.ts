@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
+import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
 
 export class TournamentSetup implements IComponent {
@@ -9,6 +10,13 @@ export class TournamentSetup implements IComponent {
   private creatorUsername: string = "Creator";
 
   public render(): HTMLElement {
+    TournamentStore.tournamentId = null;
+    TournamentStore.onMatchEnd = null;
+    TournamentStore.isInternalTournamentNavigation = false;
+    
+    TournamentDraftStore.clear();
+    TournamentDraftStore.setNumberOfPlayers(2);
+
     this.loadStyles();
 
     const page = document.createElement("div");
@@ -37,8 +45,6 @@ export class TournamentSetup implements IComponent {
     input.min = "2";
     input.max = "64";
     input.value = "2";
-
-    TournamentDraftStore.setNumberOfPlayers(2);
 
     input.addEventListener("change", () => {
       const newNum = parseInt(input.value, 10);
@@ -175,31 +181,6 @@ export class TournamentSetup implements IComponent {
     <input type="password" placeholder="Password" />
     `;
 
-    // Registered user section
-    // const userTitle = document.createElement("h3");
-    // userTitle.textContent = "Registered User";
-    // const userHint = document.createElement("p");
-    // userHint.className = "hint";
-    // userHint.textContent =
-    //   "Enter your username and password if you already have an account.";
-
-    // const username = document.createElement("input");
-    // username.placeholder = "Username";
-    // const password = document.createElement("input");
-    // password.type = "password";
-    // password.placeholder = "Password";
-
-    // Guest section
-    // const guestTitle = document.createElement("h3");
-    // guestTitle.textContent = "Play as Guest";
-    // const guestHint = document.createElement("p");
-    // guestHint.className = "hint";
-    // guestHint.textContent =
-    //   "If you don’t have an account, enter a guest name to join temporarily.";
-
-    // const guestName = document.createElement("input");
-    // guestName.placeholder = "Guest Name";
-
     const addBtn = document.createElement("button");
     addBtn.textContent = "ADD PLAYER";
     addBtn.className = "add-player-btn";
@@ -218,13 +199,6 @@ export class TournamentSetup implements IComponent {
     });
 
     form.append(
-      // userTitle,
-      // userHint,
-      // username,
-      // password,
-      // guestTitle,
-      // guestHint,
-      // guestName,
       addBtn
     );
     guestBtn.addEventListener("click", () => {

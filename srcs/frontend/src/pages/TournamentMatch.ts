@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
+import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -67,23 +68,23 @@ export class TournamentMatch implements IComponent {
     h3.textContent = `Match ${matchIndex}`;
     matchInfo.appendChild(h3);
 
-const playerContainer = document.createElement('div');
-playerContainer.className = 'player-container';
+    const playerContainer = document.createElement('div');
+    playerContainer.className = 'player-container';
 
-const p1Box = document.createElement('div');
-p1Box.className = 'player-box';
-p1Box.textContent = p1?.displayName ?? "Player 1";
+    const p1Box = document.createElement('div');
+    p1Box.className = 'player-box';
+    p1Box.textContent = p1?.displayName ?? "Player 1";
 
-const vs = document.createElement('div');
-vs.className = 'vs-text';
-vs.textContent = "VS";
+    const vs = document.createElement('div');
+    vs.className = 'vs-text';
+    vs.textContent = "VS";
 
-const p2Box = document.createElement('div');
-p2Box.className = 'player-box';
-p2Box.textContent = p2?.displayName ?? "Player 2";
+    const p2Box = document.createElement('div');
+    p2Box.className = 'player-box';
+    p2Box.textContent = p2?.displayName ?? "Player 2";
 
-playerContainer.append(p1Box, vs, p2Box);
-matchInfo.appendChild(playerContainer);
+    playerContainer.append(p1Box, vs, p2Box);
+    matchInfo.appendChild(playerContainer);
 
     this.container.appendChild(matchInfo);
 
@@ -101,10 +102,16 @@ matchInfo.appendChild(playerContainer);
   }
 
   private startGame(gameSessionId: number, p1: any, p2: any) {
+    
+    TournamentStore.onMatchEnd = () => this.loadNextMatch();
+    TournamentStore.tournamentId = this.tournamentId;
+    
     this.container.innerHTML = "";
+    
     this.gameInstance = new Game({
-      sessionId: String(gameSessionId),
+      sessionId: Number(gameSessionId),
       isTournament: true,
+      tournamentId: this.tournamentId, 
       displayNames: {
         leftName: p1?.displayName ?? "Player 1",
         rightName: p2?.displayName ?? "Player 2",
@@ -129,6 +136,10 @@ matchInfo.appendChild(playerContainer);
     }
   }
   public async canDeactivate(): Promise<boolean> {
+     if (TournamentStore.isInternalTournamentNavigation) {
+        TournamentStore.isInternalTournamentNavigation = false;
+        return true;
+    }
     if (this.hasEnded) return true;
     const confirmLeave = confirm(
       "A tournament is in progress. Leaving will abort it."
