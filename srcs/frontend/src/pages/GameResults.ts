@@ -25,15 +25,15 @@ export class GameResults implements IComponent {
     this.container.className = "game-dashboard";
 
     // Title
-    const title = document.createElement("h1");
-    title.textContent = "Game Results";
-    title.className = "dashboard-title";
-    this.container.appendChild(title);
+    // const title = document.createElement("h1");
+    // title.textContent = "Game Results";
+    // title.className = "dashboard-title";
+    // this.container.appendChild(title);
 
     // Summary container
     const summaryDiv = document.createElement("div");
     summaryDiv.className = "dashboard-summary";
-    this.container.appendChild(summaryDiv);
+    // this.container.appendChild(summaryDiv);
 
     // Chart container
     const chartDiv = document.createElement("div");
@@ -41,12 +41,30 @@ export class GameResults implements IComponent {
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
-    this.container.appendChild(chartDiv);
+    // this.container.appendChild(chartDiv);
 
     // Player stats container
     const playersDiv = document.createElement("div");
     playersDiv.className = "dashboard-players";
-    this.container.appendChild(playersDiv);
+    // this.container.appendChild(playersDiv);
+
+    const resultsContainer = document.createElement("div");
+    resultsContainer.className = "results-container";
+
+    // Left: leaderboard summary
+    const leftDiv = document.createElement("div");
+    leftDiv.className = "results-left";
+    leftDiv.appendChild(summaryDiv);
+
+    // Right: chart + player stats
+    const rightDiv = document.createElement("div");
+    rightDiv.className = "results-right";
+    rightDiv.appendChild(chartDiv);
+    rightDiv.appendChild(playersDiv);
+
+    resultsContainer.appendChild(leftDiv);
+    resultsContainer.appendChild(rightDiv);
+    this.container.appendChild(resultsContainer);
 
     // Button section
     const btnContainer = document.createElement("div");
@@ -104,14 +122,22 @@ export class GameResults implements IComponent {
           summary.winner?.avatar ?? "/uploads/avatars/default.png"
         )}" 
              alt="Winner Avatar" class="winner-avatar" />
-        <h2>🏆 Winner: ${summary.winner?.displayName ?? "No Winner"}</h2>
+        <div class="trophy-icon">🏆</div>
+        <div class="winner-label">winner</div>
+        <div class="winner-name">${
+          summary.winner?.displayName ?? "No Winner"
+        }</div>
       </div>
-      <p class="score-line">Final Score: ${summary.finalScore.left} - ${
+      <div class="score-box">
+        <p>Final Score: ${summary.finalScore.left} - ${
       summary.finalScore.right
     }</p>
-      <p>Total Duration: ${summary.totalDurationSec.toFixed(
-        1
-      )}s (Active: ${summary.activeDurationSec.toFixed(1)}s)</p>
+      </div>
+      <div class="duration-box">
+        <p>Total Duration: ${summary.totalDurationSec.toFixed(
+          1
+        )}s</p>
+      </div>
     `;
   }
 
@@ -143,20 +169,28 @@ export class GameResults implements IComponent {
     };
 
     const layout = {
-      title: "Score Progression Over Time",
+      title: {
+        text: "Score Progression Over Time",
+        font: {
+          color: "#ffffff",
+          family: "'Press Start 2P', monospace",
+          size: 12,
+        },
+      },
       xaxis: {
-        title: "Elapsed Time (seconds)",
-        showgrid: true,
-        zeroline: false,
+        title: { text: "Elapsed Time (Seconds)", font: { color: "#ffffff" } },
+        tickfont: { color: "#ffffff" },
+        gridcolor: "#24325f",
       },
       yaxis: {
-        title: "Score",
+        title: { text: "Score", font: { color: "#ffffff" } },
+        tickfont: { color: "#ffffff" },
+        gridcolor: "#24325f",
         dtick: 1,
-        rangemode: "tozero",
       },
-      legend: { x: 0.05, y: 1.1, orientation: "h" },
-      plot_bgcolor: "#F2F1FA",
-      paper_bgcolor: "#F2F1FA",
+      legend: { x: 0.1, y: 1.1, orientation: "h", font: { color: "#ffffff" } },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
     };
 
     Plotly.newPlot(chartDiv, [traceLeft, traceRight], layout, {
@@ -209,7 +243,7 @@ export class GameResults implements IComponent {
     link.href = "/styles/GameResults.css";
     document.head.appendChild(link);
   }
-  
+
   private getAvatarUrl(path?: string): string {
     if (!path) return "";
     const backendUrl = "http://localhost:5001";
