@@ -124,16 +124,13 @@ export class Register implements IComponent {
 
         // === Submit button ===
         this.submitButton = document.createElement('button');
-        this.submitButton.className = `
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            text-color_white font-pixel
-            cursor-pointer bg-color_button
-            hover:bg-color-green hover:text-background
-            hover:ring-2 hover:ring-border-green
-            transition-all duration-300
-            focus:outline-none
-            disabled:opacity-50 disabled:cursor-not-allowed
-            `;
+        this.submitButton.className = 
+            "w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+            "font-bold rounded-lg tracking-widest " + 
+            "shadow-[0_5px_0_var(--color-button-second)] " +
+            "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+            "hover:translate-y-1 active:translate-y-2 " +
+            "transition-all duration-150 mt-5 text-center no-underline";
 
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Register';

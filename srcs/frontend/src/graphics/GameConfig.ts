@@ -20,7 +20,7 @@ export const GameConfig =  {
         alpha: 3 * Math.PI / 2,
         beta: Math.PI / 3,
         radius: 18,
-        target: { x: 0, y: 0, z: 0}
+        target: { x: 0, y: 0, z: 3}
     },
     tableBounds: {
         zMin: -4.4, // adjust if your table depth changes
@@ -33,6 +33,12 @@ export const GameConfig =  {
             x: 0.1,
             z: 0.07
         }
+    },
+    room: {
+        width: 40,
+        height: 20,
+        depth: 25,
+        floorY: -5  // Position of floor
     }
 
 }
