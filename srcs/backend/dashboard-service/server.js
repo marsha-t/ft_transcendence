@@ -1,13 +1,12 @@
 // authservice/server.js
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import fastifyMultipart from '@fastify/multipart';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import profileRoutes from './routes/profile.js'; 
+import dashboardRoutes from './routes/dashboard.js'; 
 import AjvErrors from 'ajv-errors';
 
 // Resolve __dirname
@@ -43,12 +42,6 @@ if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
 
-//limit for uploaded files
-app.register(fastifyMultipart, {
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB limit
-  },
-});
 // JWT authentication decorator
 app.decorate('authenticate', async (request, reply) => {
   try {
@@ -61,10 +54,10 @@ app.decorate('authenticate', async (request, reply) => {
 });
 
 // Register Auth Routes
-app.register(profileRoutes, { prefix: '/api/profileServ' });
+app.register(dashboardRoutes, { prefix: '/api/dashboardServ' });
 
 // Start server
-const PORT = process.env.PROFILE_SERVICE_PORT || 5003;
+const PORT = process.env.DASHBOARD_SERVICE_PORT || 5005;
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: '0.0.0.0' });
