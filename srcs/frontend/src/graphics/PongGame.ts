@@ -147,7 +147,7 @@ export class PongGame {
 
         // Create a material for the back wall
         const backWallMat = new BABYLON.StandardMaterial("backWallMat", this.scene);
-        const texture = new BABYLON.Texture("/walls/back.png", this.scene);
+        const texture = new BABYLON.Texture("/walls/back.jpg", this.scene);
 
         // Check if texture loads
         texture.onLoadObservable.add(() => {
@@ -165,7 +165,11 @@ export class PongGame {
             this.scene
         );
         frontWall.position.set(0, r.height / 2 - 5, r.depth / 2 + 7);
-        frontWall.material = wallMaterial;
+        const frontWallMat = new BABYLON.StandardMaterial("frontWallMat", this.scene);
+        const frontTexture = new BABYLON.Texture("/walls/front.jpg", this.scene);
+        frontWallMat.diffuseTexture = frontTexture;
+        frontWallMat.specularColor = new BABYLON.Color3(0, 0, 0);
+        frontWall.material = frontWallMat;
     
         // Left side wall - EXTEND DEPTH
         const leftWall = BABYLON.MeshBuilder.CreateBox(
