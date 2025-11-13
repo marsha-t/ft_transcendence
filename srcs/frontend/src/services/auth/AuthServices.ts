@@ -6,7 +6,7 @@ export class AuthServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = 'http://localhost:5001/api';
+        this.baseUrl = '/api';
     }
     // Method for register
     async register(userData: RegisterData): Promise<ApiResponse<any>> {
@@ -71,11 +71,7 @@ export class AuthServices {
     
             // Success case -------------------
             if (response.ok) {
-                // Store JWT if returned
-                if (data.token) {
-                    localStorage.setItem('jwtToken', data.token);
-                }
-
+                
                 if (data.username) {
                     localStorage.setItem('currentUsername', data.username);
                 }
@@ -110,7 +106,45 @@ export class AuthServices {
             };
         }
     }
+    // Get current user (username + avatar)
+    async getCurrentUser(): Promise<ApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/userInfo`, {
+                method: 'GET',
+                credentials: 'include',
+            });
 
+            const data = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.message || 'Failed to get user info',
+                    data: null,
+                    errors: [],
+                };
+            }
+            
+            return {
+                success: true,
+                status: response.status,
+                data: data, // This will be { username: "...", avatar: "..." }
+                message: 'User info fetched successfully',
+                errors: [],
+            };
+        } catch (error) {
+            console.error('Get current user API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                data: null,
+                errors: [],
+            };
+        }
+    }
+  
     // Method to get JWT token ------------------ if not used later on for logout route, remove it!
     // getToken(): string | null {
     //     return localStorage.getItem('jwtToken');

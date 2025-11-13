@@ -3,10 +3,6 @@ export const matchHistorySchema = {
 	summary: 'Return match history for given user',
 	headers: {
 		type: 'object',
-		properties: {
-			authorization: { type: 'string', description: 'Bearer <token>' },
-		  },
-		  required: ['authorization'],
 	},
 	response: {
 		200: {
@@ -36,10 +32,9 @@ export const gameDashboardSchema = {
   headers: {
     type: "object",
     properties: {
-			authorization: { type: 'string', description: 'Bearer <token>' },
       "x-current-session-id": { type: "integer" },
     },
-    required: ['authorization', "x-current-session-id" ],
+    required: [ "x-current-session-id" ],
   },
   response: {
     200: {
@@ -141,10 +136,6 @@ export const userDashboardSchema = {
   summary: "Return overall user dashboard stats",
   headers: {
     type: "object",
-    properties: {
-			authorization: { type: 'string', description: 'Bearer <token>' },
-    },
-    required: ["authorization"],
   },
   response: {
     200: {
