@@ -82,6 +82,23 @@ services:
       - db-data:/app/prisma/data
       - ./backend/uploads:/app/uploads
     restart: always
+# gamesession:
+# tournament:
+  game_tournament:
+    build:
+      context: ./backend/game-tournament-service
+      dockerfile: Dockerfile
+    container_name: gametournamentservice
+    ports:
+      - 5006:5006
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+    restart: always
   # elasticsearch:
   #   image: elasticsearch:8.17.0
   #   container_name: elasticsearch

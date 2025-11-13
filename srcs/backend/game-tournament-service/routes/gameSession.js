@@ -12,7 +12,7 @@ import {
 
 async function gameSessionRoutes(app, options) {
   // Create game session with first player
-  app.post('/api/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
     const { guestName, side } = request.body ?? {};
 
@@ -52,7 +52,7 @@ async function gameSessionRoutes(app, options) {
     - Return updated session object 
   */
   
-  app.patch('/api/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.patch('/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
     const sessionIdHeader = request.headers['x-current-session-id'];
     const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
