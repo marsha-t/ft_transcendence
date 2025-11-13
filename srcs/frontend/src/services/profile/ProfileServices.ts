@@ -7,11 +7,7 @@ export class ProfileServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = 'http://localhost:5001/api';
-    }
-
-    getToken(): string | null {
-      return localStorage.getItem('jwtToken');
+        this.baseUrl = '/api';
     }
     
     // Method to get the top part of the profile page
@@ -21,8 +17,8 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getToken()}`,
                 },
+				        credentials: 'include',
             });
             const data = await response.json();
             if(!response.ok){
@@ -57,8 +53,8 @@ export class ProfileServices {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          'Authorization': `Bearer ${this.getToken()}`,
         },
+				credentials: 'include',
         body: JSON.stringify({ presetFilename: presetPath }),
       });
       const data = await response.json();
@@ -96,8 +92,8 @@ export class ProfileServices {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getToken()}`,
         },
+				credentials: 'include',
       });
       const data = await response.json();
       if (!response.ok) {
@@ -125,9 +121,7 @@ export class ProfileServices {
       try {
           const response = await fetch(`${this.baseUrl}/logout`, {
               method: 'POST',
-              headers: {
-                  'Authorization': `Bearer ${this.getToken()}`,
-              },
+				      credentials: 'include',
           });
           const data = await response.json();
 
@@ -166,8 +160,8 @@ export class ProfileServices {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.getToken()}`,
                 },
+				        credentials: 'include',
             });
             const data = await response.json();
             if(!response.ok){
@@ -207,9 +201,7 @@ export class ProfileServices {
         try {
           const res = await fetch(`${this.baseUrl}/friends/${encodeURIComponent(username)}`, {
             method: "DELETE",
-            headers: {
-              'Authorization': `Bearer ${this.getToken()}`,
-            },
+				    credentials: 'include',
           });
       
           const data = await res.json();
@@ -232,8 +224,8 @@ export class ProfileServices {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              'Authorization': `Bearer ${this.getToken()}`,
             },
+				    credentials: 'include',
             body: JSON.stringify(data),
           });
       
@@ -269,9 +261,7 @@ export class ProfileServices {
     
             const response = await fetch(`${this.baseUrl}/profile/avatar`, {
                 method: "PUT",
-                headers: {
-                    'Authorization': `Bearer ${this.getToken()}`,
-                },
+			          credentials: 'include',
                 body: formData,
             });
     
@@ -307,9 +297,7 @@ export class ProfileServices {
         try {
           const response = await fetch(`${this.baseUrl}/profile/avatar`, {
             method: "DELETE",
-            headers: {
-              'Authorization': `Bearer ${this.getToken()}`,
-            },
+				    credentials: 'include',
           });
       
           const data = await response.json();
@@ -346,8 +334,8 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  'Authorization': `Bearer ${this.getToken()}`,
               },
+				      credentials: 'include',
           });
   
           const data = await response.json();
@@ -394,8 +382,8 @@ export class ProfileServices {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'Authorization': `Bearer ${this.getToken()}`,
         },
+				credentials: 'include',
         body: JSON.stringify({ username }),
       });
 
@@ -417,8 +405,8 @@ export class ProfileServices {
             method: 'GET',
             headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.getToken()}`,
             },
+				    credentials: 'include',
         });
     
         const data = await response.json();
@@ -464,9 +452,7 @@ export class ProfileServices {
         try {
         const response = await fetch(`${this.baseUrl}/friends/${username}/${action}`, {
             method: 'PUT',
-            headers: {
-            'Authorization': `Bearer ${this.getToken()}`,
-            },
+				    credentials: 'include',
         });
     
         const data = await response.json();
@@ -501,8 +487,8 @@ export class ProfileServices {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
-                  "Authorization": `Bearer ${this.getToken()}`,
-              }
+              },
+				      credentials: 'include',
           });
           
           const data = await response.json();

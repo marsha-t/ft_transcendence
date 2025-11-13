@@ -223,36 +223,7 @@ async function friendsRoutes(app, options) {
     }
   });
 
-  // // 7- Get outgoing friend requests (users I added, still pending)
-  // app.get('/api/friends/sent', { schema: getOutgoingRequestsSchema }, async (request, reply) => {
-  //   try {
-  //     const userIdHeader = request.headers['x-current-user-id'];
-  //     const currentUserId = userIdHeader ? Number(userIdHeader) : null;
-
-  //     const outgoing = await prisma.friendRequest.findMany({
-  //       where: { senderId: currentUserId, status: 'PENDING' },
-  //       include: { receiver: true }
-  //     });
-
-  //     const requests = outgoing.map(req => ({
-  //       id: req.id,
-  //       to: {
-  //         username: req.receiver.username,
-  //         avatar: req.receiver.avatar,
-  //         status: req.receiver.status
-  //       }
-  //     }));
-
-  //     return reply.code(200).send(requests);
-
-  //   } catch (err) {
-  //     request.log.error(err);
-  //     if (err.code && err.message) return reply.code(err.code).send({ error: err.message });
-  //     return reply.code(500).send({ error: 'Failed to fetch outgoing friend requests' });
-  //   }
-  // });
-
-  // 8- Search users by username (safe + sanitized)
+  // 7- Search users by username (safe + sanitized)
   app.get('/api/friends/search', { schema: searchFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;

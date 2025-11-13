@@ -1,5 +1,12 @@
 export type PlayerSide = "LEFT" | "RIGHT";
 
+export type GameOptions = {
+    sessionId?: string;
+    isTournament?: boolean;
+    displayNames?: { leftName: string; rightName: string };
+    onMatchEnd?: () => void;
+  };
+
 export type GameStatus =
     | "CREATED"    // Initial state when session is created
     | "PLAYING"    // Game is active
@@ -30,3 +37,5 @@ export interface GameSession{
         matchIndex: number;
     } | null;
 }
+
+
