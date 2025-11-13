@@ -195,18 +195,22 @@ export const userDashboardSchema = {
           items: {
             type: "object",
             properties: {
+              rank: { type: "integer" },
               username: { type: "string" },
               totalMatches: { type: "integer" },
               winRate: { type: "number" },
               avgScore: { type: "number" },
               leaderboardScore: { type: "number" },
+              isCurrentUser: { type: "boolean" },
             },
             required: [
+              "rank", 
               "username",
               "totalMatches",
               "winRate",
               "avgScore",
               "leaderboardScore",
+              "isCurrentUser",
             ],
           },
         },

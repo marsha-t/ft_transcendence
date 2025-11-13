@@ -6,6 +6,7 @@ import { apiServices } from "../services/ApiServices.js";
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
   private modal!: HTMLElement;
+  private creatorUsername: string = "Creator";
 
   public render(): HTMLElement {
     this.loadStyles();
@@ -17,16 +18,19 @@ export class TournamentSetup implements IComponent {
     this.container.className = "tournament-setup";
 
     const title = document.createElement("h2");
-    title.textContent = "🏆 Tournament Setup";
+    title.textContent = "Tournament Setup";
     this.container.appendChild(title);
 
     // --- Input section ---
     const counterContainer = document.createElement("div");
     counterContainer.className = "counter-container";
 
+    const counter = document.createElement("div");
+    counter.className = "counter";
+
     const label = document.createElement("label");
-    label.textContent = "Number of Players:";
-    counterContainer.appendChild(label);
+    label.textContent = "NUMBER OF PLAYERS";
+    counter.appendChild(label);
 
     const input = document.createElement("input");
     input.type = "number";
@@ -48,17 +52,17 @@ export class TournamentSetup implements IComponent {
       TournamentDraftStore.setNumberOfPlayers(newNum);
     });
 
-    counterContainer.appendChild(input);
-    this.container.appendChild(counterContainer);
-
+    counter.appendChild(input);
+    counterContainer.appendChild(counter);
     // --- Buttons actions ---
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
-    nextBtn.textContent = "Next";
+    nextBtn.textContent = "NEXT";
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
     actions.appendChild(nextBtn);
-    this.container.appendChild(actions);
+    counterContainer.appendChild(actions);
+    this.container.appendChild(counterContainer);
     page.appendChild(this.container);
 
     return page;
@@ -67,7 +71,7 @@ export class TournamentSetup implements IComponent {
   //----------------------------------------
   // Pop up window functions
   //----------------------------------------
-  private openAddPlayersPopup() {
+  private async openAddPlayersPopup() {
     const n = TournamentDraftStore.numberOfPlayers;
     if (!n || n < 2) return alert("Please set at least 2 players");
 
@@ -93,11 +97,12 @@ export class TournamentSetup implements IComponent {
     body.className = "modal-body";
 
     const left = this.createAddPlayerForm();
-    const right = this.createLineupSection();
+    const right = await this.createLineupSection();
 
     body.append(left, right);
     modalContent.append(header, body);
     this.modal.appendChild(modalContent);
+    console.log("Modal appended: ", this.modal);
     document.body.appendChild(this.modal);
   }
 
@@ -135,49 +140,107 @@ export class TournamentSetup implements IComponent {
     const form = document.createElement("div");
     form.className = "add-player-form";
 
-    // Registered user section
-    const userTitle = document.createElement("h3");
-    userTitle.textContent = "Registered User";
-    const userHint = document.createElement("p");
-    userHint.className = "hint";
-    userHint.textContent =
-      "Enter your username and password if you already have an account.";
+    // Toggle buttons
+    const toggleContainer = document.createElement("div");
+    toggleContainer.className = "toggle-container";
 
-    const username = document.createElement("input");
-    username.placeholder = "Username";
-    const password = document.createElement("input");
-    password.type = "password";
-    password.placeholder = "Password";
+    const guestBtn = document.createElement("button");
+    guestBtn.textContent = "GUEST";
+    guestBtn.className = "toggle-btn active";
+
+    const userBtn = document.createElement("div");
+    userBtn.textContent = "REGISTERED USER";
+    userBtn.className = "toggle-btn";
+
+    toggleContainer.append(guestBtn, userBtn);
+    form.appendChild(toggleContainer);
+
+    // --- Guest form ---
+    const guestForm = document.createElement("div");
+    guestForm.className = "guest-form";
+    guestForm.innerHTML = `
+    <p>If you don’t have an account, enter a guest name to join temporarily.</p>
+    <label>GUEST NAME</label>
+    <input placeholder="Guest Name" />
+    `;
+
+    // --- Registered form ---
+    const userForm = document.createElement("div");
+    userForm.className = "user-form hidden";
+    userForm.innerHTML = `
+    <p>Enter your username and password if you already have an account.</p>
+    <label>USERNAME</label>
+    <input placeholder="Username" />
+    <label>PASSWORD</label>
+    <input type="password" placeholder="Password" />
+    `;
+
+    // Registered user section
+    // const userTitle = document.createElement("h3");
+    // userTitle.textContent = "Registered User";
+    // const userHint = document.createElement("p");
+    // userHint.className = "hint";
+    // userHint.textContent =
+    //   "Enter your username and password if you already have an account.";
+
+    // const username = document.createElement("input");
+    // username.placeholder = "Username";
+    // const password = document.createElement("input");
+    // password.type = "password";
+    // password.placeholder = "Password";
 
     // Guest section
-    const guestTitle = document.createElement("h3");
-    guestTitle.textContent = "Play as Guest";
-    const guestHint = document.createElement("p");
-    guestHint.className = "hint";
-    guestHint.textContent =
-      "If you don’t have an account, enter a guest name to join temporarily.";
+    // const guestTitle = document.createElement("h3");
+    // guestTitle.textContent = "Play as Guest";
+    // const guestHint = document.createElement("p");
+    // guestHint.className = "hint";
+    // guestHint.textContent =
+    //   "If you don’t have an account, enter a guest name to join temporarily.";
 
-    const guestName = document.createElement("input");
-    guestName.placeholder = "Guest Name";
+    // const guestName = document.createElement("input");
+    // guestName.placeholder = "Guest Name";
 
     const addBtn = document.createElement("button");
-    addBtn.textContent = "Add Player";
+    addBtn.textContent = "ADD PLAYER";
+    addBtn.className = "add-player-btn";
     addBtn.addEventListener("click", async () => {
+      const isGuest = guestBtn.classList.contains("active");
+      const guestName = guestForm.querySelector("input") as HTMLInputElement;
+      const username = userForm.querySelectorAll(
+        "input"
+      )[0] as HTMLInputElement;
+      const password = userForm.querySelectorAll(
+        "input"
+      )[1] as HTMLInputElement;
       await this.handleAddPlayer(username, password, guestName);
       username.value = password.value = guestName.value = "";
       this.updateLineup();
     });
 
     form.append(
-      userTitle,
-      userHint,
-      username,
-      password,
-      guestTitle,
-      guestHint,
-      guestName,
+      // userTitle,
+      // userHint,
+      // username,
+      // password,
+      // guestTitle,
+      // guestHint,
+      // guestName,
       addBtn
     );
+    guestBtn.addEventListener("click", () => {
+      guestBtn.classList.add("active");
+      userBtn.classList.remove("active");
+      guestForm.classList.remove("hidden");
+      userForm.classList.add("hidden");
+    });
+    userBtn.addEventListener("click", () => {
+      userBtn.classList.add("active");
+      guestBtn.classList.remove("active");
+      userForm.classList.remove("hidden");
+      guestForm.classList.add("hidden");
+    });
+    form.append(guestForm, userForm, addBtn);
+
     return form;
   }
   private async handleAddPlayer(
@@ -197,6 +260,11 @@ export class TournamentSetup implements IComponent {
     }
 
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
+    const currentCount = TournamentDraftStore.players.length + 1; // +1 includes the creator
+    if (currentCount >= totalNeeded) {
+      alert(`You already have ${totalNeeded} players.`);
+      return;
+    }
 
     let newPlayerDisplayName: string | undefined;
     let newPlayer: {
@@ -245,7 +313,7 @@ export class TournamentSetup implements IComponent {
     if (remaining <= 0) this.showConfirmButton();
   }
 
-  private createLineupSection(): HTMLElement {
+  private async createLineupSection(): Promise<HTMLElement> {
     const section = document.createElement("div");
     section.className = "lineup-section";
 
@@ -257,14 +325,15 @@ export class TournamentSetup implements IComponent {
     ul.id = "lineup-list";
 
     const li = document.createElement("li");
-    li.textContent = `1. Creator`;
+    await this.fetchCreatorUsername();
+    li.textContent = `1. ${this.creatorUsername} (Creator)`;
     ul.appendChild(li);
 
     section.appendChild(ul);
 
     const confirmBtn = document.createElement("button");
     confirmBtn.id = "confirm-btn";
-    confirmBtn.textContent = "Confirm & Create Tournament";
+    confirmBtn.textContent = "Confirm & Start Game";
     confirmBtn.style.display = "none";
     confirmBtn.addEventListener(
       "click",
@@ -281,7 +350,7 @@ export class TournamentSetup implements IComponent {
     ul.innerHTML = "";
     const creator = document.createElement("li");
     const creatorNameSpan = document.createElement("span");
-    creatorNameSpan.textContent = "1. Creator";
+    creatorNameSpan.textContent = `1. ${this.creatorUsername} (Creator)`;
     creator.appendChild(creatorNameSpan);
     ul.appendChild(creator);
 
@@ -312,10 +381,23 @@ export class TournamentSetup implements IComponent {
     else this.hideConfirmButton();
   }
 
+  private async fetchCreatorUsername() {
+    try {
+      const response = await apiServices.profile.getProfile();
+      const username = response.data?.username;
+      if (response.success && username) {
+        this.creatorUsername = username;
+      }
+    } catch (err) {
+      console.log("Failed to fetch creator username: ", err);
+    }
+  }
+
   private showConfirmButton() {
     const confirmBtn = document.getElementById("confirm-btn");
     if (confirmBtn) confirmBtn.style.display = "block";
   }
+
   private hideConfirmButton() {
     const confirmBtn = document.getElementById("confirm-btn");
     if (confirmBtn) confirmBtn.style.display = "none";
@@ -359,12 +441,12 @@ export class TournamentSetup implements IComponent {
   // Styles
   //--------------------------------------
   private loadStyles() {
-    if (document.getElementById("tournament-styles")) return;
+    if (document.getElementById("tournament-setup-styles")) return;
 
     const link = document.createElement("link");
-    link.id = "tournament-styles";
+    link.id = "tournament-setup-styles";
     link.rel = "stylesheet";
-    link.href = "/styles/Tournament.css";
+    link.href = "/styles/TournamentSetup.css";
     document.head.appendChild(link);
   }
 }

@@ -5,13 +5,8 @@ import { UserDashboard } from "../services/dashboard/types";
 declare const Plotly: any;
 
 export class ProfileDashboard implements IComponent {
-  private userId: number;
   private container!: HTMLElement;
   private dashboardData: UserDashboard | null = null;
-
-  constructor(userId: number) {
-    this.userId = userId;
-  }
 
   public render(): HTMLElement {
     this.loadStyles();
@@ -72,15 +67,22 @@ export class ProfileDashboard implements IComponent {
         return;
       }
       this.dashboardData = response.data;
+      const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
+
       this.renderOverview();
-      this.renderWinRateChart();
-      this.renderScoreHistogram();
-      this.renderOpponentBarChart();
-      this.renderLeaderboard();
+      if (totalMatches > 0) {
+        this.renderWinRateChart();
+        this.renderScoreHistogram();
+        this.renderOpponentBarChart();
+        this.renderLeaderboard();
+      } else {
+        this.renderNoDataMessages();
+      }
     } catch (err) {
       console.error("Error fetching dashboard: ", err);
     }
   }
+
   private renderOverview() {
     if (!this.dashboardData) return;
 
@@ -89,15 +91,15 @@ export class ProfileDashboard implements IComponent {
 
     const { overview } = this.dashboardData;
     overviewDiv.innerHTML = `
-		<h2>Overview</h2>
-		<ul>
-			<li>Total Matches: ${overview.totalMatches}</li>
-			<li>Total Wins: ${overview.totalWins}</li>
-			<li>Win Rate: ${overview.winRate}%</li>
-			<li>Average Score: ${overview.avgScore}</li>
-			<li>Current Streak: ${overview.currentWinStreak}</li>
-			<li>Longest Streak: ${overview.longestWinStreak}</li>
-		</ul>`;
+    <h2>Overview</h2>
+    <ul>
+      <li>Total Matches: <span>${overview.totalMatches}</span></li>
+      <li>Total Wins: <span>${overview.totalWins}</span></li>
+      <li>Win Rate: <span>${overview.winRate}%</span></li>
+      <li>Average Score: <span>${overview.avgScore}</span></li>
+      <li>Current Streak: <span>${overview.currentWinStreak}</span></li>
+      <li>Longest Streak: <span>${overview.longestWinStreak}</span></li>
+    </ul>`;
   }
 
   private renderWinRateChart() {
@@ -112,17 +114,30 @@ export class ProfileDashboard implements IComponent {
       y: dailyStats.map((p) => p.winRate * 100),
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#423f6a" },
+      line: { color: "#E43E64", width: 3 },
     };
     const layout = {
       title: "Win Rate Over Time",
-      yaxis: { title: "%" },
-      xaxis: { title: "Date", type: "date", tickformat: "%b %d" },
+      font: {
+        family: "'DM Sans', sans-serif",
+        color: "#FFD400",
+        size: 12,
+      },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
-      autosize: true,
-      margin: { t: 70, b: 100, l: 80, r: 100 },
+      xaxis: {
+        title: "Date",
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+      },
+      yaxis: {
+        title: "%",
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+      },
+      margin: { t: 70, b: 80, l: 60, r: 40 },
     };
+
     Plotly.newPlot(winRateChartDiv, [trace], layout, { responsive: true });
   }
 
@@ -137,16 +152,34 @@ export class ProfileDashboard implements IComponent {
       x: scoreDistribution,
       type: "histogram",
       marker: { color: "#E43E64" },
+      xbins: { start: -0.5, end: 5.5, size: 1 },
     };
     const layout = {
       title: "Score Distribution",
-      xaxis: { title: "Score" },
-      yaxis: { title: "Frequency" },
+      font: {
+        family: "'DM Sans', sans-serif",
+        color: "#FFD400",
+        size: 12,
+      },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
+      xaxis: {
+        title: "Score",
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+        dtick: 1,
+        range: [-0.5, 5.5],
+        tickvals: [0, 1, 2, 3, 4, 5],
+      },
+      yaxis: {
+        title: "Frequency",
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+      },
       autosize: true,
-      margin: { t: 70, b: 100, l: 80, r: 100 },
+      margin: { t: 70, b: 80, l: 60, r: 40 },
     };
+
     Plotly.newPlot(scoreHistogramDiv, [trace], layout, { responsive: true });
   }
 
@@ -165,9 +198,22 @@ export class ProfileDashboard implements IComponent {
     };
     const layout = {
       title: "% Wins per Opponent",
-      yaxis: { title: "%" },
+      font: {
+        family: "'DM Sans', sans-serif",
+        color: "#FFD400",
+        size: 12,
+      },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
+      xaxis: {
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+      },
+      yaxis: {
+        title: "%",
+        color: "#FFD400",
+        gridcolor: "rgba(255, 212, 0, 0.2)",
+      },
       autosize: true,
       margin: { t: 70, b: 100, l: 80, r: 100 },
     };
@@ -183,16 +229,16 @@ export class ProfileDashboard implements IComponent {
     const { leaderboard } = this.dashboardData;
     const rows = leaderboard
       .map(
-        (p, i) => `
-		<tr>
-			<td>${i + 1}</td>
-			<td>${p.username}</td>
-			<td>${p.totalMatches}</td>
-			<td>${p.winRate}</td>
-			<td>${p.avgScore}</td>
-			<td>${p.leaderboardScore}</td>
-		</tr>
-	`
+        (p) => `
+        <tr class="${p.isCurrentUser ? "highlight-user" : ""}">
+          <td>${p.rank}</td>
+          <td>${p.username}</td>
+          <td>${p.totalMatches}</td>
+          <td>${p.winRate}</td>
+          <td>${p.avgScore}</td>
+          <td>${p.leaderboardScore}</td>
+        </tr>
+      `
       )
       .join("");
     leaderboardDiv.innerHTML = `
@@ -211,6 +257,23 @@ export class ProfileDashboard implements IComponent {
 	`;
   }
 
+  private renderNoDataMessages() {
+    const placeholders = [
+      { id: "winRateChart", title: "Win Rate Over Time" },
+      { id: "scoreHistogram", title: "Score Distribution" },
+      { id: "winsPerOpponent", title: "Wins per Opponent" },
+      { id: "leaderboard", title: "Leaderboard" },
+    ];
+    placeholders.forEach(({ id, title }) => {
+      const div = document.getElementById(id);
+      if (div) {
+        div.innerHTML = `
+          <h2>${title}</h2>
+          <p class="no-data">Not enough matches yet — play a few games to unlock insights!</p>
+        `;
+      }
+    });
+  }
   private loadStyles() {
     if (document.getElementById("user-dashboard-styles")) return;
 
