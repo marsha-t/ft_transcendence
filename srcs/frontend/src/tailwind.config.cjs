@@ -21,6 +21,7 @@ module.exports = {
           'color-secondary': 'var(--color-text-secondary)',
           'color-yellow': 'var(--color-text-yellow)',
           'color-green': 'var(--color-text-green)',
+          'color-green-secodary': 'var(--color-button-second)',
           color_border: 'var(--color-border-red)',
           'border-green': 'var(--color-border-green)'
         }

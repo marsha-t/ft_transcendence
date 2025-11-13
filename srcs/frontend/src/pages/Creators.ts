@@ -60,7 +60,7 @@ export class Creators implements IComponent {
             w-[180px] h-[200px]`;
 
         const avatar_marsha = document.createElement('img');
-        avatar_marsha.src = "/assets/avatar/marsha.png";
+        avatar_marsha.src = "/avatar/marsha.png";
         avatar_marsha.alt = "avatar marsha";
         avatar_marsha.className = `w-[120px] h-[120px] rounded-full object-cover mb-2 self-center`;
 
@@ -83,7 +83,7 @@ export class Creators implements IComponent {
             w-[180px] h-[200px]`;
 
         const avatar_sabira = document.createElement('img');
-        avatar_sabira.src = "/assets/avatar/sabira.png";
+        avatar_sabira.src = "/avatar/sabira.png";
         avatar_sabira.alt = "avatar sabira";
         avatar_sabira.className = `w-[120px] h-[120px] rounded-full object-cover mb-2 self-center`;
 
@@ -106,7 +106,7 @@ export class Creators implements IComponent {
             w-[180px] h-[200px]`;
 
         const avatar_dina = document.createElement('img');
-        avatar_dina.src = "/assets/avatar/dina.png";
+        avatar_dina.src = "/avatar/dina.png";
         avatar_dina.alt = "avatar dina";
         avatar_dina.className = `w-[120px] h-[120px] rounded-full object-cover mb-2 self-center`;
 
@@ -129,7 +129,7 @@ export class Creators implements IComponent {
             w-[180px] h-[200px]`;
 
         const avatar_rawan = document.createElement('img');
-        avatar_rawan.src = "/assets/avatar/rawan.png";
+        avatar_rawan.src = "/avatar/rawan.png";
         avatar_rawan.alt = "avatar rawan";
         avatar_rawan.className = `w-[120px] h-[120px] rounded-full object-cover mb-2 self-center`;
 

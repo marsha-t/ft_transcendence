@@ -52,35 +52,41 @@ export class Main implements IComponent {
 
     const tournamentBtn = document.createElement('a');
     tournamentBtn.href = "/tournament";
-    tournamentBtn.className = `
-      flex justify-center items-center 
-      w-[322px] h-[50px] px-[7px] py-[20px] rounded-[10px]
-      text-white text-[23px] text-[400] font-pixel cursor-pointer 
-      bg-color_button hover:bg-color-secondary 
-      transition-colors duration-300 
-      border-color_border no-underline`;
+    tournamentBtn.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " + 
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
     tournamentBtn.textContent = "TOURNAMENT";
 
     const aiButton = document.createElement('a');
     // aiButton.href = "/game"; // add link when AI game is implemented
-    aiButton.className = `
-      flex justify-center items-center 
-      w-[344px] h-[50px] px-[7px] py-[20px] rounded-[10px]
-      text-white text-[23px] text-[400] font-pixel cursor-pointer 
-      bg-color_button hover:bg-color-secondary 
-      transition-colors duration-300 
-      border-color_border no-underline`;
+    aiButton.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " +
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
     aiButton.textContent = "PLAY WITH AI";
   
     const playButton = document.createElement('a');
     playButton.href = "/game";
-    playButton.className = `
-      flex justify-center items-center 
-      w-[447px] h-[50px] px-[7px] py-[20px] rounded-[10px]
-      text-white text-[23px] text-[400] font-pixel cursor-pointer 
-      bg-color_button hover:bg-color-secondary 
-      transition-colors duration-300 
-      border-color_border no-underline`;
+    // playButton.className =
+    //   "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white font-bold rounded-lg " +
+    //   "shadow-[0_5px_0_var(--color-button-second)] hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+    //   "hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline";
+
+    playButton.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " + 
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
+
     playButton.textContent = "PLAY WITH FRIEND";
 
     rightSection.appendChild(tournamentBtn);

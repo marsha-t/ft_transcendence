@@ -48,7 +48,7 @@ export class Header implements IComponent {
         logoText.textContent = 'PONG';
 
         const logoIcon = document.createElement('img');
-        logoIcon.src = '/assets/logo.png'; 
+        logoIcon.src = '/logo.png'; 
         logoIcon.alt = 'Pong Logo';
         logoIcon.className = 'w-[40px] h-[40px]';
 

@@ -2,64 +2,49 @@
 FROM node:18 AS build
 WORKDIR /app
 
-# Copy package files for better layer caching
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (including Vite as dev dependency)
 RUN npm install
-# # Install a better static server that handles MIME types correctly
-# RUN npm install -g http-server
 
 # Copy configuration files
 COPY tsconfig.json ./
+COPY vite.config.ts ./
+# COPY src/postcss.config.js ./postcss.config.js
+# COPY src/tailwind.config.js ./tailwind.config.js
 
-#tailwind files -->>
-COPY src/postcss.config.js ./postcss.config.js
-COPY src/tailwind.config.js ./tailwind.config.js
-
+COPY src/postcss.config.cjs ./postcss.config.cjs
+COPY src/tailwind.config.cjs ./tailwind.config.cjs
 
 # Copy source code
 COPY src/ ./src/
 COPY public/ ./public/
 
-# Create output directory
-RUN mkdir -p ./public/js
-
-#tailwind files -->>
-RUN mkdir -p ./public/styles
-
 # Build Tailwind CSS
 RUN npx tailwindcss -i ./src/input.css -o ./public/styles/tailwind.css --minify
 
-# Compile TypeScript
-RUN npx tsc
+# Build with Vite (this bundles Babylon.js properly)
+RUN npx vite build
 
-# Debug: Show what files were created
-RUN echo "=== Files in public/ ===" && ls -la ./public/ && echo "=== Files in public/js/ ===" && ls -la ./public/js/ 2>/dev/null || echo "No js directory found"
-
-# Expose port 3000 (matches your docker-compose)
-# EXPOSE 3000
-
-# Use http-server instead of serve (better MIME type handling)
-# CMD ["http-server", "./public", "-p", "3000", "-a", "0.0.0.0", "--cors", "-c-1"]
-
+# Debug: Show what was built
+RUN echo "=== Built files ===" && ls -la ./dist/
 
 # Stage 2: serve
 FROM nginx:alpine
  
-# Install OpenSSL (needed to generate certs)
+# Install OpenSSL
 RUN apk add --no-cache openssl
 
-# Create and copy SSL dir
+# Create SSL directory
 RUN mkdir -p /etc/nginx/ssl
 COPY ssl /etc/nginx/ssl
 
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy frontend files
-COPY --from=build /app/public /usr/share/nginx/html
+# Copy built files from Vite (dist folder, not public)
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 443 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
-
