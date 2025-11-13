@@ -258,7 +258,7 @@ export class GameResults implements IComponent {
       return true;
     }
     const confirmLeave = confirm(
-      "You are in the middle of a tournament. Leaving now will abort the tournament."
+      "A tournament is in progress. Leaving will abort it."
     );
 
     if (!confirmLeave) return false;
