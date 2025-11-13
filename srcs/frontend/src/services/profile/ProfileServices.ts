@@ -330,7 +330,7 @@ export class ProfileServices {
     // Method to search for users by username
     async searchUsers(query: string): Promise<ApiResponse<UserSearchResult[]>> {
       try {
-          const response = await fetch(`${this.baseUrl}/FriendsServ/friends/search?query=${encodeURIComponent(query)}`, {
+          const response = await fetch(`${this.baseUrl}/friendsServ/friends/search?query=${encodeURIComponent(query)}`, {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
@@ -483,7 +483,7 @@ export class ProfileServices {
     }
     async getMatchHistory(userId: number): Promise<ApiResponse<MatchHistory[]>> {
       try {
-          const response = await fetch(`${this.baseUrl}/stats/users/match-history`, {
+          const response = await fetch(`${this.baseUrl}/dashboardServ/stats/users/match-history`, {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",

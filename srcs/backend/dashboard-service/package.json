@@ -1,5 +1,5 @@
 {
-  "name": "profile-service",
+  "name": "dashboard-service",
   "version": "1.0.0",
   "type": "module",
   "main": "server.js",
