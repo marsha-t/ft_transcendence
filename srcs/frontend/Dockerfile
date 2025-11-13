@@ -46,5 +46,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built files from Vite (dist folder, not public)
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy styles (temp fix since game and tournament are not in tailwind yet)
+COPY --from=build /app/public/styles /usr/share/nginx/html/styles
+
 EXPOSE 443 80
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
