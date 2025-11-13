@@ -21,13 +21,13 @@ export class Game implements IComponent {
         this.opts = opts;
         this.canvas = document.createElement("canvas");
         this.canvas.width = 900;
-        this.canvas.height = 600;
+        this.canvas.height = 500;
         this.gameService = new GameService();
     }
 
     public render(): HTMLElement {
         this.container = document.createElement('div');
-        this.container.className = "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ";
+        this.container.className = "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6 ";
 
         this.createTitleContainer();
         this.createCanvas();
@@ -46,7 +46,7 @@ export class Game implements IComponent {
     private createTitleContainer(): void {
         const titleContainer = document.createElement("div");
         // titleContainer.className = "title_container";
-        titleContainer.className = "flex flex-row items-center justify-between w-[800px]";
+        titleContainer.className = "flex flex-row items-center justify-between w-[800px] text-3xl font-bold text-white pointer-events-none mb-6";
 
         const userLeft = document.createElement("h2");
         userLeft.textContent = this.opts?.displayNames?.leftName ?? "User 1";
@@ -72,7 +72,7 @@ export class Game implements IComponent {
         const canvasContainer = document.createElement('div');
         canvasContainer.className = "relative"; // Make container relative for positioning
     
-        this.canvas.className = "border-2 border-[var(--color-secondary)] max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
+        this.canvas.className = "max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
         canvasContainer.appendChild(this.canvas);
     
         // ADD SCORE DISPLAY
@@ -167,8 +167,6 @@ export class Game implements IComponent {
             "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
             "hover:translate-y-1 active:translate-y-2 " +
             "transition-all duration-150 mt-5";
-
-    
         btn.style.display = "none";
         btn.textContent = label;
         btn.addEventListener("click", handler);

@@ -14,8 +14,8 @@ export class Footer implements IComponent {
     // === LEFT SIDE: BUTTON + STICK ===
     const leftImages = document.createElement('div');
     leftImages.className = 'flex items-end gap-3 ml-6';
-    leftImages.appendChild(this.createImage('/assets/stick.png', 'Fight Stick'));
-    leftImages.appendChild(this.createImage('/assets/button.png', 'Button'));
+    leftImages.appendChild(this.createImage('/stick.png', 'Fight Stick'));
+    leftImages.appendChild(this.createImage('/button.png', 'Button'));
 
     // === CENTER: COPYRIGHT ===
     const content = document.createElement('p');
@@ -25,8 +25,8 @@ export class Footer implements IComponent {
     // === RIGHT SIDE: BUTTON + STICK ===
     const rightImages = document.createElement('div');
     rightImages.className = 'flex items-center gap-3 mr-6';
-    rightImages.appendChild(this.createImage('/assets/button.png', 'Button'));
-    rightImages.appendChild(this.createImage('/assets/stick.png', 'Fight Stick'));
+    rightImages.appendChild(this.createImage('/button.png', 'Button'));
+    rightImages.appendChild(this.createImage('/stick.png', 'Fight Stick'));
 
     // Assemble footer
     subFooter.appendChild(leftImages);

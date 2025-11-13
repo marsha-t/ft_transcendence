@@ -3,7 +3,7 @@ import path from "path";
 
 export default defineConfig({
   root: "public",
-  publicDir: "assets", // Only assets folder is treated as static
+  publicDir: "../public/assets", // Point to the actual assets folder location
   build: {
     outDir: "../dist",
     emptyOutDir: true,
@@ -13,7 +13,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // Optional: only needed if you have custom paths
       "@": path.resolve(__dirname, "src"),
     },
   },

@@ -25,6 +25,7 @@ export class PongGame {
 
         this.createCamera();
         this.createLight();
+        this.createRoom();
         this.createTable();
         this.createPaddles();
         this.createBall();
@@ -105,8 +106,86 @@ export class PongGame {
             new BABYLON.Vector3(0, 1, 0),
             this.scene
         );
-        light.intensity = 0.6;
+        light.intensity = 1;
     }
+
+    private createRoom(): void {
+        const r = GameConfig.room;
+        
+        const wallMaterial = new BABYLON.StandardMaterial("roomWallMat", this.scene);
+        wallMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.75, 0.8);
+        wallMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    
+        // Floor
+        const floor = BABYLON.MeshBuilder.CreateGround(
+            "floor",
+            { width: r.width, height: r.depth + 14 }, // ADD 14 (7 + 7) to match wall extension
+            this.scene
+        );
+        floor.position.y = -5;
+        const floorMaterial = new BABYLON.StandardMaterial("floorMat", this.scene);
+        floorMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.55, 0.6);
+        floor.material = floorMaterial;
+    
+        // Ceiling/Roof
+        const ceiling = BABYLON.MeshBuilder.CreateGround(
+            "ceiling",
+            { width: r.width, height: r.depth + 14 }, // ADD 14 to match floor
+            this.scene
+        );
+        ceiling.position.y = r.height;
+        ceiling.rotation.z = Math.PI;
+        ceiling.material = wallMaterial;
+    
+        // Back wall (behind left paddle)
+        const backWall = BABYLON.MeshBuilder.CreateBox(
+            "backWall",
+            { width: r.width, height: r.height, depth: 1 },
+            this.scene
+        );
+        backWall.position.set(0, r.height / 2 - 5, -r.depth / 2 - 7);
+
+        // Create a material for the back wall
+        const backWallMat = new BABYLON.StandardMaterial("backWallMat", this.scene);
+        const texture = new BABYLON.Texture("/walls/back.png", this.scene);
+
+        // Check if texture loads
+        texture.onLoadObservable.add(() => {
+            console.log("Back wall texture loaded successfully");
+        });
+
+        backWallMat.diffuseTexture = texture;
+        backWallMat.specularColor = new BABYLON.Color3(0, 0, 0);
+        backWall.material = backWallMat;
+
+        // Front wall (behind right paddle)
+        const frontWall = BABYLON.MeshBuilder.CreateBox(
+            "frontWall",
+            { width: r.width, height: r.height, depth: 1 },
+            this.scene
+        );
+        frontWall.position.set(0, r.height / 2 - 5, r.depth / 2 + 7);
+        frontWall.material = wallMaterial;
+    
+        // Left side wall - EXTEND DEPTH
+        const leftWall = BABYLON.MeshBuilder.CreateBox(
+            "leftWall",
+            { width: 1, height: r.height, depth: r.depth + 14 }, // ADD 14 to depth
+            this.scene
+        );
+        leftWall.position.set(-r.width / 2, r.height / 2 - 5, 0);
+        leftWall.material = wallMaterial;
+    
+        // Right side wall - EXTEND DEPTH
+        const rightWall = BABYLON.MeshBuilder.CreateBox(
+            "rightWall",
+            { width: 1, height: r.height, depth: r.depth + 14 }, // ADD 14 to depth
+            this.scene
+        );
+        rightWall.position.set(r.width / 2, r.height / 2 - 5, 0);
+        rightWall.material = wallMaterial;
+    }
+
 
     private createTable():void {
         const t = GameConfig.table;
