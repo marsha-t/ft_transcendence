@@ -39,6 +39,13 @@ RUN apk add --no-cache openssl
 # Create SSL directory
 RUN mkdir -p /etc/nginx/ssl
 COPY ssl /etc/nginx/ssl
+# Generate a self-signed certificate if none was provided
+RUN if [ ! -f /etc/nginx/ssl/nginx.crt ] || [ ! -f /etc/nginx/ssl/nginx.key ]; then \
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/nginx/ssl/nginx.key \
+        -out /etc/nginx/ssl/nginx.crt \
+        -subj "/CN=localhost"; \
+    fi
 
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf

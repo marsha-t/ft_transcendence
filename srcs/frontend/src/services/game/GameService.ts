@@ -11,7 +11,7 @@ export class GameService{
     async createGameSession(side: PlayerSide): Promise<GameSession>{
         try{
             //Send POST request to backend with user + side
-            const response = await fetch(`${this.baseUrl}/game-sessions`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export class GameService{
     // 2- add a guest player to an existing session
     async addGuestPlayer(sessionId: number, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/players`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export class GameService{
     // 3- update game session status
     async updateGameStatus(sessionId: number, status: GameStatus): Promise<GameSession> {
         try {
-            const response = await fetch(`${this.baseUrl}/game-sessions/status`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,8 +91,15 @@ export class GameService{
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to update game status: ${response.status}`);
-            }
+                let errorMessage = `Failed to update game status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    console.error('Backend error details:', errorData);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch (e) {
+                    // Response wasn't JSON
+                }
+                throw new Error(errorMessage);            }
 
             const data = await response.json();
             return this.transformApiResponseToGameSession(data);
@@ -104,7 +111,7 @@ export class GameService{
     // 4- update player score
     async updatePlayerScore(sessionId: number, scoringSide: PlayerSide): Promise<GameSession>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/players/score`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players/score`, {
                method: 'PATCH',
                headers: {
                     'X-Current-Session-Id': String(sessionId),

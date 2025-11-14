@@ -18,6 +18,127 @@ services:
       - db-data:/app/prisma/data # database is in a docker volume
       - ./backend/uploads:/app/uploads
     restart: always
+  auth:
+    build:
+      context: ./backend/auth-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: authservice
+    ports:
+      - 5002:5002
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  profile:
+    build:
+      context: ./backend/profile-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: profileservice
+    ports:
+      - 5003:5003
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  friends:
+    build:
+      context: ./backend/friends-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: friendsservice
+    ports:
+      - 5004:5004
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  dashboard:
+    build:
+      context: ./backend/dashboard-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: dashboardservice
+    ports:
+      - 5005:5005
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+# gamesession:
+# tournament:
+  game_tournament:
+    build:
+      context: ./backend/game-tournament-service
+      dockerfile: Dockerfile
+    container_name: gametournamentservice
+    ports:
+      - 5006:5006
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+    restart: always
+  # elasticsearch:
+  #   image: elasticsearch:8.17.0
+  #   container_name: elasticsearch
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     - discovery.type=single-node
+  #   volumes:
+  #     - elasticsearch-data:/usr/share/elasticsearch/data
+  #   networks:
+  #     - web
+  #   restart: always
+  
+  # kibana:
+  #   image: kibana:8.17.0
+  #   container_name: kibana
+  #   ports:
+  #     - 5601:5601
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - web
+  #   restart: always
+
+  # logstash:
+  #   image: logstash:8.17.0
+  #   container_name: logstash
+  #   ports:
+  #     - 5044:5044
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   networks:
+  #     - web
+  #   restart: always
+
+  
 
   # backend-dev:
   #   build:
@@ -49,6 +170,7 @@ services:
       - 443:443
     depends_on:
       - backend
+      - auth
     networks:
       - web
     # volumes:

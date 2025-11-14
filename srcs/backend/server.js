@@ -26,13 +26,13 @@ import fastifyStatic from '@fastify/static';
 import fastifyMultipart from '@fastify/multipart';
 
 // import routes
-import authRoutes from './routes/auth.js';
-import profileRoutes from './routes/profile.js';
-import friendsRoutes from './routes/friends.js';
-import gameSessionRoutes from './routes/gameSession.js' 
-import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
-import tournamentRoutes from './routes/tournament.js';
-import dashboardRoutes from './routes/dashboard.js';
+// import authRoutes from './routes/auth.js';
+// import profileRoutes from './routes/profile.js';
+// import friendsRoutes from './routes/friends.js';
+// import gameSessionRoutes from './routes/gameSession.js' 
+// import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
+// import tournamentRoutes from './routes/tournament.js';
+// import dashboardRoutes from './routes/dashboard.js';
 
 // import to download openapi.json
 import fs from 'fs';
@@ -130,13 +130,13 @@ app.decorate('authenticate', async function (request, reply) {
 // ----------------------------------
 
 // Register our routes in the server
-app.register(authRoutes);
-app.register(profileRoutes);
-app.register(friendsRoutes);
-app.register(gameSessionRoutes);
-app.register(gameSessionPlayersRoutes);
-app.register(tournamentRoutes);
-app.register(dashboardRoutes);
+// app.register(authRoutes);
+// app.register(profileRoutes);
+// app.register(friendsRoutes);
+// app.register(gameSessionRoutes);
+// app.register(gameSessionPlayersRoutes);
+// app.register(tournamentRoutes);
+// app.register(dashboardRoutes);
 
 // To save openapi.json file (needs to be after registering routes and before app.listen)
 // To save, uncomment the code
