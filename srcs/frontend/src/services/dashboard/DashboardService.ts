@@ -14,7 +14,7 @@ export class DashboardService {
 		
 	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/stats/game`, {
+			const response = await fetch(`${this.baseUrl}/dashboardServ/stats/game`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ export class DashboardService {
 	
 	async getUserDashboard(): Promise<ApiResponse<UserDashboard>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/stats/user`, {
+			const response = await fetch(`${this.baseUrl}/dashboardServ/stats/user`, {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json',

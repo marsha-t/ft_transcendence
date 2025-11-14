@@ -13,7 +13,7 @@ export class ProfileServices {
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
-            const response = await fetch(`${this.baseUrl}/profile`, {
+            const response = await fetch(`${this.baseUrl}/profileServ/profile`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export class ProfileServices {
     async uploadAvatarFromPreset(presetPath: string): Promise<ApiResponse<AvatarUploadResponse>> {
     try {
       // Send the preset filename to the backend; backend will copy/set it for the user
-      const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+      const response = await fetch(`${this.baseUrl}/profileServ/profile/avatar`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export class ProfileServices {
       if (start) params.push(`start=${encodeURIComponent(start)}`);
       if (end) params.push(`end=${encodeURIComponent(end)}`);
       const q = params.length ? `?${params.join('&')}` : '';
-      const response = await fetch(`${this.baseUrl}/profile/play-counts${q}`, {
+      const response = await fetch(`${this.baseUrl}/profileServ/profile/play-counts${q}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export class ProfileServices {
     // Method to log out the current user
     async logout(): Promise<ApiResponse<null>> {
       try {
-          const response = await fetch(`${this.baseUrl}/logout`, {
+          const response = await fetch(`${this.baseUrl}/auth/logout`, {
               method: 'POST',
 				      credentials: 'include',
           });
@@ -156,7 +156,7 @@ export class ProfileServices {
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {
         try {
-            const response = await fetch(`${this.baseUrl}/friends`, {
+            const response = await fetch(`${this.baseUrl}/friendsServ/friends`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export class ProfileServices {
     }
     async removeFriend(username: string): Promise<ApiResponse<null>> {
         try {
-          const res = await fetch(`${this.baseUrl}/friends/${encodeURIComponent(username)}`, {
+          const res = await fetch(`${this.baseUrl}/friendsServ/friends/${encodeURIComponent(username)}`, {
             method: "DELETE",
 				    credentials: 'include',
           });
@@ -220,7 +220,7 @@ export class ProfileServices {
     // Method to update the current user's information
     async updateProfile(data: UpdateProfileData): Promise<ApiResponse<any>> {
         try {
-          const response = await fetch(`${this.baseUrl}/profile`, {
+          const response = await fetch(`${this.baseUrl}/profileServ/profile`, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -259,7 +259,7 @@ export class ProfileServices {
             const formData = new FormData();
             formData.append("file", file);
     
-            const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+            const response = await fetch(`${this.baseUrl}/profileServ/profile/avatar`, {
                 method: "PUT",
 			          credentials: 'include',
                 body: formData,
@@ -295,7 +295,7 @@ export class ProfileServices {
     // Method to remove the current user's avatar
     async deleteAvatar(): Promise<ApiResponse<AvatarDeleteResponse>> {
         try {
-          const response = await fetch(`${this.baseUrl}/profile/avatar`, {
+          const response = await fetch(`${this.baseUrl}/profileServ/profile/avatar`, {
             method: "DELETE",
 				    credentials: 'include',
           });
@@ -330,7 +330,7 @@ export class ProfileServices {
     // Method to search for users by username
     async searchUsers(query: string): Promise<ApiResponse<UserSearchResult[]>> {
       try {
-          const response = await fetch(`${this.baseUrl}/friends/search?query=${encodeURIComponent(query)}`, {
+          const response = await fetch(`${this.baseUrl}/friendsServ/friends/search?query=${encodeURIComponent(query)}`, {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",
@@ -378,7 +378,7 @@ export class ProfileServices {
   async sendFriendRequest(username: string): Promise<ApiResponse<null>> {
     try {
       const userId = 1; // current user id
-      const res = await fetch(`${this.baseUrl}/friends/send`, {
+      const res = await fetch(`${this.baseUrl}/friendsServ/friends/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -401,7 +401,7 @@ export class ProfileServices {
     // Fetch incoming friend requests (users who added me)
     async getIncomingRequests(): Promise<ApiResponse<FriendRequest[]>> {
         try {
-        const response = await fetch(`${this.baseUrl}/friends/requests`, {
+        const response = await fetch(`${this.baseUrl}/friendsServ/friends/requests`, {
             method: 'GET',
             headers: {
             'Content-Type': 'application/json',
@@ -450,7 +450,7 @@ export class ProfileServices {
   // Respond to a friend request (accept/decline)
     async respondToRequest(username: string, action: "accept" | "reject"): Promise<ApiResponse<null>> {
         try {
-        const response = await fetch(`${this.baseUrl}/friends/${username}/${action}`, {
+        const response = await fetch(`${this.baseUrl}/friendsServ/friends/${username}/${action}`, {
             method: 'PUT',
 				    credentials: 'include',
         });
@@ -483,7 +483,7 @@ export class ProfileServices {
     }
     async getMatchHistory(userId: number): Promise<ApiResponse<MatchHistory[]>> {
       try {
-          const response = await fetch(`${this.baseUrl}/stats/users/match-history`, {
+          const response = await fetch(`${this.baseUrl}/dashboardServ/stats/users/match-history`, {
               method: "GET",
               headers: {
                   "Content-Type": "application/json",

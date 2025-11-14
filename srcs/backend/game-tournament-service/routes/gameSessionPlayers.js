@@ -15,7 +15,7 @@ async function gameSessionPlayersRoutes(app, options) {
 		- Check that request user is in the game
 		- Add player to GameSessionPlayer table
 	*/
-	app.post('/api/game-sessions/players', { schema: joinSessionSchema, preHandler: [app.authenticate]  }, async (request, reply) => {
+	app.post('/game-sessions/players', { schema: joinSessionSchema, preHandler: [app.authenticate]  }, async (request, reply) => {
 		const userId = request.user.id;
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;
@@ -103,7 +103,7 @@ async function gameSessionPlayersRoutes(app, options) {
 						- if parent match has two players, create new game session
 		- returns updated session 
 	*/
-	app.patch('/api/game-sessions/players/score', { schema: updateScoreSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+	app.patch('/game-sessions/players/score', { schema: updateScoreSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const userId = request.user.id;
 		const sessionIdHeader = request.headers['x-current-session-id'];
 		const sessionId = sessionIdHeader ? Number(sessionIdHeader) : null;

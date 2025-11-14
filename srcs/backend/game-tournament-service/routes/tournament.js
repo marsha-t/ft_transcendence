@@ -14,7 +14,7 @@ async function tournamentRoutes(app, options) {
   /* 
 		- Checks that registered user credentials are correct
 	*/
-  app.post('/api/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const { username, password } = request.body;
       try {
         if (username && password) {
@@ -61,7 +61,7 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-  app.post('/api/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate ], }, async(request, reply) => {
+  app.post('/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate ], }, async(request, reply) => {
     const creatorId = request.user?.id;
     const { numberOfPlayers, players } = request.body;
       if (players.length != numberOfPlayers - 1) {
@@ -132,7 +132,7 @@ async function tournamentRoutes(app, options) {
 		- Else, fetch full tournament and its matches and build results object 
 	*/
   app.get(
-    "/api/tournaments/next-match",
+    "/tournaments/next-match",
     { schema: getNextMatchSchema, preHandler: [ app.authenticate ] },
     async (request, reply) => {
       const userId = request.user.id;
@@ -250,7 +250,7 @@ async function tournamentRoutes(app, options) {
 		- If updating to 'ABORTED', abort tournament and its linked game sessions
     - Return updated tournament object 
 	*/
-  app.patch('/api/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.patch('/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
  		const userId = request.user.id;
     const tournamentId = Number(request.headers['x-current-tournament-id']);
 		const { status } = request.body;

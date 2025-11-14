@@ -6,7 +6,7 @@ import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequest
 async function friendsRoutes(app, options) {
 
   // 1- Send a friend request by username
-  app.post('/api/friends/send', { schema: sendFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/friends/send', { schema: sendFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
       const { username } = request.body; // target user's username
@@ -61,7 +61,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 2- Accept a pending friend request by sender username
-  app.put('/api/friends/:username/accept', { schema: acceptFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.put('/friends/:username/accept', { schema: acceptFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
       const { username } = request.params; // sender username
@@ -99,7 +99,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 3- Reject a friend request by sender username
-  app.put('/api/friends/:username/reject', { schema: rejectFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.put('/friends/:username/reject', { schema: rejectFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
       const { username } = request.params; // sender username
@@ -127,7 +127,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 4- Remove an existing friend by username
-  app.delete('/api/friends/:username', { schema: removeFriendSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.delete('/friends/:username', { schema: removeFriendSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
       const { username } = request.params; // friend's username
@@ -161,7 +161,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 5- Get the current user’s list of friends
-  app.get('/api/friends', { schema: getFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/friends', { schema: getFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
 
@@ -196,7 +196,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 6- Get incoming friend requests (users who added me, still pending)
-  app.get('/api/friends/requests', { schema: getIncomingRequestsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/friends/requests', { schema: getIncomingRequestsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
 
@@ -224,7 +224,7 @@ async function friendsRoutes(app, options) {
   });
 
   // 7- Search users by username (safe + sanitized)
-  app.get('/api/friends/search', { schema: searchFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/friends/search', { schema: searchFriendsSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const currentUserId = request.user.id;
       const { query } = request.query;
