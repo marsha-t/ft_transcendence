@@ -198,4 +198,3 @@ volumes:
   db-data:
     name: db-data
   avatars-data:
-  elasticsearch-data:
