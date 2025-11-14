@@ -1,6 +1,6 @@
 # Variables
 CONTAINERS = backend frontend nginx
-VOLUMES = db-data elasticsearch-data
+VOLUMES = db-data
 # BIND_MOUNTS = ./backend/uploads
 
 

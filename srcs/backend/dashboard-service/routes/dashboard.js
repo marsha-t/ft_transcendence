@@ -11,7 +11,7 @@ async function dashboardRoutes(app, options) {
 		- 
 	*/
   app.get(
-    "/api/stats/users/match-history",
+    "/stats/users/match-history",
     { schema: matchHistorySchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
@@ -76,7 +76,7 @@ async function dashboardRoutes(app, options) {
 		- Fetches player info: avatar, score, time to first point, average time per point, total matches, total wins, win rate
 	*/
   app.get(
-    "/api/stats/game",
+    "/stats/game",
     { schema: gameDashboardSchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
@@ -259,7 +259,7 @@ async function dashboardRoutes(app, options) {
 
   // Fetch data for user dashboard
   app.get(
-    "/api/stats/user",
+    "/stats/user",
     { schema: userDashboardSchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
