@@ -1,41 +1,14 @@
 export class AuthUtils {
     // In-memory authentication state
-    private static isAuthenticated: boolean = false;
+    private static isLoggedIn_flag: boolean = false;
     private static currentUser: any = null;
 
-    /**
-     * Initialize auth state by checking with backend
-     * Call this on app startup
-     */
-    static async initialize(): Promise<void> {
-        try {
-            const response = await fetch('/api/auth/userInfo', {
-                credentials: 'include',
-            });
-
-            if (response.ok) {
-                const userData = await response.json();
-                this.isAuthenticated = true;
-                this.currentUser = userData;
-                window.dispatchEvent(new CustomEvent('authChange', { 
-                    detail: { isLoggedIn: true, userData } 
-                }));
-            } else {
-                this.isAuthenticated = false;
-                this.currentUser = null;
-            }
-        } catch (error) {
-            console.error('Auth initialization failed:', error);
-            this.isAuthenticated = false;
-            this.currentUser = null;
-        }
-    }
 
     /**
      * Set user as logged in (called by login component after successful login)
      */
     static setLoggedIn(userData?: any): void {
-        this.isAuthenticated = true;
+        this.isLoggedIn_flag = true;
         if (userData) {
             this.currentUser = userData;
         }
@@ -48,7 +21,7 @@ export class AuthUtils {
      * Check if user is logged in
      */
     static isLoggedIn(): boolean {
-        return this.isAuthenticated;
+        return this.isLoggedIn_flag;
     }
 
     /**
@@ -62,7 +35,7 @@ export class AuthUtils {
      * Set logout state (called by logout handler after successful logout)
      */
     static setLoggedOut(): void {
-        this.isAuthenticated = false;
+        this.isLoggedIn_flag = false;
         this.currentUser = null;
         window.dispatchEvent(new CustomEvent('authChange', { 
             detail: { isLoggedIn: false } 

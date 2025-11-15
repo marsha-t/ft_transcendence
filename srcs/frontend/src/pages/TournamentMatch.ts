@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
+import {showConfirmation} from "../utils/profileUtils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 export class TournamentMatch implements IComponent {
@@ -141,25 +142,20 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-    const confirmLeave = confirm(
-      "A tournament is in progress. Leaving will abort it."
-    );
-    if (confirmLeave) {
-      try {
-        if (this.gameInstance) {
-          this.gameInstance.terminate?.();
-        }
-
-        await apiServices.tournament.updateTournamentStatus(
-          this.tournamentId,
-          "ABORTED"
-        );
-      } catch (err) {
-        console.error("Failed to abort tournament:", err);
+     const confirmLeave = showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
+    if (!confirmLeave) return false;
+    try {
+      if (this.gameInstance) {
+        this.gameInstance.terminate?.();
       }
-      return true;
-    } else {
-      return false;
+
+      await apiServices.tournament.updateTournamentStatus(
+        this.tournamentId,
+        "ABORTED"
+      );
+    } catch (err) {
+      console.error("Failed to abort tournament:", err);
     }
+    return true;
   }
 }
