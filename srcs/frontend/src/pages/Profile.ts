@@ -102,6 +102,7 @@ export class Profile implements IComponent {
       if (res.success) {
         // Clear localStorage
         localStorage.removeItem("currentUsername");
+        
         // Redirect to main page after successful logout
         setTimeout(() => {
           console.log("Current URL before navigation:", window.location.href);
