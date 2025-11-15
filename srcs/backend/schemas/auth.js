@@ -141,12 +141,11 @@ export const loginSchema = {
 
 export const login2FASchema = {
   tags: ['Authentication'],
-  summary: 'Log in a user with 2FA',
+  summary: 'Verify 2FA code during login',
   body: {
     type: 'object',
-    required: ['username', 'code'],
+    required: ['code'],
     properties: {
-      username: { type: 'string', minLength: 3 },
       code: {
         type: 'string',
         minLength: 6,
@@ -174,10 +173,6 @@ export const login2FASchema = {
       type: 'object',
       properties: { message: { type: 'string' } }
     },
-    404: {
-      type: 'object',
-      properties: { message: { type: 'string' } }
-    },
     500: {
       type: 'object',
       properties: { error: { type: 'string' } }
@@ -190,23 +185,8 @@ export const resendOTPSchema = {
   summary: 'Resend OTP for Two-Factor Authentication',
   body: {
     type: 'object',
-    required: ['username'],
-    properties: {
-      username: {
-        type: 'string',
-        minLength: 3,
-        errorMessage: {
-          minLength: 'Username must be at least 3 characters'
-        }
-      }
-    },
-    additionalProperties: false,
-    errorMessage: {
-      required: {
-        username: 'Username is required'
-      },
-      additionalProperties: 'No extra fields are allowed'
-    }
+    properties: {},
+    additionalProperties: false
   },
   response: {
     200: {
@@ -219,21 +199,15 @@ export const resendOTPSchema = {
     },
     400: {
       type: 'object',
-      properties: {
-        message: { type: 'string' }
-      }
+      properties: { message: { type: 'string' } }
     },
     404: {
       type: 'object',
-      properties: {
-        message: { type: 'string' }
-      }
+      properties: { message: { type: 'string' } }
     },
     500: {
       type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
+      properties: { error: { type: 'string' } }
     }
   }
 };

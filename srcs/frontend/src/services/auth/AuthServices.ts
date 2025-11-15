@@ -82,11 +82,6 @@ export class AuthServices {
                         twoFactorRequired: true
                     };
                 }
-
-                // Normal login → store username locally
-                if (data.username) {
-                    localStorage.setItem('currentUsername', data.username);
-                }
     
                 return {
                     success: true,
@@ -135,11 +130,6 @@ export class AuthServices {
             try { data = await response.json(); } catch { data = {}; }
 
             if (response.ok) {
-                // Clear localStorage and set username
-                if (data.username) {
-                    localStorage.setItem('currentUsername', data.username);
-                }
-
                 return {
                     success: true,
                     status: response.status,

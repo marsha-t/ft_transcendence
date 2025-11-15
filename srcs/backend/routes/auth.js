@@ -60,7 +60,7 @@ async function authRoutes(app, options) {
         return reply.code(401).send({ message: 'Invalid credentials' });
       }
 
-      // If 2FA is enabled, generate OTP and send email
+      // If 2FA is enabled
       if (user.twoFactorEnabled) {
         const otpCode = crypto.randomInt(100000, 999999).toString();
         const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
@@ -72,13 +72,28 @@ async function authRoutes(app, options) {
 
         await sendEmail(user.email, '2FA Verification Code', `Your OTP is: ${otpCode}`);
 
+        // CREATE TEMP 2FA JWT (SHORT-LIVED TOKEN)
+        const tempToken = app.jwt.sign(
+          { pendingUserId: user.id },
+          { expiresIn: '5m' }
+        );
+
+        // Store in secure HttpOnly cookie
+        reply.setCookie('pending_2fa', tempToken, {
+          httpOnly: true,
+          secure: false,      // change to true in production
+          sameSite: 'strict',
+          path: '/',
+          maxAge: 5 * 60,
+        });
+
         return reply.code(200).send({
           message: 'Two-Factor Authentication required',
-          twoFactorRequired: true,
+          twoFactorRequired: true
         });
       }
 
-      // Otherwise, normal login → generate JWT
+      // If no 2FA, normal login
       await prisma.user.update({ where: { id: user.id }, data: { status: "ONLINE" } });
 
       const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
@@ -98,81 +113,112 @@ async function authRoutes(app, options) {
   });
 
   // 2FA verification during login
-  app.post('/api/login/2fa', { schema: login2FASchema }, async (request, reply) => {
+  app.post('/api/login/2fa', async (request, reply) => {
     try {
-      const { username, code } = request.body;
+      const { code } = request.body;
+      if (!code) return reply.code(400).send({ message: "OTP required" });
 
-      if (!username || !code) return reply.code(400).send({ message: 'Username and code are required' });
+      // Read temp cookie
+      const tempToken = request.cookies.pending_2fa;
+      if (!tempToken) return reply.code(401).send({ message: "2FA session expired" });
 
-      const user = await prisma.user.findUnique({ where: { username } });
-      if (!user) return reply.code(404).send({ message: 'User not found' });
+      // Decode pending user ID
+      let payload;
+      try {
+        payload = app.jwt.verify(tempToken);
+      } catch (err) {
+        return reply.code(401).send({ message: "Invalid or expired session" });
+      }
+
+      const userId = payload.pendingUserId;
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: "User not found" });
 
       if (user.twoFactorCode !== code) {
-        return reply.code(401).send({ message: 'Invalid verification code' });
+        return reply.code(401).send({ message: "Invalid OTP" });
       }
 
       if (new Date() > user.twoFactorExpiry) {
-        return reply.code(401).send({ message: 'Verification code expired' });
+        return reply.code(401).send({ message: "OTP expired" });
       }
 
-      // Clear OTP and mark user online
+      // Clear OTP + set online
       await prisma.user.update({
         where: { id: user.id },
-        data: { twoFactorCode: null, twoFactorExpiry: null, status: 'ONLINE' },
+        data: {
+          twoFactorCode: null,
+          twoFactorExpiry: null,
+          status: "ONLINE"
+        }
       });
 
-      // Generate JWT
-      const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
+      // Issue real session token
+      const sessionToken = app.jwt.sign({ id: user.id }, { expiresIn: "1h" });
 
-      return reply.setCookie('token', token, {
+      // Clear temp cookie
+      reply.clearCookie("pending_2fa");
+
+      reply.setCookie("token", sessionToken, {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
-        path: '/',
-        maxAge: 60 * 60,
-      }).code(200).send({ message: 'Login successful' });
+        sameSite: "strict",
+        path: "/",
+        maxAge: 3600
+      });
+
+      return reply.code(200).send({ message: "Login successful" });
 
     } catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: '2FA verification failed' });
+      return reply.code(500).send({ error: "2FA verification failed" });
     }
   });
 
   // Resend OTP route
-  app.post('/api/login/resend-otp', { schema: resendOTPSchema }, async (request, reply) => {
+  app.post('/api/login/resend-otp', async (request, reply) => {
     try {
-      const { username } = request.body;
-      if (!username) return reply.code(400).send({ message: 'Username is required' });
-  
-      const user = await prisma.user.findUnique({ where: { username } });
-      if (!user) return reply.code(404).send({ message: 'User not found' });
-  
-      if (!user.twoFactorEnabled) {
-        return reply.code(400).send({ message: '2FA is not enabled for this user' });
+      const tempToken = request.cookies.pending_2fa;
+      if (!tempToken) return reply.code(401).send({ message: "2FA session expired" });
+
+      let payload;
+      try {
+        payload = app.jwt.verify(tempToken);
+      } catch {
+        return reply.code(401).send({ message: "Invalid 2FA session" });
       }
-  
-      // Generate new OTP
+
+      const userId = payload.pendingUserId;
+
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: "User not found" });
+
+      if (!user.twoFactorEnabled) {
+        return reply.code(400).send({ message: "2FA not enabled" });
+      }
+
+      // New OTP
       const otpCode = crypto.randomInt(100000, 999999).toString();
-      const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-  
-      // Save to DB
+      const otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+
       await prisma.user.update({
         where: { id: user.id },
-        data: { twoFactorCode: otpCode, twoFactorExpiry: otpExpiry },
+        data: {
+          twoFactorCode: otpCode,
+          twoFactorExpiry: otpExpiry
+        }
       });
-  
-      // Send OTP via email
-      await sendEmail(user.email, '2FA Verification Code', `Your new OTP is: ${otpCode}`);
-  
+
+      await sendEmail(user.email, "New OTP Code", `Your new OTP is: ${otpCode}`);
+
       return reply.code(200).send({
-        success: true,
-        message: 'OTP resent successfully',
+        message: "OTP resent",
         twoFactorRequired: true
       });
-  
+
     } catch (err) {
       request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to resend OTP' });
+      return reply.code(500).send({ error: "Failed to resend OTP" });
     }
   });
 
