@@ -123,9 +123,13 @@ export class PongGame {
             this.scene
         );
         floor.position.y = -5;
-        const floorMaterial = new BABYLON.StandardMaterial("floorMat", this.scene);
-        floorMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.55, 0.6);
-        floor.material = floorMaterial;
+        const floorMat = new BABYLON.StandardMaterial("floorMat", this.scene);
+        const floorTexture = new BABYLON.Texture("/walls/floor.jpg", this.scene);
+        floorMat.diffuseTexture = floorTexture;
+        floorTexture.level = 0.6;
+        floorMat.diffuseColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+
+        floor.material = floorMat;
     
         // Ceiling/Roof
         const ceiling = BABYLON.MeshBuilder.CreateGround(
@@ -144,16 +148,9 @@ export class PongGame {
             this.scene
         );
         backWall.position.set(0, r.height / 2 - 5, -r.depth / 2 - 7);
-
-        // Create a material for the back wall
+        backWall.rotation.y = Math.PI;
         const backWallMat = new BABYLON.StandardMaterial("backWallMat", this.scene);
         const texture = new BABYLON.Texture("/walls/back.jpg", this.scene);
-
-        // Check if texture loads
-        texture.onLoadObservable.add(() => {
-            console.log("Back wall texture loaded successfully");
-        });
-
         backWallMat.diffuseTexture = texture;
         backWallMat.specularColor = new BABYLON.Color3(0, 0, 0);
         backWall.material = backWallMat;
@@ -178,16 +175,25 @@ export class PongGame {
             this.scene
         );
         leftWall.position.set(-r.width / 2, r.height / 2 - 5, 0);
-        leftWall.material = wallMaterial;
+        
+        const leftWallMat = new BABYLON.StandardMaterial("leftWallMat", this.scene);
+        const leftTexture = new BABYLON.Texture("/walls/bricks.jpg", this.scene);
+        leftTexture.wAng = Math.PI / 2;
+        leftWallMat.diffuseTexture = leftTexture;
+        leftWall.material = leftWallMat;
     
-        // Right side wall - EXTEND DEPTH
+        // Right side wall
         const rightWall = BABYLON.MeshBuilder.CreateBox(
             "rightWall",
             { width: 1, height: r.height, depth: r.depth + 14 }, // ADD 14 to depth
             this.scene
         );
         rightWall.position.set(r.width / 2, r.height / 2 - 5, 0);
-        rightWall.material = wallMaterial;
+        const rightWallMAt = new BABYLON.StandardMaterial("rightWallMAt", this.scene);
+        const rightTexture = new BABYLON.Texture("/walls/bricks.jpg", this.scene);
+        rightTexture.wAng = Math.PI / 2;
+        rightWallMAt.diffuseTexture = rightTexture;
+        rightWall.material = rightWallMAt;
     }
 
 
