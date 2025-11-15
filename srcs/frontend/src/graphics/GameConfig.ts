@@ -35,7 +35,7 @@ export const GameConfig =  {
             x: 6,
             z: 0
         },
-        speedIncrement: 1.02,    // 5% faster each hit
+        speedIncrement: 1.1,    // 5% faster each hit
         maxSpeed: 10,           // Speed cap
         maxBounceAngle: 0.7    // Max Z velocity from paddle hit
     },
