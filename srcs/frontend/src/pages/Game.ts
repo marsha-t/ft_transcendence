@@ -146,7 +146,7 @@ export class Game implements IComponent {
       const guestInput = document.createElement("input");
       guestInput.type = "text";
       guestInput.placeholder = "Enter guest name";
-      guestInput.className = "w-48 h-12 rounded-lg mt-6";
+      guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
       const addGuestBtn = this.makeButton(
@@ -163,17 +163,6 @@ export class Game implements IComponent {
 
     this.container.appendChild(controlsContainer);
   }
-
-  // For all buttons - update makeButton method
-  // private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
-  //     const btn = document.createElement("button");
-  //     btn.textContent = label;
-  //     btn.id = id;
-  //     btn.className = "px-6 py-3 rounded-[50px] bg-[var(--color-secondary)] text-white text-base border-none cursor-pointer transition-colors duration-300 ease-in-out hover:bg-[var(--color-secondary-hover)] mt-5";
-  //     btn.style.display = "none";
-  //     btn.addEventListener("click", handler);
-  //     return btn;
-  // }
 
   private makeButton(
     label: string,

@@ -1,17 +1,15 @@
-import * as BABYLON from "babylonjs"
+import * as BABYLON from "babylonjs";
+import { GameConfig } from "./GameConfig";
 
 export class Paddle {
     public mesh: BABYLON.Mesh;
     private scene: BABYLON.Scene;
+    public velocity: number = 0;  // Now full units/second (set by InputHandler)
 
     constructor(scene: BABYLON.Scene, position: BABYLON.Vector3, name: string) {
         this.scene = scene;
 
-        this.mesh = BABYLON.MeshBuilder.CreateBox(
-            name,
-            { width: 0.2, height: 0.5, depth: 3 }, // depth (Z) is paddle length
-            this.scene
-        );
+        this.mesh = BABYLON.MeshBuilder.CreateBox(name, { width: 0.2, height: 0.5, depth: 3 }, this.scene);
         this.mesh.position = position;
 
         const mat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
@@ -19,12 +17,19 @@ export class Paddle {
         this.mesh.material = mat;
     }
 
-    public move(deltaZ: number) {
-        const newZ = this.mesh.position.z + deltaZ;
+    public move(dt: number): void {  // dt in seconds; moves based on current velocity
+        const dz = this.velocity * dt;
+        this.mesh.position.z += dz;
 
-        if (newZ > 4) return;   // bottom side
-        if (newZ < -4) return;  // top side
+        const bounds = GameConfig.tableBounds;
+        const halfDepth = GameConfig.paddle.depth / 2;
 
-        this.mesh.position.z = newZ;
+        // Clamp to bounds
+        if (this.mesh.position.z - halfDepth < bounds.zMin) {
+            this.mesh.position.z = bounds.zMin + halfDepth;
+        }
+        if (this.mesh.position.z + halfDepth > bounds.zMax) {
+            this.mesh.position.z = bounds.zMax - halfDepth;
+        }
     }
 }

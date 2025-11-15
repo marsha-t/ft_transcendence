@@ -3,6 +3,7 @@ import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
+import { Game } from "../pages/Game";
 
 export class PongGame {
     private canvas: HTMLCanvasElement;
@@ -33,8 +34,10 @@ export class PongGame {
 
         // Render loop
         this.engine.runRenderLoop(() => {
+            const dt = this.engine.getDeltaTime() / 1000;
             if (!this.isPaused){
-                this.ball.update();
+                this.input.update(dt);
+                this.ball.update(dt);
                 this.checkCollisions();
                 this.checkScoring();
                 this.scene.render();
@@ -81,12 +84,18 @@ export class PongGame {
     private resetBall(): void {
         const t = GameConfig.table;
         const tableY = -1;
-        const ballRadius = 0.3;
+        const ballRadius = GameConfig.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
-
+    
         this.ball.mesh.position.set(0, ballY, 0);
-        // Optionally reverse ball direction
-        this.ball.speed.x *= -1;
+        this.ball.speed.x *= -1;  // Reverse X direction
+        this.ball.speed.z = (Math.random() - 0.5) * 2;  // Small random Z for variety (apply article's "unpredictability")
+        // Re-apply cap if needed
+        const maxSpeed = GameConfig.ball.maxSpeed;
+        const currentSpeed = this.ball.speed.length();
+        if (currentSpeed > maxSpeed) {
+            this.ball.speed.normalize().scaleInPlace(maxSpeed);
+        }
     }
 
     private createCamera(): void {
@@ -106,7 +115,7 @@ export class PongGame {
             new BABYLON.Vector3(0, 1, 0),
             this.scene
         );
-        light.intensity = 1;
+        light.intensity = GameConfig.light.intensity;
     }
 
     private createRoom(): void {
@@ -283,16 +292,12 @@ export class PongGame {
         const t = GameConfig.table;
 
         const tableY = -1; // same value used for table.position.y
-        const ballRadius = 0.3; // diameter = 0.6 → radius = 0.3
+        const ballRadius = GameConfig.ball.radius; // diameter = 0.6 → radius = 0.3
 
         // Put ball on table surface
         const ballY = tableY + t.height / 2 + ballRadius;
 
-        this.ball = new Ball(
-            this.scene,
-            new BABYLON.Vector3(0, ballY, 0),
-            0.6
-        );
+        this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), GameConfig.ball.diameter);
     }
 
 
@@ -321,41 +326,53 @@ export class PongGame {
     }
 
     private checkWallBounce(): void {
-    const bounds = GameConfig.tableBounds;
-    const ball = this.ball.mesh;
-    const r = 0.3; // ball radius
+        const bounds = GameConfig.tableBounds;
+        const ball = this.ball.mesh;
+        const r = GameConfig.ball.radius;
 
-    if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
-            this.ball.bounceZ();
-        }
+        if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
+                this.ball.bounceZ();
+            }
     }
-
 
     private checkPaddleBounce(): void {
-    const ball = this.ball.mesh;
-    const left = this.leftPaddle.mesh;
-    const right = this.rightPaddle.mesh;
-
-    const r = 0.3; // ball radius
-    const halfW = GameConfig.paddle.width / 2;  // 0.1
-    const halfD = GameConfig.paddle.depth / 2;  // 1.5
-
-    // Left paddle collision
-    if (
-        ball.position.x - r <= left.position.x + halfW &&
-        ball.position.x >= left.position.x - halfW &&
-        Math.abs(ball.position.z - left.position.z) <= halfD
-    ) {
-        this.ball.bounceX();
-    }
-
-    // Right paddle collision
-    if (
-        ball.position.x + r >= right.position.x - halfW &&
-        ball.position.x <= right.position.x + halfW &&
-        Math.abs(ball.position.z - right.position.z) <= halfD
+        const ball = this.ball.mesh;
+        const left = this.leftPaddle.mesh;
+        const right = this.rightPaddle.mesh;
+    
+        const r = GameConfig.ball.radius;
+        const halfW = GameConfig.paddle.width / 2;
+        const halfD = GameConfig.paddle.depth / 2;
+    
+        const maxBounceAngle = GameConfig.ball.maxBounceAngle;
+        const paddleInfluence = GameConfig.paddle.velocityInfluence;
+    
+        // Left paddle collision (unchanged logic, but now uses full velocity)
+        if (
+            ball.position.x - r <= left.position.x + halfW &&
+            ball.position.x >= left.position.x - halfW &&
+            Math.abs(ball.position.z - left.position.z) <= halfD
         ) {
+            const hitFactor = (ball.position.z - left.position.z) / halfD;
             this.ball.bounceX();
+    
+            // Increment speed post-bounce (elasticity + escalation)
+            this.ball.applySpeedIncrement();
+    
+            // Set Z with wider angle + momentum transfer
+            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.leftPaddle.velocity * paddleInfluence);
+        }
+    
+        // Right paddle (symmetric, unchanged)
+        if (
+            ball.position.x + r >= right.position.x - halfW &&
+            ball.position.x <= right.position.x + halfW &&
+            Math.abs(ball.position.z - right.position.z) <= halfD
+        ) {
+            const hitFactor = (ball.position.z - right.position.z) / halfD;
+            this.ball.bounceX();
+            this.ball.applySpeedIncrement();
+            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.rightPaddle.velocity * paddleInfluence);
         }
     }
 }
