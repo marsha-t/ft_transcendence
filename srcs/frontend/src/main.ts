@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
         console.error('One or more required container elements not found in the DOM.');
         return;
     }
-
+    
     const headerComponent = new Header();
     headerContainer.appendChild(headerComponent.render());
 

@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
+import {showConfirmation} from "../utils/profileUtils";
 import { GameDashboard } from "../services/dashboard/types";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
@@ -257,9 +258,7 @@ export class GameResults implements IComponent {
       TournamentStore.isNavigatingToNextMatch = false;
       return true;
     }
-    const confirmLeave = confirm(
-      "A tournament is in progress. Leaving will abort it."
-    );
+    const confirmLeave = showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
 
     if (!confirmLeave) return false;
 

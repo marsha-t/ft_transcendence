@@ -212,9 +212,7 @@ export class Header implements IComponent {
     
             const res = await profileService.logout();
             if (res.success) {
-                localStorage.removeItem("jwtToken");
-                localStorage.removeItem("currentUsername");
-                AuthUtils.logout();
+                AuthUtils.setLoggedOut();
                 history.pushState(null, '', '/main');
                 window.dispatchEvent(new PopStateEvent('popstate'));
             } else {
