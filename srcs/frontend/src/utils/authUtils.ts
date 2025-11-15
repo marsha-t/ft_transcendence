@@ -2,7 +2,41 @@ export class AuthUtils {
     // In-memory authentication state
     private static isLoggedIn_flag: boolean = false;
     private static currentUser: any = null;
+    private static initPromise: Promise<void> | null = null;
+    static async initialize(): Promise<void> {
+        // If already initializing, return the existing promise
+        if (this.initPromise) {
+            return this.initPromise;
+        }
 
+        this.initPromise = (async () => {
+            try {
+                const response = await fetch('/api/auth/userInfo', {
+                    credentials: 'include', // Send HTTP-only cookie
+                });
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    this.isLoggedIn_flag = true;
+                    this.currentUser = userData;
+                    window.dispatchEvent(new CustomEvent('authChange', { 
+                        detail: { isLoggedIn: true, userData } 
+                    }));
+                } else {
+                    this.isLoggedIn_flag = false;
+                    this.currentUser = null;
+                }
+            } catch (error) {
+                console.error('Auth initialization failed:', error);
+                this.isLoggedIn_flag = false;
+                this.currentUser = null;
+            } finally {
+                this.initPromise = null;
+            }
+        })();
+
+        return this.initPromise;
+    }
 
     /**
      * Set user as logged in (called by login component after successful login)

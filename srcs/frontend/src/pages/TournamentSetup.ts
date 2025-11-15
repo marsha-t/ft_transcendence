@@ -20,21 +20,26 @@ export class TournamentSetup implements IComponent {
     this.loadStyles();
 
     const page = document.createElement("div");
-    page.className = "tournament-page";
+    page.className = `bg-[var(--color-background)] flex justify-center items-center
+      flex-col min-h-[80vh] py-5 text-[var(--color-text-white)]
+      font-['Press_Start_2P',cursive] text-center`;
 
     this.container = document.createElement("div");
-    this.container.className = "tournament-setup";
+    this.container.className = "w-[596px] bg-transparent flex items-center justify-center flex-col py-[60px] box-border";
 
     const title = document.createElement("h2");
+    title.className = "text-[1.8rem] font-normal mb-10";
     title.textContent = "Tournament Setup";
     this.container.appendChild(title);
 
     // --- Input section ---
     const counterContainer = document.createElement("div");
-    counterContainer.className = "counter-container";
+    counterContainer.className = `flex items-center justify-center flex-col gap-6
+      border-2 border-[var(--color-border-green)] py-10 px-5 rounded-xl w-[457px] min-h-[320px]
+      bg-transparent box-border`;
 
     const counter = document.createElement("div");
-    counter.className = "counter";
+    counter.className = "flex items-center justify-center gap-4";
 
     const label = document.createElement("label");
     label.textContent = "NUMBER OF PLAYERS";
@@ -83,24 +88,31 @@ export class TournamentSetup implements IComponent {
 
     // overlay
     this.modal = document.createElement("div");
-    this.modal.className = "tournament-modal";
+    this.modal.className = "fixed top-0 left-0 w-full h-full bg-black/50 flex justify-center items-center";
 
     // overlay header
     const modalContent = document.createElement("div");
-    modalContent.className = "modal-content";
+    modalContent.className = `bg-[var(--color-background)] rounded-xl w-4/5 max-w-[1100px]
+      relative p-[30px_40px] shadow-[0_6px_20px_rgba(0,0,0,0.5)]`;
+    
     const header = document.createElement("div");
-    header.className = "modal-header";
+    header.className = "relative";
+    
     const h2 = document.createElement("h2");
+    h2.className = "font-['Press_Start_2P',monospace] text-base uppercase text-[var(--color-text-white)] m-0";
     h2.textContent = "Add Players";
+    
     const closeBtn = document.createElement("button");
-    closeBtn.className = "close-btn";
+    closeBtn.className = `bg-transparent border-none text-[var(--color-text-white)] text-[2rem]
+      cursor-pointer leading-none absolute top-4 right-5 transition-transform hover:scale-110`;
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", () => this.closeModal());
+    header.append(h2, closeBtn);
     header.append(h2, closeBtn);
 
     // overlay body split
     const body = document.createElement("div");
-    body.className = "modal-body";
+    body.className = "flex justify-between items-stretch gap-[30px]";
 
     const left = this.createAddPlayerForm();
     const right = await this.createLineupSection();
@@ -144,46 +156,54 @@ export class TournamentSetup implements IComponent {
 
   private createAddPlayerForm(): HTMLElement {
     const form = document.createElement("div");
-    form.className = "add-player-form";
+    form.className = `flex-1 border border-white/30 rounded-xl p-[30px]
+      bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)]
+      min-h-[480px] max-h-[480px] flex flex-col justify-start box-border`;
 
     // Toggle buttons
     const toggleContainer = document.createElement("div");
-    toggleContainer.className = "toggle-container";
+    toggleContainer.className = "flex justify-between mb-6 gap-5";
 
     const guestBtn = document.createElement("button");
     guestBtn.textContent = "GUEST";
-    guestBtn.className = "toggle-btn active";
+    guestBtn.className = `flex-1 flex items-center justify-center text-center bg-[var(--color-button)]
+      text-[var(--color-text-white)] font-['VT323'] text-[1.6rem] py-3.5 px-2.5 rounded-lg cursor-pointer
+      uppercase transition-all border-2 border-[#7ab96f] shadow-[0_6px_0_#4e7245] hover:brightness-110`;
 
     const userBtn = document.createElement("div");
     userBtn.textContent = "REGISTERED USER";
-    userBtn.className = "toggle-btn";
+    userBtn.className = `flex-1 flex items-center justify-center text-center bg-[#3b5f9c]
+      text-[var(--color-text-white)] font-['VT323'] text-[1.6rem] py-3.5 px-2.5 rounded-lg
+      cursor-pointer uppercase transition-all border-none shadow-[0_6px_0_#1e3263] hover:brightness-110`;
 
     toggleContainer.append(guestBtn, userBtn);
     form.appendChild(toggleContainer);
 
     // --- Guest form ---
     const guestForm = document.createElement("div");
-    guestForm.className = "guest-form";
+    guestForm.className = "";
     guestForm.innerHTML = `
-    <p>If you don’t have an account, enter a guest name to join temporarily.</p>
-    <label>GUEST NAME</label>
-    <input placeholder="Guest Name" />
+    <p class="text-[var(--color-text-white)]">If you don't have an account, enter a guest name to join temporarily.</p>
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
+    <input placeholder="Guest Name" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
 
     // --- Registered form ---
     const userForm = document.createElement("div");
-    userForm.className = "user-form hidden";
+    userForm.className = "hidden";
     userForm.innerHTML = `
-    <p>Enter your username and password if you already have an account.</p>
-    <label>USERNAME</label>
-    <input placeholder="Username" />
-    <label>PASSWORD</label>
-    <input type="password" placeholder="Password" />
+    <p class="text-[var(--color-text-white)]">Enter your username and password if you already have an account.</p>
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">USERNAME</label>
+    <input placeholder="Username" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">PASSWORD</label>
+    <input type="password" placeholder="Password" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
 
     const addBtn = document.createElement("button");
     addBtn.textContent = "ADD PLAYER";
-    addBtn.className = "add-player-btn";
+    addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
+      py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
+      shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8`;
     addBtn.addEventListener("click", async () => {
       const isGuest = guestBtn.classList.contains("active");
       const guestName = guestForm.querySelector("input") as HTMLInputElement;
@@ -339,7 +359,8 @@ export class TournamentSetup implements IComponent {
       if (p.userId !== 1) {
         const delBtn = document.createElement("button");
         delBtn.textContent = "×";
-        delBtn.className = "delete-btn";
+        delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold cursor-pointer ml-2
+          transition-transform hover:text-[#ff5c5c] hover:scale-110`;
         delBtn.addEventListener("click", () => {
           TournamentDraftStore.removePlayer(i);
           this.updateLineup();
