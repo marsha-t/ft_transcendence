@@ -19,10 +19,15 @@ export class TournamentMatch implements IComponent {
     this.loadStyles();
 
     const page = document.createElement("div");
-    page.className = "tournament-page";
+    page.className = `bg-[var(--color-background)]
+      min-h-[80vh] flex justify-center items-center
+      font-['Press_Start_2P',monospace]
+      text-[var(--color-text-white)] overflow-hidden`;
 
     this.container = document.createElement("div");
-    this.container.className = "tournament-match";
+    this.container.className = `bg-transparent rounded-xl px-16 py-8
+        text-center relative w-4/5 max-w-[900px] box-border`;
+
 
     this.loadNextMatch();
     page.appendChild(this.container);
@@ -31,7 +36,7 @@ export class TournamentMatch implements IComponent {
 
   private async loadNextMatch() {
     try {
-      this.container.innerHTML = `<div class="loading-text">Loading next match...</div>`;
+      this.container.innerHTML = `<div class="text-[var(--color-text-white)]">Loading next match...</div>`;
 
       const response = await apiServices.tournament.getNextMatch(
         this.tournamentId
@@ -63,25 +68,27 @@ export class TournamentMatch implements IComponent {
     this.container.innerHTML = "";
 
     const matchInfo = document.createElement("div");
-    matchInfo.className = "match-info";
+    matchInfo.className = "flex flex-col items-center justify-center";
+
 
     const h3 = document.createElement("h3");
     h3.textContent = `Match ${matchIndex}`;
     matchInfo.appendChild(h3);
 
     const playerContainer = document.createElement('div');
-    playerContainer.className = 'player-container';
+    playerContainer.className = 'flex justify-center items-center gap-12 mb-10';
+
 
     const p1Box = document.createElement('div');
-    p1Box.className = 'player-box';
+    p1Box.className = 'border-2 border-[var(--color-border-green)] rounded-lg px-10 py-6 min-w-[160px] text-2xl text-[var(--color-text-white)] bg-[var(--color-background)] shadow-[0_4px_0_#0c1c42]';
     p1Box.textContent = p1?.displayName ?? "Player 1";
 
     const vs = document.createElement('div');
-    vs.className = 'vs-text';
+    vs.className = 'text-[#ff3b3b] text-[1.8rem] font-bold';
     vs.textContent = "VS";
 
     const p2Box = document.createElement('div');
-    p2Box.className = 'player-box';
+    p2Box.className = 'border-2 border-[var(--color-border-green)] rounded-lg px-10 py-6 min-w-[160px] text-2xl text-[var(--color-text-white)] bg-[var(--color-background)] shadow-[0_4px_0_#0c1c42]';
     p2Box.textContent = p2?.displayName ?? "Player 2";
 
     playerContainer.append(p1Box, vs, p2Box);
@@ -94,7 +101,7 @@ export class TournamentMatch implements IComponent {
 
     const startBtn = document.createElement("button");
     startBtn.textContent = "Start Match";
-    startBtn.className = "ready-btn";
+    startBtn.className = "bg-[var(--color-button)] border-2 border-[#3e8b44] rounded-lg text-[var(--color-text-white)] font-['Press_Start_2P',monospace] text-base px-8 py-4 cursor-pointer shadow-[0_6px_0_#2e6b32] transition-all duration-100 uppercase hover:bg-[#6bc66f] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_6px_0_#2e6b32]";
     startBtn.addEventListener("click", () =>
       this.startGame(gameSessionId, p1, p2)
     );

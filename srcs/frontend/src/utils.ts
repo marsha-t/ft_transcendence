@@ -22,7 +22,7 @@ export function navigate(path: string, state: any = {}) {
   window.dispatchEvent(event);
 }
 
-export async function gameEndPopup(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
+export async function confirmationPopup(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.style.position = "fixed";

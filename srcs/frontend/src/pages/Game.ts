@@ -7,7 +7,7 @@ import {
 } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
-import { navigate, gameEndPopup } from "../utils";
+import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 export class Game implements IComponent {
@@ -415,7 +415,8 @@ export class Game implements IComponent {
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
       // alert(`Game Over! ${winnerName} wins!`);
-      gameEndPopup(`Game Over! ${winnerName} wins!`, "Game Over", true);
+      const confirmed = confirmationPopup(`Game Over! ${winnerName} wins!`, "Game Over", true);
+      if (!confirmed) return;
       if (this.opts?.isTournament) {
         TournamentStore.isInternalTournamentNavigation = true;
       }
