@@ -12,7 +12,6 @@ export class TournamentResults implements IComponent {
   }
 
   public render(): HTMLElement {
-    this.loadStyles();
     localStorage.removeItem("activeTournament");
 
     TournamentStore.tournamentId = null;
@@ -20,14 +19,11 @@ export class TournamentResults implements IComponent {
     TournamentStore.tournamentId = null;
 
     const page = document.createElement("div");
-    page.className = "tournament-page";
+    page.className = "bg-[var(--color-background)] min-h-screen w-full font-['Press_Start_2P',monospace] text-[var(--color-text-yellow)] p-8";
 
+    // Main container - 2 columns (30% / 70%)
     this.container = document.createElement("div");
-    this.container.className = "tournament-results";
-
-    const h2 = document.createElement("h2");
-    h2.textContent = "Tournament Results";
-    this.container.appendChild(h2);
+    this.container.className = "grid grid-cols-[0.3fr_0.7fr] gap-8 h-full";
 
     this.loadResults();
     page.appendChild(this.container);
@@ -47,50 +43,103 @@ export class TournamentResults implements IComponent {
       const results = response.data.results;
       const { champion, bracket, stats } = results;
 
-      this.renderChampion(champion);
-      this.renderBracket(bracket);
-      this.renderStats(stats);
-      this.renderActions();
+      // LEFT COLUMN (30%) - Champion + Stats + Button
+      const leftColumn = document.createElement("div");
+      leftColumn.className = "flex flex-col items-center justify-start bg-[var(--color-background)] rounded-xl p-8 gap-8";
+      
+      const h2 = document.createElement("h2");
+      h2.className = "text-2xl text-[var(--color-text-white)] mb-4";
+      h2.textContent = "Tournament Results";
+      leftColumn.appendChild(h2);
+      
+      this.renderChampion(champion, leftColumn);
+      this.renderStats(stats, leftColumn);
+      this.renderActions(leftColumn);
+      
+      this.container.appendChild(leftColumn);
+
+      // RIGHT COLUMN (70%) - Grid with 2 rows
+      const rightColumn = document.createElement("div");
+      rightColumn.className = "grid grid-rows-[0.6fr_0.4fr] gap-8 h-full";
+      
+      // TOP ROW - Bracket/Graph
+      const topRow = document.createElement("div");
+      topRow.className = "bg-[var(--color-background)] rounded-xl p-8 flex items-center justify-center";
+      this.renderBracket(bracket, topRow);
+      rightColumn.appendChild(topRow);
+      
+      // BOTTOM ROW - 2 columns for players
+      const bottomRow = document.createElement("div");
+      bottomRow.className = "grid grid-cols-2 gap-8";
+      
+      const player1Box = document.createElement("div");
+      player1Box.className = "bg-[var(--color-background)] rounded-xl p-8 flex flex-col items-center justify-center border-2 border-[var(--color-border-green)]";
+      player1Box.innerHTML = `
+        <h3 class="text-xl text-[var(--color-text-white)] mb-4">Player 1</h3>
+        <p class="text-[var(--color-text-white)]">Stats coming soon...</p>
+      `;
+      
+      const player2Box = document.createElement("div");
+      player2Box.className = "bg-[var(--color-background)] rounded-xl p-8 flex flex-col items-center justify-center border-2 border-[var(--color-border-green)]";
+      player2Box.innerHTML = `
+        <h3 class="text-xl text-[var(--color-text-white)] mb-4">Player 2</h3>
+        <p class="text-[var(--color-text-white)]">Stats coming soon...</p>
+      `;
+      
+      bottomRow.appendChild(player1Box);
+      bottomRow.appendChild(player2Box);
+      rightColumn.appendChild(bottomRow);
+      
+      this.container.appendChild(rightColumn);
     } catch (err) {
       console.error("Error loading results:", err);
       this.container.textContent = "Error loading results.";
     }
   }
 
-  private renderChampion(champion: string | null) {
+  private renderChampion(champion: string | null, parent: HTMLElement) {
     const championDiv = document.createElement("div");
-    championDiv.className = "champion-section";
+    championDiv.className = "mb-8 w-full";
     championDiv.innerHTML = `
-		<div class="champion-wrapper">
-		<span class="trophy-icon">🏆</span>
-		<div class="champion-name">${champion ?? "-"}</div>
-		</div>
-  	`;
+      <div class="flex flex-col items-center">
+        <span class="text-[1.8rem] mb-2.5">🏆</span>
+        <div class="inline-block bg-[var(--color-button)] text-[var(--color-text-white)] px-4 py-2 rounded-lg text-base font-bold">${champion ?? "-"}</div>
+      </div>
+    `;
 
-    this.container.appendChild(championDiv);
+    parent.appendChild(championDiv);
   }
 
-  private renderBracket(bracket: any[]) {
+  private renderBracket(bracket: any[], parent: HTMLElement) {
     const bracketDiv = document.createElement("div");
-    bracketDiv.className = "bracket-tree";
+    bracketDiv.className = "flex flex-row justify-center items-center gap-24 relative w-full";
 
     const rounds = this.organizeRounds(bracket);
 
     rounds.forEach((round, i) => {
       const roundDiv = document.createElement("div");
-      roundDiv.className = "round";
+      roundDiv.className = "flex flex-col items-start justify-center gap-12";
 
       round.forEach((match) => {
         const matchDiv = document.createElement("div");
-        matchDiv.className = "match";
+        matchDiv.className = "relative flex flex-col items-start justify-center gap-4 after:content-[''] after:absolute after:right-[-3rem] after:top-[25%] after:w-12 after:h-[50%] after:border-r-2 after:border-t-2 after:border-b-2 after:border-[var(--color-border-green)] after:rounded-tr-[12px] after:rounded-br-[12px]";
+        
+        const player1Class = match.winner === match.player1 
+          ? "border-2 border-[var(--color-border-green)] rounded-md px-4 py-2 text-[var(--color-text-white)] bg-[var(--color-button)] min-w-[140px] text-left font-bold"
+          : "border-2 border-[var(--color-border-green)] rounded-md px-4 py-2 text-[var(--color-text-white)] bg-[var(--color-background)] min-w-[140px] text-left";
+        
+        const player2Class = match.winner === match.player2 
+          ? "border-2 border-[var(--color-border-green)] rounded-md px-4 py-2 text-[var(--color-text-white)] bg-[var(--color-button)] min-w-[140px] text-left font-bold"
+          : "border-2 border-[var(--color-border-green)] rounded-md px-4 py-2 text-[var(--color-text-white)] bg-[var(--color-background)] min-w-[140px] text-left";
+        
         matchDiv.innerHTML = `
-        <div class="player ${match.winner === match.player1 ? "winner" : ""}">
-          ${match.player1 ?? "-"}
-        </div>
-        <div class="player ${match.winner === match.player2 ? "winner" : ""}">
-          ${match.player2 ?? "-"}
-        </div>
-      `;
+          <div class="${player1Class}">
+            ${match.player1 ?? "-"}
+          </div>
+          <div class="${player2Class}">
+            ${match.player2 ?? "-"}
+          </div>
+        `;
         roundDiv.appendChild(matchDiv);
       });
 
@@ -103,20 +152,20 @@ export class TournamentResults implements IComponent {
       const finalWinner = lastRound[0].winner;
       if (finalWinner) {
         const winnerRound = document.createElement("div");
-        winnerRound.className = "round final-round";
+        winnerRound.className = "flex items-center justify-center relative before:content-[''] before:absolute before:left-[-3rem] before:w-12 before:h-0.5 before:bg-[var(--color-border-green)]";
 
         const winnerBox = document.createElement("div");
-        winnerBox.className = "winner-box";
+        winnerBox.className = "relative flex items-center";
         winnerBox.innerHTML = `
-        <div class="player winner">${finalWinner}</div>
-      `;
+          <div class="bg-[var(--color-button)] text-[var(--color-text-white)] font-bold min-w-[140px] border-2 border-[var(--color-border-green)] rounded-md px-4 py-2 text-left">${finalWinner}</div>
+        `;
 
         winnerRound.appendChild(winnerBox);
         bracketDiv.appendChild(winnerRound);
       }
     }
 
-    this.container.appendChild(bracketDiv);
+    parent.appendChild(bracketDiv);
   }
 
   /**
@@ -130,35 +179,27 @@ export class TournamentResults implements IComponent {
     return [bracket.slice(0, half), bracket.slice(half)];
   }
 
-  private renderStats(stats: any) {
+  private renderStats(stats: any, parent: HTMLElement) {
     const statsDiv = document.createElement("div");
-    statsDiv.className = "stats-section";
+    statsDiv.className = "text-[var(--color-text-white)] mb-8 w-full";
     statsDiv.innerHTML = `
-				<h3>Stats</h3>
-				<p>Total Matches: ${stats.totalMatches}</p>
-				<p>Played Matches: ${stats.playedMatches}</p>
-			`;
-    this.container.appendChild(statsDiv);
+      <h3 class="mb-4 text-base">Stats</h3>
+      <p>Total Matches: ${stats.totalMatches}</p>
+      <p>Played Matches: ${stats.playedMatches}</p>
+    `;
+    parent.appendChild(statsDiv);
   }
-  private renderActions() {
+
+  private renderActions(parent: HTMLElement) {
     const btnContainer = document.createElement("div");
-    btnContainer.className = "results-actions";
+    btnContainer.className = "flex justify-center mt-auto w-full";
 
     const newBtn = document.createElement("button");
     newBtn.textContent = "Start New Tournament";
-    newBtn.className = "new-tournament-btn";
+    newBtn.className = "bg-[var(--color-button)] text-[var(--color-text-white)] border-none rounded-lg font-['Press_Start_2P',monospace] text-[0.7rem] px-6 py-3 cursor-pointer transition-all duration-150 hover:scale-105 hover:bg-[#6bc66f]";
     newBtn.addEventListener("click", () => navigate("/tournament/setup"));
 
     btnContainer.appendChild(newBtn);
-    this.container.appendChild(btnContainer);
-  }
-
-  private loadStyles() {
-    if (document.getElementById("tournament-results-styles")) return;
-    const link = document.createElement("link");
-    link.id = "tournament-results-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/TournamentResults.css";
-    document.head.appendChild(link);
+    parent.appendChild(btnContainer);
   }
 }
