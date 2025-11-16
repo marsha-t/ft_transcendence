@@ -35,7 +35,7 @@ export class TournamentSetup implements IComponent {
     // --- Input section ---
     const counterContainer = document.createElement("div");
     counterContainer.className = `flex items-center justify-center flex-col gap-6
-      border-2 border-[var(--color-border-green)] py-10 px-5 rounded-xl w-[457px] min-h-[320px]
+      border-2 border-[var(--color-border-green)] py-16 rounded-xl w-[457px] min-h-[320px]
       bg-transparent box-border`;
 
     const counter = document.createElement("div");
@@ -46,6 +46,7 @@ export class TournamentSetup implements IComponent {
     counter.appendChild(label);
 
     const input = document.createElement("input");
+    input.className = `w-127 h-42 text-center rounded-[16px] border-2`;
     input.type = "number";
     input.min = "2";
     input.max = "64";
