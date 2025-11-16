@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { navigate } from "../utils.js";
+import { navigate, createButtonStyle } from "../utils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
@@ -17,36 +17,40 @@ export class TournamentSetup implements IComponent {
     TournamentDraftStore.clear();
     TournamentDraftStore.setNumberOfPlayers(2);
 
-    this.loadStyles();
 
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)] flex justify-center items-center
       flex-col min-h-[80vh] py-5 text-[var(--color-text-white)]
-      font-['Press_Start_2P',cursive] text-center`;
+      font-pixel text-center`;
 
     this.container = document.createElement("div");
-    this.container.className = "w-[596px] bg-transparent flex items-center justify-center flex-col py-[60px] box-border";
+    this.container.className = "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6 ";
 
     const title = document.createElement("h2");
-    title.className = "text-[1.8rem] font-normal mb-10";
+    title.className = "text-[1.8rem] font-pixel font-normal mb-10";
     title.textContent = "Tournament Setup";
     this.container.appendChild(title);
 
     // --- Input section ---
     const counterContainer = document.createElement("div");
     counterContainer.className = `flex items-center justify-center flex-col gap-6
-      border-2 border-[var(--color-border-green)] py-16 rounded-xl w-[457px] min-h-[320px]
+      border-2 border-[var(--color-border-green)] p-[10px] rounded-[16px] w-[500px] min-h-[320px]
       bg-transparent box-border`;
 
     const counter = document.createElement("div");
-    counter.className = "flex items-center justify-center gap-4";
+    counter.className = "flex items-center justify-center gap-4 w-full";
 
     const label = document.createElement("label");
     label.textContent = "NUMBER OF PLAYERS";
+    label.className = `text-[var(--color-text-white)] text-[24px] font-pixel font-[400]  whitespace-nowrap`;
     counter.appendChild(label);
 
     const input = document.createElement("input");
-    input.className = `w-127 h-42 text-center rounded-[16px] border-2`;
+    input.className = `w-[120px] h-[40px] text-center rounded-[16px]
+      border-2 border-white bg-white text-black text-[18px] font-pixel font-[400] outline-none
+      transition-colors duration-200 focus:border-[var(--color-border-green)] [&::-webkit-inner-spin-button]:opacity-100
+      [&::-webkit-outer-spin-button]:opacity-100`;
+
     input.type = "number";
     input.min = "2";
     input.max = "64";
@@ -70,6 +74,7 @@ export class TournamentSetup implements IComponent {
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
     nextBtn.textContent = "NEXT";
+    nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]");
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
     actions.appendChild(nextBtn);
@@ -89,7 +94,8 @@ export class TournamentSetup implements IComponent {
 
     // overlay
     this.modal = document.createElement("div");
-    this.modal.className = "fixed top-0 left-0 w-full h-full bg-black/50 flex justify-center items-center";
+    this.modal.className = `fixed top-0 left-0 w-full h-full bg-black/50 flex
+      justify-center items-center backdrop-blur-sm`;
 
     // overlay header
     const modalContent = document.createElement("div");
@@ -97,7 +103,7 @@ export class TournamentSetup implements IComponent {
       relative p-[30px_40px] shadow-[0_6px_20px_rgba(0,0,0,0.5)]`;
     
     const header = document.createElement("div");
-    header.className = "relative";
+    header.className = "relative mb-6";
     
     const h2 = document.createElement("h2");
     h2.className = "font-['Press_Start_2P',monospace] text-base uppercase text-[var(--color-text-white)] m-0";
@@ -105,15 +111,15 @@ export class TournamentSetup implements IComponent {
     
     const closeBtn = document.createElement("button");
     closeBtn.className = `bg-transparent border-none text-[var(--color-text-white)] text-[2rem]
-      cursor-pointer leading-none absolute top-4 right-5 transition-transform hover:scale-110`;
+      cursor-pointer leading-none absolute top-0 right-0 transition-transform hover:scale-110`;
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", () => this.closeModal());
     header.append(h2, closeBtn);
-    header.append(h2, closeBtn);
+
 
     // overlay body split
     const body = document.createElement("div");
-    body.className = "flex justify-between items-stretch gap-[30px]";
+    body.className = "grid grid-cols-2 gap-[30px]";
 
     const left = this.createAddPlayerForm();
     const right = await this.createLineupSection();
@@ -310,16 +316,24 @@ export class TournamentSetup implements IComponent {
 
   private async createLineupSection(): Promise<HTMLElement> {
     const section = document.createElement("div");
-    section.className = "lineup-section";
+    section.className = `border border-white/30 rounded-xl p-[30px] 
+      bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)] 
+      min-h-[480px] max-h-[480px] flex flex-col box-border`;
 
     const h3 = document.createElement("h3");
+    h3.className = `text-center font-['Press_Start_2P',monospace] text-xs mb-5 
+      text-[var(--color-text-white)] uppercase`;
     h3.textContent = "Current Lineup";
     section.appendChild(h3);
 
     const ul = document.createElement("ul");
     ul.id = "lineup-list";
+    ul.className = `list-none p-0 m-0 mb-5 flex-1 overflow-y-auto 
+      [scrollbar-width:thin] [scrollbar-color:#3b5f9c_#1e3263]`;
 
     const li = document.createElement("li");
+    li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+      font-['VT323'] text-[1.6rem] flex justify-between items-center`;
     await this.fetchCreatorUsername();
     li.textContent = `1. ${this.creatorUsername} (Creator)`;
     ul.appendChild(li);
@@ -328,6 +342,9 @@ export class TournamentSetup implements IComponent {
 
     const confirmBtn = document.createElement("button");
     confirmBtn.id = "confirm-btn";
+    confirmBtn.className = `w-full bg-[#3b5f9c] text-white border-none rounded-[10px] 
+      py-4 px-0 font-['VT323'] text-[1.6rem] font-bold tracking-wider cursor-pointer 
+      shadow-[0_3px_0_#1e3263] uppercase mt-2.5 hover:bg-[#4c73b8] transition-colors`;
     confirmBtn.textContent = "Confirm & Start Game";
     confirmBtn.style.display = "none";
     confirmBtn.addEventListener(
@@ -343,7 +360,10 @@ export class TournamentSetup implements IComponent {
     const ul = document.getElementById("lineup-list");
     if (!ul) return;
     ul.innerHTML = "";
+    
     const creator = document.createElement("li");
+    creator.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+      font-['VT323'] text-[1.6rem] flex justify-between items-center`;
     const creatorNameSpan = document.createElement("span");
     creatorNameSpan.textContent = `1. ${this.creatorUsername} (Creator)`;
     creator.appendChild(creatorNameSpan);
@@ -351,6 +371,8 @@ export class TournamentSetup implements IComponent {
 
     TournamentDraftStore.players.forEach((p, i) => {
       const li = document.createElement("li");
+      li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+        font-['VT323'] text-[1.6rem] flex justify-between items-center`;
       const nameSpan = document.createElement("span");
 
       nameSpan.textContent = `${i + 2}. ${p.displayName}`;
@@ -360,8 +382,8 @@ export class TournamentSetup implements IComponent {
       if (p.userId !== 1) {
         const delBtn = document.createElement("button");
         delBtn.textContent = "×";
-        delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold cursor-pointer ml-2
-          transition-transform hover:text-[#ff5c5c] hover:scale-110`;
+        delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold 
+          cursor-pointer ml-2 transition-transform hover:text-[#ff5c5c] hover:scale-110`;
         delBtn.addEventListener("click", () => {
           TournamentDraftStore.removePlayer(i);
           this.updateLineup();
@@ -431,18 +453,5 @@ export class TournamentSetup implements IComponent {
     } catch (err) {
       console.error("Error finalizing tournament:", err);
     }
-  }
-
-  //--------------------------------------
-  // Styles
-  //--------------------------------------
-  private loadStyles() {
-    if (document.getElementById("tournament-setup-styles")) return;
-
-    const link = document.createElement("link");
-    link.id = "tournament-setup-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/TournamentSetup.css";
-    document.head.appendChild(link);
   }
 }

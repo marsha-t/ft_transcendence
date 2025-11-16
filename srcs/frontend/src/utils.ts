@@ -102,6 +102,17 @@ export async function confirmationPopup(message: string, title = "Please Confirm
   });
 }
 
+export function createButtonStyle(customization: string = ""): string {
+  const mainStyle = ` inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white
+    font-bold rounded-lg tracking-widest 
+    shadow-[0_5px_0_var(--color-button-second)]
+    hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
+    hover:translate-y-1 active:translate-y-2
+    transition-all duration-150 mt-5 text-center no-underline`;
+
+    return mainStyle + " " + customization;
+  
+}
 //--------------------------
 // UI Helpers
 //--------------------------

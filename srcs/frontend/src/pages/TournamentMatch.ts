@@ -16,7 +16,7 @@ export class TournamentMatch implements IComponent {
   }
 
   public render(): HTMLElement {
-    this.loadStyles();
+    // this.loadStyles();
 
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)]
@@ -115,7 +115,8 @@ export class TournamentMatch implements IComponent {
     TournamentStore.tournamentId = this.tournamentId;
     
     this.container.innerHTML = "";
-    
+    this.container.className = "w-full flex justify-center";
+
     this.gameInstance = new Game({
       sessionId: Number(gameSessionId),
       isTournament: true,
@@ -127,14 +128,6 @@ export class TournamentMatch implements IComponent {
       onMatchEnd: () => this.loadNextMatch(),
     });
     this.container.appendChild(this.gameInstance.render());
-  }
-  private loadStyles() {
-    if (document.getElementById("tournament-match-styles")) return;
-    const link = document.createElement("link");
-    link.id = "tournament-match-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/TournamentMatch.css";
-    document.head.appendChild(link);
   }
 
   public cleanup() {
