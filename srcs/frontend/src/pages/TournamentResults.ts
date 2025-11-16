@@ -19,7 +19,7 @@ export class TournamentResults implements IComponent {
     TournamentStore.tournamentId = null;
 
     const page = document.createElement("div");
-    page.className = "bg-[var(--color-background)] min-h-screen w-full font-['Press_Start_2P',monospace] text-[var(--color-text-yellow)] p-8";
+    page.className = "bg-[var(--color-background)] min-h-screen w-full font-['Press_Start_2P',monospace] text-[var(--color-text-yellow)]";
 
     // Main container - 2 columns (30% / 70%)
     this.container = document.createElement("div");
@@ -99,11 +99,10 @@ export class TournamentResults implements IComponent {
 
   private renderChampion(champion: string | null, parent: HTMLElement) {
     const championDiv = document.createElement("div");
-    championDiv.className = "mb-8 w-full";
     championDiv.innerHTML = `
       <div class="flex flex-col items-center">
         <span class="text-[1.8rem] mb-2.5">🏆</span>
-        <div class="inline-block bg-[var(--color-button)] text-[var(--color-text-white)] px-4 py-2 rounded-lg text-base font-bold">${champion ?? "-"}</div>
+        <div class="w-[200px] h[300px] inline-block bg-[var(--color-button)] text-[var(--color-text-white)] px-4 py-2 rounded-lg text-base font-bold">${champion ?? "-"}</div>
       </div>
     `;
 

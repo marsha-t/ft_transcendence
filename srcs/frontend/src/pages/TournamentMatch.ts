@@ -16,7 +16,6 @@ export class TournamentMatch implements IComponent {
   }
 
   public render(): HTMLElement {
-    // this.loadStyles();
 
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)]
