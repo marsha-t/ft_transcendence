@@ -31,12 +31,12 @@ export class GameResults implements IComponent {
       flex-col min-h-[80vh] rounded-[16px] p-5 text-[var(--color-text-white)]
       font-pixel text-center`;
     this.container = document.createElement("div");
-    this.container.className = `flex flex-col items-center  w-full min-h-[80vh] p-20
+    this.container.className = `flex flex-col items-center  w-full min-h-[80vh] p-10 px-8
       bg-background rounded-[30px]`;
 
     // Results container
     const resultsContainer = document.createElement("div");
-    resultsContainer.className = "flex justify-center items-stretch gap-8 w-full max-w-[1200px] flex-grow";
+    resultsContainer.className = "flex justify-center gap-[10px] m-8 w-[75%]  mx-auto grid grid-cols-[0.3fr_0.7fr] gap-8 h-full flex-grow";
 
     // Left: leaderboard summary
     const leftDiv = document.createElement("div");
@@ -48,16 +48,23 @@ export class GameResults implements IComponent {
 
     // Right: chart + player stats
     const rightDiv = document.createElement("div");
-    rightDiv.className = "flex-[2] flex flex-col items-center bg-[var(--color-background)] rounded-xl p-10";
+    rightDiv.className = "flex-2 flex items-center bg-[var(--color-background)]  grid grid-rows-2  gap-8 rounded-xl";
     
     const chartDiv = document.createElement("div");
-    chartDiv.className = "rounded-xl bg-[#21447E] p-5 shadow-[inset_0_0_6px_rgba(255,255,255,0.1)] w-full max-w-[850px] mb-8";
+    chartDiv.className = `
+      rounded-xl 
+      bg-[#21447E] 
+      p-5 
+      shadow-[inset_0_0_6px_rgba(255,255,255,0.1)]
+      w-full
+      h-full
+      mb-8
+    `;
+  
     chartDiv.id = "scoreChart";
-    chartDiv.style.width = "700px";
-    chartDiv.style.height = "400px";
 
     const playersDiv = document.createElement("div");
-    playersDiv.className = "flex justify-around flex-wrap gap-8 w-full";
+    playersDiv.className = "grid grid-cols-2 gap-8 w-full";
 
     rightDiv.appendChild(chartDiv);
     rightDiv.appendChild(playersDiv);
@@ -232,23 +239,27 @@ export class GameResults implements IComponent {
 
   // Render player statistics
  private renderPlayerStats() {
-    if (!this.dashboardData) return;
+  if (!this.dashboardData) return;
 
-    const playersDiv = this.container.querySelector("div.flex.justify-around.flex-wrap.gap-8.w-full");
-    if (!playersDiv) return;
+  const playersDiv = this.container.querySelector(
+    "div.grid.grid-cols-2.gap-8.w-full"
+  );
 
-    // Clear existing content
-    playersDiv.innerHTML = '';
+  if (!playersDiv) return;
+
+  playersDiv.innerHTML = "";
 
     // Create player stats container
     const playerStatsContainer = document.createElement("div");
-    playerStatsContainer.className = "flex justify-center items-stretch gap-8 h-full flex-wrap";
+    playerStatsContainer.className = "grid grid-cols-2 gap-8 w-full";
 
     // Create player cards
     this.dashboardData.players.forEach((player) => {
       const playerCard = document.createElement("div");
-    playerCard.className = "bg-[#21447E] rounded-xl border-2 border-[#fdd835] p-6 text-center text-white shadow-[0_0_10px_rgba(255,255,0,0.15)] font-['VT323'] text-lg tracking-wide hover:translate-y-[-4px] hover:shadow-[0_4px_14px_rgba(0,0,0,0.12)] transition-all h-full";
-
+      playerCard.className = `
+      bg-[#21447E]  rounded-xl  border-2 border-[#fdd835]  p-6
+      text-center  text-white  shadow-[0_0_10px_rgba(255,255,0,0.15)]
+      font-pixel text-lg  tracking-wide  transition-all h-full`;
       // Avatar
       const avatar = document.createElement("img");
       avatar.src = this.getAvatarUrl(player.avatar);

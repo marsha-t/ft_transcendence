@@ -19,7 +19,7 @@ export class TournamentResults implements IComponent {
     TournamentStore.tournamentId = null;
 
     const page = document.createElement("div");
-    page.className = "bg-[var(--color-background)] min-h-screen w-full font-['Press_Start_2P',monospace] text-[var(--color-text-yellow)]";
+    page.className = "bg-[var(--color-background)] min-h-screen w-full font-pixel text-[var(--color-text-yellow)]";
 
     // Main container - 2 columns (30% / 70%)
     this.container = document.createElement("div");
