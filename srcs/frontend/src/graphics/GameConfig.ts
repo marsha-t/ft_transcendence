@@ -25,14 +25,14 @@ export const GameConfig =  {
         target: { x: 0, y: 0, z: 3}
     },
     tableBounds: {
-        zMin: -4.4, // adjust if your table depth changes
+        zMin: -4.4,
         zMax: 4.4
     }, 
     ball: {
         diameter: 0.4,
         radius: 0.2,
         speed: {
-            x: 6,
+            x: 12,
             z: 0
         },
         speedIncrement: 1.1,    // 5% faster each hit
