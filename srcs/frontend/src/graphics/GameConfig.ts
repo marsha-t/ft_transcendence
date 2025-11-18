@@ -15,7 +15,7 @@ export const GameConfig =  {
         height: 0.5,
         depth: 3,
         offset: 0.5, // how much inside the table
-        speed: 6,
+        speed: 10,
         velocityInfluence: 0.3
     },
     camera: {
@@ -35,8 +35,8 @@ export const GameConfig =  {
             x: 12,
             z: 0
         },
-        speedIncrement: 1.1,    // 5% faster each hit
-        maxSpeed: 10,           // Speed cap
+        speedIncrement: 1.6,    // 5% faster each hit
+        maxSpeed: 15,           // Speed cap
         maxBounceAngle: 0.7    // Max Z velocity from paddle hit
     },
     room: {

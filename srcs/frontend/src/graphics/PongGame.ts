@@ -79,15 +79,26 @@ export class PongGame {
         }
     }
 
-    private resetBall(): void {
+    private async resetBall(): Promise<void> {
         const t = GameConfig.table;
         const tableY = -1;
         const ballRadius = GameConfig.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
     
+        // this.ball.mesh.position.set(0, ballY, 0);
+        // this.ball.speed.x *= -1;  // Reverse X direction
+        // this.ball.speed.z = (Math.random() - 0.5) * 2;
+        // Move ball to center
         this.ball.mesh.position.set(0, ballY, 0);
-        this.ball.speed.x *= -1;  // Reverse X direction
-        this.ball.speed.z = (Math.random() - 0.5) * 2;  // Small random Z for variety (apply article's "unpredictability")
+        this.ball.speed.x = 0; // stop the ball during pause
+        this.ball.speed.z = 0;
+
+        // Wait for 1.5 seconds before launching
+        await new Promise((resolve) => setTimeout(resolve, 500)); 
+
+        // Launch the ball
+        this.ball.speed.x = (Math.random() > 0.5 ? 1 : -1) * GameConfig.ball.speed.x;
+        this.ball.speed.z = (Math.random() - 0.5) * 2;
         // Re-apply cap if needed
         const maxSpeed = GameConfig.ball.maxSpeed;
         const currentSpeed = this.ball.speed.length();
