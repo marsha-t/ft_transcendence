@@ -161,18 +161,18 @@ export class GameService{
         };
     }
     // helper fun to handel API errors
-    private handleApiError(response: Response, context: string): never {
-        switch (response.status) {
-            case 400:
-                throw new Error(`${context}: Invalid request data`);
-            case 404:
-                throw new Error(`${context}: Resource not found`);
-            case 409:
-                throw new Error(`${context}: Conflict (e.g., side already taken)`);
-            case 500:
-                throw new Error(`${context}: Server error`);
-            default:
-                throw new Error(`${context}: Unexpected error (${response.status})`);
-        }
-    }
+    // private handleApiError(response: Response, context: string): never {
+    //     switch (response.status) {
+    //         case 400:
+    //             throw new Error(`${context}: Invalid request data`);
+    //         case 404:
+    //             throw new Error(`${context}: Resource not found`);
+    //         case 409:
+    //             throw new Error(`${context}: Conflict (e.g., side already taken)`);
+    //         case 500:
+    //             throw new Error(`${context}: Server error`);
+    //         default:
+    //             throw new Error(`${context}: Unexpected error (${response.status})`);
+    //     }
+    // }
 }

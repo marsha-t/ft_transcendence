@@ -1,10 +1,6 @@
 import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
-import {
-  GameSession,
-  PlayerSide,
-  GameOptions,
-} from "../services/game/types.js";
+import {GameSession,PlayerSide,GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate } from "../utils";
@@ -45,7 +41,6 @@ export class Game implements IComponent {
     } else {
       this.initializeStandalone();
     }
-
     return this.container;
   }
 
@@ -82,7 +77,7 @@ export class Game implements IComponent {
       "max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
     canvasContainer.appendChild(this.canvas);
 
-    // ADD SCORE DISPLAY
+    //SCORE DISPLAY
     const scoreContainer = document.createElement("div");
     scoreContainer.className =
       "absolute top-8 left-0 right-0 flex justify-around text-6xl font-bold text-white pointer-events-none";
@@ -164,11 +159,7 @@ export class Game implements IComponent {
     this.container.appendChild(controlsContainer);
   }
 
-  private makeButton(
-    label: string,
-    id: string,
-    handler: () => void
-  ): HTMLButtonElement {
+  private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.id = id;
 
@@ -357,23 +348,15 @@ export class Game implements IComponent {
 
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
     if (!this.isGameRunning) {
-      console.log("Score blocked - game not running"); // ADD THIS
       return;
     }
 
-    console.log(`scorePoint called for ${scoringSide}`); // ADD THIS
-
     try {
       if (this.currentSession) {
-        console.log("Before score update:", this.currentSession.players); // ADD THIS
-
         this.currentSession = await this.gameService.updatePlayerScore(
           this.currentSession.sessionId,
           scoringSide
         );
-
-        console.log("After score update:", this.currentSession.players); // ADD THIS
-
         this.updateScoreDisplay();
 
         if (this.currentSession.status === "FINISHED") {
@@ -428,32 +411,27 @@ export class Game implements IComponent {
   }
 
   private resetGame(): void {
-    // Reset session
     this.currentSession = null;
 
-    // Reset UI
     const setupSection = document.getElementById("setup-section");
     const startBtn = document.getElementById("start-btn");
     const pauseBtn = document.getElementById("pause-btn");
     const quitBtn = document.getElementById("quit-btn");
 
-    if (setupSection) setupSection.style.display = "block";
+    if (setupSection) setupSection.style.display = "flex";
     if (startBtn) startBtn.style.display = "none";
     if (pauseBtn) pauseBtn.style.display = "none";
     if (quitBtn) quitBtn.style.display = "none";
 
-    // Reset player names
     const leftPlayerElement = document.getElementById("left-player");
     const rightPlayerElement = document.getElementById("right-player");
     if (leftPlayerElement) leftPlayerElement.textContent = "Player 1";
     if (rightPlayerElement) rightPlayerElement.textContent = "Player 2";
 
-    // Reinitialize
     this.initializeStandalone();
   }
 
   // CLEANUP
-
   public async canDeactivate(): Promise<boolean> {
     if (this.hasEndedNaturally) {
       this.stopGameLoop();

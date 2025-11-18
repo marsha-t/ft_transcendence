@@ -65,7 +65,6 @@ export class PongGame {
 
         // Ball went past left paddle - RIGHT player scores
         if (ball.position.x < xMin) {
-            console.log("Ball went left! RIGHT scores");
             if (this.onScoreCallback) {
                 this.onScoreCallback('RIGHT');
             }
@@ -73,7 +72,6 @@ export class PongGame {
         }
         // Ball went past right paddle - LEFT player scores
         else if (ball.position.x > xMax) {
-            console.log("Ball went right! LEFT scores");
             if (this.onScoreCallback) {
                 this.onScoreCallback('LEFT');
             }
