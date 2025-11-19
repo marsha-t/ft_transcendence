@@ -74,7 +74,7 @@ export class TournamentSetup implements IComponent {
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
     nextBtn.textContent = "NEXT";
-    nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]");
+    nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]", 'green');
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
     actions.appendChild(nextBtn);

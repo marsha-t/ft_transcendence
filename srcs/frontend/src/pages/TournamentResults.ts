@@ -190,7 +190,7 @@ export class TournamentResults implements IComponent {
 
     const newBtn = document.createElement("button");
     newBtn.textContent = "Start New Tournament";
-    newBtn.className = createButtonStyle("w-auto h-[50px] text-[18px]");
+    newBtn.className = createButtonStyle("w-auto h-[50px] text-[16px]", 'green');
     newBtn.addEventListener("click", () => navigate("/tournament/setup"));
 
     btnContainer.appendChild(newBtn);

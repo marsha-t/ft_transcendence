@@ -2,7 +2,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
-import { createButtonStyle } from "../utils.js"
+import {  navigate, createButtonStyle } from "../utils.js"
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 declare const Plotly: any;
@@ -34,7 +34,7 @@ export class GameResults implements IComponent {
     summaryDiv.className = "w-full text-center text-[var(--color-text-white)]";
 
     const chartDiv = document.createElement("div");
-    chartDiv.className = "rounded-lg bg-[#21447E] p-5 shadow-inner w-full max-w-[850px] mb-8";
+    chartDiv.className = "rounded-lg bg-[#21447E] p-5 shadow-inner w-full max-w-[850px]";
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
@@ -45,15 +45,15 @@ export class GameResults implements IComponent {
 
 
     const resultsContainer = document.createElement("div");
-    resultsContainer.className = "grid [grid-template-columns:0.3fr_0.6fr]  justify-center items-stretch gap-8 w-[90%] max-w-[1200px] flex-grow";
+    resultsContainer.className = "grid [grid-template-columns:0.3fr_0.6fr] gap-8 w-[90%] max-w-[1200px]  items-stretch";
 
     const leftDiv = document.createElement("div");
-    leftDiv.className = "flex flex-col bg-[#21447E] rounded-[16px] shadow-inner p-8 flex-1 self-stretch";
-    leftDiv.appendChild(summaryDiv);
+    leftDiv.className = "flex flex-col bg-[#21447E] rounded-[16px] shadow-inner p-8 flex-1 overflow-y-auto";
+      leftDiv.appendChild(summaryDiv);
 
     const rightDiv = document.createElement("div");
-    rightDiv.className = "grid grid-rows-2 bg-[var(--color-background)]  rounded-xl shadow-inner flex-2";
-    rightDiv.appendChild(chartDiv);
+    rightDiv.className ="flex flex-col bg-[var(--color-background)] gap-8 rounded-xl shadow-inner flex-1";
+      rightDiv.appendChild(chartDiv);
     rightDiv.appendChild(playersDiv);
 
     resultsContainer.appendChild(leftDiv);
@@ -66,9 +66,10 @@ export class GameResults implements IComponent {
     if (this.isTournament && this.onMatchEnd) {
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Next";
-      nextBtn.className = createButtonStyle("w-[160px] h[56px]");
+      nextBtn.className = createButtonStyle("w-[160px] h[56px]", 'green');
       nextBtn.onclick = () => {
-        TournamentStore.isNavigatingToNextMatch = true;
+        TournamentStore.isInternalTournamentNavigation = true;
+        navigate("/tournament/match", {tournamentId: this.tournamentId});
         this.onMatchEnd!();
       };
       btnContainer.appendChild(nextBtn);
@@ -197,8 +198,8 @@ export class GameResults implements IComponent {
   public async canDeactivate(): Promise<boolean> {
     if (!this.isTournament) return true;
 
-    if (TournamentStore.isNavigatingToNextMatch) {
-      TournamentStore.isNavigatingToNextMatch = false;
+    if (TournamentStore.isInternalTournamentNavigation) {
+      TournamentStore.isInternalTournamentNavigation = false;
       return true;
     }
 

@@ -124,7 +124,6 @@ export class TournamentMatch implements IComponent {
         leftName: p1?.displayName ?? "Player 1",
         rightName: p2?.displayName ?? "Player 2",
       },
-      onMatchEnd: () => this.loadNextMatch(),
     });
     this.container.appendChild(this.gameInstance.render());
   }
