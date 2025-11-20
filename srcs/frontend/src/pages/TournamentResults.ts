@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { navigate } from "../utils.js";
+import { navigate , createButtonStyle} from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
@@ -12,7 +12,6 @@ export class TournamentResults implements IComponent {
   }
 
   public render(): HTMLElement {
-    this.loadStyles();
     localStorage.removeItem("activeTournament");
 
     TournamentStore.tournamentId = null;
@@ -20,13 +19,16 @@ export class TournamentResults implements IComponent {
     TournamentStore.tournamentId = null;
 
     const page = document.createElement("div");
-    page.className = "tournament-page";
+    page.className =
+      "min-h-screen flex justify-center items-start pt-12 font-['Press_Start_2P'] text-[var(--color-text-yellow)] bg-[var(--color-background)]";
 
     this.container = document.createElement("div");
-    this.container.className = "tournament-results";
+    this.container.className =
+      "bg-[var(--color-background)] rounded-xl px-16 py-8 max-w-[900px] w-full flex flex-col items-center text-center";
 
     const h2 = document.createElement("h2");
     h2.textContent = "Tournament Results";
+    h2.className = "text-[1.5rem] text-[var(--color-text-white)] mb-10";
     this.container.appendChild(h2);
 
     this.loadResults();
@@ -44,8 +46,8 @@ export class TournamentResults implements IComponent {
           response.message || "Failed to load results";
         return;
       }
-      const results = response.data.results;
-      const { champion, bracket, stats } = results;
+
+      const { champion, bracket, stats } = response.data.results;
 
       this.renderChampion(champion);
       this.renderBracket(bracket);
@@ -59,57 +61,101 @@ export class TournamentResults implements IComponent {
 
   private renderChampion(champion: string | null) {
     const championDiv = document.createElement("div");
-    championDiv.className = "champion-section";
+    championDiv.className = "mb-12";
+
     championDiv.innerHTML = `
-		<div class="champion-wrapper">
-		<span class="trophy-icon">🏆</span>
-		<div class="champion-name">${champion ?? "-"}</div>
-		</div>
-  	`;
+      <div class="flex flex-col items-center">
+        <span class="text-[1.8rem] mb-2">🏆</span>
+        <div class="bg-[var(--color-button)] text-[var(--color-text-white)] px-4 py-2 rounded-lg text-[1rem] font-bold">
+          ${champion ?? "-"}
+        </div>
+      </div>
+    `;
 
     this.container.appendChild(championDiv);
   }
 
   private renderBracket(bracket: any[]) {
     const bracketDiv = document.createElement("div");
-    bracketDiv.className = "bracket-tree";
+    bracketDiv.className =
+      "flex flex-row justify-center items-center gap-24 relative my-8 mb-12 w-full";
 
     const rounds = this.organizeRounds(bracket);
 
-    rounds.forEach((round, i) => {
+    rounds.forEach((round) => {
       const roundDiv = document.createElement("div");
-      roundDiv.className = "round";
+      roundDiv.className =
+        "flex flex-col items-start justify-center gap-12";
 
       round.forEach((match) => {
         const matchDiv = document.createElement("div");
-        matchDiv.className = "match";
+        matchDiv.className =
+          "relative flex flex-col items-start justify-center gap-4";
+
+        // curved connector (Tailwind arbitrary pseudo-element)
+        matchDiv.classList.add(
+          "after:content-['']",
+          "after:absolute",
+          "after:-right-12",
+          "after:top-[25%]",
+          "after:w-12",
+          "after:h-1/2",
+          "after:border-r-2",
+          "after:border-t-2",
+          "after:border-b-2",
+          "after:border-[var(--color-border-green)]",
+          "after:rounded-tr-xl",
+          "after:rounded-br-xl"
+        );
+
         matchDiv.innerHTML = `
-        <div class="player ${match.winner === match.player1 ? "winner" : ""}">
-          ${match.player1 ?? "-"}
-        </div>
-        <div class="player ${match.winner === match.player2 ? "winner" : ""}">
-          ${match.player2 ?? "-"}
-        </div>
-      `;
+          <div class="min-w-[140px] border-2 border-[var(--color-border-green)] bg-[var(--color-background)] text-[var(--color-text-white)] rounded-md px-4 py-2 ${
+            match.winner === match.player1
+              ? "bg-[var(--color-button)] font-bold"
+              : ""
+          }">${match.player1 ?? "-"}</div>
+
+          <div class="min-w-[140px] border-2 border-[var(--color-border-green)] bg-[var(--color-background)] text-[var(--color-text-white)] rounded-md px-4 py-2 ${
+            match.winner === match.player2
+              ? "bg-[var(--color-button)] font-bold"
+              : ""
+          }">${match.player2 ?? "-"}</div>
+        `;
+
         roundDiv.appendChild(matchDiv);
       });
 
       bracketDiv.appendChild(roundDiv);
     });
 
-    // Add final winner box to the rightmost end
-    const lastRound = rounds[rounds.length - 1];
-    if (lastRound && lastRound.length > 0) {
-      const finalWinner = lastRound[0].winner;
+    // Final winner column
+    const last = rounds[rounds.length - 1];
+    if (last && last.length > 0) {
+      const finalWinner = last[0].winner;
+
       if (finalWinner) {
         const winnerRound = document.createElement("div");
-        winnerRound.className = "round final-round";
+        winnerRound.className =
+          "flex items-center justify-center relative";
+
+        // left connector line
+        winnerRound.classList.add(
+          "before:content-['']",
+          "before:absolute",
+          "before:-left-12",
+          "before:w-12",
+          "before:h-[2px]",
+          "before:bg-[var(--color-border-green)]"
+        );
 
         const winnerBox = document.createElement("div");
-        winnerBox.className = "winner-box";
+        winnerBox.className = "flex items-center";
+
         winnerBox.innerHTML = `
-        <div class="player winner">${finalWinner}</div>
-      `;
+          <div class="min-w-[140px] bg-[var(--color-button)] text-[var(--color-text-white)] font-bold rounded-md px-4 py-2">
+            ${finalWinner}
+          </div>
+        `;
 
         winnerRound.appendChild(winnerBox);
         bracketDiv.appendChild(winnerRound);
@@ -119,11 +165,6 @@ export class TournamentResults implements IComponent {
     this.container.appendChild(bracketDiv);
   }
 
-  /**
-   * Group matches by round — this depends on your backend structure.
-   * If each match has `round` info, just group by that.
-   * Otherwise, this is a simple mock to create one or two rounds visually.
-   */
   private organizeRounds(bracket: any[]) {
     if (bracket.length <= 2) return [bracket];
     const half = Math.ceil(bracket.length / 2);
@@ -132,33 +173,27 @@ export class TournamentResults implements IComponent {
 
   private renderStats(stats: any) {
     const statsDiv = document.createElement("div");
-    statsDiv.className = "stats-section";
+    statsDiv.className = "text-[var(--color-text-white)] mb-10";
+
     statsDiv.innerHTML = `
-				<h3>Stats</h3>
-				<p>Total Matches: ${stats.totalMatches}</p>
-				<p>Played Matches: ${stats.playedMatches}</p>
-			`;
+      <h3 class="text-[1rem] mb-4">Stats</h3>
+      <p>Total Matches: ${stats.totalMatches}</p>
+      <p>Played Matches: ${stats.playedMatches}</p>
+    `;
+
     this.container.appendChild(statsDiv);
   }
+
   private renderActions() {
     const btnContainer = document.createElement("div");
-    btnContainer.className = "results-actions";
+    btnContainer.className = "flex justify-center mt-8";
 
     const newBtn = document.createElement("button");
     newBtn.textContent = "Start New Tournament";
-    newBtn.className = "new-tournament-btn";
+    newBtn.className = createButtonStyle("w-auto h-[50px] text-[16px]", 'green');
     newBtn.addEventListener("click", () => navigate("/tournament/setup"));
 
     btnContainer.appendChild(newBtn);
     this.container.appendChild(btnContainer);
-  }
-
-  private loadStyles() {
-    if (document.getElementById("tournament-results-styles")) return;
-    const link = document.createElement("link");
-    link.id = "tournament-results-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/TournamentResults.css";
-    document.head.appendChild(link);
   }
 }

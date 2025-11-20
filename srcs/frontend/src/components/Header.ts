@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
+import { createButtonStyle } from "../utils";
 import { ProfileServices } from "../services/profile/ProfileServices.js";
 import { AuthServices } from "../services/auth/AuthServices.js";
 export class Header implements IComponent {
@@ -123,22 +124,16 @@ export class Header implements IComponent {
         const playBtn = document.createElement('a');
         playBtn.textContent = 'Play';
         playBtn.href = '#';
-        playBtn.className = `
-            w-[110px] h-[42px]
-            px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
-            inline-flex justify-center items-center
-            no-underline cursor-pointer transition-colors duration-200 ease-in-out
-            hover:bg-color-green hover:text-color_white
-            `;
+        playBtn.className = createButtonStyle(` w-[110px] h-[42px]`, 'blue');
+
+
         playBtnWrapper.appendChild(playBtn);
 
         // Dropdown menu
         const dropdown: HTMLDivElement = document.createElement('div');
         dropdown.className = `
-            absolute left-0 mt-2 w-[180px] rounded-lg bg-[none]
-             shadow-lg z-50 hidden flex flex-col space-y-[3px]
+            absolute left-0 mt-[5px] w-[180px] rounded-lg bg-[none]
+             shadow-lg z-50 hidden flex flex-col space-y-[10px]
         `;
 
         // Define dropdown items (with text + href)
@@ -158,11 +153,7 @@ export class Header implements IComponent {
             const option: HTMLAnchorElement = document.createElement('a');
             option.href = item.href;
             option.textContent = item.label;
-            option.className = `
-                w-[fit-content] h-[32px] rounded-[8px] px-4 py-2 text-[14px] text-[900] text-white bg-color-green
-                cursor-pointer no-underline
-                transition-colors duration-200 ease-in-out
-            `;
+            option.className = createButtonStyle(" w-[fit-content] h-[32px] text-[20px]", 'green');
             option.addEventListener('click', (e: MouseEvent) => {
                 e.preventDefault();
                 history.pushState(null, '', item.href);
@@ -178,12 +169,18 @@ export class Header implements IComponent {
         playBtn.addEventListener('click', (e) => {
             e.preventDefault();
             dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains("hidden")) {
+                playBtn.classList.add("bg-color-green");
+            } else {
+                playBtn.classList.remove("bg-color-green");
+            }
         });
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!playBtnWrapper.contains(e.target as Node)) {
                 dropdown.classList.add('hidden');
+                playBtn.classList.remove("bg-color-green");
             }
         });
 
@@ -196,25 +193,14 @@ export class Header implements IComponent {
         const logoutBtn = document.createElement('a');
         logoutBtn.textContent = 'Logout';
         logoutBtn.href = '#';
-        logoutBtn.className = `
-            w-[128px] h-[42px]
-            px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
-            inline-flex justify-center items-center
-            no-underline cursor-pointer
-            transition-colors duration-200 ease-in-out
-            hover:bg-color-green hover:text-color_white
-        `;
+        logoutBtn.className = createButtonStyle(` w-[128px] h-[42px]`, 'blue');
         logoutBtn.addEventListener("click", async () => {
             const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
             if (!confirmed) return;
     
             const res = await profileService.logout();
             if (res.success) {
-                localStorage.removeItem("jwtToken");
-                localStorage.removeItem("currentUsername");
-                AuthUtils.logout();
+                AuthUtils.setLoggedOut();
                 history.pushState(null, '', '/main');
                 window.dispatchEvent(new PopStateEvent('popstate'));
             } else {
