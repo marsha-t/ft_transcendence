@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/profile/types'; 
 import { getAvatarUrl, showMessage } from "../utils/profileUtils.js";
+import { createButtonStyle } from "../utils.js";
 
 export class friendsAndUsers implements IComponent {
     private container!: HTMLElement;
@@ -70,13 +71,8 @@ export class friendsAndUsers implements IComponent {
 
   // --- Add Friend button ---
   const addFriendBtn = document.createElement("button");
-  addFriendBtn.className = `
-    w-[140px] flex justify-center items-center
-    text-[16px] font-pixel font-semibold
-    border border-[#77AB55] rounded-[7px]
-    gap-[6px] hover:bg-[#77AB55] hover:text-white
-    transition-all duration-200
-  `;
+  addFriendBtn.className = createButtonStyle("w-[200px] h-[40px] font-pixel  whitespace-nowrap", 'green'); //
+  addFriendBtn.classList.add("mb-2");
   addFriendBtn.textContent = "Add Friend";
   addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
 
