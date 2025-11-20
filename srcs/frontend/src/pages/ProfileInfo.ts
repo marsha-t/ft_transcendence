@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { ProfileData, ApiResponse } from '../services/profile/types';
 import { getAvatarUrl } from "../utils/profileUtils.js";
+import { createButtonStyle } from "../utils";
 
 export class ProfileInfo implements IComponent {
     private messageContainer: HTMLDivElement | null = null;
@@ -23,15 +24,7 @@ export class ProfileInfo implements IComponent {
 
         const editProfileBtn = document.createElement("div");
         editProfileBtn.textContent = "edit";
-        editProfileBtn.className = `absolute top-2 right-2
-            w-[105px] h-[32px] rounded-[7px]
-            px-[10px] py-[6px] font-pixel
-            text-color_white
-            border border-[1px] border-border-green
-            inline-flex justify-center items-center
-            no-underline cursor-pointer
-            transition-colors duration-200 ease-in-out
-            hover:bg-color-green hover:text-color_white`;
+        editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-[105px] h-[32px] font-pixel", 'green');
   
         editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
         
@@ -213,13 +206,14 @@ export class ProfileInfo implements IComponent {
         const changeBtn = document.createElement('button');
         changeBtn.type = 'button';
         changeBtn.textContent = 'Change';
-        changeBtn.className = `px-3 py-1 rounded-[8px] bg-[#297138] text-white font-pixel text-[13px] hover:brightness-95 transition`;
+        changeBtn.className =  createButtonStyle("w-[100px] h-[36px] font-pixel",  'green');
+        changeBtn.classList.remove("mt-5");
         changeBtn.addEventListener('click', () => this.handleAvatarEdit('external', ""));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.textContent = 'Remove';
-        removeBtn.className = `px-3 py-1 rounded-[8px] bg-[#2b3b59] text-white font-pixel text-[13px] hover:brightness-95 transition`;
+        removeBtn.className = createButtonStyle("w-[100px] h-[36px] font-pixel",  'blue');
         removeBtn.addEventListener('click', () => this.handleAvatarDelete());
 
         btnRow.appendChild(changeBtn);
@@ -352,11 +346,12 @@ export class ProfileInfo implements IComponent {
         actions.className = `flex items-center justify-end gap-3 mt-4`;
 
         const saveBtn = document.createElement("button");
-        saveBtn.className = `w-[100px] h-[36px] rounded-[8px] bg-[#77AB55] text-white font-pixel font-semibold`;
+        saveBtn.className =  createButtonStyle("w-[100px] h-[36px]  font-pixel",  'green');
+        saveBtn.classList.remove("mt-5");
         saveBtn.textContent = "Save";
 
         const cancelBtn = document.createElement("button");
-        cancelBtn.className = `w-[100px] h-[36px] rounded-[8px] bg-[#2b3b59] text-white font-pixel font-semibold`;
+        cancelBtn.className = createButtonStyle("w-[100px] h-[36px]  font-pixel",  'blue');
         cancelBtn.textContent = "Cancel";
 
         saveBtn.addEventListener("click", async () => {

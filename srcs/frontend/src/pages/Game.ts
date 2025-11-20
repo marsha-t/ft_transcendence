@@ -3,7 +3,7 @@ import { GameService } from "../services/game/GameService.js";
 import {GameSession,PlayerSide,GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
-import { navigate } from "../utils";
+import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
 export class Game implements IComponent {
@@ -397,8 +397,9 @@ export class Game implements IComponent {
       this.stopGameLoop();
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
-      alert(`Game Over! ${winnerName} wins!`);
-
+      // alert(`Game Over! ${winnerName} wins!`);
+      const confirmed = confirmationPopup(`Game Over! ${winnerName} wins!`, "Game Over", true);
+      if (!confirmed) return;
       if (this.opts?.isTournament) {
         TournamentStore.isInternalTournamentNavigation = true;
       }

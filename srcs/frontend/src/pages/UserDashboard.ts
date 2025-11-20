@@ -9,54 +9,71 @@ export class ProfileDashboard implements IComponent {
   private dashboardData: UserDashboard | null = null;
 
   public render(): HTMLElement {
-    this.loadStyles();
+    const page = document.createElement('div');
+    page.className = `
+        flex flex-col items-center justify-start
+        bg-background rounded-[16px] shadow-lg
+        mx-[23px] w-[calc(100%-46px)]
+        h-full py-6 px-10`;
 
     this.container = document.createElement("div");
-    this.container.className = "user-dashboard";
+    this.container.className = "p-8 flex flex-col items-center gap-8 h-auto w-full font-pixel text-yellow-300";
+
 
     // Title
     const title = document.createElement("h1");
     title.textContent = "Your Performance Dashboard";
-    title.className = "dashboard-title";
+    title.className = "text-[1.8rem] font-bold text-yellow-300 text-center mb-4 drop-shadow-[2px_2px_0_#000]";
+  
     this.container.appendChild(title);
 
     // Grid
     const grid = document.createElement("div");
-    grid.className = "dashboard-grid";
+    grid.className = "grid grid-rows-2  gap-2 w-[90%] max-w-[1400px] place-items-stretch";
     this.container.appendChild(grid);
 
+    const topRow = document.createElement("div");
+    topRow.className = "grid grid-cols-3 gap-8 w-full";
+  
     // Overview container
     const overviewDiv = document.createElement("div");
     overviewDiv.id = "overviewCard";
-    overviewDiv.className = "dashboard-card";
-    grid.appendChild(overviewDiv);
+    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
-    // Win rate chart
     const winRateChartDiv = document.createElement("div");
     winRateChartDiv.id = "winRateChart";
-    winRateChartDiv.className = "dashboard-card";
-    grid.appendChild(winRateChartDiv);
+    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
-    // Score histogram
     const scoreHistogramDiv = document.createElement("div");
     scoreHistogramDiv.id = "scoreHistogram";
-    scoreHistogramDiv.className = "dashboard-card";
-    grid.appendChild(scoreHistogramDiv);
+    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
+    topRow.appendChild(overviewDiv);
+    topRow.appendChild(winRateChartDiv);
+    topRow.appendChild(scoreHistogramDiv);
+    
+    const bottomRow = document.createElement("div");
+    bottomRow.className = "grid grid-cols-[0.33fr_0.67fr]  gap-8 w-full h-[400px]"; 
     // Wins per Opponent
     const winsPerOpponentDiv = document.createElement("div");
     winsPerOpponentDiv.id = "winsPerOpponent";
-    winsPerOpponentDiv.className = "dashboard-card";
-    grid.appendChild(winsPerOpponentDiv);
-
+    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-[400px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    
     // Leaderboard
     const leaderboardDiv = document.createElement("div");
     leaderboardDiv.id = "leaderboard";
-    leaderboardDiv.className = "dashboard-card";
-    grid.appendChild(leaderboardDiv);
+    leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-fulltransition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    bottomRow.appendChild(winsPerOpponentDiv);
+    bottomRow.appendChild(leaderboardDiv);
+
+    grid.appendChild(topRow);
+    grid.appendChild(bottomRow);
+
+    this.container.appendChild(grid);
+    page.appendChild(this.container);
 
     this.fetchAndRender();
-    return this.container;
+    return page;
   }
 
   private async fetchAndRender() {
@@ -71,9 +88,11 @@ export class ProfileDashboard implements IComponent {
 
       this.renderOverview();
       if (totalMatches > 0) {
-        this.renderWinRateChart();
-        this.renderScoreHistogram();
-        this.renderOpponentBarChart();
+        setTimeout(() => {
+          this.renderWinRateChart();
+          this.renderScoreHistogram();
+          this.renderOpponentBarChart();
+        }, 0);
         this.renderLeaderboard();
       } else {
         this.renderNoDataMessages();
@@ -85,23 +104,40 @@ export class ProfileDashboard implements IComponent {
 
   private renderOverview() {
     if (!this.dashboardData) return;
-
+  
     const overviewDiv = document.getElementById("overviewCard");
     if (!overviewDiv) return;
-
+  
     const { overview } = this.dashboardData;
+  
+    const metrics = [
+      { label: "Total Matches", value: overview.totalMatches },
+      { label: "Total Wins", value: overview.totalWins },
+      { label: "Win Rate", value: overview.winRate + "%" },
+      { label: "Average Score", value: overview.avgScore },
+      { label: "Current Streak", value: overview.currentWinStreak },
+      { label: "Longest Streak", value: overview.longestWinStreak },
+    ];
+  
+    const metricsHTML = metrics
+      .map(
+        (m) => `
+        <div class="flex justify-between items-center py-1 border-b border-white">
+          <span class="text-yellow-300 font-semibold">${m.label}</span>
+          <span class="text-white font-medium">${m.value}</span>
+        </div>
+      `
+      )
+      .join("");
+  
     overviewDiv.innerHTML = `
-    <h2>Overview</h2>
-    <ul>
-      <li>Total Matches: <span>${overview.totalMatches}</span></li>
-      <li>Total Wins: <span>${overview.totalWins}</span></li>
-      <li>Win Rate: <span>${overview.winRate}%</span></li>
-      <li>Average Score: <span>${overview.avgScore}</span></li>
-      <li>Current Streak: <span>${overview.currentWinStreak}</span></li>
-      <li>Longest Streak: <span>${overview.longestWinStreak}</span></li>
-    </ul>`;
+      <h2 class="text-yellow-300 mb-4 text-xl font-bold">Overview</h2>
+      <div class="flex flex-col gap-2">
+        ${metricsHTML}
+      </div>
+    `;
   }
-
+  
   private renderWinRateChart() {
     if (!this.dashboardData) return;
 
@@ -222,40 +258,55 @@ export class ProfileDashboard implements IComponent {
 
   private renderLeaderboard() {
     if (!this.dashboardData) return;
-
+  
     const leaderboardDiv = document.getElementById("leaderboard");
     if (!leaderboardDiv) return;
-
+  
     const { leaderboard } = this.dashboardData;
+  
+    // Generate table rows with dynamic Tailwind classes
     const rows = leaderboard
-      .map(
-        (p) => `
-        <tr class="${p.isCurrentUser ? "highlight-user" : ""}">
-          <td>${p.rank}</td>
-          <td>${p.username}</td>
-          <td>${p.totalMatches}</td>
-          <td>${p.winRate}</td>
-          <td>${p.avgScore}</td>
-          <td>${p.leaderboardScore}</td>
-        </tr>
-      `
-      )
+      .map((p, index) => {
+        // Determine row background based on odd/even
+        const rowColor = p.isCurrentUser
+          ? "bg-yellow-400 text-black"
+          : index % 2 === 0
+          ? "bg-[#7EA2DD]"
+          : "bg-[none]";
+  
+        return `
+          <tr class="${rowColor}">
+            <td class="py-2 px-3">${p.rank}</td>
+            <td class="py-2 px-3">${p.username}</td>
+            <td class="py-2 px-3">${p.totalMatches}</td>
+            <td class="py-2 px-3">${p.winRate}%</td>
+            <td class="py-2 px-3">${p.avgScore}</td>
+            <td class="py-2 px-3">${p.leaderboardScore}</td>
+          </tr>
+        `;
+      })
       .join("");
+  
     leaderboardDiv.innerHTML = `
-		<h2>Leaderboard</h2>
-		<table>
-			<thead><tr>
-				<th>#</th>
-				<th>Player</th>
-				<th>Matches</th>
-				<th>Win Rate</th>
-				<th>Average Score</th>
-				<th>Leaderboard Score</th>
-			</tr></thead>
-			<tbody>${rows}</tbody>
-		</table>
-	`;
+      <h2 class="text-yellow-300 mb-4">Leaderboard</h2>
+      <table class="w-full text-white text-[1rem] border-collapse">
+        <thead>
+          <tr class="bg-yellow-300/10 text-yellow-300">
+            <th class="py-2 px-3">#</th>
+            <th class="py-2 px-3">Player</th>
+            <th class="py-2 px-3">Matches</th>
+            <th class="py-2 px-3">Win Rate</th>
+            <th class="py-2 px-3">Average Score</th>
+            <th class="py-2 px-3">Leaderboard Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
   }
+  
 
   private renderNoDataMessages() {
     const placeholders = [
@@ -274,13 +325,7 @@ export class ProfileDashboard implements IComponent {
       }
     });
   }
-  private loadStyles() {
-    if (document.getElementById("user-dashboard-styles")) return;
-
-    const link = document.createElement("link");
-    link.id = "user-dashboard-styles";
-    link.rel = "stylesheet";
-    link.href = "/styles/UserDashboard.css";
-    document.head.appendChild(link);
-  }
 }
+
+
+

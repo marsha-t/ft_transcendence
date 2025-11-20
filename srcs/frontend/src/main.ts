@@ -1,9 +1,10 @@
 import { Router } from './Router.js';
 import { getRouter } from './utils.js';
+import { AuthUtils } from './utils/authUtils.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const headerContainer = document.getElementById('header-container');
     const contentContainer = document.getElementById('content-container');
     const footerContainer = document.getElementById('footer-container');
@@ -13,6 +14,8 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    await AuthUtils.initialize();
+    
     const headerComponent = new Header();
     headerContainer.appendChild(headerComponent.render());
 
