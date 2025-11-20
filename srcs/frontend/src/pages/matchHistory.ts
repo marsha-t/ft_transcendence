@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { MatchHistory as MatchHistoryType, ApiResponse } from '../services/profile/types'; 
 import { getAvatarUrl } from "../utils/profileUtils.js";
+import { createButtonStyle } from "../utils";
 
 export class MatchHistory implements IComponent {
   private container!: HTMLElement;
@@ -262,19 +263,7 @@ export class HeatMap implements IComponent {
     // "Learn More" button — navigate to dashboard page
     const button = document.createElement("button");
     button.textContent = ">> Learn More";
-    button.className = `
-       absolute bottom-4 right-4
-                w-[190px] h-[32px]
-                rounded-[7px]
-                px-[10px] py-[6px] font-pixel
-                text-color_white
-                border border-[1px] border-border-green
-                inline-flex justify-center items-center
-                no-underline cursor-pointer
-                transition-colors duration-200 ease-in-out
-                hover:bg-color-green
-                hover:text-color_white
-    `;
+    button.className = createButtonStyle("absolute bottom-4 right-4 w-[190px] h-[32px] whitespace-nowrap font-pixel", 'green');
     button.addEventListener("click", () => {
       history.pushState(null, '', '/dashboard');
       window.dispatchEvent(new PopStateEvent('popstate'));
