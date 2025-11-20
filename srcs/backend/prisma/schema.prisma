@@ -66,6 +66,10 @@ model User {
   tournamentPlayers TournamentPlayer[]
   tournamentMatchesWon TournamentMatch[]
 
+  // AI game relations
+  aiGames         AIGameSession[]  @relation("AIGames")
+  aiStats         AIGameStats?     @relation("AIStats")
+
 
 }
 
@@ -186,4 +190,40 @@ model TournamentMatch {
   player2        TournamentPlayer? @relation("MatchPlayer2", fields: [player2Id], references: [id])
 
   @@unique([tournamentId, matchIndex])
+}
+
+model AIGameSession {
+  id           Int      @id @default(autoincrement())
+  userId       Int      
+  aiDifficulty String   // "easy", "medium", "hard"
+  aiSide       String   // "left" or "right"
+  playerScore  Int      @default(0)
+  aiScore      Int      @default(0)
+  winner       String?  // "player", "ai", or null
+  createdAt    DateTime @default(now())
+  finishedAt   DateTime?
+  
+  // Relationship
+  user         User     @relation("AIGames", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AIGameStats {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @unique
+  totalAIGames    Int      @default(0)
+  aiGamesWon      Int      @default(0)
+  aiGamesLost     Int      @default(0)
+  easyWins        Int      @default(0)
+  easyLosses      Int      @default(0)
+  mediumWins      Int      @default(0)
+  mediumLosses    Int      @default(0)
+  hardWins        Int      @default(0)
+  hardLosses      Int      @default(0)
+  longestWinStreak Int     @default(0)
+  currentStreak   Int      @default(0)
+  lastPlayedAt    DateTime?
+  updatedAt       DateTime @updatedAt
+  
+  // Relationship
+  user            User     @relation("AIStats", fields: [userId], references: [id], onDelete: Cascade)
 }

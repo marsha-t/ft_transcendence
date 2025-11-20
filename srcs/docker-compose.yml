@@ -97,6 +97,24 @@ services:
       - ./backend/prisma/migrations:/app/prisma/migrations
       - db-data:/app/prisma/data
     restart: always
+  ai:
+    build:
+      context: ./backend/ai-service
+      dockerfile: Dockerfile
+    container_name: aiservice
+    ports:
+      - "5007:5007"         # ← THIS LINE WAS MISSING OR WRONG!
+    env_file:
+      - ./.env
+    environment:
+      - PORT=5007           # ← add this too (very important!)
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
   
   
 

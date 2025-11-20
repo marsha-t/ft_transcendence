@@ -1,0 +1,54 @@
+// backend/ai-service/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------- ONLY AI PART ---------------------
+model AIGameSession {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  aiDifficulty  String   // "easy", "medium", "hard"
+  aiSide        String   // "LEFT" or "RIGHT"
+  playerScore   Int      @default(0)
+  aiScore       Int      @default(0)
+  winner        String?  // "player", "ai", or null
+  createdAt     DateTime @default(now())
+  finishedAt    DateTime?
+
+  user          User     @relation("AIGames", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AIGameStats {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @unique
+  totalAIGames     Int      @default(0)
+  aiGamesWon       Int      @default(0)
+  aiGamesLost      Int      @default(0)
+  easyWins         Int      @default(0)
+  easyLosses       Int      @default(0)
+  mediumWins       Int      @default(0)
+  mediumLosses     Int      @default(0)
+  hardWins         Int      @default(0)
+  hardLosses       Int      @default(0)
+  longestWinStreak Int      @default(0)
+  currentStreak    Int      @default(0)
+  lastPlayedAt     DateTime?
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation("AIStats", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+
+  aiGames   AIGameSession[] @relation("AIGames")
+  aiStats   AIGameStats?    @relation("AIStats")
+}
