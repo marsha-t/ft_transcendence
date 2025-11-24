@@ -9,6 +9,7 @@ import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
 import { GameResults } from './pages/GameResults.js';
 import { ProfileDashboard } from './pages/UserDashboard.js';
+import { AI } from './pages/AI.js';
 
 export class Router {
   private currentPage: any = null;
@@ -91,6 +92,11 @@ export class Router {
           const tournamentId = state?.tournamentId;
           this.currentPage = new TournamentResults(tournamentId);
           container.appendChild(await this.currentPage.render());
+          break;
+        }
+        case '/play/ai': {
+          this.currentPage = new AI();
+          container.appendChild(this.currentPage.render());
           break;
         }
         default:

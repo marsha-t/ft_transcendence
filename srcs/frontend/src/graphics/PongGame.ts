@@ -10,12 +10,12 @@ export class PongGame {
     private engine!: BABYLON.Engine;
     private scene!: BABYLON.Scene;
 
-    private rightPaddle!: Paddle;
-    private leftPaddle!: Paddle;
-    private ball!: Ball;
+    public rightPaddle!: Paddle;
+    public leftPaddle!: Paddle;
+    public ball!: Ball;
     private input!: InputHandler;
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
-    private isPaused: boolean = true;
+    public isPaused: boolean = true;
 
     constructor(canvas: HTMLCanvasElement, onScore?: (side: 'LEFT' | 'RIGHT') => void) {
         this.canvas = canvas;

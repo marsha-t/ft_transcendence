@@ -1,54 +1,81 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
+// server.js
 
-const prisma = new PrismaClient();
+import Fastify from 'fastify';
+import cors from '@fastify/cors';
+import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+// Import routes
+import aiRoutes from './routes/ai.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from parent folder
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+const app = Fastify({ logger: true });
+
+// CORS
+await app.register(cors, {
+  origin: process.env.FRONTEND_URL || 'https://silver-space-winner-977xxpx6p6j4h79q-443.app.github.dev/',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
 
-app.use(cors());
-app.use(express.json());
+// JWT
+if (!process.env.JWT_SECRET) {
+  throw new Error("❌ Missing JWT_SECRET in environment variables!");
+}
 
-app.get('/', (req, res) => {
-  res.send('<h1>AI Service running – port 5007 ✅</h1>');
+app.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET,
 });
 
-// Test endpoint – create AI game
-app.post('/ai/games', async (req, res) => {
-  const { userId, difficulty = 'medium', aiSide = 'right' } = req.body;
+app.register(fastifyCookie);
 
+// JWT authentication decorator
+app.decorate('authenticate', async function (request, reply) {
   try {
-    const game = await prisma.aIGameSession.create({
-      data: {
-        userId: Number(userId),
-        aiDifficulty: difficulty.toLowerCase(),
-        aiSide: aiSide.toUpperCase(),
-        playerScore: 0,
-        aiScore: 0,
-      },
-    });
-    res.json({ success: true, gameId: game.id });
+    const token = request.cookies.token;
+    if (!token) {
+      return reply.code(401).send({ error: 'Missing token' });
+    }
+
+    const decoded = await app.jwt.verify(token);
+    request.user = decoded;
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    if (err.name === 'TokenExpiredError') {
+      return reply.code(401).send({ error: 'Token expired' });
+    } else if (err.name === 'JsonWebTokenError') {
+      return reply.code(401).send({ error: 'Invalid token' });
+    } else {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
   }
 });
 
-io.on('connection', (socket) => {
-  console.log('Client connected to AI service:', socket.id);
+// Register routes
+app.register(aiRoutes);
+
+// Health check
+app.get('/health', async (request, reply) => {
+  return { status: 'ok', service: 'ai-service' };
 });
 
-const PORT = process.env.PORT || 5007;
-server.listen(PORT, () => {
-  console.log(`🚀 AI Service running on port ${PORT}`);
-});
+// Start server
+const start = async () => {
+  try {
+    const port = parseInt(process.env.AI_PORT) || 5007;
+    await app.listen({ port, host: '0.0.0.0' });
+    console.log(`🤖 AI Service running on port ${port}`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
