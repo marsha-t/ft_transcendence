@@ -3,9 +3,19 @@ import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { createButtonStyle } from "../utils";
 import { ProfileServices } from "../services/profile/ProfileServices.js";
 import { AuthServices } from "../services/auth/AuthServices.js";
+import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
+
 export class Header implements IComponent {
     private buttonsGroup!: HTMLElement;
     private linksGroup!: HTMLElement;
+    private languageSwitcher!: HTMLElement;
+
+    constructor() {
+        // Listen for language changes and re-render
+        window.addEventListener('languageChanged', () => {
+            this.updateContent();
+        });
+    }
     public render(): HTMLElement {
         const header = document.createElement('header');
         header.className = `bg-color-yellow pb-3`;
@@ -69,6 +79,9 @@ export class Header implements IComponent {
         this.buttonsGroup = document.createElement('div');
         this.buttonsGroup.className = 'flex items-center gap-[17px] w-[312px] h-[42px] text-[900] text-[18px]';
 
+        // Create language switcher
+        this.languageSwitcher = this.createLanguageSwitcher();
+
         const links = [
             {text: 'Home', href: '/main', type: 'link'},
             {text: 'Creators', href: '/creators', type: 'link'},
@@ -81,7 +94,7 @@ export class Header implements IComponent {
 
         rightNav.appendChild(this.linksGroup);
         rightNav.appendChild(this.buttonsGroup);
-
+        rightNav.appendChild(this.languageSwitcher);
         // Setup event listener BEFORE initial update
         window.addEventListener('authChange', async () => {
             await this.updateAuthButtons();
@@ -98,6 +111,98 @@ export class Header implements IComponent {
         return rightNav;
     }
 
+    private createLanguageSwitcher(): HTMLElement {
+        const container = document.createElement('div');
+        container.className = 'relative inline-block ml-4';
+
+        const currentLang = getCurrentLanguage();
+        const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
+
+        container.innerHTML = `
+            <button 
+                class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-color-green rounded-lg transition-colors border border-border-green text-color_white font-pixel text-[14px]"
+                aria-label="${String(t('settings.selectLanguage'))}"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                </svg>
+                <span class="font-medium">${currentLangInfo.nativeName}</span>
+                <svg class="w-3 h-3 transition-transform dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                </svg>
+            </button>
+            
+            <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50">
+                ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
+                    <button 
+                        class="lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors flex items-center justify-between text-color_white font-pixel text-[14px] ${code === currentLang ? 'bg-color-green bg-opacity-30' : ''}"
+                        data-lang="${code}"
+                    >
+                        <span class="font-medium">${info.nativeName}</span>
+                        ${code === currentLang ? `
+                            <svg class="w-4 h-4 text-color-yellow" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                        ` : ''}
+                    </button>
+                `).join('')}
+            </div>
+        `;
+
+        this.attachLanguageSwitcherListeners(container);
+        return container;
+    }
+
+    private attachLanguageSwitcherListeners(container: HTMLElement): void {
+        const button = container.querySelector('.lang-button') as HTMLButtonElement;
+        const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
+        const arrow = container.querySelector('.dropdown-arrow') as HTMLElement;
+
+        // Toggle dropdown
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = dropdown.classList.contains('hidden');
+            dropdown.classList.toggle('hidden', !isHidden);
+            arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', () => {
+            dropdown.classList.add('hidden');
+            arrow.style.transform = 'rotate(0deg)';
+        });
+
+        // Language selection
+        const options = container.querySelectorAll('.lang-option');
+        options.forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const selectedLang = (e.currentTarget as HTMLElement).dataset.lang!;
+                changeLanguage(selectedLang);
+                dropdown.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            });
+        });
+    }
+
+    private updateContent(): void {
+        // Update links text
+        const links = this.linksGroup.querySelectorAll('a');
+        const linkKeys = ['navigation.home', 'navigation.creators'];
+        links.forEach((link, index) => {
+            link.textContent = String(t(linkKeys[index]));
+        });
+
+        // Update buttons
+        this.updateAuthButtons();
+
+        // Recreate language switcher with new translations
+        const newSwitcher = this.createLanguageSwitcher();
+        this.languageSwitcher.replaceWith(newSwitcher);
+        this.languageSwitcher = newSwitcher;
+    }
+
     private async updateAuthButtons(): Promise<void> {
         this.buttonsGroup.innerHTML = '';
         const isLoggedIn = AuthUtils.isLoggedIn();
@@ -110,8 +215,8 @@ export class Header implements IComponent {
     
         if (!isLoggedIn) {
             // Show Login & Register buttons
-            const loginLink = this.createLink({ text: 'Login', href: '/login', type: 'button' });
-            const registerLink = this.createLink({ text: 'Register', href: '/register', type: 'button' });
+            const loginLink = this.createLink({ text: t('navigation.login') as string, href: '/login', type: 'button' });
+            const registerLink = this.createLink({ text: t('navigation.register') as string, href: '/register', type: 'button' });
             this.buttonsGroup.appendChild(loginLink);
             this.buttonsGroup.appendChild(registerLink);
             return;
