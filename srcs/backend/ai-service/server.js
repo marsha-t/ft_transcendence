@@ -1,5 +1,3 @@
-// server.js
-
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
@@ -7,8 +5,6 @@ import fastifyCookie from '@fastify/cookie';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// Import routes
 import aiRoutes from './routes/ai.js';
 
 const __filename = fileURLToPath(import.meta.url);
