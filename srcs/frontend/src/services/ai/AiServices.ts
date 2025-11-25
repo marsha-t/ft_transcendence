@@ -37,27 +37,27 @@ export class AiServices {
     }
   }
 
-  async getMove(gameId: number, gameState: AiGameState): Promise<ApiResponse<AiMoveResponse>> {
-    try {
-      const res = await fetch(`${this.baseUrl}/game/${gameId}/move`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gameState)
-      });
+  // async getMove(gameId: number, gameState: AiGameState): Promise<ApiResponse<AiMoveResponse>> {
+  //   try {
+  //     const res = await fetch(`${this.baseUrl}/game/${gameId}/move`, {
+  //       method: 'POST',
+  //       credentials: 'include',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(gameState)
+  //     });
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      if (!res.ok) {
-        return { success: false, message: data.error || 'AI move failed' };
-      }
+  //     if (!res.ok) {
+  //       return { success: false, message: data.error || 'AI move failed' };
+  //     }
 
-      return { success: true, data };
-    } catch (err) {
-      console.error('AI getMove error:', err);
-      return { success: false, message: 'Network error' };
-    }
-  }
+  //     return { success: true, data };
+  //   } catch (err) {
+  //     console.error('AI getMove error:', err);
+  //     return { success: false, message: 'Network error' };
+  //   }
+  // }
 
   async updateScore(gameId: number, playerScore: number, aiScore: number): Promise<void> {
     await fetch(`${this.baseUrl}/game/${gameId}/score`, {

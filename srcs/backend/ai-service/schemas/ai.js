@@ -30,72 +30,72 @@ export const startGameSchema = {
     }
   };
   
-  export const getMoveSchema = {
-    params: {
-      type: 'object',
-      required: ['gameId'],
-      properties: {
-        gameId: { type: 'string' }
-      }
-    },
-    body: {
-      type: 'object',
-      required: ['gameState'],
-      properties: {
-        gameState: {
-          type: 'object',
-          required: ['ball', 'aiPaddle', 'tableBounds'],
-          properties: {
-            ball: {
-              type: 'object',
-              required: ['x', 'z', 'velocityX', 'velocityZ'],
-              properties: {
-                x: { type: 'number' },
-                z: { type: 'number' },
-                velocityX: { type: 'number' },
-                velocityZ: { type: 'number' }
-              }
-            },
-            playerPaddle: {
-              type: 'object',
-              properties: {
-                x: { type: 'number' },
-                z: { type: 'number' }
-              }
-            },
-            aiPaddle: {
-              type: 'object',
-              required: ['x', 'z'],
-              properties: {
-                x: { type: 'number' },
-                z: { type: 'number' }
-              }
-            },
-            tableBounds: {
-              type: 'object',
-              required: ['zMin', 'zMax'],
-              properties: {
-                zMin: { type: 'number' },
-                zMax: { type: 'number' }
-              }
-            }
-          }
-        }
-      }
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          move: { 
-            type: 'string',
-            enum: ['UP', 'DOWN', 'NONE']
-          },
-          timestamp: { type: 'number' }
-        }
-      }
-    }
-  };
+  // export const getMoveSchema = {
+  //   params: {
+  //     type: 'object',
+  //     required: ['gameId'],
+  //     properties: {
+  //       gameId: { type: 'string' }
+  //     }
+  //   },
+  //   body: {
+  //     type: 'object',
+  //     required: ['gameState'],
+  //     properties: {
+  //       gameState: {
+  //         type: 'object',
+  //         required: ['ball', 'aiPaddle', 'tableBounds'],
+  //         properties: {
+  //           ball: {
+  //             type: 'object',
+  //             required: ['x', 'z', 'velocityX', 'velocityZ'],
+  //             properties: {
+  //               x: { type: 'number' },
+  //               z: { type: 'number' },
+  //               velocityX: { type: 'number' },
+  //               velocityZ: { type: 'number' }
+  //             }
+  //           },
+  //           playerPaddle: {
+  //             type: 'object',
+  //             properties: {
+  //               x: { type: 'number' },
+  //               z: { type: 'number' }
+  //             }
+  //           },
+  //           aiPaddle: {
+  //             type: 'object',
+  //             required: ['x', 'z'],
+  //             properties: {
+  //               x: { type: 'number' },
+  //               z: { type: 'number' }
+  //             }
+  //           },
+  //           tableBounds: {
+  //             type: 'object',
+  //             required: ['zMin', 'zMax'],
+  //             properties: {
+  //               zMin: { type: 'number' },
+  //               zMax: { type: 'number' }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   response: {
+  //     200: {
+  //       type: 'object',
+  //       properties: {
+  //         move: { 
+  //           type: 'string',
+  //           enum: ['UP', 'DOWN', 'NONE']
+  //         },
+  //         timestamp: { type: 'number' }
+  //       }
+  //     }
+  //   }
+  // };
   
   export const updateScoreSchema = {
     params: {

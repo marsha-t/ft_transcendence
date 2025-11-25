@@ -289,35 +289,35 @@ export class AI implements IComponent {
       const tableBounds = GameConfig.tableBounds;
 
       // Request AI move from backend
-      const response = await aiServices.getMove(this.gameId, {
-        gameState: {
-          ball: {
-            x: ball.x,
-            z: ball.z,
-            velocityX: ballSpeed.x,
-            velocityZ: ballSpeed.z
-          },
-          playerPaddle: {
-            x: playerPaddle.x,
-            z: playerPaddle.z
-          },
-          aiPaddle: {
-            x: aiPaddle.x,
-            z: aiPaddle.z
-          },
-          tableBounds: {
-            zMin: tableBounds.zMin,
-            zMax: tableBounds.zMax
-          }
-        }
-      });
+      // const response = await aiServices.getMove(this.gameId, {
+      //   gameState: {
+      //     ball: {
+      //       x: ball.x,
+      //       z: ball.z,
+      //       velocityX: ballSpeed.x,
+      //       velocityZ: ballSpeed.z
+      //     },
+      //     playerPaddle: {
+      //       x: playerPaddle.x,
+      //       z: playerPaddle.z
+      //     },
+      //     aiPaddle: {
+      //       x: aiPaddle.x,
+      //       z: aiPaddle.z
+      //     },
+      //     tableBounds: {
+      //       zMin: tableBounds.zMin,
+      //       zMax: tableBounds.zMax
+      //     }
+      //   }
+      // });
 
-      if (response.success && response.data) {
-        this.currentAIMove = response.data.move;
+      // if (response.success && response.data) {
+      //   this.currentAIMove = response.data.move;
         
-        // Apply AI move to paddle
-        this.applyAIMove();
-      }
+      //   // Apply AI move to paddle
+      //   this.applyAIMove();
+      // }
 
     } catch (error) {
       console.error('Failed to get AI move:', error);
