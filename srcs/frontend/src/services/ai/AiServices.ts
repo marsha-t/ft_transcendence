@@ -2,13 +2,15 @@
 import { ApiResponse, StartGameResponse, AiMoveResponse, AiGameState } from './types';
 
 export class AiServices {
-  private baseUrl = '/api/ai';
+  private baseUrl = '/api/ai'; // ✅ Match the pattern
 
   async startGame(
     difficulty: 'easy' | 'medium' | 'hard',
     aiSide: 'left' | 'right'
   ): Promise<ApiResponse<StartGameResponse>> {
     try {
+      console.log('🎮 Starting AI game:', { difficulty, aiSide });
+      
       const res = await fetch(`${this.baseUrl}/game/start`, {
         method: 'POST',
         credentials: 'include',
@@ -16,19 +18,21 @@ export class AiServices {
         body: JSON.stringify({ difficulty, aiSide })
       });
 
+      console.log('📡 Response status:', res.status);
       const data = await res.json();
+      console.log('📦 Response data:', data);
 
       if (!res.ok) {
         return {
           success: false,
-          message: data.error || 'Failed to start AI game',
+          message: data.error || 'Failed to start AI game API',
           status: res.status
         };
       }
 
       return { success: true, data };
     } catch (err) {
-      console.error('AI startGame error:', err);
+      console.error('❌ AI startGame error:', err);
       return { success: false, message: 'Network error' };
     }
   }
@@ -39,7 +43,7 @@ export class AiServices {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gameState)  // ← matches your schema exactly
+        body: JSON.stringify(gameState)
       });
 
       const data = await res.json();

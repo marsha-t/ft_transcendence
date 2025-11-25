@@ -195,15 +195,14 @@ model TournamentMatch {
 model AIGameSession {
   id           Int      @id @default(autoincrement())
   userId       Int      
-  aiDifficulty String   // "easy", "medium", "hard"
-  aiSide       String   // "left" or "right"
+  aiDifficulty String
+  aiSide       String
   playerScore  Int      @default(0)
   aiScore      Int      @default(0)
-  winner       String?  // "player", "ai", or null
+  winner       String?
   createdAt    DateTime @default(now())
   finishedAt   DateTime?
   
-  // Relationship
   user         User     @relation("AIGames", fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -224,6 +223,5 @@ model AIGameStats {
   lastPlayedAt    DateTime?
   updatedAt       DateTime @updatedAt
   
-  // Relationship
   user            User     @relation("AIStats", fields: [userId], references: [id], onDelete: Cascade)
 }
