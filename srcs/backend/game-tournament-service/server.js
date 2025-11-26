@@ -10,6 +10,7 @@ import gameSessionRoutes from './routes/gameSession.js';
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js'; 
 import tournamentRoutes from './routes/tournament.js';
 import AjvErrors from 'ajv-errors';
+import aiRoutes from './routes/ai.js';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +60,10 @@ app.decorate('authenticate', async (request, reply) => {
 app.register(gameSessionRoutes, { prefix: '/api/gameSessionServ' });
 app.register(gameSessionPlayersRoutes, { prefix: '/api/gameSessionPlayersServ' });
 app.register(tournamentRoutes, { prefix: '/api/tournamentServ' });
+
+//register ai routes
+app.register(aiRoutes, { prefix: '/api/ai' });
+
 
 // Start server
 const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5006;
