@@ -9,6 +9,7 @@ import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
 import { GameResults } from './pages/GameResults.js';
 import { ProfileDashboard } from './pages/UserDashboard.js';
+import { AI } from './pages/AI.js';
 
 export class Router {
   private currentPage: any = null;
@@ -93,6 +94,10 @@ export class Router {
           container.appendChild(await this.currentPage.render());
           break;
         }
+        case '/ai':
+          this.currentPage = new AI();
+          container.appendChild(this.currentPage.render());
+          break;
         default:
           container.textContent = '404 - Page Not Found';
           this.currentPage = null;

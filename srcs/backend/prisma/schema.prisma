@@ -91,6 +91,7 @@ model GameSession {
   winnerUserId   Int? // stores id of User (may not be present even if game is finished - if winner is guest)
   winnerPlayerId Int? @unique // stores id of GameSessionPlayer (always present if game is finished)
 
+  isAi            Boolean         @default(false) 
   // relations
   winnerUser    User?               @relation("GameUserWinner", fields: [winnerUserId], references: [id])
   winnerPlayer  GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])

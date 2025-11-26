@@ -8,7 +8,7 @@
   - If it is a tournament, check that player is in the tournament
   - Create game session linking it to players and tournament (if applicable)
 */
-export async function createGameSession(prisma, { players, tournamentId, matchIndex }) {
+export async function createGameSession(prisma, { players, tournamentId, matchIndex, isAi = false }) {
   if (!players || players.length === 0) {
     throw { code: 400, message: 'At least one player is required to create a session' };
   }
@@ -59,6 +59,7 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
 
   const session = await prisma.gameSession.create({
     data: {
+      isAi: isAi,
       players: {
         create: playerData,
       },

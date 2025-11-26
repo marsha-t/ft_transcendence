@@ -82,6 +82,7 @@ model GameSession {
   winnerUserId   Int?
   winnerPlayerId Int?             @unique
 
+  isAi            Boolean         @default(false) 
   winnerUser     User?               @relation("GameUserWinner", fields: [winnerUserId], references: [id])
   winnerPlayer   GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
   players        GameSessionPlayer[]
