@@ -48,7 +48,7 @@ export class TournamentMatch implements IComponent {
       if (!data?.nextMatch) {
         this.hasEnded = true;
         this.cleanup();
-        navigate("/tournament/results", { tournamentId: this.tournamentId });
+        TournamentStore.nextIsFinal = true;
         return;
       }
       const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
@@ -110,7 +110,9 @@ export class TournamentMatch implements IComponent {
 
   private startGame(gameSessionId: number, p1: any, p2: any) {
     
-    TournamentStore.onMatchEnd = () => this.loadNextMatch();
+    TournamentStore.onMatchEnd = async () => {
+      await this.loadNextMatch(); 
+    };
     TournamentStore.tournamentId = this.tournamentId;
     
     this.container.innerHTML = "";
