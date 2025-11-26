@@ -65,7 +65,7 @@ export class Main implements IComponent {
         tournamentBtn.textContent = "TOURNAMENT";
     
         const aiButton = document.createElement('a');
-        // aiButton.href = "/game"; // add link when AI game is implemented
+        aiButton.href = "/ai"; // add link when AI game is implemented
         aiButton.className =
           "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
           "font-bold rounded-lg tracking-widest " +

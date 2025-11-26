@@ -62,6 +62,7 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
 
   const session = await prisma.gameSession.create({
     data: {
+      isAi: isAi,
       players: {
         create: playerData,
       },
