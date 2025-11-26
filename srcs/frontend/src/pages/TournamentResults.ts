@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { navigate , createButtonStyle} from "../utils.js";
+import { navigate, createButtonStyle } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 
@@ -12,12 +12,6 @@ export class TournamentResults implements IComponent {
   }
 
   public render(): HTMLElement {
-    localStorage.removeItem("activeTournament");
-
-    TournamentStore.tournamentId = null;
-    TournamentStore.onMatchEnd = null;
-    TournamentStore.tournamentId = null;
-
     const page = document.createElement("div");
     page.className =
       "min-h-screen flex justify-center items-start pt-12 font-['Press_Start_2P'] text-[var(--color-text-yellow)] bg-[var(--color-background)]";
@@ -84,8 +78,7 @@ export class TournamentResults implements IComponent {
 
     rounds.forEach((round) => {
       const roundDiv = document.createElement("div");
-      roundDiv.className =
-        "flex flex-col items-start justify-center gap-12";
+      roundDiv.className = "flex flex-col items-start justify-center gap-12";
 
       round.forEach((match) => {
         const matchDiv = document.createElement("div");
@@ -135,8 +128,7 @@ export class TournamentResults implements IComponent {
 
       if (finalWinner) {
         const winnerRound = document.createElement("div");
-        winnerRound.className =
-          "flex items-center justify-center relative";
+        winnerRound.className = "flex items-center justify-center relative";
 
         // left connector line
         winnerRound.classList.add(
@@ -190,10 +182,22 @@ export class TournamentResults implements IComponent {
 
     const newBtn = document.createElement("button");
     newBtn.textContent = "Start New Tournament";
-    newBtn.className = createButtonStyle("w-auto h-[50px] text-[16px]", 'green');
+    newBtn.className = createButtonStyle(
+      "w-auto h-[50px] text-[16px]",
+      "green"
+    );
     newBtn.addEventListener("click", () => navigate("/tournament/setup"));
 
     btnContainer.appendChild(newBtn);
     this.container.appendChild(btnContainer);
+  }
+  
+  public async canDeactivate() {
+    TournamentStore.tournamentId = null;
+    TournamentStore.onMatchEnd = null;
+    TournamentStore.isInternalTournamentNavigation = false;
+    localStorage.removeItem("activeTournament");
+
+    return true;
   }
 }
