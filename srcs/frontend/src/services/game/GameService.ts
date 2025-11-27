@@ -8,10 +8,10 @@ export class GameService{
     }
 
     // 1- Create a new game session
-    async createGameSession(userId: number, side: PlayerSide): Promise<GameSession>{
+    async createGameSession(side: PlayerSide): Promise<GameSession>{
         try{
             //Send POST request to backend with user + side
-            const response = await fetch(`${this.baseUrl}/game-sessions`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -38,9 +38,9 @@ export class GameService{
     }
 
     // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: string, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
+    async addGuestPlayer(sessionId: number, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/players`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -76,9 +76,9 @@ export class GameService{
         }
     }
     // 3- update game session status
-    async updateGameStatus(sessionId: string, status: GameStatus): Promise<GameSession> {
+    async updateGameStatus(sessionId: number, status: GameStatus): Promise<GameSession> {
         try {
-            const response = await fetch(`${this.baseUrl}/game-sessions/status`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions/status`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,8 +91,15 @@ export class GameService{
             });
 
             if (!response.ok) {
-                throw new Error(`Failed to update game status: ${response.status}`);
-            }
+                let errorMessage = `Failed to update game status: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    console.error('Backend error details:', errorData);
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch (e) {
+                    // Response wasn't JSON
+                }
+                throw new Error(errorMessage);            }
 
             const data = await response.json();
             return this.transformApiResponseToGameSession(data);
@@ -102,9 +109,9 @@ export class GameService{
         }
     }
     // 4- update player score
-    async updatePlayerScore(sessionId: string, scoringSide: PlayerSide): Promise<GameSession>{
+    async updatePlayerScore(sessionId: number, scoringSide: PlayerSide): Promise<GameSession>{
         try{
-            const response = await fetch(`${this.baseUrl}/game-sessions/players/score`, {
+            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players/score`, {
                method: 'PATCH',
                headers: {
                     'X-Current-Session-Id': String(sessionId),
@@ -122,15 +129,15 @@ export class GameService{
         }
     }
     // 6- Start game
-    async startGame(sessionId: string):Promise<GameSession>{
+    async startGame(sessionId: number):Promise<GameSession>{
         return this.updateGameStatus(sessionId, "PLAYING");
     }
     // 7- Pause game;
-    async pauseGame(sessionId: string): Promise<GameSession> {
+    async pauseGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "PAUSED");
     }
     // 8- Abort game
-    async abortGame(sessionId: string): Promise<GameSession> {
+    async abortGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "ABORTED");
     }
     // 10- Transform API response to match our GameSession interface
@@ -154,18 +161,18 @@ export class GameService{
         };
     }
     // helper fun to handel API errors
-    private handleApiError(response: Response, context: string): never {
-        switch (response.status) {
-            case 400:
-                throw new Error(`${context}: Invalid request data`);
-            case 404:
-                throw new Error(`${context}: Resource not found`);
-            case 409:
-                throw new Error(`${context}: Conflict (e.g., side already taken)`);
-            case 500:
-                throw new Error(`${context}: Server error`);
-            default:
-                throw new Error(`${context}: Unexpected error (${response.status})`);
-        }
-    }
+    // private handleApiError(response: Response, context: string): never {
+    //     switch (response.status) {
+    //         case 400:
+    //             throw new Error(`${context}: Invalid request data`);
+    //         case 404:
+    //             throw new Error(`${context}: Resource not found`);
+    //         case 409:
+    //             throw new Error(`${context}: Conflict (e.g., side already taken)`);
+    //         case 500:
+    //             throw new Error(`${context}: Server error`);
+    //         default:
+    //             throw new Error(`${context}: Unexpected error (${response.status})`);
+    //     }
+    // }
 }

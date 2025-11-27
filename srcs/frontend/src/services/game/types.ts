@@ -1,5 +1,12 @@
 export type PlayerSide = "LEFT" | "RIGHT";
 
+export type GameOptions = {
+    sessionId?: number;
+    isTournament?: boolean;
+    tournamentId?: number;
+    displayNames?: { leftName: string; rightName: string };
+  };
+
 export type GameStatus =
     | "CREATED"    // Initial state when session is created
     | "PLAYING"    // Game is active
@@ -16,7 +23,7 @@ export interface Player{
 }
 
 export interface GameSession{
-    sessionId: string;
+    sessionId: number;
     status: GameStatus;
     players: Player[];
     winner?: PlayerSide;
@@ -30,3 +37,5 @@ export interface GameSession{
         matchIndex: number;
     } | null;
 }
+
+

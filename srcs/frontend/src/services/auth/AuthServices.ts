@@ -5,7 +5,7 @@ export class AuthServices {
 
     // Class constructor
     constructor() {
-        this.baseUrl = '/api';
+        this.baseUrl = '/api/auth';
     }
 
     // Method for register
@@ -182,6 +182,7 @@ export class AuthServices {
             };
         } catch (error) {
             console.error('Resend OTP API error', error);
+
             return {
                 success: false,
                 status: 0,
@@ -192,6 +193,45 @@ export class AuthServices {
             };
         }
     }    
+    // Get current user (username + avatar)
+    async getCurrentUser(): Promise<ApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/userInfo`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.message || 'Failed to get user info',
+                    data: null,
+                    errors: [],
+                };
+            }
+            
+            return {
+                success: true,
+                status: response.status,
+                data: data, // This will be { username: "...", avatar: "..." }
+                message: 'User info fetched successfully',
+                errors: [],
+            };
+        } catch (error) {
+            console.error('Get current user API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                data: null,
+                errors: [],
+            };
+        }
+    }    
+  
 }
 
 export const apiServices = new AuthServices();

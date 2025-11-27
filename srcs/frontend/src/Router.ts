@@ -56,8 +56,7 @@ export class Router {
           container.appendChild(this.currentPage.render());
           break;
         case '/game/results':
-          const sessionId = state?.sessionId;
-          this.currentPage = new GameResults(sessionId);
+          this.currentPage = new GameResults(state);
           container.appendChild(this.currentPage.render());
           break; 
         case '/':
@@ -70,7 +69,7 @@ export class Router {
           container.appendChild(this.currentPage.render());
           break;
         case '/dashboard':
-          this.currentPage = new ProfileDashboard(1); // hardcoded
+          this.currentPage = new ProfileDashboard();
           container.appendChild(this.currentPage.render());
           break ;
         case '/tournament':

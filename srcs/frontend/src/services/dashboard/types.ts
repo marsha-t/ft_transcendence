@@ -70,9 +70,11 @@ export interface OpponentStat {
 }
 
 export interface LeaderboardEntry {
+	rank: number;
 	username: string;
 	totalMatches: number;
 	winRate: number;
 	avgScore: number;
 	leaderboardScore: number;
+	isCurrentUser: boolean;
 }

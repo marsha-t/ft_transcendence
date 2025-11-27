@@ -18,6 +18,87 @@ services:
       - db-data:/app/prisma/data # database is in a docker volume
       - ./backend/uploads:/app/uploads
     restart: always
+  auth:
+    build:
+      context: ./backend/auth-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: authservice
+    ports:
+      - 5002:5002
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  profile:
+    build:
+      context: ./backend/profile-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: profileservice
+    ports:
+      - 5003:5003
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  friends:
+    build:
+      context: ./backend/friends-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: friendsservice
+    ports:
+      - 5004:5004
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  dashboard:
+    build:
+      context: ./backend/dashboard-service  # path to your auth microservice Dockerfile
+      dockerfile: Dockerfile
+    container_name: dashboardservice
+    ports:
+      - 5005:5005
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+      - ./backend/uploads:/app/uploads
+    restart: always
+  game_tournament:
+    build:
+      context: ./backend/game-tournament-service
+      dockerfile: Dockerfile
+    container_name: gametournamentservice
+    ports:
+      - 5006:5006
+    env_file:
+      - ./.env
+    networks:
+      - web
+    volumes:
+      - ./backend/prisma/migrations:/app/prisma/migrations
+      - db-data:/app/prisma/data
+    restart: always
+  
+  
 
   # backend-dev:
   #   build:
@@ -49,6 +130,7 @@ services:
       - 443:443
     depends_on:
       - backend
+      - auth
     networks:
       - web
     # volumes:
@@ -56,17 +138,7 @@ services:
     #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
-  # nginx:
-  #   build:
-  #     context: ../
-  #     dockerfile: srcs/nginx/Dockerfile
-  #   container_name: nginx
-  #   ports:
-  #     - "443:443"
-  #   depends_on:
-  #     - backend
-  #     - frontend
-  #   restart: always
+
 
 networks: 
   web:

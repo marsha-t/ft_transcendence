@@ -10,7 +10,7 @@ export class TournamentService {
 
 	async updateTournamentStatus(tournamentId: number, status: TournamentStatus): Promise<ApiResponse<Tournament>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/status`, {
+			const response = await fetch(`${this.baseUrl}/tournamentServ/tournaments/status`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export class TournamentService {
 
 	async validatePlayer(player: { username: string; password: string}): Promise<ApiResponse<any>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/validate-player`, {
+			const response = await fetch(`${this.baseUrl}/tournamentServ/tournaments/validate-player`, {
 				method: 'POST',
 				headers: { 
 					'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export class TournamentService {
 
 	async finalizeTournament(numberOfPlayers: number, players: any[]): Promise<ApiResponse<any>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/finalize`, {
+			const response = await fetch(`${this.baseUrl}/tournamentServ/tournaments/finalize`, {
 				method: 'POST',
 				headers: { 
 					'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ export class TournamentService {
 
 	async getNextMatch(tournamentId: number): Promise<ApiResponse<GetNextMatchResponse>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/tournaments/next-match`, {
+			const response = await fetch(`${this.baseUrl}/tournamentServ/tournaments/next-match`, {
 				method: 'GET',
 				headers: {
 					'X-Current-Tournament-Id': String(tournamentId),
