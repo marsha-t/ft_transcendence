@@ -113,7 +113,7 @@ async function authRoutes(app, options) {
   });
 
   // 2FA verification during login
-  app.post('/api/login/2fa', async (request, reply) => {
+  app.post('/login/2fa', async (request, reply) => {
     try {
       const { code } = request.body;
       if (!code) return reply.code(400).send({ message: "OTP required" });
@@ -176,7 +176,7 @@ async function authRoutes(app, options) {
   });
 
   // Resend OTP route
-  app.post('/api/login/resend-otp', async (request, reply) => {
+  app.post('/login/resend-otp', async (request, reply) => {
     try {
       const tempToken = request.cookies.pending_2fa;
       if (!tempToken) return reply.code(401).send({ message: "2FA session expired" });
@@ -223,7 +223,7 @@ async function authRoutes(app, options) {
   });
 
   // Route to enable 2FA
-  app.post('/api/2fa/enable', { schema: enable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/2fa/enable', { schema: enable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // from JWT
   
@@ -253,7 +253,7 @@ async function authRoutes(app, options) {
   });
 
   // Route to verify 2FA
-  app.post('/api/2fa/verify', { schema: verify2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/2fa/verify', { schema: verify2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
       const { code } = request.body;
@@ -288,7 +288,7 @@ async function authRoutes(app, options) {
   });
 
   // 2FA status route (needed for the settings toggle button)
-  app.get('/api/2fa/status', { schema: status2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/2fa/status', { schema: status2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
       const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -302,7 +302,7 @@ async function authRoutes(app, options) {
   });
 
   //  Route to disable 2FA
-  app.post('/api/2fa/disable', { schema: disable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.post('/2fa/disable', { schema: disable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
 

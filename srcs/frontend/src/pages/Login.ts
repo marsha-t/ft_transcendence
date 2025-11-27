@@ -33,21 +33,83 @@ export class Login implements IComponent {
 
         // Form
         this.form = document.createElement('form');
-        this.form.className = 'flex flex-col gap-6 items-center w-full';
-
-        // Username
-        const usernameInput = this.createInput('username', 'USERNAME', 'text', 'username');
-        this.form.appendChild(usernameInput);
-
-        // Password
-        const passwordInput = this.createInput('password', 'Password', 'password', '••••••••');
-        this.form.appendChild(passwordInput);
-
-        // Submit button
+        this.form.className =
+            'flex flex-col gap-[26px] items-center w-full leading-normal';
+    
+        // === Username group ===
+        const usernameGroup = document.createElement('div');
+        usernameGroup.className = 'flex flex-col gap-2';
+    
+        const usernameLabel = document.createElement('label');
+        usernameLabel.className = 'text-lg font-mono text-color_white';
+        usernameLabel.textContent = 'USERNAME';
+        usernameLabel.htmlFor = 'username';
+    
+        const usernameInput = document.createElement('input');
+        usernameInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
+      
+        usernameInput.type = 'text';
+        usernameInput.id = 'username';
+        usernameInput.name = 'username';
+        usernameInput.placeholder = 'username';
+    
+        usernameGroup.appendChild(usernameLabel);
+        usernameGroup.appendChild(usernameInput);
+    
+        // === Password group ===
+        const passwordGroup = document.createElement('div');
+        passwordGroup.className = 'flex flex-col gap-2';
+    
+        const passwordLabel = document.createElement('label');
+        passwordLabel.className = 'text-lg font-mono text-color_white';
+        passwordLabel.textContent = 'Password';
+        passwordLabel.htmlFor = 'password';
+    
+        const passwordInput = document.createElement('input');
+        passwordInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
+        passwordInput.type = 'password';
+        passwordInput.id = 'password';
+        passwordInput.name = 'password';
+        passwordInput.placeholder = '••••••••';
+    
+        passwordGroup.appendChild(passwordLabel);
+        passwordGroup.appendChild(passwordInput);
+    
+        // === Submit button ===
         this.submitButton = document.createElement('button');
+        this.submitButton.className =
+            "w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+            "font-bold rounded-lg tracking-widest " + 
+            "shadow-[0_5px_0_var(--color-button-second)] " +
+            "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+            "hover:translate-y-1 active:translate-y-2 " +
+            "transition-all duration-150 mt-5 text-center no-underline";
+
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
-        this.submitButton.className = 'w-[360px] h-[54px] px-4 rounded-[16px] text-color_white font-pixel cursor-pointer bg-color_button hover:bg-color-green hover:text-background transition-all';
+    
+        // === Message container ===
+        this.messageContainer = document.createElement('div');
+        this.messageContainer.className = 'none';
+
+
+        // === Build the form ===
+        this.form.appendChild(usernameGroup);
+        this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
 
         // OTP group (hidden initially)
@@ -159,10 +221,10 @@ export class Login implements IComponent {
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
 
-                // ✅ SET USER AS LOGGED IN
+                // // ✅ SET USER AS LOGGED IN
                 AuthUtils.setLoggedIn({ username: userData.username });
                 this.form.reset(); //I need to clean th form after getting data
-
+                console.log("isloggedin", AuthUtils.isLoggedIn());
                 setTimeout(() => {
                     navigate("/profile"); 
                 }, 2000);
@@ -193,6 +255,12 @@ export class Login implements IComponent {
 
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
+
+                // ✅ SET USER AS LOGGED IN
+                AuthUtils.setLoggedIn({ username: payload.username });
+                this.form.reset(); //I need to clean th form after getting data
+                console.log("isloggedin", AuthUtils.isLoggedIn());
+                
                 setTimeout(() => {
                     navigate("/profile");
                 }, 2000);
