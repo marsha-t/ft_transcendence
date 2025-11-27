@@ -1,8 +1,4 @@
-export function makeButton(
-    label: string,
-    id: string,
-    handler: () => void
-  ): HTMLButtonElement {
+export function makeButton(label: string, id: string, display: string, handler: () => void): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.id = id;
 
@@ -12,7 +8,7 @@ export function makeButton(
       "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
       "hover:translate-y-1 active:translate-y-2 " +
       "transition-all duration-150 mt-5";
-    btn.style.display = "none";
+    btn.style.display = display;
     btn.textContent = label;
     btn.addEventListener("click", handler);
 

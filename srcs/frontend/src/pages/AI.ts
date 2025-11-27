@@ -125,13 +125,13 @@ export class AI implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const startBtn = makeButton("Start Game", "start-btn", () =>
+    const startBtn = makeButton("Start Game", "start-btn", "block", () =>
       this.toggleGame()
     );
-    const pauseBtn = makeButton("Pause", "pause-btn", () =>
+    const pauseBtn = makeButton("Pause", "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = makeButton("Quit Game", "quit-btn", () =>
+    const quitBtn = makeButton("Quit Game", "quit-btn", "none", () =>
       this.quitGame()
     );
 
