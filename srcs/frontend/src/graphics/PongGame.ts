@@ -5,6 +5,11 @@ import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
 import { Game } from "../pages/Game";
 
+interface AIConfig {
+    aiEnabled: boolean;
+    aiSide: 'LEFT' | 'RIGHT';
+}
+
 export class PongGame {
     private canvas: HTMLCanvasElement;
     private engine!: BABYLON.Engine;
@@ -17,7 +22,9 @@ export class PongGame {
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
     private isPaused: boolean = true;
 
-    constructor(canvas: HTMLCanvasElement, onScore?: (side: 'LEFT' | 'RIGHT') => void) {
+    constructor(canvas: HTMLCanvasElement, 
+                onScore?: (side: 'LEFT' | 'RIGHT') => void,
+                aiConfig: AIConfig = { aiEnabled: false, aiSide: 'LEFT'}) {
         this.canvas = canvas;
         this.onScoreCallback = onScore; // Store callback
 
