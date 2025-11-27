@@ -14,62 +14,51 @@ async function aiRoutes(app, options){
     app.post(
         '/ai/create-game',
         {
-        
-        preHandler: [app.authenticate]
+            preHandler: [app.authenticate]
         },
         async (request, reply) => {
         
-        
-        const userId = request.user.id;
-        
-
-        const { side } = request.body ?? {};
-        
-        try {
-            const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { username: true }
-            });
+            const userId = request.user.id;
             
-            if (!user) {
-            return reply.code(404).send({ error: "User not found" });
-            }
-            
-
-            const playerSide = side || 'LEFT';
-            const aiSide = playerSide === 'LEFT' ? 'RIGHT' : 'LEFT';
-            
-            
-            const session = await createGameSession(prisma, {
-            players: [
-                {
-                userId: userId,
-                guestName: null,
-                side: playerSide
-                },
-                {
-                userId: null,
-                guestName: 'AI Opponent',
-                side: aiSide
+            try {
+                const user = await prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { username: true }
+                });
+                
+                if (!user) {
+                    return reply.code(404).send({ error: "User not found" });
                 }
-            ],
-            tournamentId: null,
-            matchIndex: null,
-            isAi: true 
-            });
-            
-            
-            return reply.code(201).send({
-            success: true,
-            gameSession: session
-            });
-            
-        } catch (err) {
-            request.log.error(err);
-            return reply.code(err.code || 500).send({
-            error: err.message || "Failed to create AI game session"
-            });
-        }
+                
+                const session = await createGameSession(prisma, {
+                    players: [
+                        {
+                            userId: userId,
+                            guestName: null,
+                            side: 'RIGHT'
+                        },
+                        {
+                            userId: null,
+                            guestName: 'AI Opponent',
+                            side: 'LEFT'
+                        }
+                    ],
+                        tournamentId: null,
+                        matchIndex: null,
+                        isAi: true 
+                });
+                
+                return reply.code(201).send({
+                    success: true,
+                    gameSession: session
+                });
+                
+            } catch (err) {
+                    request.log.error(err);
+                    return reply.code(err.code || 500).send({
+                        error: err.message || "Failed to create AI game session"
+                    });
+                }
         }
     );
 }
