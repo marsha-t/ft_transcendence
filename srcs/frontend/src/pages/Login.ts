@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/auth/AuthServices.js";
 import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils.js";
+import { AuthUtils } from "../utils/authUtils.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
@@ -157,8 +158,13 @@ export class Login implements IComponent {
 
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
+
+                // ✅ SET USER AS LOGGED IN
+                AuthUtils.setLoggedIn({ username: userData.username });
+                this.form.reset(); //I need to clean th form after getting data
+
                 setTimeout(() => {
-                    navigate("/profile");
+                    navigate("/profile"); 
                 }, 2000);
             } else {
                 this.showMessage(response.message || 'Login failed', 'error');
