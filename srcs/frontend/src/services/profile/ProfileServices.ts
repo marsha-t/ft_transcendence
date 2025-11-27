@@ -532,7 +532,7 @@ export class ProfileServices {
   // 2FA Services
   async enable2FA(): Promise<ApiResponse<null>> {
     try {
-      const response = await fetch(`${this.baseUrl}/2fa/enable`, {
+      const response = await fetch(`${this.baseUrl}/auth/2fa/enable`, {
         method: "POST",
         credentials: "include",
       });
@@ -567,7 +567,7 @@ export class ProfileServices {
   // Verify 2FA OTP
   async verify2FA(code: string): Promise<ApiResponse<null>> {
     try {
-      const response = await fetch(`${this.baseUrl}/2fa/verify`, {
+      const response = await fetch(`${this.baseUrl}/auth/2fa/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -605,7 +605,7 @@ export class ProfileServices {
 
   async get2FAStatus(): Promise<{ success: boolean; enabled?: boolean; message?: string }> {
     try {
-      const response = await fetch(`${this.baseUrl}/2fa/status`, {
+      const response = await fetch(`${this.baseUrl}/auth/2fa/status`, {
         method: 'GET',
         credentials: 'include' // send cookies automatically
       });
@@ -625,7 +625,7 @@ export class ProfileServices {
 
   async disable2FA(): Promise<ApiResponse<null>> {
     try {
-      const response = await fetch(`${this.baseUrl}/2fa/disable`, {
+      const response = await fetch(`${this.baseUrl}/auth/2fa/disable`, {
         method: "POST",
         credentials: "include",
       });

@@ -345,11 +345,6 @@ export class ProfileInfo implements IComponent {
             }
         });
 
-        // twoFactorGroup.appendChild(twoFactorLabel);
-        // twoFactorGroup.appendChild(toggleSwitch);
-        // twoFactorGroup.appendChild(otpContainer);
-        // modal.appendChild(twoFactorGroup);
-
         twoFactorGroup.appendChild(twoFactorLabel);
         twoFactorGroup.appendChild(toggleSwitch);
         twoFactorGroup.appendChild(otpContainer);
