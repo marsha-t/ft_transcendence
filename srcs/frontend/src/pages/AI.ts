@@ -34,12 +34,12 @@ export class AI implements IComponent {
     this.container.className =
       "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6";
 
-    this.createTitleContainer();
-    this.createCanvas();
-    this.createControlsContainer();
-
-
-    this.loadUserAndUpdateName();
+    this.loadUserAndUpdateName().then(() => {
+      this.createTitleContainer();
+      this.createCanvas();
+      this.createControlsContainer();
+      this.initializeAIGame();
+    });
 
     return this.container;
   }
@@ -153,27 +153,50 @@ export class AI implements IComponent {
   }
 
   async loadUser() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found");
-      this.username = "Guest";
-      return;
-    }
-  
     try {
-      const res = await fetch('/api/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-  
-      if (!res.ok) throw new Error("Failed to fetch user");
-  
-      const data = await res.json();
-      this.username = data.username || "Player";
+      const response = await apiServices.profile.getProfile();
+      const username = response.data?.username;
+      if (response.success && username) {
+        this.username = username;
+      }
     } catch (err) {
-      console.error("Failed to load user:", err);
-      this.username = "Player";
+      console.log("Failed to fetch username: ", err);
     }
   }
+
+
+  private async initializeAIGame(): Promise<void> {
+    try {
+      const response = await fetch("/api/ai/create-game", {
+        method: "POST",
+        credentials: "include",
+      });
+  
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Failed: ${response.status} ${err}`);
+      }
+  
+      const data = await response.json();
+  
+      this.currentSession = {
+        sessionId: data.id,
+        status: data.status,
+        players: data.players.map((p: any) => ({
+          side: p.side,
+          displayName: p.displayName || p.user?.username || "Player",
+          score: p.score || 0,
+        })),
+        winnerName: data.winnerName,
+      } as GameSession;
+  
+      console.log("AI Game Ready!", this.currentSession);
+    } catch (err: any) {
+      console.error("Failed to start AI game:", err);
+      alert("Could not connect to game service.");
+    }
+  }
+
 
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
     if (!this.isGameRunning) {
