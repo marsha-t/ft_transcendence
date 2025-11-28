@@ -12,7 +12,7 @@ import { createGameSession } from "../services/gameSessionService.js";
 
 async function aiRoutes(app, options){
     app.post(
-        '/ai/create-game',
+        '/create-game',
         {
             preHandler: [app.authenticate]
         },
@@ -36,22 +36,58 @@ async function aiRoutes(app, options){
                             userId: userId,
                             guestName: null,
                             side: 'RIGHT'
-                        },
-                        {
-                            userId: null,
-                            guestName: 'AI Opponent',
-                            side: 'LEFT'
                         }
+                        // {
+                        //     userId: null,
+                        //     guestName: 'AI Opponent',
+                        //     side: 'LEFT'
+                        // }
                     ],
                         tournamentId: null,
                         matchIndex: null,
                         isAi: true 
                 });
                 
-                return reply.code(201).send({
-                    success: true,
-                    gameSession: session
+                //adding ai as guest user
+                await prisma.gameSessionPlayer.create({
+                    data: {
+                        sessionId: session.id,
+                        userId: null,
+                        isGuest: true,
+                        displayName: 'AI Opponent',
+                        side: 'LEFT',
+                        score: 0
+                    }
                 });
+
+                // Fetch updated session with both players
+                const updatedSession = await prisma.gameSession.findUnique({
+                    where: { id: session.id },
+                    include: {
+                      players: {
+                        select: {
+                          side: true,
+                          score: true,
+                          displayName: true,
+                          user: { select: { username: true } }  // ← include username!
+                        }
+                      }
+                    }
+                  });
+                  const formatted = {
+                    ...updatedSession,
+                    players: updatedSession.players.map(p => ({
+                      side: p.side,
+                      score: p.score,
+                      displayName: p.displayName || p.user?.username || "AI Opponent"
+                    }))
+                  };
+                return reply.code(201).send(formatted);
+
+                // return reply.code(201).send({
+                //     success: true,
+                //     gameSession: session
+                // });
                 
             } catch (err) {
                     request.log.error(err);
