@@ -6,6 +6,7 @@ import { AuthUtils } from "../utils/authUtils.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
+    private loginCard!: HTMLElement;
     private messageContainer!: HTMLElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
@@ -20,17 +21,43 @@ export class Login implements IComponent {
     private currentUsername: string = '';
 
     public render(): HTMLElement {
-        this.container = document.createElement('div');
-        this.container.className = 'flex justify-center bg-color-yellow h-full py-[23px]';
-
-        const subContainer = document.createElement('div');
-        subContainer.className = 'flex flex-col items-center justify-start bg-background rounded-[16px] shadow-lg mx-[23px] w-[calc(100%-46px)] py-6 px-10';
-
-        // Heading
+         // === Main container ===
+         this.container = document.createElement('div');
+         this.container.className = `
+         flex justify-center bg-color-yellow
+         h-full py-[23px]`;
+ 
+         const subContainer = document.createElement('div');
+         subContainer.className = `
+             flex flex-col items-center justify-start
+             bg-background rounded-[16px] shadow-lg
+             mx-[23px] w-[calc(100%-46px)]
+             h-auto py-6 px-10`;
+        
+        // === Heading ===
         const heading = document.createElement('h2');
-        heading.className = 'text-center mb-4 text-[18px] font-press text-color_white';
+        heading.className =
+            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
         heading.textContent = 'Welcome Back!';
 
+        // === Login card (form wrapper) ===
+        this.loginCard = document.createElement('div');
+        this.loginCard.className =
+            `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8` ;
+    
+        // === Register link ===
+        const registerLink = document.createElement('p');
+        registerLink.className =
+            'font-mono text-color_white text-left mb-4';
+        registerLink.innerHTML = `
+            Don't have an account?
+            <a href="/register"
+            class="font-mono text-color-green underline ml-40 hover:opacity-80">
+            Register
+            </a>`;
+        
         // Form
         this.form = document.createElement('form');
         this.form.className =
@@ -111,10 +138,16 @@ export class Login implements IComponent {
         this.form.appendChild(usernameGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
+    
+        // === Assemble card ===
+        this.loginCard.appendChild(registerLink);
+        this.loginCard.appendChild(this.form);
 
         // OTP group (hidden initially)
         this.otpGroup = document.createElement('div');
-        this.otpGroup.className = 'flex flex-col gap-2 mt-4 hidden';
+        this.otpGroup.className = `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8 hidden`;
 
         const otpLabel = document.createElement('label');
         otpLabel.textContent = 'Enter 2FA Code';
@@ -149,7 +182,7 @@ export class Login implements IComponent {
 
         // Build page
         subContainer.appendChild(heading);
-        subContainer.appendChild(this.form);
+        subContainer.appendChild(this.loginCard);
         subContainer.appendChild(this.otpGroup);
         subContainer.appendChild(this.messageContainer);
         this.container.appendChild(subContainer);
@@ -207,8 +240,8 @@ export class Login implements IComponent {
                 this.currentUsername = userData.username;
                 this.is2FAActive = true;
 
-                this.form.querySelectorAll('input').forEach(input => input.closest('div')?.classList.add('hidden'));
-                this.submitButton.classList.add('hidden');
+                // Hide the entire login card
+                this.loginCard.classList.add('hidden');
 
                 this.otpGroup.classList.remove('hidden');
                 this.otpInput.value = '';
@@ -221,13 +254,17 @@ export class Login implements IComponent {
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
 
-                // // ✅ SET USER AS LOGGED IN
+                // Reset UI && Set user as logged-in
                 AuthUtils.setLoggedIn({ username: userData.username });
-                this.form.reset(); //I need to clean th form after getting data
-                console.log("isloggedin", AuthUtils.isLoggedIn());
-                setTimeout(() => {
-                    navigate("/profile"); 
-                }, 2000);
+
+                this.form.reset();
+                this.loginCard.classList.remove('hidden');
+                this.otpGroup.classList.add('hidden');
+                this.is2FAActive = false;
+                this.currentUsername = '';
+
+                setTimeout(() => navigate("/profile"), 2000);
+
             } else {
                 this.showMessage(response.message || 'Login failed', 'error');
             }
@@ -296,17 +333,43 @@ export class Login implements IComponent {
         }
     }
 
-    private setLoadingState(loading: boolean) {
+    private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
-        this.otpSubmitButton.disabled = loading;
-        this.otpResendButton.disabled = loading;
-        this.form.querySelectorAll('input').forEach((input) => (input as HTMLInputElement).disabled = loading);
-    }
+        this.submitButton.textContent = loading ? 'Login account' : 'Login';
 
-    private showMessage(message: string, type: 'success' | 'error') {
+        const inputs = this.form.querySelectorAll('input');
+        inputs.forEach(input => {
+            (input as HTMLInputElement).disabled = loading;
+        });
+    }
+    
+    private showMessage(message: string, type: 'success' | 'error'): void {
         this.messageContainer.style.display = 'block';
+        const baseClass = `
+            mt-6 px-4 py-3    
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-mono text-[20px]
+            text-center          
+            flex items-center justify-center 
+            transition-opacity duration-300
+        `;
+
+        const typeClasses = type === 'error' 
+            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
+            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+        
+        this.messageContainer.className = `${baseClass} ${typeClasses}`;
         this.messageContainer.textContent = message;
-        this.messageContainer.className = `mt-4 text-center ${type === 'success' ? 'text-green-500' : 'text-red-500'}`;
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                this.messageContainer.style.display = 'none';
+            }, 5001);
+        }
+        // Scroll to top to show message
+        this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
     }
 }

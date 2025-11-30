@@ -1,6 +1,25 @@
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+// Primary client points to user-social.db for User queries
+const prismaUserData = new PrismaClient({
+  datasources: {
+    db: {
+      url: 'file:/app/prisma/user-data/user-social.db',
+    },
+  },
+});
 
-export default prisma;
+// Secondary client points to game-tournament.db for Game queries
+const prismaGameData = new PrismaClient({
+  datasources: {
+    db: {
+      url: 'file:/app/prisma/game-data/game-tournament.db',
+    },
+  },
+});
 
+// Export both clients
+export { prismaUserData, prismaGameData };
+
+// For backward compatibility, default export is user-social
+export default prismaUserData;
