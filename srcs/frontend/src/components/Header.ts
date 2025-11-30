@@ -3,6 +3,7 @@ import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { createButtonStyle } from "../utils";
 import { ProfileServices } from "../services/profile/ProfileServices.js";
 import { AuthServices } from "../services/auth/AuthServices.js";
+import { apiServices } from "../services/ApiServices";
 export class Header implements IComponent {
     private buttonsGroup!: HTMLElement;
     private linksGroup!: HTMLElement;
@@ -198,7 +199,7 @@ export class Header implements IComponent {
             const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
             if (!confirmed) return;
     
-            const res = await profileService.logout();
+            const res = await apiServices.auth.logout();
             if (res.success) {
                 AuthUtils.setLoggedOut();
                 history.pushState(null, '', '/main');
