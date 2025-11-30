@@ -82,75 +82,42 @@ export class ProfileServices {
       };
     }
   }
-    async getPlayCounts(start?: string, end?: string): Promise<ApiResponse<{ date: string; count: number }[]>> {
-    try {
-      const params: string[] = [];
-      if (start) params.push(`start=${encodeURIComponent(start)}`);
-      if (end) params.push(`end=${encodeURIComponent(end)}`);
-      const q = params.length ? `?${params.join('&')}` : '';
-      const response = await fetch(`${this.baseUrl}/profileServ/profile/play-counts${q}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-				credentials: 'include',
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        return {
-          success: false,
-          status: response.status,
-          message: data.message || data.error || 'Failed to fetch play counts',
-          errors: data.errors || [],
-        };
-      }
-      return {
-        success: true,
-        status: response.status,
-        data: Array.isArray(data) ? data : (data.data || []),
-        message: data.message || 'Play counts fetched',
-      };
-    } catch (error) {
-      console.error('API error (getPlayCounts)', error);
-      return { success: false, status: 0, message: 'Network error', errors: [] };
-    }
-  }
     // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Method to log out the current user
-    async logout(): Promise<ApiResponse<null>> {
-      try {
-          const response = await fetch(`${this.baseUrl}/auth/logout`, {
-              method: 'POST',
-				      credentials: 'include',
-          });
-          const data = await response.json();
+    // async logout(): Promise<ApiResponse<null>> {
+    //   try {
+    //       const response = await fetch(`${this.baseUrl}/auth/logout`, {
+    //           method: 'POST',
+		// 		      credentials: 'include',
+    //       });
+    //       const data = await response.json();
 
-          if (!response.ok) {
-              const msg = data.error || 'Logout failed';
-              return {
-                  success: false,
-                  status: response.status,
-                  message: msg,
-                  errors: data.errors || []
-              };
-          }
+    //       if (!response.ok) {
+    //           const msg = data.error || 'Logout failed';
+    //           return {
+    //               success: false,
+    //               status: response.status,
+    //               message: msg,
+    //               errors: data.errors || []
+    //           };
+    //       }
 
-          return {
-              success: true,
-              status: response.status,
-              data: null,
-              message: 'Logout successful'
-          };
-      } catch (error) {
-          console.error('Logout API error', error);
-          return {
-              success: false,
-              status: 0,
-              message: 'Network error',
-              errors: []
-          };
-      }
-    }
+    //       return {
+    //           success: true,
+    //           status: response.status,
+    //           data: null,
+    //           message: 'Logout successful'
+    //       };
+    //   } catch (error) {
+    //       console.error('Logout API error', error);
+    //       return {
+    //           success: false,
+    //           status: 0,
+    //           message: 'Network error',
+    //           errors: []
+    //       };
+    //   }
+    // }
     // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Method to the current user's friends part of the profile page

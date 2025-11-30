@@ -2,10 +2,80 @@ import {prismaUserData, prismaGameData} from "../prisma/prismaClient.js";
 import { matchHistorySchema, gameDashboardSchema, userDashboardSchema } from "../schemas/dashboard.js";
 
 async function dashboardRoutes(app, options) {
+  // Play counts for heatmap (moved from Profile Service)
+  app.get('/stats/play-counts', {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const { start, end } = request.query;
+
+      if (!start || !end) {
+        return reply.code(400).send({ 
+          error: 'start and end query parameters are required' 
+        });
+      }
+
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return reply.code(400).send({ error: 'Invalid date format' });
+      }
+
+      if (startDate > endDate) {
+        return reply.code(400).send({ 
+          error: 'start date must be before end date' 
+        });
+      }
+
+      // ✅ Query game database (prismaGame) instead of user database
+      const sessions = await prismaGameData.gameSessionPlayer.findMany({
+        where: {
+          userId: userId,
+          session: { 
+            status: 'FINISHED',
+            createdAt: {
+              gte: startDate,
+              lte: endDate
+            }
+          }
+        },
+        select: { 
+          session: { 
+            select: { createdAt: true } 
+          } 
+        }
+      });
+
+      // Group by date (YYYY-MM-DD)
+      const countsByDate = {};
+      sessions.forEach(s => {
+        const created = s.session && s.session.createdAt;
+        if (!created) return;
+        const d = created.toISOString().split('T')[0];
+        countsByDate[d] = (countsByDate[d] || 0) + 1;
+      });
+
+      // Build result array for the range (include zero days)
+      const result = [];
+      const cur = new Date(startDate);
+      while (cur <= endDate) {
+        const key = cur.toISOString().split('T')[0];
+        result.push({ date: key, count: countsByDate[key] || 0 });
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      return reply.code(200).send(result);
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ 
+        error: 'Failed to fetch play counts' 
+      });
+    }
+  });
   // Fetch match history
-  /*
-		- 
-	*/
   app.get("/stats/users/match-history",
     { schema: matchHistorySchema, preHandler: [app.authenticate] },
     async (request, reply) => {

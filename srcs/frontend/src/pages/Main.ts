@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; 
+import { createButtonStyle } from "../utils";
 
 export class Main implements IComponent {
   public render(): HTMLElement {
@@ -97,15 +98,19 @@ export class Main implements IComponent {
     } else { 
       // GIF placeholder
       const gif = document.createElement('img');
-      gif.src = "../../public/assets/pong_game.gif"; // path to your GIF
+      gif.src = "./pong_game.gif"; // path to your GIF
       // gif.alt = "Bouncing Pong Ball";
-      gif.className = "w-[120px] h-[120px] animate-bounce"; // Tailwind classes for size & simple animation
+      gif.className = "w-[600px] h-[350px]"; // Tailwind classes for size & simple animation
       rightSection.appendChild(gif);
 
-      const infoText = document.createElement('p');
-      infoText.textContent = "Log in to unlock challenges!";
-      infoText.className = "text-white text-center mt-4 font-press";
-      rightSection.appendChild(infoText);
+      const preloginButton = document.createElement('button');
+      preloginButton.textContent = "Log in to unlock challenges!";
+      preloginButton.className = createButtonStyle("animate-bounce", 'green');
+      preloginButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/login";
+      })
+      rightSection.appendChild(preloginButton);
     }
 
     // Add to subcontainer
