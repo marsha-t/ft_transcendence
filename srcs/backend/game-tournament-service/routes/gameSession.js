@@ -1,14 +1,6 @@
-import {
-  createGameSessionSchema,
-  updateSessionStatusSchema,
-} from "../schemas/gameSession.js";
+import {createGameSessionSchema, updateSessionStatusSchema} from "../schemas/gameSession.js";
 import prisma from "../prisma/prismaClient.js";
-import {
-  createGameSession,
-  isValidTransition,
-  buildUpdateData,
-  runChecks,
-} from "../services/gameSessionService.js";
+import { createGameSession, isValidTransition, buildUpdateData, runChecks} from "../services/gameSessionService.js";
 
 async function gameSessionRoutes(app, options) {
   // Create game session with first player
