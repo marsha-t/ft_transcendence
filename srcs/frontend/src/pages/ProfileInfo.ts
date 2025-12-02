@@ -231,8 +231,123 @@ export class ProfileInfo implements IComponent {
         const form = this.createSettingsForm();
         modal.appendChild(form);
 
-        // 2FA Toggle
-        const twoFactorGroup = this.create2FAToggle();
+        // === 2FA Toggle ===
+        const twoFactorGroup = document.createElement("div");
+        twoFactorGroup.className = `mt-6 flex flex-col gap-2 p-4 rounded-[8px] bg-[#183B76]`;
+
+        // Label
+        const twoFactorLabel = document.createElement("div");
+        twoFactorLabel.className = "flex flex-col";
+
+        const twoFactorTitle = document.createElement("span");
+        twoFactorTitle.className = "text-sm font-semibold";
+        twoFactorTitle.textContent = "Two-Factor Authentication";
+
+        const twoFactorDesc = document.createElement("span");
+        twoFactorDesc.className = "text-xs text-gray-400";
+        twoFactorDesc.textContent = "Add an extra layer of security to your account";
+
+        twoFactorLabel.appendChild(twoFactorTitle);
+        twoFactorLabel.appendChild(twoFactorDesc);
+
+        // Toggle switch
+        const toggleSwitch = document.createElement("div");
+        toggleSwitch.className = `
+            w-12 h-6 rounded-full relative
+            bg-[#183B76] border-2 border-[#77AB55] cursor-pointer
+            transition-all duration-200 ease-in-out
+        `;
+        const toggleCircle = document.createElement("div");
+        toggleCircle.className = `
+            absolute w-4 h-4 bg-[#77AB55] rounded-full
+            top-1/2 -translate-y-1/2 left-1
+            transition-all duration-200 ease-in-out
+        `;
+        toggleSwitch.appendChild(toggleCircle);
+
+        const otpContainer = document.createElement("div");
+        otpContainer.className = "flex items-center gap-2 mt-3 hidden";
+
+        const otpInput = document.createElement("input");
+        otpInput.type = "text";
+        otpInput.placeholder = "Enter OTP";
+        otpInput.className = `w-1/2 rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+
+        const otpButton = document.createElement("button");
+        otpButton.textContent = "Confirm";
+        otpButton.className = `px-4 py-2 rounded-[8px] bg-[#77AB55] text-white font-semibold hover:bg-green-500 transition-colors`;
+
+        otpButton.addEventListener("click", async () => {
+            const code = otpInput.value.trim();
+            if (!code) return alert("Enter OTP");
+
+            const verifyRes = await apiServices.profile.verify2FA(code);
+            if (verifyRes.success) {
+            alert("2FA enabled successfully!");
+            otpContainer.classList.add("hidden");
+            } else {
+            alert(`Error: ${verifyRes.message}`);
+            }
+        });
+
+        otpContainer.appendChild(otpInput);
+        otpContainer.appendChild(otpButton);
+
+        // Initialize toggle based on backend status
+        const init2FAStatus = async () => {
+            const res = await apiServices.profile.get2FAStatus();
+            if (res.success && res.enabled) {
+            toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+            toggleCircle.style.transform = "translate(100%, -50%)";
+            toggleCircle.style.left = "16px";
+            otpContainer.classList.add("hidden"); // OTP only shows when enabling
+            } else {
+            toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+            toggleCircle.style.transform = "translate(-0%, -50%)";
+            toggleCircle.style.left = "4px";
+            otpContainer.classList.add("hidden");
+            }
+        };
+
+        // Call it when modal opens
+        init2FAStatus();
+
+        // Toggle click logic
+        toggleSwitch.addEventListener("click", async () => {
+            const isEnabled = toggleSwitch.classList.contains("enabled");
+
+            if (isEnabled) {
+            const res = await apiServices.profile.disable2FA();
+            if (res.success) {
+                toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+                toggleCircle.style.transform = "translate(-0%, -50%)";
+                toggleCircle.style.left = "4px";
+                alert(res.message);
+            } else {
+                alert(res.message);
+            }
+            } else {
+            // Show OTP input immediately
+            otpContainer.classList.remove("hidden");
+
+            // Send OTP email asynchronously
+            apiServices.profile.enable2FA().then(res => {
+                if (res.success) alert(res.message);
+                else alert(res.message);
+            }).catch(err => {
+                console.error(err);
+                alert("Failed to send OTP email");
+            });
+
+            toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+            toggleCircle.style.transform = "translate(100%, -50%)";
+            toggleCircle.style.left = "16px";
+            }
+        });
+
+        twoFactorGroup.appendChild(twoFactorLabel);
+        twoFactorGroup.appendChild(toggleSwitch);
+        twoFactorGroup.appendChild(otpContainer);
         modal.appendChild(twoFactorGroup);
 
         // Action buttons
@@ -296,49 +411,6 @@ export class ProfileInfo implements IComponent {
         form.appendChild(passwordGroup);
 
         return form;
-    }
-
-    private create2FAToggle(): HTMLElement {
-        const twoFactorGroup = document.createElement("div");
-        twoFactorGroup.className = `mt-6 flex items-center justify-between p-4 rounded-[8px] bg-[#183B76]`;
-
-        const twoFactorLabel = document.createElement("div");
-        twoFactorLabel.className = "flex flex-col";
-
-        const twoFactorTitle = document.createElement("span");
-        twoFactorTitle.className = "text-sm font-semibold";
-        twoFactorTitle.textContent = "Two-Factor Authentication";
-
-        const twoFactorDesc = document.createElement("span");
-        twoFactorDesc.className = "text-xs text-gray-400";
-        twoFactorDesc.textContent = "Add an extra layer of security to your account";
-
-        twoFactorLabel.appendChild(twoFactorTitle);
-        twoFactorLabel.appendChild(twoFactorDesc);
-
-        const toggleSwitch = document.createElement("div");
-        toggleSwitch.className = `w-12 h-6 rounded-full relative bg-[#183B76] border-2 border-[#77AB55] cursor-pointer transition-all duration-200 ease-in-out`;
-
-        const toggleCircle = document.createElement("div");
-        toggleCircle.className = `absolute w-4 h-4 bg-[#77AB55] rounded-full top-1/2 -translate-y-1/2 left-1 transition-all duration-200 ease-in-out`;
-
-        toggleSwitch.appendChild(toggleCircle);
-        toggleSwitch.addEventListener("click", () => {
-            const isEnabled = toggleSwitch.classList.contains("enabled");
-            if (isEnabled) {
-                toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(-0%, -50%)";
-                toggleCircle.style.left = "4px";
-            } else {
-                toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(100%, -50%)";
-                toggleCircle.style.left = "16px";
-            }
-        });
-
-        twoFactorGroup.appendChild(twoFactorLabel);
-        twoFactorGroup.appendChild(toggleSwitch);
-        return twoFactorGroup;
     }
 
     private createActionButtons(form: HTMLElement, overlay: HTMLElement): HTMLElement {

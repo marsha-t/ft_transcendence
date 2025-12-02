@@ -1,40 +1,48 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/auth/AuthServices.js";
-import { LoginData } from "../services/auth/types";
+import { LoginData, Login2FAData } from "../services/auth/types";
+import { navigate } from "../utils.js";
 import { AuthUtils } from "../utils/authUtils.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
+    private loginCard!: HTMLElement;
     private messageContainer!: HTMLElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
     private isLoading: boolean = false;
 
+    // 2FA elements
+    private otpGroup!: HTMLDivElement;
+    private otpInput!: HTMLInputElement;
+    private otpSubmitButton!: HTMLButtonElement;
+    private otpResendButton!: HTMLButtonElement;
+    private is2FAActive: boolean = false;
+    private currentUsername: string = '';
+
     public render(): HTMLElement {
-        // === Main container ===
-        this.container = document.createElement('div');
-        this.container.className = `
-        flex justify-center bg-color-yellow
-        h-full py-[23px]`;
-
-        const subContainer = document.createElement('div');
-        subContainer.className = `
-            flex flex-col items-center justify-start
-            bg-background rounded-[16px] shadow-lg
-            mx-[23px] w-[calc(100%-46px)]
-            h-auto py-6 px-10`;
-
-            
+         // === Main container ===
+         this.container = document.createElement('div');
+         this.container.className = `
+         flex justify-center bg-color-yellow
+         h-full py-[23px]`;
+ 
+         const subContainer = document.createElement('div');
+         subContainer.className = `
+             flex flex-col items-center justify-start
+             bg-background rounded-[16px] shadow-lg
+             mx-[23px] w-[calc(100%-46px)]
+             h-auto py-6 px-10`;
+        
         // === Heading ===
         const heading = document.createElement('h2');
         heading.className =
             'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
         heading.textContent = 'Welcome Back!';
-    
-    
+
         // === Login card (form wrapper) ===
-        const loginCard = document.createElement('div');
-        loginCard.className =
+        this.loginCard = document.createElement('div');
+        this.loginCard.className =
             `flex flex-col items-center justify-center 
             bg-background border-2 border-border-green 
             rounded-[16px] p-8` ;
@@ -49,8 +57,8 @@ export class Login implements IComponent {
             class="font-mono text-color-green underline ml-40 hover:opacity-80">
             Register
             </a>`;
-      
-        // === Form ===
+        
+        // Form
         this.form = document.createElement('form');
         this.form.className =
             'flex flex-col gap-[26px] items-center w-full leading-normal';
@@ -132,92 +140,199 @@ export class Login implements IComponent {
         this.form.appendChild(this.submitButton);
     
         // === Assemble card ===
-        loginCard.appendChild(registerLink);
-        loginCard.appendChild(this.form);
-    
-        // === Add to main container ===
+        this.loginCard.appendChild(registerLink);
+        this.loginCard.appendChild(this.form);
+
+        // OTP group (hidden initially)
+        this.otpGroup = document.createElement('div');
+        this.otpGroup.className = `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8 hidden`;
+
+        const otpLabel = document.createElement('label');
+        otpLabel.textContent = 'Enter 2FA Code';
+        otpLabel.htmlFor = 'otp';
+        otpLabel.className = 'text-lg font-mono text-color_white';
+
+        this.otpInput = document.createElement('input');
+        this.otpInput.type = 'text';
+        this.otpInput.id = 'otp';
+        this.otpInput.placeholder = '123456';
+        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+
+        // OTP submit button
+        this.otpSubmitButton = document.createElement('button');
+        this.otpSubmitButton.type = 'button';
+        this.otpSubmitButton.textContent = 'Verify';
+        this.otpSubmitButton.className = this.submitButton.className;
+
+        // Resend OTP button
+        this.otpResendButton = document.createElement('button');
+        this.otpResendButton.type = 'button';
+        this.otpResendButton.textContent = 'Resend OTP';
+        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
+
+        this.otpGroup.appendChild(otpLabel);
+        this.otpGroup.appendChild(this.otpInput);
+        this.otpGroup.appendChild(this.otpSubmitButton);
+        this.otpGroup.appendChild(this.otpResendButton);
+
+        // Message container
+        this.messageContainer = document.createElement('div');
+
+        // Build page
         subContainer.appendChild(heading);
-        subContainer.appendChild(loginCard);
+        subContainer.appendChild(this.loginCard);
+        subContainer.appendChild(this.otpGroup);
         subContainer.appendChild(this.messageContainer);
-    
-        // === Add to main container ===
         this.container.appendChild(subContainer);
 
-        this.attachEventListener();
+        // Attach listeners
+        this.attachEventListeners();
+
         return this.container;
     }
-    
-    
-    private attachEventListener(): void { 
-        this.form.addEventListener('submit', this.handleLogin.bind(this));
+
+    private createInput(id: string, labelText: string, type: string, placeholder: string): HTMLDivElement {
+        const group = document.createElement('div');
+        group.className = 'flex flex-col gap-2';
+
+        const label = document.createElement('label');
+        label.textContent = labelText;
+        label.htmlFor = id;
+        label.className = 'text-lg font-mono text-color_white';
+
+        const input = document.createElement('input');
+        input.type = type;
+        input.id = id;
+        input.name = id;
+        input.placeholder = placeholder;
+        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+
+        group.appendChild(label);
+        group.appendChild(input);
+
+        return group;
     }
-    
-    private async handleLogin(event: Event): Promise<void> {
+
+    private attachEventListeners() {
+        this.form.addEventListener('submit', this.handleLogin.bind(this));
+        this.otpSubmitButton.addEventListener('click', this.handle2FA.bind(this));
+        this.otpResendButton.addEventListener('click', this.handleResendOTP.bind(this));
+    }
+
+    private async handleLogin(event: Event) {
         event.preventDefault();
+        if (this.is2FAActive) return;
 
-        //here collecting data from user form;
         const formData = new FormData(this.form);
-
         const userData: LoginData = {
             username: formData.get('username') as string,
             password: formData.get('password') as string
         };
 
         this.setLoadingState(true);
-
-        //Here send data to API
-        try{
-            console.log("Here sending login data", userData);
-
+        try {
             const response = await apiServices.login(userData);
-            
-            //recieved successfully 
-            if(response.success){
-                this.showMessage(response.message,  'success');
+            const data = response?.data || response;
 
-                // ✅ SET USER AS LOGGED IN
+            if (data.twoFactorRequired) {
+                this.currentUsername = userData.username;
+                this.is2FAActive = true;
+
+                // Hide the entire login card
+                this.loginCard.classList.add('hidden');
+
+                this.otpGroup.classList.remove('hidden');
+                this.otpInput.value = '';
+                this.otpInput.focus();
+
+                this.showMessage(data.message || '2FA code sent', 'success');
+                return;
+            }
+
+            if (response.success) {
+                this.showMessage(response.message || 'Login successful', 'success');
+
+                // Reset UI && Set user as logged-in
                 AuthUtils.setLoggedIn({ username: userData.username });
-                this.form.reset(); //I need to clean th form after getting data
-                
-                //here i redirect login page to userprofile
-                setTimeout(() => {
-                    console.log("Current URL before navigation:", window.location.href);
-                    console.log("Current pathname:", window.location.pathname);
-                    console.log("Current hash:", window.location.hash);
-                    
-                    // Clear any existing hash first
-                    if (window.location.hash) {
-                        history.replaceState(null, '', window.location.pathname);
-                    }
-                    
-                    // Navigate to main
-                    history.pushState(null, '', '/main');
-                    console.log("URL after pushState:", window.location.href);
-                    
-                    // Trigger router update
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-                    
-                    console.log("PopState event dispatched");
-                }, 2000);
-            } else {
-                this.showMessage(response.message, 'error');
-            }
-        }catch(error: any){
-            console.log('Login failed', error);
 
-            let errorMessage = 'API error, check your connections';
-            if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.message) {
-                errorMessage = error.message;
+                this.form.reset();
+                this.loginCard.classList.remove('hidden');
+                this.otpGroup.classList.add('hidden');
+                this.is2FAActive = false;
+                this.currentUsername = '';
+
+                setTimeout(() => navigate("/profile"), 2000);
+
+            } else {
+                this.showMessage(response.message || 'Login failed', 'error');
             }
-            this.showMessage(errorMessage, 'error');
-        }finally {
+        } catch (err) {
+            console.error(err);
+            this.showMessage('API error', 'error');
+        } finally {
             this.setLoadingState(false);
         }
-        
     }
-    
+
+    private async handle2FA() {
+        const code = this.otpInput.value.trim();
+        if (!code) return this.showMessage('Enter 2FA code', 'error');
+
+        const payload: Login2FAData = {
+            username: this.currentUsername,
+            code
+        };
+
+        this.setLoadingState(true);
+        try {
+            const response = await apiServices.login2FA(payload);
+            const data = response?.data || response;
+
+            if (response.success) {
+                this.showMessage(response.message || 'Login successful', 'success');
+
+                // ✅ SET USER AS LOGGED IN
+                AuthUtils.setLoggedIn({ username: payload.username });
+                this.form.reset(); //I need to clean th form after getting data
+                console.log("isloggedin", AuthUtils.isLoggedIn());
+                
+                setTimeout(() => {
+                    navigate("/profile");
+                }, 2000);
+            } else {
+                this.showMessage(response.message || 'Login failed', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            this.showMessage('2FA verification failed', 'error');
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+
+    private async handleResendOTP() {
+        if (!this.currentUsername) return this.showMessage('No user to resend OTP for', 'error');
+
+        this.setLoadingState(true);
+        try {
+            const response = await apiServices.resendOTP({ username: this.currentUsername });
+            if (response.success) {
+                this.showMessage(response.message || 'OTP resent successfully', 'success');
+                this.otpInput.value = '';
+                this.otpInput.focus();
+            } else {
+                this.showMessage(response.message || 'Failed to resend OTP', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            this.showMessage('Resend OTP failed', 'error');
+        } finally {
+            this.setLoadingState(false);
+        }
+    }
+
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;

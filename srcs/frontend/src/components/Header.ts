@@ -3,6 +3,7 @@ import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { createButtonStyle } from "../utils";
 import { ProfileServices } from "../services/profile/ProfileServices.js";
 import { AuthServices } from "../services/auth/AuthServices.js";
+import { apiServices } from "../services/ApiServices";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
 
 export class Header implements IComponent {
@@ -303,7 +304,7 @@ export class Header implements IComponent {
             const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
             if (!confirmed) return;
     
-            const res = await profileService.logout();
+            const res = await apiServices.auth.logout();
             if (res.success) {
                 AuthUtils.setLoggedOut();
                 history.pushState(null, '', '/main');

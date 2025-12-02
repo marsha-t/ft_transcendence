@@ -3,6 +3,7 @@ import { createGameSession } from '../services/gameSessionService.js';
 import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
 import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
 import { getParentMatchIndex } from '../services/tournamentService.js';
+import { updateUserStats, getUserInfo } from '../services/authServiceClient.js';
 
 async function gameSessionPlayersRoutes(app, options) {
 
@@ -52,19 +53,18 @@ async function gameSessionPlayersRoutes(app, options) {
 			}
 			let displayName;
 			if (playerUserId) {
-				const user = await prisma.user.findUnique({
-					where: { id: Number(playerUserId) },
-					select: { username: true },
-				});
-				if (!user) {
+				// Call User Service API in Auth-service instead of direct DB access
+				const userInfo = await getUserInfo(playerUserId);
+				if (!userInfo) {
 					throw { code: 404, message: 'User not found' };
 				}
-				displayName = user.username;
+				displayName = userInfo.username;
 			} else if (guestName) {
 				displayName = guestName;
 			} else {
 				throw { code: 400, message: 'Guest must provide a guestName' };
 			}
+			
 			
 			if (session.players.some(p => p.displayName === displayName)) {
 				throw { code: 409, message: 'Display name is already taken in this session' };
@@ -78,7 +78,12 @@ async function gameSessionPlayersRoutes(app, options) {
 					displayName,
 					side,
 				},
-				include: { user: { select: { id: true, username: true } }, },
+				include: { // removing user since its not part of the game-tournament-service-db schema
+					session: true,
+					winnerOfGame: true,
+					tournamentPlayer: true,
+					events: true,
+				  },
 			});
 
 			return reply.code(201).send(newPlayer);
@@ -172,41 +177,22 @@ async function gameSessionPlayersRoutes(app, options) {
 			if (finishedGame) {
 				const winnerUserId = player.userId;
 				const losingPlayer = finishedGame.players.find(p => p.userId !== winnerUserId);
-
-				// Update stats for registered users
+			  
+				// ✅ Call Auth Service API instead of direct DB update
 				if (winnerUserId) {
-					const winner = await prisma.user.findUnique({ where: { id: winnerUserId }});
-					const totalMatches = winner.totalMatches + 1;
-					const totalWins = winner.totalWins + 1;
-					const winRate = totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
-					const avgScore = (winner.avgScore * (totalMatches - 1) + player.score) / totalMatches;
-					
-					await prisma.user.update({ 
-						where: { id: winnerUserId },
-						data: { 
-							totalMatches, 
-							totalWins, 
-							winRate, 
-							avgScore, 
-							currentWinStreak: winner.currentWinStreak + 1,  
-							longestWinStreak: Math.max(winner.longestWinStreak, winner.currentWinStreak + 1),
-							lastPlayedAt: new Date(),
-						},
-					});
+				  await updateUserStats(winnerUserId, {
+					won: true,
+					score: player.score,
+					opponentScore: losingPlayer?.score || 0
+				  });
 				}
 				
 				if (losingPlayer?.userId) {
-					const loser = await prisma.user.update({
-						where: { id: losingPlayer.userId },
-						data: { totalMatches: { increment: 1 } },
-					});
-
-					const newWinRate = loser.totalMatches > 0 ? (loser.totalWins / loser.totalMatches) * 100 : 0;
-					
-					await prisma.user.update({
-						where: { id: loser.id },
-						data: { winRate: newWinRate },
-					});
+				  await updateUserStats(losingPlayer.userId, {
+					won: false,
+					score: losingPlayer.score,
+					opponentScore: player.score
+				  });
 				}
 
 				// Tournmament progression

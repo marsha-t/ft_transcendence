@@ -1,27 +1,94 @@
-import prisma from "../prisma/prismaClient.js";
-import {
-  matchHistorySchema,
-  gameDashboardSchema,
-  userDashboardSchema,
-} from "../schemas/dashboard.js";
+import {prismaUserData, prismaGameData} from "../prisma/prismaClient.js";
+import { matchHistorySchema, gameDashboardSchema, userDashboardSchema } from "../schemas/dashboard.js";
 
 async function dashboardRoutes(app, options) {
+  // Play counts for heatmap (moved from Profile Service)
+  app.get('/stats/play-counts', {
+    preHandler: [app.authenticate]
+  }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const { start, end } = request.query;
+
+      if (!start || !end) {
+        return reply.code(400).send({ 
+          error: 'start and end query parameters are required' 
+        });
+      }
+
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+
+      // Validate dates
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return reply.code(400).send({ error: 'Invalid date format' });
+      }
+
+      if (startDate > endDate) {
+        return reply.code(400).send({ 
+          error: 'start date must be before end date' 
+        });
+      }
+
+      // ✅ Query game database (prismaGame) instead of user database
+      const sessions = await prismaGameData.gameSessionPlayer.findMany({
+        where: {
+          userId: userId,
+          session: { 
+            status: 'FINISHED',
+            createdAt: {
+              gte: startDate,
+              lte: endDate
+            }
+          }
+        },
+        select: { 
+          session: { 
+            select: { createdAt: true } 
+          } 
+        }
+      });
+
+      // Group by date (YYYY-MM-DD)
+      const countsByDate = {};
+      sessions.forEach(s => {
+        const created = s.session && s.session.createdAt;
+        if (!created) return;
+        const d = created.toISOString().split('T')[0];
+        countsByDate[d] = (countsByDate[d] || 0) + 1;
+      });
+
+      // Build result array for the range (include zero days)
+      const result = [];
+      const cur = new Date(startDate);
+      while (cur <= endDate) {
+        const key = cur.toISOString().split('T')[0];
+        result.push({ date: key, count: countsByDate[key] || 0 });
+        cur.setDate(cur.getDate() + 1);
+      }
+
+      return reply.code(200).send(result);
+    } catch (error) {
+      request.log.error(error);
+      return reply.code(500).send({ 
+        error: 'Failed to fetch play counts' 
+      });
+    }
+  });
   // Fetch match history
-  /*
-		- 
-	*/
-  app.get(
-    "/stats/users/match-history",
+  app.get("/stats/users/match-history",
     { schema: matchHistorySchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
 
       try {
-        const user = await prisma.user.findUnique({ where: { id: userId } });
+        // Check user exists (from user-data.db)
+        const user = await prismaUserData.user.findUnique({ where: { id: userId } });
         if (!user) {
           return reply.code(404).send({ error: "User not found" });
         }
-        const matches = await prisma.gameSessionPlayer.findMany({
+        // Fetch matches (from game-tournament.db)
+        const matches = await prismaGameData.gameSessionPlayer.findMany({
           where: {
             userId: userId,
             session: { status: "FINISHED" },
@@ -29,11 +96,7 @@ async function dashboardRoutes(app, options) {
           include: {
             session: {
               include: {
-                players: {
-                  include: {
-                    user: { select: { avatar: true } },
-                  },
-                },
+                players: true,
                 tournamentMatch: true,
               },
             },
@@ -42,7 +105,20 @@ async function dashboardRoutes(app, options) {
             session: { createdAt: "desc" },
           },
         });
-
+         // Get all user IDs to fetch avatars
+         const userIds = new Set();
+         matches.forEach(m => {
+           m.session.players.forEach(p => {
+             if (p.userId) userIds.add(p.userId);
+           });
+         });
+ 
+         // Fetch user avatars (from user-social.db)
+         const users = await prismaUserData.user.findMany({
+           where: { id: { in: Array.from(userIds) } },
+           select: { id: true, avatar: true }
+         });
+        const userAvatarMap = new Map(users.map(u => [u.id, u.avatar]));
         const matchHistory = matches
           .filter((m) => m.session.winnerPlayerId !== null)
           .map((m) => {
@@ -50,8 +126,9 @@ async function dashboardRoutes(app, options) {
             return {
               date: m.session.createdAt,
               opponent: opponent?.displayName ?? "Unknown",
-              opponentAvatar:
-                opponent?.user?.avatar ?? "/uploads/avatars/default.png",
+              opponentAvatar: opponent?.userId 
+                ? userAvatarMap.get(opponent.userId) || "/uploads/avatars/default.png"
+                : "/uploads/avatars/default.png",
               userScore: m.score,
               opponentScore: opponent?.score ?? 0,
               result: m.session.winnerPlayerId === m.id ? "WIN" : "LOSS",
@@ -75,37 +152,21 @@ async function dashboardRoutes(app, options) {
 		- Fetches timeline of score progression (removing paused time)
 		- Fetches player info: avatar, score, time to first point, average time per point, total matches, total wins, win rate
 	*/
-  app.get(
-    "/stats/game",
+  app.get("/stats/game",
     { schema: gameDashboardSchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
       const sessionIdHeader = request.headers["x-current-session-id"];
       try {
-        const session = await prisma.gameSession.findUnique({
+        const session = await prismaGameData.gameSession.findUnique({
           where: { id: Number(sessionIdHeader) },
           include: {
-            players: {
-              include: {
-                user: {
-                  select: {
-                    avatar: true,
-                    totalMatches: true,
-                    totalWins: true,
-                    winRate: true,
-                  },
-                },
-              },
-            },
+            players: true,
             events: {
               orderBy: { timestamp: "asc" },
               include: { player: { select: { side: true } } },
             },
-            winnerPlayer: {
-              include: {
-                user: { select: { avatar: true } },
-              },
-            },
+            winnerPlayer: true,
             tournamentMatch: {
               include: { tournament: true },
             },
@@ -122,7 +183,7 @@ async function dashboardRoutes(app, options) {
         if (!session.tournamentMatch) {
           isAuthorized = session.players.some((p) => p.userId === userId);
         } else {
-          const tournamentPlayers = await prisma.tournamentPlayer.findMany({
+          const tournamentPlayers = await prismaGameData.tournamentPlayer.findMany({
             where: { tournamentId: session.tournamentMatch.tournamentId },
             select: { userId: true },
           });
@@ -136,14 +197,34 @@ async function dashboardRoutes(app, options) {
         }
 
         // Summary
+        // Get user IDs for avatar/stats lookup
+        const userIds = session.players
+          .filter(p => p.userId)
+          .map(p => p.userId);
+
+        // Fetch user data (from user-social.db)
+        const users = await prismaUserData.user.findMany({
+          where: { id: { in: userIds } },
+          select: {
+            id: true,
+            avatar: true,
+            totalMatches: true,
+            totalWins: true,
+            winRate: true,
+          }
+        });
+        const userDataMap = new Map(users.map(u => [u.id, u]));
+         // Build summary
         const winnerPlayer = session.players.find(
           (p) => p.id === session.winnerPlayerId
         );
+        const winnerUserData = winnerPlayer?.userId 
+        ? userDataMap.get(winnerPlayer.userId)
+        : null;
         const winner = winnerPlayer
           ? {
               displayName: winnerPlayer.displayName,
-              avatar:
-                winnerPlayer.user?.avatar ?? "/uploads/avatars/default.png",
+              avatar: winnerUserData?.avatar ?? "/uploads/avatars/default.png",
               side: winnerPlayer.side,
             }
           : null;
@@ -204,6 +285,8 @@ async function dashboardRoutes(app, options) {
 
         // Player stats
         const playerStats = session.players.map((p) => {
+          const userData = p.userId ? userDataMap.get(p.userId) : null;
+
           const playerEvents = session.events.filter(
             (e) => e.type === "POINT" && e.playerId === p.id
           );
@@ -221,17 +304,17 @@ async function dashboardRoutes(app, options) {
                 (playerEvents.length - 1)
               : null;
 
-          return {
-            displayName: p.displayName,
-            side: p.side,
-            avatar: p.user?.avatar ?? "/uploads/avatars/default.png",
-            score: p.score,
-            timeToFirstPointSec,
-            avgTimePerPointSec,
-            totalMatches: p.user?.totalMatches ?? 0,
-            totalWins: p.user?.totalWins ?? 0,
-            winRate: p.user?.winRate ?? 0,
-          };
+              return {
+                displayName: p.displayName,
+                side: p.side,
+                avatar: userData?.avatar ?? "/uploads/avatars/default.png",
+                score: p.score,
+                timeToFirstPointSec,
+                avgTimePerPointSec,
+                totalMatches: userData?.totalMatches ?? 0,
+                totalWins: userData?.totalWins ?? 0,
+                winRate: userData?.winRate ?? 0,
+              };
         });
 
         return reply.send({
@@ -258,15 +341,14 @@ async function dashboardRoutes(app, options) {
   );
 
   // Fetch data for user dashboard
-  app.get(
-    "/stats/user",
+  app.get("/stats/user",
     { schema: userDashboardSchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
 
       try {
         // Overview stats
-        const overviewData = await prisma.user.findUnique({
+        const overviewData = await prismaUserData.user.findUnique({
           where: { id: Number(userId) },
           select: {
             totalMatches: true,
@@ -290,18 +372,17 @@ async function dashboardRoutes(app, options) {
         };
 
         // Line chart: win rate over time
-        const sessions = await prisma.gameSession.findMany({
+        // Fetch sessions (from game-tournament.db)
+        const sessions = await prismaGameData.gameSession.findMany({
           where: {
             status: "FINISHED",
             players: { some: { userId: Number(userId) } },
           },
           include: {
-            players: {
-              include: { user: { select: { id: true, username: true } } },
-            },
-            winnerUser: { select: { id: true, username: true } },
+            players: true,
           },
         });
+        // Line chart: win rate over time
         const dailyStatsMap = new Map();
         for (const s of sessions) {
           if (!s.endedAt) continue;
@@ -319,7 +400,7 @@ async function dashboardRoutes(app, options) {
         );
 
         // Score histogram
-        const scores = await prisma.gameSessionPlayer.findMany({
+        const scores = await prismaGameData.gameSessionPlayer.findMany({
           where: { userId: Number(userId) },
           select: { score: true },
         });
@@ -327,6 +408,7 @@ async function dashboardRoutes(app, options) {
 
         // Wins per opponent
         const opponents = new Map();
+        const opponentUserIds = new Set();
 
         for (const s of sessions) {
           const opponentPlayer = s.players.find(
@@ -335,8 +417,10 @@ async function dashboardRoutes(app, options) {
           if (!opponentPlayer) continue;
 
           const opponentId = opponentPlayer.userId;
+          opponentUserIds.add(opponentId);
+
           const existing = opponents.get(opponentId) || {
-            name: opponentPlayer.user?.username || opponentPlayer.displayName,
+            name: opponentPlayer.displayName,
             wins: 0,
             total: 0,
           };
@@ -347,17 +431,25 @@ async function dashboardRoutes(app, options) {
           opponents.set(opponentId, existing);
         }
 
-        const winsPerOpponent = Array.from(opponents.values())
-          .map((o) => ({
-            opponent: o.name,
-            winRate: Math.round((o.wins / o.total) * 100),
-            total: o.total,
+        // Fetch opponent usernames (from user-social.db)
+        const opponentUsers = await prismaUserData.user.findMany({
+          where: { id: { in: Array.from(opponentUserIds) } },
+          select: { id: true, username: true }
+        });
+        const opponentUsernameMap = new Map(
+          opponentUsers.map(u => [u.id, u.username])
+        );
+        const winsPerOpponent = Array.from(opponents.entries())
+          .map(([opponentId, data]) => ({
+            opponent: opponentUsernameMap.get(opponentId) || data.name,
+            winRate: Math.round((data.wins / data.total) * 100),
+            total: data.total,
           }))
           .sort((a, b) => b.winRate - a.winRate)
           .slice(0, 5);
 
         // Leaderboard
-        const users = await prisma.user.findMany({
+        const users = await prismaUserData.user.findMany({
           select: {
             id: true,
             username: true,

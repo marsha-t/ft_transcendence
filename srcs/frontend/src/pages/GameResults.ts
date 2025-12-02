@@ -21,7 +21,10 @@ export class GameResults implements IComponent {
     this.tournamentId = state?.tournamentId ?? null;
 
     if (this.isTournament) {
-      this.onMatchEnd = TournamentStore.onMatchEnd;
+      const original = TournamentStore.onMatchEnd; // this is read the moment GameResults is constructed
+      this.onMatchEnd = async () => { // this.onMatchEnd waits for the callback so that GameResults receives correct, updated callback for match
+        await original?.();
+      };
     }
   }
 
@@ -67,9 +70,17 @@ export class GameResults implements IComponent {
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Next";
       nextBtn.className = createButtonStyle("w-[160px] h[56px]", 'green');
-      nextBtn.onclick = () => {
+      nextBtn.onclick = async () => {
+        await this.onMatchEnd?.();
+
         TournamentStore.isInternalTournamentNavigation = true;
-        navigate("/tournament/match", {tournamentId: this.tournamentId});
+         if (TournamentStore.nextIsFinal) {
+            navigate("/tournament/results", { tournamentId: this.tournamentId });
+            TournamentStore.nextIsFinal = false;
+          } else {
+            navigate("/tournament/match", { tournamentId: this.tournamentId });
+          }
+        // navigate("/tournament/match", {tournamentId: this.tournamentId});
         this.onMatchEnd!();
       };
       btnContainer.appendChild(nextBtn);
