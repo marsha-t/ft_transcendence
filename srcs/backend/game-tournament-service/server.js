@@ -39,6 +39,7 @@ await app.register(cors, {
   credentials: true,
 });
 
+
 // JWT setup
 if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
@@ -60,8 +61,16 @@ app.register(gameSessionRoutes, { prefix: '/api/gameSessionServ' });
 app.register(gameSessionPlayersRoutes, { prefix: '/api/gameSessionPlayersServ' });
 app.register(tournamentRoutes, { prefix: '/api/tournamentServ' });
 
+// Health check endpoint
+app.get('/health', async (request, reply) => {
+  return { 
+    status: 'ok', 
+    service: 'auth-service'  // Change name for each service
+  };
+});
+
 // Start server
-const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5006;
+const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5005;
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: '0.0.0.0' });

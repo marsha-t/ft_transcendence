@@ -7,7 +7,7 @@ import fastifyCookie from '@fastify/cookie';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import profileRoutes from './routes/profile.js'; 
+import profileRoutes from './routes/profile.js';
 import AjvErrors from 'ajv-errors';
 
 // Resolve __dirname
@@ -60,11 +60,19 @@ app.decorate('authenticate', async (request, reply) => {
   }
 });
 
+// Health check endpoint
+app.get('/health', async (request, reply) => {
+  return { 
+    status: 'ok', 
+    service: 'auth-service'  // Change name for each service
+  };
+});
+
 // Register Auth Routes
 app.register(profileRoutes, { prefix: '/api/profileServ' });
 
 // Start server
-const PORT = process.env.PROFILE_SERVICE_PORT || 5003;
+const PORT = process.env.PROFILE_SERVICE_PORT || 5002;
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: '0.0.0.0' });

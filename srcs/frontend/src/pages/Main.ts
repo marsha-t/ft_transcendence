@@ -1,4 +1,6 @@
 import { IComponent } from "../components/IComponent";
+import { AuthUtils } from "../utils/authUtils.js"; 
+import { createButtonStyle } from "../utils";
 
 export class Main implements IComponent {
   public render(): HTMLElement {
@@ -43,55 +45,73 @@ export class Main implements IComponent {
     rightSection.className = `
       flex flex-col justify-center items-center flex-1 gap-4`;
 
-    const challengeHeading = document.createElement('h2');
-    challengeHeading.className = `
-      text-white text-[36px] font-pixel mb-6
-      tracking-wider text-center`;
-    challengeHeading.textContent = "Select a Challenge";
-    rightSection.appendChild(challengeHeading);
+      
+      if (AuthUtils.isLoggedIn()) {
+        const challengeHeading = document.createElement('h2');
+        challengeHeading.className = `
+          text-white text-[36px] font-pixel mb-6
+          tracking-wider text-center`;
+        challengeHeading.textContent = "Select a Challenge";
+        rightSection.appendChild(challengeHeading);
+        const tournamentBtn = document.createElement('a');
+        tournamentBtn.href = "/tournament";
+        tournamentBtn.className =
+          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+          "font-bold rounded-lg tracking-widest " + 
+          "shadow-[0_5px_0_var(--color-button-second)] " +
+          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+          "hover:translate-y-1 active:translate-y-2 " +
+          "transition-all duration-150 mt-5 text-center no-underline";
+        tournamentBtn.textContent = "TOURNAMENT";
+    
+        const aiButton = document.createElement('a');
+        // aiButton.href = "/game"; // add link when AI game is implemented
+        aiButton.className =
+          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+          "font-bold rounded-lg tracking-widest " +
+          "shadow-[0_5px_0_var(--color-button-second)] " +
+          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+          "hover:translate-y-1 active:translate-y-2 " +
+          "transition-all duration-150 mt-5 text-center no-underline";
+        aiButton.textContent = "PLAY WITH AI";
+      
+        const playButton = document.createElement('a');
+        playButton.href = "/game";
+        // playButton.className =
+        //   "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white font-bold rounded-lg " +
+        //   "shadow-[0_5px_0_var(--color-button-second)] hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+        //   "hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline";
+    
+        playButton.className =
+          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+          "font-bold rounded-lg tracking-widest " + 
+          "shadow-[0_5px_0_var(--color-button-second)] " +
+          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+          "hover:translate-y-1 active:translate-y-2 " +
+          "transition-all duration-150 mt-5 text-center no-underline";
+    
+        playButton.textContent = "PLAY WITH FRIEND";
+    
+        rightSection.appendChild(tournamentBtn);
+        rightSection.appendChild(aiButton);
+        rightSection.appendChild(playButton);
+    } else { 
+      // GIF placeholder
+      const gif = document.createElement('img');
+      gif.src = "./pong_game.gif"; // path to your GIF
+      // gif.alt = "Bouncing Pong Ball";
+      gif.className = "w-[600px] h-[350px]"; // Tailwind classes for size & simple animation
+      rightSection.appendChild(gif);
 
-    const tournamentBtn = document.createElement('a');
-    tournamentBtn.href = "/tournament";
-    tournamentBtn.className =
-      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-      "font-bold rounded-lg tracking-widest " + 
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5 text-center no-underline";
-    tournamentBtn.textContent = "TOURNAMENT";
-
-    const aiButton = document.createElement('a');
-    // aiButton.href = "/game"; // add link when AI game is implemented
-    aiButton.className =
-      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-      "font-bold rounded-lg tracking-widest " +
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5 text-center no-underline";
-    aiButton.textContent = "PLAY WITH AI";
-  
-    const playButton = document.createElement('a');
-    playButton.href = "/game";
-    // playButton.className =
-    //   "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white font-bold rounded-lg " +
-    //   "shadow-[0_5px_0_var(--color-button-second)] hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-    //   "hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline";
-
-    playButton.className =
-      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-      "font-bold rounded-lg tracking-widest " + 
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5 text-center no-underline";
-
-    playButton.textContent = "PLAY WITH FRIEND";
-
-    rightSection.appendChild(tournamentBtn);
-    rightSection.appendChild(aiButton);
-    rightSection.appendChild(playButton);
+      const preloginButton = document.createElement('button');
+      preloginButton.textContent = "Log in to unlock challenges!";
+      preloginButton.className = createButtonStyle("animate-bounce", 'green');
+      preloginButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = "/login";
+      })
+      rightSection.appendChild(preloginButton);
+    }
 
     // Add to subcontainer
     subContainer.appendChild(textSection);

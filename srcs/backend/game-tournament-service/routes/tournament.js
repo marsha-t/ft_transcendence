@@ -8,6 +8,7 @@ import {
   finalizeTournamentSchema,
 } from "../schemas/tournament.js";
 import { getParentMatchIndex } from "../services/tournamentService.js";
+import { getUserInfo } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app, options) {
   // Validate player
@@ -16,26 +17,41 @@ async function tournamentRoutes(app, options) {
 	*/
   app.post('/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const { username, password } = request.body;
-      try {
-        if (username && password) {
-          const user = await prisma.user.findUnique({ where: { username } });
-          if (!user) {
-            return reply
-              .code(401)
-              .send({ valid: false, error: "Invalid username or password " });
+    try {
+      if (username && password) {
+        // ✅ FIX: Call Auth Service to validate credentials
+        try {
+          const response = await fetch(
+            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/auth/validate`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            }
+          );
+
+          if (!response.ok) {
+            return reply.code(401).send({ 
+              valid: false, 
+              error: "Invalid username or password" 
+            });
           }
-          const isPasswordValid = await bcrypt.compare(password, user.password);
-          if (!isPasswordValid) {
-            return reply
-              .code(401)
-              .send({ valid: false, error: "Invalid username or password" });
-          }
+
+          const userData = await response.json();
+          
           return reply.send({
             valid: true,
-            displayName: user.username,
-            userId: user.id,
+            displayName: userData.username,
+            userId: userData.id,
+          });
+        } catch (err) {
+          console.error('Failed to validate user:', err);
+          return reply.code(500).send({ 
+            valid: false, 
+            error: "Failed to validate credentials" 
           });
         }
+      }
       } catch (err) {
         request.log.error(err);
         return reply
@@ -71,13 +87,16 @@ async function tournamentRoutes(app, options) {
       }
       
       try {
-        const creator = await prisma.user.findUnique({
-          where: { id: creatorId },
-          select: { username: true },
-        });
-        if (!creator)
+        // ✅ FIX: Fetch creator username from Auth Service
+        let creatorUsername;
+        try {
+          const creatorInfo = await getUserInfo(creatorId);
+          creatorUsername = creatorInfo.username;
+        } catch (err) {
+          console.error('Failed to fetch creator info:', err);
           return reply.code(404).send({ error: "Creator user not found" });
-
+        }
+  
         const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
         const numMatches = bracketSize - 1;
         
@@ -92,7 +111,7 @@ async function tournamentRoutes(app, options) {
         const tournamentPlayers = [
         {
           tournamentId: tournament.id,
-          displayName: creator.username,
+          displayName: creatorUsername,
           userId: creatorId,
           isGuest: false,
         },
