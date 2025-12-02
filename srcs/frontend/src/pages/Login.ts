@@ -3,6 +3,7 @@ import { apiServices } from "../services/auth/AuthServices.js";
 import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils.js";
 import { AuthUtils } from "../utils/authUtils.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
@@ -38,7 +39,7 @@ export class Login implements IComponent {
         const heading = document.createElement('h2');
         heading.className =
             'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
-        heading.textContent = 'Welcome Back!';
+        heading.textContent = t('auth.welcomeBack') as string;
 
         // === Login card (form wrapper) ===
         this.loginCard = document.createElement('div');
@@ -69,7 +70,7 @@ export class Login implements IComponent {
     
         const usernameLabel = document.createElement('label');
         usernameLabel.className = 'text-lg font-mono text-color_white';
-        usernameLabel.textContent = 'USERNAME';
+        usernameLabel.textContent = t('auth.username') as string;
         usernameLabel.htmlFor = 'username';
     
         const usernameInput = document.createElement('input');
@@ -96,7 +97,7 @@ export class Login implements IComponent {
     
         const passwordLabel = document.createElement('label');
         passwordLabel.className = 'text-lg font-mono text-color_white';
-        passwordLabel.textContent = 'Password';
+        passwordLabel.textContent = t('auth.password') as string;
         passwordLabel.htmlFor = 'password';
     
         const passwordInput = document.createElement('input');
@@ -127,7 +128,7 @@ export class Login implements IComponent {
             "transition-all duration-150 mt-5 text-center no-underline";
 
         this.submitButton.type = 'submit';
-        this.submitButton.textContent = 'Login';
+        this.submitButton.textContent = t('auth.login-btn') as string;
     
         // === Message container ===
         this.messageContainer = document.createElement('div');
