@@ -225,6 +225,7 @@ export class TournamentSetup implements IComponent {
 
     const addBtn = document.createElement("button");
     addBtn.textContent = "ADD PLAYER";
+    addBtn.id = "add-player-btn";
     addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
       py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
       shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8`;
@@ -239,6 +240,9 @@ export class TournamentSetup implements IComponent {
       )[1] as HTMLInputElement;
       await this.handleAddPlayer(username, password, guestName);
       username.value = password.value = guestName.value = "";
+      
+      const warning = guestForm.querySelector("#guest-warning") as HTMLElement;
+      if (warning) warning.classList.add("hidden");
       this.updateLineup();
     });
 
@@ -261,6 +265,7 @@ export class TournamentSetup implements IComponent {
 
     return form;
   }
+
   private async handleAddPlayer(
     username: HTMLInputElement,
     password: HTMLInputElement,
@@ -329,6 +334,16 @@ export class TournamentSetup implements IComponent {
     const added = TournamentDraftStore.players.length;
     const remaining = totalNeeded - added - 1;
     if (remaining <= 0) this.showConfirmButton();
+  }
+
+  private showAddPlayerButton() {
+    const btn = document.getElementById("add-player-btn") as HTMLButtonElement;
+    if (btn) btn.style.display = "block";
+  }
+
+  private hideAddPlayerButton() {
+    const btn = document.getElementById("add-player-btn") as HTMLButtonElement;
+    if (btn) btn.style.display = "none";
   }
 
   private async createLineupSection(): Promise<HTMLElement> {
@@ -412,8 +427,13 @@ export class TournamentSetup implements IComponent {
 
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
     if (TournamentDraftStore.players.length >= totalNeeded - 1)
+    {
+      this.hideAddPlayerButton();
       this.showConfirmButton();
-    else this.hideConfirmButton();
+    } else {
+      this.showAddPlayerButton();
+      this.hideConfirmButton();
+    }
   }
 
   private async fetchCreatorUsername() {
