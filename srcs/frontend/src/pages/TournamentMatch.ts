@@ -142,7 +142,7 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
+     const confirmLeave = await showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
     if (!confirmLeave) return false;
     try {
       if (this.gameInstance) {
