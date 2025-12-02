@@ -3,6 +3,7 @@ import { apiServices } from '../services/ApiServices.js';
 import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/profile/types'; 
 import { getAvatarUrl, showMessage } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class friendsAndUsers implements IComponent {
     private container!: HTMLElement;
@@ -38,14 +39,14 @@ export class friendsAndUsers implements IComponent {
     friends-tab text-[18px] font-semibold cursor-pointer
     hover:text-[--color-button]
   `;
-  friendsTitle.textContent = "Friends";
+  friendsTitle.textContent = t("profile.friends") as string;
 
   const requestTitle = document.createElement("button");
   requestTitle.className = `
     requests-tab text-[18px] font-semibold cursor-pointer
     hover:text-[--color-button]
   `;
-  requestTitle.textContent = "Requests";
+  requestTitle.textContent = t("profile.requests") as string;
 
   // --- Set active style ---
   const setActive = (active: "friends" | "requests") => {
@@ -73,7 +74,7 @@ export class friendsAndUsers implements IComponent {
   const addFriendBtn = document.createElement("button");
   addFriendBtn.className = createButtonStyle("w-[200px] h-[40px] font-pixel  whitespace-nowrap", 'green'); //
   addFriendBtn.classList.add("mb-2");
-  addFriendBtn.textContent = "Add Friend";
+  addFriendBtn.textContent = t("profile.addFriends") as string;
   addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
 
   // --- Assemble Header ---
@@ -267,7 +268,7 @@ export class friendsAndUsers implements IComponent {
     hover:bg-[#77AB55] hover:text-white
     transition-all duration-200
   `;
-    acceptBtn.textContent = "Accept";
+    acceptBtn.textContent = t("profile.accept") as string;
     acceptBtn.addEventListener("click", async () => {
       // console.log(`Accepted friend request from ${name}`);
       // handle accept logic !!!
@@ -297,7 +298,7 @@ export class friendsAndUsers implements IComponent {
     hover:bg-[#C44C4C] hover:text-white
     transition-all duration-200
   `;
-    declineBtn.textContent = "Decline";
+    declineBtn.textContent = t("profile.decline") as string;
     declineBtn.addEventListener("click", async () => {
     const res = await apiServices.profile.respondToRequest(name, "reject");
     if (res.success) {
@@ -359,7 +360,7 @@ private updateFriendsList(): void {
     if (this.isFriendsActive) {
         if (this.friendsListData.length === 0) {
             const emptyState = document.createElement("div");
-            emptyState.textContent = "No friends yet";
+            emptyState.textContent = t("profile.noFriends") as string;
             emptyState.className = "text-center text-gray-400 mt-4";
             friendsList.appendChild(emptyState);
         } else {
@@ -370,7 +371,7 @@ private updateFriendsList(): void {
     } else {
         if (this.requestsListData.length === 0) {
             const emptyState = document.createElement("div");
-            emptyState.textContent = "No pending requests";
+            emptyState.textContent = t("profile.noRequests") as string;
             emptyState.className = "text-center text-gray-400 mt-4";
             friendsList.appendChild(emptyState);
         } else {
@@ -416,7 +417,7 @@ private openAddFriendPopup(): void {
   font-pixel font-bold text-[16px] w-full h-[18px]
   text-white
   `;
-  title.textContent = "Search for Users";
+  title.textContent = t("profile.searchForFriends") as string;
 
   const closeBtn = document.createElement("button");
   closeBtn.className = `absolute top-2 right-2
@@ -507,7 +508,7 @@ private openAddFriendPopup(): void {
 
       if (isPending) {
         const pendingLabel = document.createElement("span");
-        pendingLabel.textContent = "Pending";
+        pendingLabel.textContent = t("profile.pending") as string;
         pendingLabel.className = `
           px-4 py-1 rounded-[7px]
           border border-[#77AB55] text-[#77AB55]
@@ -517,7 +518,7 @@ private openAddFriendPopup(): void {
         action.appendChild(pendingLabel);
       } else {
         const addBtn = document.createElement("button");
-        addBtn.textContent = "Add Friend";
+        addBtn.textContent = t("profile.addFriend") as string;
         addBtn.className = `
             px-4 py-1 rounded-[7px]
             border border-[#77AB55]
@@ -532,7 +533,7 @@ private openAddFriendPopup(): void {
             localPending.add(user.username);
             // Swap the button for a non-interactive Pending label immediately
             const pendingLabel = document.createElement("span");
-            pendingLabel.textContent = "Pending";
+            pendingLabel.textContent = t("profile.pending") as string;
             pendingLabel.className = `
                 px-4 py-1 rounded-[7px]
                 border border-[#77AB55] text-[#77AB55]

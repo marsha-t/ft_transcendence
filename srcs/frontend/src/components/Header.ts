@@ -72,13 +72,13 @@ export class Header implements IComponent {
 
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
-        rightNav.className = 'flex items-center gap-[32px] w-[500px] h-[45px]';
+        rightNav.className = 'flex items-center gap-[32px] w-[600px] h-[45px]';
 
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
 
         this.buttonsGroup = document.createElement('div');
-        this.buttonsGroup.className = 'flex items-center gap-[17px] w-[312px] h-[42px] text-[900] text-[18px]';
+        this.buttonsGroup.className = 'flex items-center gap-[17px] w-[500px] h-[42px] text-[900] text-[18px]';
 
         // Create language switcher
         this.languageSwitcher = this.createLanguageSwitcher();
@@ -95,7 +95,6 @@ export class Header implements IComponent {
 
         rightNav.appendChild(this.linksGroup);
         rightNav.appendChild(this.buttonsGroup);
-        rightNav.appendChild(this.languageSwitcher);
         // Setup event listener BEFORE initial update
         window.addEventListener('authChange', async () => {
             await this.updateAuthButtons();
@@ -112,48 +111,48 @@ export class Header implements IComponent {
         return rightNav;
     }
 
-    private createLanguageSwitcher(): HTMLElement {
-        const container = document.createElement('div');
-        container.className = 'relative inline-block ml-4';
+    // private createLanguageSwitcher(): HTMLElement {
+    //     const container = document.createElement('div');
+    //     container.className = 'relative inline-block ml-4';
 
-        const currentLang = getCurrentLanguage();
-        const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
+    //     const currentLang = getCurrentLanguage();
+    //     const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
 
-        container.innerHTML = `
-            <button 
-                class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-color-green rounded-lg transition-colors border border-border-green text-color_white font-pixel text-[14px]"
-                aria-label="${String(t('settings.selectLanguage'))}"
-            >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
-                </svg>
-                <span class="font-medium">${currentLangInfo.nativeName}</span>
-                <svg class="w-3 h-3 transition-transform dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </button>
+    //     container.innerHTML = `
+    //         <button 
+    //             class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-color-green rounded-lg transition-colors border border-border-green text-color_white font-pixel text-[14px]"
+    //             aria-label="${String(t('settings.selectLanguage'))}"
+    //         >
+    //             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+    //                       d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+    //             </svg>
+    //             <span class="font-medium">${currentLangInfo.nativeName}</span>
+    //             <svg class="w-3 h-3 transition-transform dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
+    //                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+    //             </svg>
+    //         </button>
             
-            <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50">
-                ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
-                    <button 
-                        class="lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors flex items-center justify-between text-color_white font-pixel text-[14px] ${code === currentLang ? 'bg-color-green bg-opacity-30' : ''}"
-                        data-lang="${code}"
-                    >
-                        <span class="font-medium">${info.nativeName}</span>
-                        ${code === currentLang ? `
-                            <svg class="w-4 h-4 text-color-yellow" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                            </svg>
-                        ` : ''}
-                    </button>
-                `).join('')}
-            </div>
-        `;
+    //         <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50">
+    //             ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
+    //                 <button 
+    //                     class="lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors flex items-center justify-between text-color_white font-pixel text-[14px] ${code === currentLang ? 'bg-color-green bg-opacity-30' : ''}"
+    //                     data-lang="${code}"
+    //                 >
+    //                     <span class="font-medium">${info.nativeName}</span>
+    //                     ${code === currentLang ? `
+    //                         <svg class="w-4 h-4 text-color-yellow" fill="currentColor" viewBox="0 0 20 20">
+    //                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+    //                         </svg>
+    //                     ` : ''}
+    //                 </button>
+    //             `).join('')}
+    //         </div>
+    //     `;
 
-        this.attachLanguageSwitcherListeners(container);
-        return container;
-    }
+    //     this.attachLanguageSwitcherListeners(container);
+    //     return container;
+    // }
 
     private attachLanguageSwitcherListeners(container: HTMLElement): void {
         const button = container.querySelector('.lang-button') as HTMLButtonElement;
@@ -190,7 +189,7 @@ export class Header implements IComponent {
     private updateContent(): void {
         // Update links text
         const links = this.linksGroup.querySelectorAll('a');
-        const linkKeys = ['navigation.home', 'navigation.creators'];
+        const linkKeys = ['header.home', 'header.creators'];
         links.forEach((link, index) => {
             link.textContent = String(t(linkKeys[index]));
         });
@@ -216,10 +215,11 @@ export class Header implements IComponent {
     
         if (!isLoggedIn) {
             // Show Login & Register buttons
-            const loginLink = this.createLink({ text: t('navigation.login') as string, href: '/login', type: 'button' });
-            const registerLink = this.createLink({ text: t('navigation.register') as string, href: '/register', type: 'button' });
+            const loginLink = this.createLink({ text: t('header.login') as string, href: '/login', type: 'button' });
+            const registerLink = this.createLink({ text: t('header.register') as string, href: '/register', type: 'button' });
             this.buttonsGroup.appendChild(loginLink);
             this.buttonsGroup.appendChild(registerLink);
+            this.buttonsGroup.appendChild(this.languageSwitcher);
             return;
         }
     
@@ -228,7 +228,7 @@ export class Header implements IComponent {
         playBtnWrapper.className = 'relative inline-block';
 
         const playBtn = document.createElement('a');
-        playBtn.textContent = 'Play';
+        playBtn.textContent = t('header.play') as string;
         playBtn.href = '#';
         playBtn.className = createButtonStyle(` w-[110px] h-[42px]`, 'blue');
 
@@ -249,9 +249,9 @@ export class Header implements IComponent {
         }
 
         const dropdownItems: DropdownItem[] = [
-            { label: 'AI', href: '/game' }, //put ai link
-            { label: 'Friend', href: '/game' },
-            { label: 'Tournament', href: '/tournament' },
+            { label: t("header.play-AI"), href: '/game' }, //put ai link
+            { label: t("header.play-friend"), href: '/game' },
+            { label: t("header.play-tournament"), href: '/tournament' },
         ];
 
         // Populate dropdown
@@ -297,7 +297,7 @@ export class Header implements IComponent {
     
         // Logout button
         const logoutBtn = document.createElement('a');
-        logoutBtn.textContent = 'Logout';
+        logoutBtn.textContent = t('header.logout') as string;
         logoutBtn.href = '#';
         logoutBtn.className = createButtonStyle(` w-[128px] h-[42px]`, 'blue');
         logoutBtn.addEventListener("click", async () => {
@@ -347,6 +347,8 @@ export class Header implements IComponent {
             });
             
             this.buttonsGroup.appendChild(avatarLink);
+            this.buttonsGroup.appendChild(this.languageSwitcher);
+
         } catch (error) {
             console.error("Error loading avatar:", error);
         }
@@ -359,29 +361,9 @@ export class Header implements IComponent {
         a.textContent = link.text;
 
         if (link.text === 'Login') {
-            a.className = `
-                w-[138px] h-[36px]
-                px-4 rounded-[8px] tracking-[0.4em]
-                text-[16px] font-pixel
-                text-color_white
-                border border-[1px] border-border-green
-                inline-flex justify-center items-center
-                no-underline cursor-pointer
-                transition-colors duration-200 ease-in-out
-                hover:bg-color-green
-                hover:text-color_white`;
+            a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
         } else if (link.text === 'Register') {
-            a.className = `
-                w-[188px] h-[36px]
-                px-4 rounded-[8px] tracking-[0.4em]
-                text-[16px] font-pixel
-                text-color_white
-                border border-[1px] border-border-green
-                inline-flex justify-center items-center
-                no-underline cursor-pointer
-                transition-colors duration-200 ease-in-out
-                hover:bg-color-green
-                hover:text-color_white`;
+            a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
@@ -412,7 +394,7 @@ export class Header implements IComponent {
         const updateActiveLink = () => {
             const currentPath = window.location.pathname;
             
-            // Update navigation links
+            // Update header links
             linksGroup.querySelectorAll('a').forEach(navLink => {
                 const href = navLink.getAttribute('href');
                 const baseClass = `
@@ -476,4 +458,108 @@ export class Header implements IComponent {
         return isActive ? `${baseClasses} bg-color-green`
             : `${baseClasses} hover:bg-color-green hover:text-color_white`;
     }
+    private createLanguageSwitcher(): HTMLElement {
+    const container = document.createElement('div');
+    container.className = 'relative inline-block';
+
+    const currentLang = getCurrentLanguage();
+    const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
+
+    /* ---------- BUTTON (TOP) ---------- */
+    const button = document.createElement('button');
+    button.className = createButtonStyle('lang-button w-[130px] h-[42px] text-[20px]', 'blue');
+    button.setAttribute('aria-label', String(t('settings.selectLanguage')));
+
+    // ICON (Left SVG)
+    const langIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    langIcon.setAttribute('class', 'w-4 h-4');
+    langIcon.setAttribute('fill', 'none');
+    langIcon.setAttribute('stroke', 'currentColor');
+    langIcon.setAttribute('viewBox', '0 0 24 24');
+
+    const langPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    langPath.setAttribute('stroke-linecap', 'round');
+    langPath.setAttribute('stroke-linejoin', 'round');
+    langPath.setAttribute('stroke-width', '2');
+    langPath.setAttribute(
+        'd',
+        'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129'
+    );
+    langIcon.appendChild(langPath);
+
+    const label = document.createElement('span');
+    label.className = 'font-medium';
+    label.textContent = currentLangInfo.nativeName;
+
+    // ARROW ICON
+    const arrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arrowIcon.setAttribute('class', 'w-3 h-3 transition-transform dropdown-arrow');
+    arrowIcon.setAttribute('fill', 'currentColor');
+    arrowIcon.setAttribute('viewBox', '0 0 20 20');
+
+    const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    arrowPath.setAttribute('fill-rule', 'evenodd');
+    arrowPath.setAttribute(
+        'd',
+        'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+    );
+    arrowPath.setAttribute('clip-rule', 'evenodd');
+    arrowIcon.appendChild(arrowPath);
+
+    // Assemble top button
+    button.appendChild(langIcon);
+    button.appendChild(label);
+    button.appendChild(arrowIcon);
+
+    /* ---------- DROPDOWN ---------- */
+    const dropdown = document.createElement('div');
+    dropdown.className =
+        'lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50';
+
+    Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
+        const option = document.createElement('button');
+        option.className =
+            `lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors ` +
+            `flex items-center justify-between text-color_white font-pixel text-[14px] ` +
+            (code === currentLang ? 'bg-color-green bg-opacity-30' : '');
+        option.dataset.lang = code;
+
+        const span = document.createElement('span');
+        span.className = 'font-medium';
+        span.textContent = info.nativeName;
+
+        option.appendChild(span);
+
+        // Checkmark if selected
+        if (code === currentLang) {
+            const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            check.setAttribute('class', 'w-4 h-4 text-color-yellow');
+            check.setAttribute('fill', 'currentColor');
+            check.setAttribute('viewBox', '0 0 20 20');
+
+            const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            checkPath.setAttribute('fill-rule', 'evenodd');
+            checkPath.setAttribute(
+                'd',
+                'M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
+            );
+            checkPath.setAttribute('clip-rule', 'evenodd');
+
+            check.appendChild(checkPath);
+            option.appendChild(check);
+        }
+
+        dropdown.appendChild(option);
+    });
+
+    /* ---------- Assemble Container ---------- */
+    container.appendChild(button);
+    container.appendChild(dropdown);
+
+    /* ---------- Attach Events ---------- */
+    this.attachLanguageSwitcherListeners(container);
+
+    return container;
+}
+
 }
