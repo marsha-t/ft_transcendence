@@ -11,6 +11,8 @@ import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js';
 import tournamentRoutes from './routes/tournament.js';
 import AjvErrors from 'ajv-errors';
 import aiRoutes from './routes/ai.js';
+import fastifyWebsocket from '@fastify/websocket';
+import websocketRoutes from './routes/websocketRoutes.js';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +47,8 @@ if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
 
+await app.register(fastifyWebsocket); //Websocket
+
 // JWT authentication decorator
 app.decorate('authenticate', async (request, reply) => {
   try {
@@ -63,6 +67,8 @@ app.register(tournamentRoutes, { prefix: '/api/tournamentServ' });
 
 //register ai routes
 app.register(aiRoutes, { prefix: '/api/ai' });
+//register websocket routes
+app.register(websocketRoutes, {prefix: '/ws'});
 
 
 // Start server
