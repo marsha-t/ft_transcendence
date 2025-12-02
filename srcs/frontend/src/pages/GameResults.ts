@@ -3,6 +3,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
 import { navigate, createButtonStyle } from "../utils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { showConfirmation } from "../utils/profileUtils.js";
 
 declare const Plotly: any;
 
@@ -262,21 +263,21 @@ export class GameResults implements IComponent {
         </div>`
       )
       .join("");
-      
-      // Dynamically adjust display name size
-      const nameEls = document.querySelectorAll<HTMLElement>(".player-name"); 
-        // Note: querySelectorAll returns NodeListOf<Element>; 
-        // Specified return type here to be able to use .innerText and .style
 
-      nameEls.forEach((el) => {
-        const name = el.innerText.trim();
-        let size = 20; // base size
+    // Dynamically adjust display name size
+    const nameEls = document.querySelectorAll<HTMLElement>(".player-name");
+    // Note: querySelectorAll returns NodeListOf<Element>;
+    // Specified return type here to be able to use .innerText and .style
 
-        if (name.length > 12) size = 18;
-        if (name.length > 16) size = 16;
+    nameEls.forEach((el) => {
+      const name = el.innerText.trim();
+      let size = 20; // base size
 
-        el.style.fontSize = `${size}px`;
-      });
+      if (name.length > 12) size = 18;
+      if (name.length > 16) size = 16;
+
+      el.style.fontSize = `${size}px`;
+    });
 
     playersDiv.innerHTML = playerCards;
   }
@@ -300,11 +301,14 @@ export class GameResults implements IComponent {
       return true;
     }
 
-    const confirmLeave = confirm(
-      "A tournament is in progress. Leaving will abort it."
+    const confirmLeave = await showConfirmation(
+      "A tournament is in progress. Leaving will abort it.",
+      "Please Confirm",
+      true
     );
-    if (!confirmLeave) return false;
 
+    if (!confirmLeave) return false;
+    
     try {
       const tournamentId = this.tournamentId;
       if (tournamentId) {
