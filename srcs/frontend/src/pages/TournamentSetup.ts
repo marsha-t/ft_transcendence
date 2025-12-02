@@ -192,8 +192,25 @@ export class TournamentSetup implements IComponent {
     guestForm.innerHTML = `
     <p class="text-[var(--color-text-white)]">If you don't have an account, enter a guest name to join temporarily.</p>
     <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
-    <input placeholder="Guest Name" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+    <input id="guest-input" placeholder="Guest Name" 
+      class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]"
+      maxlength="20" />
+
+    <p id="guest-warning" class="text-red-400 text-sm mt-1 hidden">
+      That's the limit! Try a shorter name.
+    </p>
+
     `;
+    const guestInput = guestForm.querySelector("#guest-input") as HTMLInputElement;
+    const warning = guestForm.querySelector("#guest-warning") as HTMLParagraphElement;
+
+    guestInput.addEventListener("input", () => {
+      if (guestInput.value.length >= 20) {
+        warning.classList.remove("hidden");
+      } else {
+        warning.classList.add("hidden");
+      }
+    });
 
     // --- Registered form ---
     const userForm = document.createElement("div");

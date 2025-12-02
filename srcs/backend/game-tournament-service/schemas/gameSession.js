@@ -9,7 +9,7 @@ export const createGameSessionSchema = {
 		type: 'object',
 		required: ['side'],
 		properties: {
-			guestName: { type: 'string' },
+			guestName: { type: 'string', maxLength: 20 },
 			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
 	},
