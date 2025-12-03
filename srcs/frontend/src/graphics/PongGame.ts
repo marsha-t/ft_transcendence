@@ -3,6 +3,8 @@ import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
+import { aiWebSocketService, AIWebSocketService } from "../services/websocket/WebsocketServices";
+import { GameState } from "../services/websocket/types";
 import { Game } from "../pages/Game";
 
 interface AIConfig {
@@ -22,6 +24,9 @@ export class PongGame {
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
     private isPaused: boolean = true;
 
+    private aiConfig: AIConfig;
+    private isAIGame: boolean = false;
+
     constructor(canvas: HTMLCanvasElement, 
                 onScore?: (side: 'LEFT' | 'RIGHT') => void,
                 aiConfig: AIConfig = { aiEnabled: false, aiSide: 'LEFT'}) {
@@ -30,6 +35,10 @@ export class PongGame {
 
         this.engine = new BABYLON.Engine(this.canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
+
+
+        this.aiConfig = aiConfig;
+        this.isAIGame = aiConfig.aiEnabled;
 
         this.createCamera();
         this.createLight();
@@ -47,11 +56,94 @@ export class PongGame {
                 this.ball.update(dt);
                 this.checkCollisions();
                 this.checkScoring();
+
+                if(this.isAIGame)
+                    this.streamGameStateToAI();
                 this.scene.render();
             }
             this.scene.render();
         });
     }
+
+    private streamGameStateToAI(): void {
+        const gameState: GameState = {
+            ball: {
+                x: this.ball.mesh.position.x,
+                z: this.ball.mesh.position.z,
+                vx: this.ball.speed.x,
+                vz: this.ball.speed.z
+            },
+            arena: {
+                zMin: GameConfig.tableBounds.zMin,
+                zMax: GameConfig.tableBounds.zMax
+            },
+            aiPaddle: {
+                x: this.leftPaddle.mesh.position.x,
+                z: this.leftPaddle.mesh.position.z
+            },
+            oppPaddle: {
+                x: this.rightPaddle.mesh.position.x,
+                z: this.rightPaddle.mesh.position.z,
+                vz: this.rightPaddle.velocity
+            }
+        };
+
+        aiWebSocketService.sendGameState(gameState);
+    }
+
+    public sendGameConstants(): void {
+        if (!this.isAIGame) return;
+
+        const constants = {
+            table: {
+                width: GameConfig.table.width,
+                depth: GameConfig.table.depth
+            },
+            paddle: {
+                width: GameConfig.paddle.width,
+                depth: GameConfig.paddle.depth,
+                speed: GameConfig.paddle.speed
+            },
+            ball: {
+                radius: GameConfig.ball.radius,
+                speed: GameConfig.ball.speed,
+                maxSpeed: GameConfig.ball.maxSpeed
+            },
+            tableBounds: GameConfig.tableBounds
+        };
+
+        aiWebSocketService.sendGameStart(constants);
+    }
+
+    public applyAIMove(targetZ: number): void {
+        if (!this.isAIGame || this.aiConfig.aiSide !== 'LEFT') return;
+
+        // Smoothly move AI paddle to target position
+        const currentZ = this.leftPaddle.mesh.position.z;
+        const diff = targetZ - currentZ;
+        const maxMove = GameConfig.paddle.speed * (this.engine.getDeltaTime() / 1000);
+
+        if (Math.abs(diff) > 0.01) {
+            const move = Math.sign(diff) * Math.min(Math.abs(diff), maxMove);
+            this.leftPaddle.mesh.position.z += move;
+            
+            // Clamp to bounds
+            const bounds = GameConfig.tableBounds;
+            this.leftPaddle.mesh.position.z = Math.max(
+                bounds.zMin + GameConfig.paddle.depth / 2,
+                Math.min(bounds.zMax - GameConfig.paddle.depth / 2, this.leftPaddle.mesh.position.z)
+            );
+        }
+    }
+
+    public dispose(): void {
+        if (this.isAIGame) {
+            aiWebSocketService.disconnect();
+        }
+        this.engine.dispose();
+    }
+
+
     public pause(): void {
         this.isPaused = true;
     }

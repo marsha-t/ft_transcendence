@@ -8,7 +8,10 @@ import { navigate, confirmationPopup } from "../utils";
 import {GameSession} from "../services/game/types.js";
 import { GameService } from "../services/game/GameService.js";
 import { apiServices } from "../services/ApiServices.js";
-import {makeButton} from "../utils/uiUtils.js"
+import {makeButton} from "../utils/uiUtils.js";
+import { aiWebSocketService } from "../services/websocket/WebsocketServices.js";
+
+
 
 export class AI implements IComponent {
   private container!: HTMLElement;
@@ -20,6 +23,7 @@ export class AI implements IComponent {
   private currentSession: GameSession | null = null;
   private gameService: GameService;
   private username: string = 'Loading ...';
+  private wsConnected: boolean = false;
 
   constructor() {
     this.canvas = document.createElement("canvas");
@@ -191,11 +195,44 @@ export class AI implements IComponent {
       } as GameSession;
   
       console.log("AI Game Ready!", this.currentSession);
+
+      await this.connectWebSocket();
+
+
     } catch (err: any) {
       console.error("Failed to start AI game:", err);
       alert("Could not connect to game service.");
     }
   }
+
+
+  private async connectWebSocket(): Promise<void> {
+    if (!this.currentSession) {
+      console.error('[AI] Cannot connect WS - no session');
+      return;
+    }
+
+    try {
+      console.log(`[AI] Connecting WebSocket for session ${this.currentSession.sessionId}`);
+      
+      await aiWebSocketService.connect(this.currentSession.sessionId);
+      this.wsConnected = true;
+
+      // Register AI move handler
+      aiWebSocketService.on('ai_move', (data: any) => {
+        if (data && typeof data.action === 'number') {
+          this.pongGame.applyAIMove(data.action);
+        }
+      });
+
+      console.log('[AI] WebSocket connected and AI move handler registered');
+
+    } catch (error) {
+      console.error('[AI] WebSocket connection failed:', error);
+      alert('Failed to connect to AI opponent. Please try again.');
+    }
+  }
+
 
 
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
@@ -295,6 +332,15 @@ export class AI implements IComponent {
 
   public cleanup(): void {
     this.stopGameLoop();
+
+    if(this.wsConnected)
+    {
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+    if(this.pongGame)
+      this.pongGame.dispose();
+    
     this.pongGame = null as any;
     this.currentSession = null;
   }
@@ -303,6 +349,9 @@ export class AI implements IComponent {
   private startGameLoop(): void {
     this.isGameRunning = true;
     this.pongGame.resume();
+
+    if(this.wsConnected)
+      this.pongGame.sendGameConstants();
   }
 
   private stopGameLoop(): void {
