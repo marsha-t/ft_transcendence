@@ -3,6 +3,7 @@ import { getRouter } from './utils.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
+import './services/i18n/i18nService.js';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const headerContainer = document.getElementById('header-container');

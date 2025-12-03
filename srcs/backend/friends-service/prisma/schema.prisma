@@ -1,5 +1,3 @@
-// This schema mirrors the main backend schema so the auth service can generate its Prisma client.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,55 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum GameStatus {
-  CREATED
-  PLAYING
-  PAUSED
-  FINISHED
-  ABORTED
-}
-
-enum PlayerSide {
-  LEFT
-  RIGHT
-}
-
-enum EventType {
-  START
-  POINT
-  PAUSE
-  RESUME
-  FINISH
-}
-
-enum TournamentStatus {
-  CREATED
-  STARTED
-  FINISHED
-  ABORTED
-}
-
 model User {
-  id              Int      @id @default(autoincrement())
-  username        String   @unique
-  email           String   @unique
-  password        String
-  avatar          String   @default("/uploads/avatars/default.png")
-  status          String   @default("OFFLINE")
-  totalMatches    Int      @default(0)
-  totalWins       Int      @default(0)
-  winRate         Float    @default(0)
-  avgScore        Float    @default(0)
-  longestWinStreak Int     @default(0)
-  currentWinStreak Int     @default(0)
-  lastPlayedAt    DateTime?
+  id       Int     @id @default(autoincrement())
+  username String  @unique
+  email    String  @unique
+  password String
+  avatar   String  @default("/uploads/avatars/default.png")
+  status   String  @default("OFFLINE")
 
-  sentRequests        FriendRequest[]     @relation("sentRequests")
-  receivedRequests    FriendRequest[]     @relation("receivedRequests")
-  gameSessionsWon     GameSession[]       @relation("GameUserWinner")
-  gameSessions        GameSessionPlayer[]
-  tournamentPlayers   TournamentPlayer[]
-  tournamentMatchesWon TournamentMatch[]
+  twoFactorEnabled   Boolean  @default(false)
+  twoFactorCode      String?  
+  twoFactorExpiry    DateTime?
+
+  // Game stats (updated by Game Service via API)
+  totalMatches     Int       @default(0)
+  totalWins        Int       @default(0)
+  winRate          Float     @default(0)
+  avgScore         Float     @default(0)
+  longestWinStreak Int       @default(0)
+  currentWinStreak Int       @default(0)
+  lastPlayedAt     DateTime?
+  
+  sentRequests     FriendRequest[]  @relation("sentRequests")
+  receivedRequests FriendRequest[]  @relation("receivedRequests")
 }
 
 model FriendRequest {
@@ -72,103 +44,3 @@ model FriendRequest {
 
   @@unique([senderId, receiverId])
 }
-
-model GameSession {
-  id             Int              @id @default(autoincrement())
-  status         GameStatus       @default(CREATED)
-  createdAt      DateTime         @default(now())
-  startedAt      DateTime?
-  endedAt        DateTime?
-  winnerUserId   Int?
-  winnerPlayerId Int?             @unique
-
-  winnerUser     User?               @relation("GameUserWinner", fields: [winnerUserId], references: [id])
-  winnerPlayer   GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
-  players        GameSessionPlayer[]
-  tournamentMatch TournamentMatch?
-  events         GameEvent[]
-}
-
-model GameEvent {
-  id        Int       @id @default(autoincrement())
-  sessionId Int
-  playerId  Int?
-  type      EventType
-  timestamp DateTime  @default(now())
-  scoreLeft Int?
-  scoreRight Int?
-
-  session GameSession       @relation(fields: [sessionId], references: [id])
-  player  GameSessionPlayer? @relation(fields: [playerId], references: [id])
-}
-
-model GameSessionPlayer {
-  id                 Int         @id @default(autoincrement())
-  sessionId          Int
-  userId             Int?
-  tournamentPlayerId Int?
-  isGuest            Boolean     @default(false)
-  displayName        String
-  side               PlayerSide
-  score              Int         @default(0)
-
-  session          GameSession       @relation(fields: [sessionId], references: [id])
-  user             User?             @relation(fields: [userId], references: [id])
-  winnerOfGame     GameSession?      @relation("GamePlayerWinner")
-  tournamentPlayer TournamentPlayer? @relation(fields: [tournamentPlayerId], references: [id])
-  events           GameEvent[]
-
-  @@unique([sessionId, side])
-  @@unique([sessionId, displayName])
-}
-
-model Tournament {
-  id              Int               @id @default(autoincrement())
-  status          TournamentStatus  @default(CREATED)
-  createdAt       DateTime          @default(now())
-  startedAt       DateTime?
-  endedAt         DateTime?
-  numberOfPlayers Int
-  bracketSize     Int
-
-  players TournamentPlayer[]
-  matches TournamentMatch[]
-}
-
-model TournamentPlayer {
-  id           Int          @id @default(autoincrement())
-  tournamentId Int
-  userId       Int?
-  isGuest      Boolean      @default(false)
-  displayName  String
-
-  tournament          Tournament        @relation(fields: [tournamentId], references: [id])
-  user                User?             @relation(fields: [userId], references: [id])
-  gameSessionPlayers  GameSessionPlayer[]
-  matchesWon          TournamentMatch[] @relation("MatchWinner")
-  matchesAsPlayer1    TournamentMatch[] @relation("MatchPlayer1")
-  matchesAsPlayer2    TournamentMatch[] @relation("MatchPlayer2")
-
-  @@unique([tournamentId, displayName])
-}
-
-model TournamentMatch {
-  id             Int          @id @default(autoincrement())
-  tournamentId   Int
-  matchIndex     Int
-  gameSessionId  Int?         @unique
-  winnerUserId   Int?
-  winnerPlayerId Int?
-  player1Id      Int?
-  player2Id      Int?
-
-  tournament   Tournament        @relation(fields: [tournamentId], references: [id])
-  gameSession  GameSession?      @relation(fields: [gameSessionId], references: [id])
-  winnerUser   User?             @relation(fields: [winnerUserId], references: [id])
-  winnerPlayer TournamentPlayer? @relation("MatchWinner", fields: [winnerPlayerId], references: [id])
-  player1      TournamentPlayer? @relation("MatchPlayer1", fields: [player1Id], references: [id])
-  player2      TournamentPlayer? @relation("MatchPlayer2", fields: [player2Id], references: [id])
-
-  @@unique([tournamentId, matchIndex])
-}
-
