@@ -2,27 +2,16 @@ import aiWebSocketHandler from "../brain/aiWebSocket.js";
 
 /**
  * WebSocket routes for real-time game communication
- * 
- * 
+    - Check that game session exists and player is in game session
+    - Check that it is not a duplicate connection
 */
- 
-
-
 export default async function websocketRoutes(fastify) {
     fastify.get('/ai/:sessionId', { websocket: true }, async (socket, request) => {
         const { sessionId } = request.params;
         
         try {
-          // 🔐 Authenticate user via JWT token
-          let userId = null;
-          
-          // Option 1: Token in query string (e.g., ws://localhost:5006/ws/ai/123?token=xyz)
-          const tokenFromQuery = request.query.token;
-          
-          // Option 2: Token from cookie (browsers automatically send cookies with WebSocket)
-          const tokenFromCookie = request.cookies.token;
-          
-          const token = tokenFromQuery || tokenFromCookie;
+          // Token from cookie (browsers automatically send cookies with WebSocket)
+          const token = request.cookies.token;
           
           if (!token) {
             console.warn(`[WebSocket] Connection rejected: No token provided for session ${sessionId}`);
@@ -34,10 +23,13 @@ export default async function websocketRoutes(fastify) {
             return;
           }
           
+          // 🔐 Authenticate user via JWT token
+          let userId = null;
+          
           // Verify JWT token
           try {
             const decoded = await fastify.jwt.verify(token);
-            userId = decoded.userId || decoded.id; // Adjust based on your JWT payload structure
+            userId = decoded.userId;
             console.log(`[WebSocket] User ${userId} authenticated for session ${sessionId}`);
           } catch (err) {
             console.error(`[WebSocket] Invalid token for session ${sessionId}:`, err.message);
@@ -49,6 +41,28 @@ export default async function websocketRoutes(fastify) {
             return;
           }
           
+          // Check session exists
+          const session = await prisma.gameSession.findUnique({
+              where: { id: sessionId },
+              include: { players: true }
+          });
+
+          if (!session || !session.isAi) {
+              socket.close(4404, "Invalid or non-AI session");
+              return;
+          }
+          // Check if the user is part of the session
+          const isPlayer = session.players.some(p => p.userId === userId);
+          if (!isPlayer) {
+              socket.close(4403, "You are not a player in this session");
+              return;
+          }
+
+          // Prevent duplicate WS connections
+          if (aiWebSocketHandler.isConnected(sessionId)) {
+              socket.close(4409, "AI session already active");
+              return;
+          }
           // ✅ Pass the connection to AI WebSocket handler
           await aiWebSocketHandler.handleConnections(socket, sessionId, userId);
           
