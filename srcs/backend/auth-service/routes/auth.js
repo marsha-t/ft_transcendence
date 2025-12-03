@@ -385,6 +385,8 @@ async function authRoutes(app, options) {
     }
   });
 
+
+
 }
 
 export default authRoutes;
