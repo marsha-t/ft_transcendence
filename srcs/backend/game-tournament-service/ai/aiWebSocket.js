@@ -1,5 +1,6 @@
 import gameStateStore from "./gameStateStore.js";
 import prisma from '../prisma/prismaClient.js'
+import aiBrain from "./AIBrain.js";
 
 /**
  * Accepts WebSocket connections from Frontend
@@ -15,7 +16,7 @@ import prisma from '../prisma/prismaClient.js'
 class AIWebSocketHandler{
     constructor (){
         this.activeSockets = new Map(); // Key = sessionId, Value = socket object
-
+        this.aiBrains = new Map(); // Key = sessionId, Value = AIBrain instance
     }
 
     async handleConnections(socket, sessionId, userId){
@@ -47,11 +48,14 @@ class AIWebSocketHandler{
                 return;
             }
 
-            //starting to store socket connections
+            //Store socket connections
             this.activeSockets.set(sessionId, socket);
             console.log(`[AIWebSocket] Session ${sessionId} connected. Active sessions: ${this.activeSockets.size}`);
 
-            //Start ot listen the FE
+            // Create a brain for this session
+            this.aiBrains.set(sessionId, new aiBrain());
+            
+            //Listen to FE
             socket.on('message', (rawData) => {
                 this.handleMessage(socket, sessionId, rawData);
             });
@@ -142,15 +146,14 @@ class AIWebSocketHandler{
             if(shouldLog)
                 console.log(`[AIWebSocket] Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
 
-            // TODO: add AI logic here
-            // Example:
-            // const aiMove = calculateAIMove(gameState);
-            // this.sendAIMove(sessionId, aiMove.paddleZ);
+            const brain = this.aiBrains.get(sessionId);
+            const action = brain.decide(gameState);
+            this.sendAIMove(sessionId, action);
 
             //for testing purpose
-            if (Math.random() < 0.1) {  // Send occasionally (10% of the time)
-                this.sendAIMove(sessionId, Math.random() * 4 - 2);  // Random position between -2 and 2
-            }
+            // if (Math.random() < 0.1) {  // Send occasionally (10% of the time)
+            //     this.sendAIMove(sessionId, Math.random() * 4 - 2);  // Random position between -2 and 2
+            // }
 
         } catch(err){
             console.error(`[AIWebSocket] Error storing game state:`, err);
@@ -186,7 +189,7 @@ class AIWebSocketHandler{
 
 
     // calculateAIMove(gameState)
-    sendAIMove(sessionId, paddleZ){
+    sendAIMove(sessionId, action){
         try {
             const socket = this.activeSockets.get(sessionId);
             
@@ -206,8 +209,7 @@ class AIWebSocketHandler{
             socket.send(JSON.stringify({
               type: 'ai_move',
               data: {
-                paddleZ: paddleZ,
-                timestamp: Date.now()
+                action
               }
             }));
       
@@ -219,6 +221,7 @@ class AIWebSocketHandler{
 
     cleanup(sessionId){
         this.activeSockets.delete(sessionId);
+        this.aiBrains.delete(sessionId);
         gameStateStore.removeState(sessionId);
     }
 
