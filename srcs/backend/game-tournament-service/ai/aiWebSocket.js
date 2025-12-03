@@ -172,7 +172,7 @@ class AIWebSocketHandler{
 
             if(currentState){
                 currentState.constants = constants;
-                onsole.log(`[AIWebSocket] Session ${sessionId} - Constants stored`);
+                console.log(`[AIWebSocket] Session ${sessionId} - Constants stored`);
             }else{
                 gameStateStore.update(sessionId, {
                     ball: { x: 0, z: 0, vx: 0, vz: 0 },

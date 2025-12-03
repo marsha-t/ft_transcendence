@@ -26,21 +26,26 @@ export default class AIBrain {
         }
 
         // If the ball won't reach → drift to center
+        // if (!this.lastPrediction.willReach || 
+        //     this.lastPrediction.zIntercept === undefined) {
+
+        //     const z = snapshot.aiPaddle.z;
+
+        //     if (z > 0.2) return "UP";
+        //     if (z < -0.2) return "DOWN";
+        //     return "NONE";
+        // }
         if (!this.lastPrediction.willReach || 
             this.lastPrediction.zIntercept === undefined) {
-
-            const z = snapshot.aiPaddle.z;
-
-            if (z > 0.2) return "UP";
-            if (z < -0.2) return "DOWN";
-            return "NONE";
+            return 0;
         }
 
         // Normal predicted movement
-        return decideMovement({
-            aiPaddleZ: snapshot.aiPaddle.z,
-            zIntercept: this.lastPrediction.zIntercept,
-            arena: snapshot.arena,
-        });
+        // return decideMovement({
+        //     aiPaddleZ: snapshot.aiPaddle.z,
+        //     zIntercept: this.lastPrediction.zIntercept,
+        //     arena: snapshot.arena,
+        // });
+        return this.lastPrediction.zIntercept;
     }
 }
