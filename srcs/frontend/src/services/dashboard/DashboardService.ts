@@ -8,10 +8,6 @@ export class DashboardService {
 		this.baseUrl = '/api';
 	}
 	
-	getToken(): string | null {
-		return localStorage.getItem('jwtToken');
-	}
-		
 	async getGameDashboard(sessionId: number): Promise<ApiResponse<GameDashboard>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/dashboardServ/stats/game`, {

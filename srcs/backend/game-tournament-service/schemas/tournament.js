@@ -74,7 +74,7 @@ export const finalizeTournamentSchema = {
 					type: 'object',
 					required: ['displayName'],
 					properties: {
-						displayName: { type: 'string', minLength: 3 },
+						displayName: { type: 'string', maxLength: 20 },
 						userId: { type: ['integer', 'null'] },
 					},
 					additionalProperties: false,

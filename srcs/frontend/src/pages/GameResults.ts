@@ -85,7 +85,6 @@ export class GameResults implements IComponent {
         } else {
           navigate("/tournament/match", { tournamentId: this.tournamentId });
         }
-        // navigate("/tournament/match", {tournamentId: this.tournamentId});
         this.onMatchEnd!();
       };
       btnContainer.appendChild(nextBtn);
@@ -144,14 +143,14 @@ export class GameResults implements IComponent {
         </div>
 
         <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto mb-4">
-          <p class="text-lg text-white font-semibold tracking-wider mb-1">Final Score:</p>
+          <p class="text-lg text-white font-semibold tracking-wider mb-1">Final Score</p>
           <p class="text-xl text-[#fdd835]">${summary.finalScore.left} - ${
       summary.finalScore.right
     }</p>
         </div>
 
         <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto">
-          <p class="text-lg text-white font-semibold tracking-wider mb-1">Total Duration:</p>
+          <p class="text-lg text-white font-semibold tracking-wider mb-1">Total Duration</p>
           <p class="text-xl text-[#fdd835]">${summary.totalDurationSec.toFixed(
             1
           )}s</p>
@@ -237,26 +236,26 @@ export class GameResults implements IComponent {
             ${p.displayName}
           </h3>
           <ul class="list-none p-0 text-left text-[#d0d0ff] leading-relaxed">
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Score:</strong> ${
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Score</strong> ${
               p.score
             }</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Time to 1st Point:</strong> ${
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Time to 1st Point</strong> ${
               p.timeToFirstPointSec == null
                 ? "-"
                 : p.timeToFirstPointSec.toFixed(1) + "s"
             }</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Avg Time/Point:</strong> ${
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Avg Time/Point</strong> ${
               p.avgTimePerPointSec == null
                 ? "-"
                 : p.avgTimePerPointSec.toFixed(1) + "s"
             }</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Matches:</strong> ${
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Matches</strong> ${
               p.totalMatches
             }</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Wins:</strong> ${
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Wins</strong> ${
               p.totalWins
             }</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Win Rate:</strong> ${p.winRate.toFixed(
+            <li class="flex justify-between"><strong class="text-[#fdd835]">Win Rate</strong> ${p.winRate.toFixed(
               1
             )}%</li>
           </ul>

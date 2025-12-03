@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { navigate, createButtonStyle } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
-import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import mermaid from "mermaid";
 
 export class TournamentResults implements IComponent {
@@ -305,10 +305,7 @@ classDef winner fill:#059669,stroke:#34d399,stroke-width:3px,color:white;
   }
 
   public async canDeactivate() {
-    TournamentStore.tournamentId = null;
-    TournamentStore.onMatchEnd = null;
-    TournamentStore.isInternalTournamentNavigation = false;
-    localStorage.removeItem("activeTournament");
+    resetTournamentStore();
     return true;
   }
 }
