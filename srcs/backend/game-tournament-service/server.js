@@ -12,7 +12,7 @@ import tournamentRoutes from './routes/tournament.js';
 import AjvErrors from 'ajv-errors';
 import aiRoutes from './routes/ai.js';
 import fastifyWebsocket from '@fastify/websocket';
-import websocketRoutes from './routes/websocketRoutes.js';
+import websocketRoutes from './routes/websocket.js';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);

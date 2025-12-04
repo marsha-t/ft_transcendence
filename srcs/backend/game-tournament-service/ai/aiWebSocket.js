@@ -1,6 +1,6 @@
 import gameStateStore from "./gameStateStore.js";
 import prisma from '../prisma/prismaClient.js'
-import aiBrain from "./AIBrain.js";
+import aiBrain from "./aiBrain.js";
 
 /**
  * Accepts WebSocket connections from Frontend

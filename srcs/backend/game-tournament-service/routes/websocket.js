@@ -1,4 +1,5 @@
-import aiWebSocketHandler from "../brain/aiWebSocket.js";
+import aiWebSocketHandler from "../ai/aiWebSocket.js";
+import prisma from '../prisma/prismaClient.js';
 
 /**
  * WebSocket routes for real-time game communication
@@ -43,7 +44,7 @@ export default async function websocketRoutes(fastify) {
           
           // Check session exists
           const session = await prisma.gameSession.findUnique({
-              where: { id: sessionId },
+              where: { id: Number (sessionId )},
               include: { players: true }
           });
 
