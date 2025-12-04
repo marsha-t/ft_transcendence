@@ -26,8 +26,9 @@ export class AIWebSocketService {
         this.sessionId = sessionId;
 
         return new Promise((resolve, reject)=> {
-            const wsUrl =  `ws://localhost:5006/ws/ai/${sessionId}`;
-            console.log(`[AIWebSocket] Connecting to ${wsUrl}`);
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          const wsUrl = `${protocol}//${window.location.host}/ws/ai/${sessionId}`;
+          console.log(`[AIWebSocket] Connecting to ${wsUrl}`);
 
             try{
                 this.socket = new WebSocket(wsUrl);
@@ -48,6 +49,12 @@ export class AIWebSocketService {
                   this.handleMessage(event);
                 };
 
+                this.socket.onerror = (error) => {
+                  console.error('[AIWebSocket] Error:', error);
+                  this.isConnecting = false;
+                  reject(error);
+                };
+
                 this.socket.onclose = (event) => {
                     console.log(`[AIWebSocket] Disconnected: ${event.code} - ${event.reason}`);
                     this.isConnecting = false;
@@ -62,35 +69,37 @@ export class AIWebSocketService {
 
     //2)  Handle incoming WebSocket messages
 
-    private handleMessage(event: MessageEvent): void {
-        try{
+  private handleMessage(event: MessageEvent): void {
+      try{
 
-            const message = JSON.parse(event.data);
-            console.log(`[AIWebSocket] Received message type: ${message.type}`);
+          const message = JSON.parse(event.data);
+          console.log(`[AIWebSocket] Received message type: ${message.type}`);
 
-            const handler = this.messageHandlers.get(message.type);
-            if(handler)
-                handler(message.data);
+          // Route to registered handlers FIRST
+          const handler = this.messageHandlers.get(message.type);
+          if(handler)
+              handler(message.data);
 
-            switch(message.type){
-                case 'ai_ready':
-                    console.log('[AIWebSocket] AI is ready!');
-                    break;
-                case 'ai_move':
-                    // Handler registered by PongGame will process this
-                    break;
-                case 'pong':
-                    //handler response
-                    break;
-                case 'error':
-                    console.error('[AIWebSocket] Server error:', message.message);
-                    break;
-            }
+          // Then handle built-in message types
+          switch(message.type){
+              case 'ai_ready':
+                  console.log('[AIWebSocket] AI is ready!');
+                  break;
+              case 'ai_move':
+                  // Handler registered by PongGame will process this
+                  break;
+              case 'pong':
+                  // Heartbeat response
+                  break;
+              case 'error':
+                  console.error('[AIWebSocket] Server error:', message.message);
+                  break;
+          }
 
-        }catch (err){
-            console.error('[AIWebSocket] Failed to parse message:', err);
-        }
-    }
+      }catch (err){
+          console.error('[AIWebSocket] Failed to parse message:', err);
+      }
+  }
 
     //3 Register a message handler for specific message types
     public on(messageType: string, handler: (data: any) => void): void {

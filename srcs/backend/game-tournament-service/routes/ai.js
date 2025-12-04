@@ -36,12 +36,12 @@ async function aiRoutes(app, options){
                             userId: userId,
                             guestName: null,
                             side: 'RIGHT'
+                        },
+                        {
+                            userId: null,
+                            guestName: 'AI Opponent',
+                            side: 'LEFT'
                         }
-                        // {
-                        //     userId: null,
-                        //     guestName: 'AI Opponent',
-                        //     side: 'LEFT'
-                        // }
                     ],
                         tournamentId: null,
                         matchIndex: null,
