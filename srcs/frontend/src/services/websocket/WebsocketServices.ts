@@ -74,11 +74,14 @@ export class AIWebSocketService {
 
           const message = JSON.parse(event.data);
           console.log(`[AIWebSocket] Received message type: ${message.type}`);
+          console.log(`[AIWebSocket] Received:`, message); 
 
           // Route to registered handlers FIRST
           const handler = this.messageHandlers.get(message.type);
-          if(handler)
-              handler(message.data);
+          if(handler){
+            console.log(`[AIWebSocket] Calling handler for ${message.type}`);
+            handler(message.data);
+          }
 
           // Then handle built-in message types
           switch(message.type){
@@ -126,7 +129,11 @@ export class AIWebSocketService {
                 type: 'game_state',
                 data: gameState
             }));
-
+            console.log(
+              '[AIWebSocket] Sending game state:\n' + 
+              JSON.stringify(gameState, null, 2)
+            );
+            
         }catch(err){
 
             console.error('[AIWebSocket] Failed to send game state:', err);
@@ -142,7 +149,8 @@ export class AIWebSocketService {
             return;
           }
       
-          console.log('[AIWebSocket] Sending game constants');
+          console.log('[AIWebSocket] Sending game constants: ');
+          console.log('constants:\n', JSON.stringify(constants, null, 2));
 
           this.socket.send(JSON.stringify({
             type: 'game_start',

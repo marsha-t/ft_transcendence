@@ -49,16 +49,16 @@ async function aiRoutes(app, options){
                 });
                 
                 //adding ai as guest user
-                await prisma.gameSessionPlayer.create({
-                    data: {
-                        sessionId: session.id,
-                        userId: null,
-                        isGuest: true,
-                        displayName: 'AI Opponent',
-                        side: 'LEFT',
-                        score: 0
-                    }
-                });
+                // await prisma.gameSessionPlayer.create({
+                //     data: {
+                //         sessionId: session.id,
+                //         userId: null,
+                //         isGuest: true,
+                //         displayName: 'AI Opponent',
+                //         side: 'LEFT',
+                //         score: 0
+                //     }
+                // });
 
                 // Fetch updated session with both players
                 const updatedSession = await prisma.gameSession.findUnique({
