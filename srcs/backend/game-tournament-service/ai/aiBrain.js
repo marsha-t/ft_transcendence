@@ -1,5 +1,5 @@
-import predictBallIntercept from "./predictBallIntercept.js";
-import decideMovement from "./decideMovement.js";
+import {predictBallIntercept} from   "./predictBallIntercept.js"
+// import decideMovement from "./decideMovement.js";
 
 export default class AIBrain {
     constructor() {
