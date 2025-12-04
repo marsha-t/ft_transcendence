@@ -242,21 +242,25 @@ export class AI implements IComponent {
   
       // Register handlers
       aiWebSocketService.on('ai_move', (data: any) => {
-        if (data && typeof data.action === 'number') {
+        console.log('[AI] Received AI move:', data);
+        if (data &&  data.action === 'number') {
           this.pongGame.applyAIMove(data.action);
         }
       });
+
+      
   
       // NEW: Send constants ONLY when AI says it's ready
       aiWebSocketService.on('ai_ready', () => {
         console.log('[AI] AI is ready → sending game constants');
-        this.pongGame.sendGameConstants();  // ← Now safe!
+        this.pongGame.sendGameConstants();
       });
   
       console.log('[AI] WebSocket connected');
   
     } catch (error) {
-      // ...
+      console.error('[AI] WebSocket connection failed:', error);
+      alert('Failed to connect to AI opponent. Please try again.');
     }
   }
 

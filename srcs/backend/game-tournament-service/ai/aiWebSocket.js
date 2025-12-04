@@ -138,28 +138,59 @@ class AIWebSocketHandler{
    * 
    * store game state on gameStateStore class
    */
+    // handleGameState(sessionId, gameState){
+    //     try{
+    //         gameStateStore.update(sessionId, gameState); //saving to gameStateStore class
+
+    //         const shouldLog = Date.now() % 5000 < 50;
+    //         if(shouldLog)
+    //             console.log(`[AIWebSocket] Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
+
+    //         const brain = this.aiBrains.get(sessionId);
+    //         const action = brain.decide(gameState);
+    //         this.sendAIMove(sessionId, action);
+
+    //         //for testing purpose
+    //         // if (Math.random() < 0.1) {  // Send occasionally (10% of the time)
+    //         //     this.sendAIMove(sessionId, Math.random() * 4 - 2);  // Random position between -2 and 2
+    //         // }
+
+    //     } catch(err){
+    //         console.error(`[AIWebSocket] Error storing game state:`, err);
+    //     }
+    // }
+
+
     handleGameState(sessionId, gameState){
         try{
             gameStateStore.update(sessionId, gameState); //saving to gameStateStore class
-
+    
             const shouldLog = Date.now() % 5000 < 50;
-            if(shouldLog)
+            if(shouldLog) {
                 console.log(`[AIWebSocket] Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
-
+                console.log(`[AIWebSocket] Session ${sessionId} - AI Paddle Z: ${gameState.aiPaddle?.z || 'N/A'}`);
+            }
+    
             const brain = this.aiBrains.get(sessionId);
+            
+            if (!brain) {
+                console.error(`❌ [AIWebSocket] No brain found for session ${sessionId}`);
+                return;
+            }
+            
             const action = brain.decide(gameState);
+            
+            // ✅ ADD THIS LOGGING
+            if (shouldLog) {
+                console.log(`🧠 [AIWebSocket] Session ${sessionId} - AI decided action: ${action}`);
+            }
+            
             this.sendAIMove(sessionId, action);
-
-            //for testing purpose
-            // if (Math.random() < 0.1) {  // Send occasionally (10% of the time)
-            //     this.sendAIMove(sessionId, Math.random() * 4 - 2);  // Random position between -2 and 2
-            // }
-
+    
         } catch(err){
             console.error(`[AIWebSocket] Error storing game state:`, err);
         }
     }
-
     /**
    * Handle game start - store constants once
    * Constants don't change during the game, so we only need them once

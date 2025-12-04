@@ -115,25 +115,44 @@ export class PongGame {
         aiWebSocketService.sendGameStart(constants);
     }
 
-    public applyAIMove(targetZ: number): void {
-        if (!this.isAIGame || this.aiConfig.aiSide !== 'LEFT') return;
+    // public applyAIMove(targetZ: number): void {
+    //     if (!this.isAIGame || this.aiConfig.aiSide !== 'LEFT') return;
 
-        // Smoothly move AI paddle to target position
-        const currentZ = this.leftPaddle.mesh.position.z;
-        const diff = targetZ - currentZ;
-        const maxMove = GameConfig.paddle.speed * (this.engine.getDeltaTime() / 1000);
+    //     // Smoothly move AI paddle to target position
+    //     const currentZ = this.leftPaddle.mesh.position.z;
+    //     const diff = targetZ - currentZ;
+    //     const maxMove = GameConfig.paddle.speed * (this.engine.getDeltaTime() / 1000);
 
-        if (Math.abs(diff) > 0.01) {
-            const move = Math.sign(diff) * Math.min(Math.abs(diff), maxMove);
-            this.leftPaddle.mesh.position.z += move;
+    //     if (Math.abs(diff) > 0.01) {
+    //         const move = Math.sign(diff) * Math.min(Math.abs(diff), maxMove);
+    //         this.leftPaddle.mesh.position.z += move;
             
-            // Clamp to bounds
-            const bounds = GameConfig.tableBounds;
-            this.leftPaddle.mesh.position.z = Math.max(
-                bounds.zMin + GameConfig.paddle.depth / 2,
-                Math.min(bounds.zMax - GameConfig.paddle.depth / 2, this.leftPaddle.mesh.position.z)
-            );
+    //         // Clamp to bounds
+    //         const bounds = GameConfig.tableBounds;
+    //         this.leftPaddle.mesh.position.z = Math.max(
+    //             bounds.zMin + GameConfig.paddle.depth / 2,
+    //             Math.min(bounds.zMax - GameConfig.paddle.depth / 2, this.leftPaddle.mesh.position.z)
+    //         );
+    //     }
+    // }
+
+
+    public applyAIMove(targetZ: number): void {
+        if (!this.leftPaddle) {
+          console.warn('[PongGame] Cannot apply AI move - left paddle not found');
+          return;
         }
+        console.log('[PongGame] applyAIMove called with targetZ =', targetZ);
+
+        // Clamp to arena bounds
+        const minZ = -4.4;
+        const maxZ = 4.4;
+        const clampedZ = Math.max(minZ, Math.min(maxZ, targetZ));
+      
+        // Update paddle position
+        this.leftPaddle.mesh.position.z = clampedZ;
+        
+        console.log(`[PongGame] AI paddle moved to Z: ${clampedZ.toFixed(2)}`);
     }
 
     public dispose(): void {
