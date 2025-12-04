@@ -1,16 +1,9 @@
-import prisma from "../prisma/prismaClient.js";
-import { createGameSession } from "../services/gameSessionService.js";
-import {
-  checkSession,
-  checkPlayer,
-} from "../services/gameSessionPlayersService.js";
-import {
-  joinSessionSchema,
-  listPlayersSessionSchema,
-  updateScoreSchema,
-  deletePlayerSchema,
-} from "../schemas/gameSessionPlayers.js";
+import prisma from '../prisma/prismaClient.js';
+import { createGameSession } from '../services/gameSessionService.js';
+import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
+import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
 import { propagateWinner } from "../services/tournamentService.js";
+import { updateUserStats, getUserInfo } from '../services/authServiceClient.js';
 
 async function gameSessionPlayersRoutes(app, options) {
   // Player joins a session
@@ -38,67 +31,63 @@ async function gameSessionPlayersRoutes(app, options) {
           .send({ error: "X-Current-Session-Id header is required" });
       }
 
-      if (!playerUserId && !guestName) {
-        return reply
-          .code(400)
-          .send({ error: "Must provide playerUserId or guestName" });
-      }
-      try {
-        const session = await prisma.gameSession.findUnique({
-          where: { id: Number(sessionId) },
-          include: { players: true },
-        });
-        if (!session) {
-          throw { code: 404, message: "Game session not found" };
-        }
-        if (session.status !== "CREATED") {
-          throw { code: 400, message: "Session cannot accept new players" };
-        }
-        if (session.players.some((p) => p.side === side)) {
-          throw { code: 409, message: "Side already taken" };
-        }
-        if (session.players.length >= 2) {
-          throw { code: 409, message: "Session already full" };
-        }
-        const isUserPlayer = session.players.some((p) => p.userId === userId);
-        if (!isUserPlayer) {
-          return reply
-            .code(403)
-            .send({ error: "You are not a player in this game session" });
-        }
-        let displayName;
-        if (playerUserId) {
-          const user = await prisma.user.findUnique({
-            where: { id: Number(playerUserId) },
-            select: { username: true },
-          });
-          if (!user) {
-            throw { code: 404, message: "User not found" };
-          }
-          displayName = user.username;
-        } else if (guestName) {
-          displayName = guestName;
-        } else {
-          throw { code: 400, message: "Guest must provide a guestName" };
-        }
+		if (!playerUserId && !guestName) {
+			return reply.code(400).send({ error: "Must provide playerUserId or guestName" });
+		}
+		try {
+			const session = await prisma.gameSession.findUnique({
+				where: { id: Number(sessionId) },
+				include: { players: true },
+			});
+			if (!session) {
+				throw { code: 404, message: 'Game session not found' };
+			}
+		    if (session.status !== 'CREATED') {
+				throw { code: 400, message: 'Session cannot accept new players' };
+			}
+			if (session.players.some(p => p.side === side)) {
+				throw { code: 409, message: 'Side already taken' };
+			}
+			if (session.players.length >= 2) {
+				throw { code: 409, message: 'Session already full' };
+			}
+			const isUserPlayer = session.players.some(p => p.userId === userId);
+			if (!isUserPlayer) {
+				return reply.code(403).send({ error: "You are not a player in this game session"});
+			}
+			let displayName;
+			if (playerUserId) {
+				// Call User Service API in Auth-service instead of direct DB access
+				const userInfo = await getUserInfo(playerUserId);
+				if (!userInfo) {
+					throw { code: 404, message: 'User not found' };
+				}
+				displayName = user.username;
+			} else if (guestName) {
+				displayName = guestName;
+			} else {
+				throw { code: 400, message: 'Guest must provide a guestName' };
+			}
+			
+			if (session.players.some(p => p.displayName === displayName)) {
+				throw { code: 409, message: 'Display name is already taken in this session' };
+			}
 
-        if (session.players.some((p) => p.displayName === displayName)) {
-          throw {
-            code: 409,
-            message: "Display name is already taken in this session",
-          };
-        }
-
-        const newPlayer = await prisma.gameSessionPlayer.create({
-          data: {
-            sessionId: Number(sessionId),
-            userId: playerUserId ? Number(playerUserId) : null,
-            isGuest: !playerUserId,
-            displayName,
-            side,
-          },
-          include: { user: { select: { id: true, username: true } } },
-        });
+			const newPlayer = await prisma.gameSessionPlayer.create({
+				data: {
+					sessionId: Number(sessionId),
+					userId: playerUserId ? Number(playerUserId) : null,
+					isGuest: !playerUserId,
+					displayName,
+					side,
+				},
+				include: { // removing user since its not part of the game-tournament-service-db schema
+					session: true,
+					winnerOfGame: true,
+					tournamentPlayer: true,
+					events: true,
+				  },
+			});
 
         return reply.code(201).send(newPlayer);
       } catch (err) {
@@ -193,61 +182,26 @@ async function gameSessionPlayersRoutes(app, options) {
           });
         }
 
-        // User stats update
-        if (finishedGame) {
-          const winnerUserId = player.userId;
-          const losingPlayer = finishedGame.players.find(
-            (p) => p.userId !== winnerUserId
-          );
-
-          // Update winner stats
-          if (winnerUserId) {
-            const winner = await prisma.user.findUnique({
-              where: { id: winnerUserId },
-            });
-
-            const totalMatches = winner.totalMatches + 1;
-            const totalWins = winner.totalWins + 1;
-            const winRate =
-              totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0;
-            const avgScore =
-              (winner.avgScore * (totalMatches - 1) + player.score) /
-              totalMatches;
-
-            await prisma.user.update({
-              where: { id: winnerUserId },
-              data: {
-                totalMatches,
-                totalWins,
-                winRate,
-                avgScore,
-                currentWinStreak: winner.currentWinStreak + 1,
-                longestWinStreak: Math.max(
-                  winner.longestWinStreak,
-                  winner.currentWinStreak + 1
-                ),
-                lastPlayedAt: new Date(),
-              },
-            });
-          }
-
-          // Update loser stats
-          if (losingPlayer?.userId) {
-            const loser = await prisma.user.update({
-              where: { id: losingPlayer.userId },
-              data: { totalMatches: { increment: 1 } },
-            });
-
-            const newWinRate =
-              loser.totalMatches > 0
-                ? (loser.totalWins / loser.totalMatches) * 100
-                : 0;
-
-            await prisma.user.update({
-              where: { id: loser.id },
-              data: { winRate: newWinRate },
-            });
-          }
+			if (finishedGame) {
+				const winnerUserId = player.userId;
+				const losingPlayer = finishedGame.players.find(p => p.userId !== winnerUserId);
+			  
+				// Update winner stats via Auth Service API instead of direct DB update
+				if (winnerUserId) {
+				  await updateUserStats(winnerUserId, {
+					won: true,
+					score: player.score,
+					opponentScore: losingPlayer?.score || 0
+				  });
+				}
+				
+				if (losingPlayer?.userId) {
+				  await updateUserStats(losingPlayer.userId, {
+					won: false,
+					score: losingPlayer.score,
+					opponentScore: player.score
+				  });
+				}
 
           // Tournament progression
           const match = await prisma.tournamentMatch.findFirst({

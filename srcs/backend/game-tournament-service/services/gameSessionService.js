@@ -8,6 +8,7 @@
   - If it is a tournament, check that player is in the tournament
   - Create game session linking it to players and tournament (if applicable)
 */
+import { getUserInfo } from './authServiceClient.js';
 export async function createGameSession(prisma, { players, tournamentId, matchIndex }) {
   if (!players || players.length === 0) {
     throw { code: 400, message: 'At least one player is required to create a session' };
@@ -17,14 +18,17 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
   for (const p of players) {
     let displayName;
     if (p.userId) {
-      const user = await prisma.user.findUnique({
-        where: { id: Number(p.userId) },
-        select: { username: true },
-      });
-      if (!user) {
-        throw { code: 404, message: `User not found for id ${p.userId}` };
+      // ✅ FIX: Replace prisma.user.findUnique() with API call
+      try {
+        const userInfo = await getUserInfo(Number(p.userId));
+        displayName = userInfo.username;
+      } catch (err) {
+        console.error(`Failed to fetch user info for userId ${p.userId}:`, err);
+        throw { 
+          code: 404, 
+          message: `User not found for id ${p.userId}` 
+        };
       }
-      displayName = user.username;
     } else {
       if (!p.guestName?.trim()) {
         throw { code: 400, message: 'Guest must provide a guestName' };
@@ -47,7 +51,6 @@ export async function createGameSession(prisma, { players, tournamentId, matchIn
       }
       tournamentPlayerId = tp.id;
     }
-
     playerData.push({
       userId: p.userId ? Number(p.userId) : null,
       isGuest: !p.userId,
