@@ -206,30 +206,57 @@ export class AI implements IComponent {
   }
 
 
-  private async connectWebSocket(): Promise<void> {
-    if (!this.currentSession) {
-      console.error('[AI] Cannot connect WS - no session');
-      return;
-    }
+  // private async connectWebSocket(): Promise<void> {
+  //   if (!this.currentSession) {
+  //     console.error('[AI] Cannot connect WS - no session');
+  //     return;
+  //   }
 
-    try {
-      console.log(`[AI] Connecting WebSocket for session ${this.currentSession.sessionId}`);
+  //   try {
+  //     console.log(`[AI] Connecting WebSocket for session ${this.currentSession.sessionId}`);
       
+  //     await aiWebSocketService.connect(this.currentSession.sessionId);
+  //     this.wsConnected = true;
+
+  //     // Register AI move handler
+  //     aiWebSocketService.on('ai_move', (data: any) => {
+  //       if (data && typeof data.action === 'number') {
+  //         this.pongGame.applyAIMove(data.action);
+  //       }
+  //     });
+
+  //     console.log('[AI] WebSocket connected and AI move handler registered');
+
+  //   } catch (error) {
+  //     console.error('[AI] WebSocket connection failed:', error);
+  //     alert('Failed to connect to AI opponent. Please try again.');
+  //   }
+  // }
+
+  private async connectWebSocket(): Promise<void> {
+    if (!this.currentSession) return;
+  
+    try {
       await aiWebSocketService.connect(this.currentSession.sessionId);
       this.wsConnected = true;
-
-      // Register AI move handler
+  
+      // Register handlers
       aiWebSocketService.on('ai_move', (data: any) => {
         if (data && typeof data.action === 'number') {
           this.pongGame.applyAIMove(data.action);
         }
       });
-
-      console.log('[AI] WebSocket connected and AI move handler registered');
-
+  
+      // NEW: Send constants ONLY when AI says it's ready
+      aiWebSocketService.on('ai_ready', () => {
+        console.log('[AI] AI is ready → sending game constants');
+        this.pongGame.sendGameConstants();  // ← Now safe!
+      });
+  
+      console.log('[AI] WebSocket connected');
+  
     } catch (error) {
-      console.error('[AI] WebSocket connection failed:', error);
-      alert('Failed to connect to AI opponent. Please try again.');
+      // ...
     }
   }
 
@@ -350,8 +377,8 @@ export class AI implements IComponent {
     this.isGameRunning = true;
     this.pongGame.resume();
 
-    if(this.wsConnected)
-      this.pongGame.sendGameConstants();
+    // if(this.wsConnected)
+    //   this.pongGame.sendGameConstants();
   }
 
   private stopGameLoop(): void {
