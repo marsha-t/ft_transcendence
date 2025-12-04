@@ -1,0 +1,109 @@
+{
+  "common": {
+    "welcome": "مرحبا",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجح",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "back": "رجوع",
+    "next": "التالي",
+    "submit": "إرسال",
+    "logout": "تسجيل الخروج"
+  },
+  "navigation": {
+    "home": "الرئيسية",
+    "creators": "المطورون",
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "Logout": "تسجيل الخروج",
+    "play": "اللعب",
+    "AI": "الذكاء الاصطناعي",
+    "friend": "صديق",
+    "tournament": "البطولة"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "التسجيل",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "loginSuccess": "تم تسجيل الدخول بنجاح!",
+    "registerSuccess": "تم التسجيل بنجاح!",
+    "loginError": "بيانات غير صحيحة",
+    "passwordMismatch": "كلمات المرور غير متطابقة"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "editProfile": "تعديل الملف الشخصي",
+    "uploadAvatar": "تحميل الصورة الرمزية",
+    "bio": "النبذة",
+    "stats": "الإحصائيات",
+    "wins": "الانتصارات",
+    "losses": "الخسائر",
+    "winRate": "نسبة الفوز",
+    "totalGames": "إجمالي المباريات",
+    "matchHistory": "سجل المباريات"
+  },
+  "game": {
+    "title": "لعبة بونج",
+    "startGame": "بدء اللعبة",
+    "player1": "اللاعب 1",
+    "player2": "اللاعب 2",
+    "score": "النتيجة",
+    "gameOver": "انتهت اللعبة",
+    "winner": "الفائز",
+    "playAgain": "العب مرة أخرى",
+    "waitingForOpponent": "في انتظار الخصم...",
+    "controls": "التحكم",
+    "useArrows": "استخدم أزرار الأسهم للتحرك"
+  },
+  "tournament": {
+    "title": "البطولة",
+    "createTournament": "إنشاء بطولة",
+    "joinTournament": "الانضمام للبطولة",
+    "tournamentName": "اسم البطولة",
+    "participants": "المشاركون",
+    "rounds": "الجولات",
+    "bracket": "الجدول",
+    "semifinals": "نصف النهائي",
+    "finals": "النهائي",
+    "champion": "البطل",
+    "results": "النتائج"
+  },
+  "friends": {
+    "title": "الأصدقاء",
+    "addFriend": "إضافة صديق",
+    "friendRequests": "طلبات الصداقة",
+    "onlineFriends": "الأصدقاء المتصلون",
+    "allUsers": "جميع المستخدمين",
+    "sendRequest": "إرسال طلب",
+    "accept": "قبول",
+    "decline": "رفض",
+    "remove": "إزالة صديق",
+    "online": "متصل",
+    "offline": "غير متصل"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "recentGames": "المباريات الأخيرة",
+    "statistics": "الإحصائيات",
+    "leaderboard": "لوحة المتصدرين",
+    "rank": "الترتيب",
+    "quickPlay": "لعب سريع"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "language": "اللغة",
+    "selectLanguage": "اختر اللغة",
+    "theme": "المظهر",
+    "notifications": "الإشعارات",
+    "privacy": "الخصوصية"
+  }
+}
