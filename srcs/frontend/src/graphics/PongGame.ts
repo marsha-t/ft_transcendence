@@ -3,9 +3,8 @@ import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
-import { aiWebSocketService, AIWebSocketService } from "../services/websocket/WebsocketServices";
+import { aiWebSocketService } from "../services/websocket/WebsocketServices";
 import { GameState } from "../services/websocket/types";
-import { Game } from "../pages/Game";
 
 interface AIConfig {
     aiEnabled: boolean;
@@ -85,9 +84,18 @@ export class PongGame {
                 x: this.rightPaddle.mesh.position.x,
                 z: this.rightPaddle.mesh.position.z,
                 vz: this.rightPaddle.velocity
+            },
+            constants: {
+                paddleDepth: GameConfig.paddle.depth,
+                ballRadius: GameConfig.ball.radius,
+                maxBounceAngle: GameConfig.ball.maxBounceAngle,
+                paddleInfluence: GameConfig.paddle.velocityInfluence,
+                speedIncrement: GameConfig.ball.speedIncrement,
+                maxSpeed: GameConfig.ball.maxSpeed
             }
         };
 
+        // console.log('[PongGame] Streaming to AI:', gameState.ball.x.toFixed(2), gameState.ball.z.toFixed(2));
         aiWebSocketService.sendGameState(gameState);
     }
 
@@ -114,28 +122,6 @@ export class PongGame {
 
         aiWebSocketService.sendGameStart(constants);
     }
-
-    // public applyAIMove(targetZ: number): void {
-    //     if (!this.isAIGame || this.aiConfig.aiSide !== 'LEFT') return;
-
-    //     // Smoothly move AI paddle to target position
-    //     const currentZ = this.leftPaddle.mesh.position.z;
-    //     const diff = targetZ - currentZ;
-    //     const maxMove = GameConfig.paddle.speed * (this.engine.getDeltaTime() / 1000);
-
-    //     if (Math.abs(diff) > 0.01) {
-    //         const move = Math.sign(diff) * Math.min(Math.abs(diff), maxMove);
-    //         this.leftPaddle.mesh.position.z += move;
-            
-    //         // Clamp to bounds
-    //         const bounds = GameConfig.tableBounds;
-    //         this.leftPaddle.mesh.position.z = Math.max(
-    //             bounds.zMin + GameConfig.paddle.depth / 2,
-    //             Math.min(bounds.zMax - GameConfig.paddle.depth / 2, this.leftPaddle.mesh.position.z)
-    //         );
-    //     }
-    // }
-
 
     public applyAIMove(targetZ: number): void {
         if (!this.leftPaddle) {
