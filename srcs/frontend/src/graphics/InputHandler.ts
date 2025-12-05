@@ -88,6 +88,18 @@ export class InputHandler {
         this.rightPaddle.move(dt);
     }
 
+    public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
+        // Reset both keys first
+        this.keys.w = false;
+        this.keys.s = false;
+
+        if (direction === "UP") {
+            this.keys.w = true;
+        } else if (direction === "DOWN") {
+            this.keys.s = true;
+        }
+    }
+
     // -------------------------------------------------------------------------
     // OPTIONAL: keep the old per-keydown behaviour for quick testing
     // (you can delete these two methods if you never need them)

@@ -1,4 +1,4 @@
-export function predictBallIntercept(state) {
+export default function predictBallIntercept(state) {
 	
 	const { ball, arena, aiPaddle, oppPaddle, constants } = state;
 	let { x, z, vx, vz } = ball;
@@ -135,5 +135,3 @@ export function predictBallIntercept(state) {
 
 	return { zIntercept: z, time: t, willReach: false};
 }
-
-// module.exports = predictBallIntercept;

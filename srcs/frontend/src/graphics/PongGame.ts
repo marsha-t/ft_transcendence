@@ -123,22 +123,29 @@ export class PongGame {
         aiWebSocketService.sendGameStart(constants);
     }
 
-    public applyAIMove(targetZ: number): void {
-        if (!this.leftPaddle) {
-          console.warn('[PongGame] Cannot apply AI move - left paddle not found');
-          return;
-        }
-        console.log('[PongGame] applyAIMove called with targetZ =', targetZ);
+    // public applyAIMove(targetZ: number): void {
+    //     if (!this.leftPaddle) {
+    //       console.warn('[PongGame] Cannot apply AI move - left paddle not found');
+    //       return;
+    //     }
+    //     console.log('[PongGame] applyAIMove called with targetZ =', targetZ);
 
-        // Clamp to arena bounds
-        const minZ = -4.4;
-        const maxZ = 4.4;
-        const clampedZ = Math.max(minZ, Math.min(maxZ, targetZ));
+    //     // Clamp to arena bounds
+    //     const minZ = -4.4;
+    //     const maxZ = 4.4;
+    //     const clampedZ = Math.max(minZ, Math.min(maxZ, targetZ));
       
-        // Update paddle position
-        this.leftPaddle.mesh.position.z = clampedZ;
+    //     // Update paddle position
+    //     this.leftPaddle.mesh.position.z = clampedZ;
         
-        console.log(`[PongGame] AI paddle moved to Z: ${clampedZ.toFixed(2)}`);
+    //     console.log(`[PongGame] AI paddle moved to Z: ${clampedZ.toFixed(2)}`);
+    // }
+
+    public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
+
+        if (!this.input) return;
+
+        this.input.applyAIDirection(direction);
     }
 
     public dispose(): void {
