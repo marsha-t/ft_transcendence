@@ -14,13 +14,16 @@ import aiBrain from "./aiBrain.js";
  *  Check if it's an AI game
  */
 class AIWebSocketHandler{
+
     constructor (){
         this.activeSockets = new Map(); // Key = sessionId, Value = socket object
         this.aiBrains = new Map(); // Key = sessionId, Value = AIBrain instance
     }
 
     async handleConnections(socket, sessionId, userId){
-        console.log(`[AIWebSocket] New connection: session=${sessionId}, user=${userId}`);
+
+        console.log(`{BE AI} handleConnections`);
+        console.log(`{BE AI} New connection: session=${sessionId}, user=${userId}`);
 
         try{
             const session = await prisma.gameSession.findUnique({
@@ -29,7 +32,7 @@ class AIWebSocketHandler{
             });
 
             if(!session){
-                console.error(`[AIWebSocket] Session ${sessionId} not found`);
+                console.error(`{BE AI} Session ${sessionId} not found`);
                 socket.send(JSON.stringify({
                     type: 'error',
                     message: 'Game session not found'
@@ -39,7 +42,7 @@ class AIWebSocketHandler{
             }
 
             if(!session.isAi){
-                console.error(`[AIWebSocket] Session ${sessionId} is not an AI game`);
+                console.error(`{BE AI} Session ${sessionId} is not an AI game`);
                 socket.send(JSON.stringify({
                     type: 'error',
                     message: 'This is not AI game'
@@ -50,7 +53,7 @@ class AIWebSocketHandler{
 
             //Store socket connections
             this.activeSockets.set(sessionId, socket);
-            console.log(`[AIWebSocket] Session ${sessionId} connected. Active sessions: ${this.activeSockets.size}`);
+            console.log(`{BE AI} Session ${sessionId} connected. Active sessions: ${this.activeSockets.size}`);
 
             // Create a brain for this session
             this.aiBrains.set(sessionId, new aiBrain());
@@ -62,12 +65,12 @@ class AIWebSocketHandler{
 
             //check for connection close
             socket.on('close', () =>{
-                console.log(`[AIWebSocket] Session ${sessionId} disconnected`);
+                console.log(`{BE AI} Session ${sessionId} disconnected`);
                 this.cleanup(sessionId);
             });
 
             socket.on('error', (error) => {
-                console.error(`[AIWebSocket] Session ${sessionId} error:`, error);
+                console.error(`{BE AI} Session ${sessionId} error:`, error);
                 this.cleanup(sessionId);
             });
 
@@ -78,7 +81,7 @@ class AIWebSocketHandler{
             }));
 
         } catch(err){
-            console.error(`[AIWebSocket] Connection error:`, err);
+            console.error(`{BE AI} Connection error:`, err);
             socket.send(JSON.stringify({
                 type: 'error',
                 message: 'Internal Server error'
@@ -94,6 +97,7 @@ class AIWebSocketHandler{
    */
 
     handleMessage(socket, sessionId, rawData){
+        console.log("here handleMessage was called ")
         try{
             const message = JSON.parse(rawData.toString()); // rawData is a Buffer (binary data), convert to string first
 
@@ -109,21 +113,21 @@ class AIWebSocketHandler{
                     break;
 
                 case 'game_start': // Frontend is starting the game, sending constants
-                    console.log(`[AIWebSocket] Game ${sessionId} started`);
+                    console.log(`{BE AI} Game ${sessionId} started`);
                     if(message.data && message.data.constants)
                         this.handleGameStart(sessionId, message.data.constants);
                     break;
 
                 case 'game_end':
-                    console.log(`[AIWebSocket] Game ${sessionId} ended`);
+                    console.log(`{BE AI} Game ${sessionId} ended`);
                     this.cleanup(sessionId);
                     break;
 
                 default:
-                    console.warn(`[AIWebSocket] Unknown message type: ${message.type}`);
+                    console.warn(`{BE AI} Unknown message type: ${message.type}`);
             }
         }catch (err){
-            console.error(`[AIWebSocket] Error handling message:`, err);
+            console.error(`{BE AI} Error handling message:`, err);
             socket.send(JSON.stringify({
                 type: 'error',
                 message: 'Failed to process message'
@@ -138,51 +142,37 @@ class AIWebSocketHandler{
    * 
    * store game state on gameStateStore class
    */
-    // handleGameState(sessionId, gameState){
-    //     try{
-    //         gameStateStore.update(sessionId, gameState); //saving to gameStateStore class
-
-    //         const shouldLog = Date.now() % 5000 < 50;
-    //         if(shouldLog)
-    //             console.log(`[AIWebSocket] Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
-
-    //         const brain = this.aiBrains.get(sessionId);
-    //         const action = brain.decide(gameState);
-    //         this.sendAIMove(sessionId, action);
-
-    //         //for testing purpose
-    //         // if (Math.random() < 0.1) {  // Send occasionally (10% of the time)
-    //         //     this.sendAIMove(sessionId, Math.random() * 4 - 2);  // Random position between -2 and 2
-    //         // }
-
-    //     } catch(err){
-    //         console.error(`[AIWebSocket] Error storing game state:`, err);
-    //     }
-    // }
-
 
     handleGameState(sessionId, gameState){
+        console.log(`{BE AI} Received state for session ${sessionId}`); 
         try{
             gameStateStore.update(sessionId, gameState); //saving to gameStateStore class
     
             const shouldLog = Date.now() % 5000 < 50;
             if(shouldLog) {
-                console.log(`[AIWebSocket] Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
-                console.log(`[AIWebSocket] Session ${sessionId} - AI Paddle Z: ${gameState.aiPaddle?.z || 'N/A'}`);
+                console.log(`{BE AI} Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
+                console.log(`{BE AI} Session ${sessionId} - AI Paddle Z: ${gameState.aiPaddle?.z || 'N/A'}`);
             }
     
             const brain = this.aiBrains.get(sessionId);
             
             if (!brain) {
-                console.error(`❌ [AIWebSocket] No brain found for session ${sessionId}`);
+                console.error(`{BE AI} No brain found for session ${sessionId}`);
                 return;
             }
-            
+
+            //Get the full state with constants from store
+            const fullState = gameStateStore.getState(sessionId);
+        
+            if (!fullState || !fullState.constants) {
+                console.warn(`{BE AI} Constants not yet available for session ${sessionId}`);
+                return;
+            }
+
             const action = brain.decide(gameState);
             
-            // ✅ ADD THIS LOGGING
             if (shouldLog) {
-                console.log(`🧠 [AIWebSocket] Session ${sessionId} - AI decided action: ${action}`);
+                console.log(`{BE AI} Session ${sessionId} - AI decided action: ${action}`);
             }
             
             this.sendAIMove(sessionId, action);
@@ -203,7 +193,7 @@ class AIWebSocketHandler{
 
             if(currentState){
                 currentState.constants = constants;
-                console.log(`[AIWebSocket] Session ${sessionId} - Constants stored`);
+                console.log(`{BE AI} Session ${sessionId} - Constants stored`);
             }else{
                 gameStateStore.update(sessionId, {
                     ball: { x: 0, z: 0, vx: 0, vz: 0 },
@@ -214,7 +204,7 @@ class AIWebSocketHandler{
                 });
             }
         }catch (err){
-            console.error(`[AIWebSocket] Error storing constants:`, error);
+            console.error(`{BE AI} Error storing constants:`, error);
         }
     }
 
@@ -226,13 +216,13 @@ class AIWebSocketHandler{
             
             // Check if socket exists and is open
             if (!socket) {
-              console.warn(`⚠️ [AIWebSocket] No socket for session ${sessionId}`);
+              console.warn(`{BE AI} No socket for session ${sessionId}`);
               return;
             }
       
             // WebSocket readyState: 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
             if (socket.readyState !== 1) {
-              console.warn(`[AIWebSocket] Socket for session ${sessionId} is not open (state: ${socket.readyState})`);
+              console.warn(`{BE AI} Socket for session ${sessionId} is not open (state: ${socket.readyState})`);
               return;
             }
       
@@ -245,7 +235,7 @@ class AIWebSocketHandler{
             }));
       
           } catch (error) {
-            console.error(`AIWebSocket] Error sending AI move:`, error);
+            console.error(`{BE AI} Error sending AI move:`, error);
         }
     }
 
