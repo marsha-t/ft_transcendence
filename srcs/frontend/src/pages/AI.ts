@@ -304,8 +304,8 @@ export class AI implements IComponent {
       this.wsConnected = true;
   
       aiWebSocketService.on('ai_move', (data: any) => {
-        if (data && typeof data.action === 'number') {
-          this.pongGame.applyAIMove(data.action);
+        if (data && typeof data.action === 'string') {
+          this.pongGame.applyAIDirection(data.action as "UP" | "DOWN" | "NONE" );
         }
       });
   
