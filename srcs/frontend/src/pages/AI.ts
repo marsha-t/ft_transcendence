@@ -1,9 +1,6 @@
-// src/pages/AI.ts
-
 import { IComponent } from "../components/IComponent.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { PlayerSide } from "../services/game/types.js";
-import { GameConfig } from "../graphics/GameConfig.js";
 import { navigate, confirmationPopup } from "../utils";
 import {GameSession} from "../services/game/types.js";
 import { GameService } from "../services/game/GameService.js";
@@ -169,6 +166,49 @@ export class AI implements IComponent {
   }
 
 
+  // private async initializeAIGame(): Promise<void> {
+  //   console.log('initializeAIGame was called');
+  //   try {
+  //     console.log('initializeAIGame try block');
+  //     const response = await fetch("/api/ai/create-game", {
+  //       method: "POST",
+  //       credentials: "include",
+  //     });
+      
+  //     if (!response.ok) {
+  //       console.log('initializeAIGame not ok');
+  //       const err = await response.text();
+  //       throw new Error(`Failed: ${response.status} ${err}`);
+  //     }
+      
+  //     const data = await response.json();
+      
+  //     this.currentSession = {
+  //       sessionId: data.id,
+  //       status: data.status,
+  //       players: data.players.map((p: any) => ({
+  //         side: p.side,
+  //         displayName: p.displayName || p.user?.username || "Player",
+  //         score: p.score || 0,
+  //       })),
+  //       winnerName: data.winnerName,
+  //     } as GameSession;
+  
+  //     console.log("AI Game Ready!", this.currentSession);
+
+
+  //     //connect websocket
+  //     console.log('before websocket connections')
+  //     await this.connectWebSocket();
+  //     console.log('after websocket connections')
+
+
+  //   } catch (err: any) {
+  //     console.error("Failed to start AI game:", err);
+  //     alert("Could not connect to game service.");
+  //   }
+  // }
+  
   private async initializeAIGame(): Promise<void> {
     try {
       const response = await fetch("/api/ai/create-game", {
@@ -182,6 +222,8 @@ export class AI implements IComponent {
       }
   
       const data = await response.json();
+      
+      console.log('📦 Raw data from API:', data);
   
       this.currentSession = {
         sessionId: data.id,
@@ -194,76 +236,88 @@ export class AI implements IComponent {
         winnerName: data.winnerName,
       } as GameSession;
   
-      console.log("AI Game Ready!", this.currentSession);
-
+      console.log("✅ AI Game Ready!", this.currentSession);
+      console.log('🔍 Session ID:', this.currentSession.sessionId);
+      console.log('🔍 Session is truthy?', !!this.currentSession);
+  
+      //connect websocket
+      console.log('🔌 Before websocket connection');
       await this.connectWebSocket();
-
-
+      console.log('✅ After websocket connection');
+  
     } catch (err: any) {
-      console.error("Failed to start AI game:", err);
+      console.error("❌ Failed to start AI game:", err);
       alert("Could not connect to game service.");
     }
   }
-
-
+  
   // private async connectWebSocket(): Promise<void> {
-  //   if (!this.currentSession) {
-  //     console.error('[AI] Cannot connect WS - no session');
-  //     return;
-  //   }
-
-  //   try {
-  //     console.log(`[AI] Connecting WebSocket for session ${this.currentSession.sessionId}`);
+  //   console.log("start connectWebSocket");
+  //   if (!this.currentSession){
       
+  //     console.log("return connectWebSocket");
+  //     return;
+  //   } 
+      
+  
+  //   try {
   //     await aiWebSocketService.connect(this.currentSession.sessionId);
   //     this.wsConnected = true;
-
-  //     // Register AI move handler
+  
+  //     // Register handlers
   //     aiWebSocketService.on('ai_move', (data: any) => {
   //       if (data && typeof data.action === 'number') {
   //         this.pongGame.applyAIMove(data.action);
   //       }
   //     });
-
-  //     console.log('[AI] WebSocket connected and AI move handler registered');
-
+  
+  //     aiWebSocketService.on('ai_ready', () => {
+  //       // console.log('[AI] AI is ready → sending game constants');
+  //       this.pongGame.sendGameConstants();
+  //     });
+  
+  //     // console.log('[AI] WebSocket connected');
+  
   //   } catch (error) {
   //     console.error('[AI] WebSocket connection failed:', error);
   //     alert('Failed to connect to AI opponent. Please try again.');
   //   }
   // }
 
+
   private async connectWebSocket(): Promise<void> {
-    if (!this.currentSession) return;
-  
+    console.log('=== ENTERING connectWebSocket ===');
+    console.log('Session:', this.currentSession);
+    
+    if (!this.currentSession) {
+      console.error('NO SESSION - RETURNING');
+      return;
+    }
+    
+    console.log('SESSION EXISTS - CONTINUING');
+    
     try {
+      console.log('ABOUT TO CONNECT');
       await aiWebSocketService.connect(this.currentSession.sessionId);
+      console.log('CONNECTED');
+      
       this.wsConnected = true;
   
-      // Register handlers
       aiWebSocketService.on('ai_move', (data: any) => {
-        console.log('[AI] Received AI move:', data);
-        if (data &&  data.action === 'number') {
+        if (data && typeof data.action === 'number') {
           this.pongGame.applyAIMove(data.action);
         }
       });
-
-      
   
-      // NEW: Send constants ONLY when AI says it's ready
       aiWebSocketService.on('ai_ready', () => {
-        console.log('[AI] AI is ready → sending game constants');
         this.pongGame.sendGameConstants();
       });
   
-      console.log('[AI] WebSocket connected');
-  
     } catch (error) {
-      console.error('[AI] WebSocket connection failed:', error);
+      console.error('CONNECTION ERROR:', error);
       alert('Failed to connect to AI opponent. Please try again.');
     }
   }
-
 
 
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
@@ -301,7 +355,7 @@ export class AI implements IComponent {
     const leftScore = leftPlayer?.score ?? 0;
     const rightScore = rightPlayer?.score ?? 0;
 
-    console.log(`Score - AI: ${leftScore}, You: ${rightScore}`);
+    // console.log(`Score - AI: ${leftScore}, You: ${rightScore}`);
 
     const leftScoreEl = document.getElementById("left-score");
     const rightScoreEl = document.getElementById("right-score");
