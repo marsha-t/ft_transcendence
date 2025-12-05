@@ -28,13 +28,13 @@ export class AIWebSocketService {
         return new Promise((resolve, reject)=> {
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
           const wsUrl = `${protocol}//${window.location.host}/ws/ai/${sessionId}`;
-          console.log(`[AIWebSocket] Connecting to ${wsUrl}`);
+          // console.log(`[AIWebSocket] Connecting to ${wsUrl}`);
 
             try{
                 this.socket = new WebSocket(wsUrl);
 
                 this.socket.onopen = ()=>{
-                    console.log(`[AIWebSocket] Connected to session ${sessionId}`);
+                    // console.log(`[AIWebSocket] Connected to session ${sessionId}`);
                     this.isConnecting = false;
                     this.reconnectAttempts = 0;
                     resolve();
@@ -56,7 +56,7 @@ export class AIWebSocketService {
                 };
 
                 this.socket.onclose = (event) => {
-                    console.log(`[AIWebSocket] Disconnected: ${event.code} - ${event.reason}`);
+                    // console.log(`[AIWebSocket] Disconnected: ${event.code} - ${event.reason}`);
                     this.isConnecting = false;
                     this.handleDisconnect(event);
                 };
@@ -73,20 +73,20 @@ export class AIWebSocketService {
       try{
 
           const message = JSON.parse(event.data);
-          console.log(`[AIWebSocket] Received message type: ${message.type}`);
-          console.log(`[AIWebSocket] Received:`, message); 
+          // console.log(`[AIWebSocket] Received message type: ${message.type}`);
+          // console.log(`[AIWebSocket] Received:`, message); 
 
           // Route to registered handlers FIRST
           const handler = this.messageHandlers.get(message.type);
           if(handler){
-            console.log(`[AIWebSocket] Calling handler for ${message.type}`);
+            // console.log(`[AIWebSocket] Calling handler for ${message.type}`);
             handler(message.data);
           }
 
           // Then handle built-in message types
           switch(message.type){
               case 'ai_ready':
-                  console.log('[AIWebSocket] AI is ready!');
+                  // console.log('[AIWebSocket] AI is ready!');
                   break;
               case 'ai_move':
                   // Handler registered by PongGame will process this
@@ -129,10 +129,10 @@ export class AIWebSocketService {
                 type: 'game_state',
                 data: gameState
             }));
-            console.log(
-              '[AIWebSocket] Sending game state:\n' + 
-              JSON.stringify(gameState, null, 2)
-            );
+            // console.log(
+            //   '[AIWebSocket] Sending game state:\n' + 
+            //   JSON.stringify(gameState, null, 2) 
+            // ); //prints game state
             
         }catch(err){
 
@@ -149,8 +149,8 @@ export class AIWebSocketService {
             return;
           }
       
-          console.log('[AIWebSocket] Sending game constants: ');
-          console.log('constants:\n', JSON.stringify(constants, null, 2));
+          // console.log('[AIWebSocket] Sending game constants: ');
+          // console.log('constants:\n', JSON.stringify(constants, null, 2));// prints const of FE
 
           this.socket.send(JSON.stringify({
             type: 'game_start',
@@ -173,14 +173,14 @@ export class AIWebSocketService {
 
         // Don't reconnect if it was a clean close (user quit)
         if(event.code === 1000 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
-            console.log('[AIWebSocket] Clean disconnect - not reconnecting');
+            // console.log('[AIWebSocket] Clean disconnect -  not reconnecting');
             return;
 
         }
         // Attempt reconnection
         if (this.reconnectAttempts < this.maxReconnectAttempts && this.sessionId) {
             this.reconnectAttempts++;
-            console.log(`[AIWebSocket] Reconnecting attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+            // console.log(`[AIWebSocket] Reconnecting attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
             
             setTimeout(() => {
               if (this.sessionId) {
@@ -190,7 +190,7 @@ export class AIWebSocketService {
               }
             }, this.reconnectDelay * this.reconnectAttempts);
           } else {
-            console.error('[AIWebSocket] Max reconnection attempts reached');
+            // console.error('[AIWebSocket] Max reconnection attempts reached');
         }
 
       }
@@ -205,7 +205,7 @@ export class AIWebSocketService {
           this.sendGameState(state);
         }, intervalMs);
     
-        console.log(`[AIWebSocket] Started state streaming every ${intervalMs}ms`);
+        // console.log(`[AIWebSocket] Started state streaming every ${intervalMs}ms`);
       }
 
       //10 Stop streaming game state
@@ -213,13 +213,13 @@ export class AIWebSocketService {
         if (this.stateStreamInterval !== null) {
           clearInterval(this.stateStreamInterval);
           this.stateStreamInterval = null;
-          console.log('[AIWebSocket] Stopped state streaming');
+          // console.log('[AIWebSocket] Stopped state streaming');
         }
       }
 
       //11 Disconnect and cleanup
       public disconnect(): void {
-        console.log('[AIWebSocket] Disconnecting...');
+        // console.log('[AIWebSocket] Disconnecting...');
         
         this.stopStateStream();
         
