@@ -80,7 +80,7 @@ async function authRoutes(app, options) {
   
       reply.setCookie('token', token, {
         httpOnly: true,
-        secure: false, // change to true in prod
+        secure: true, // change to true in prod
         sameSite: 'Lax', // allows third-party contexts
         path: '/',
         maxAge: 60 * 60,
@@ -166,7 +166,7 @@ async function authRoutes(app, options) {
         // Store in secure HttpOnly cookie
         reply.setCookie('pending_2fa', tempToken, {
           httpOnly: true,
-          secure: false,      // change to true in production
+          secure: true,      // change to true in production
           sameSite: 'Lax', // allows third-party contexts
           path: '/',
           maxAge: 5 * 60,
@@ -185,7 +185,7 @@ async function authRoutes(app, options) {
 
       return reply.setCookie('token', token, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: 'Lax', // allows third-party contexts
         path: '/',
         maxAge: 60 * 60,
@@ -246,7 +246,7 @@ async function authRoutes(app, options) {
 
       reply.setCookie("token", sessionToken, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: 'Lax', // allows third-party contexts
         path: "/",
         maxAge: 3600

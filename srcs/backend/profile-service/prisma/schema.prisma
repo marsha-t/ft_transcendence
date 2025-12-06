@@ -41,9 +41,13 @@ model User {
   id              Int      @id @default(autoincrement())
   username        String   @unique
   email           String   @unique
-  password        String
+  password        String?
+  googleId        String?  @unique
   avatar          String   @default("/uploads/avatars/default.png")
   status          String   @default("OFFLINE")
+  twoFactorEnabled Boolean? @default(false)
+  twoFactorCode String?
+  twoFactorExpiry DateTime?
   totalMatches    Int      @default(0)
   totalWins       Int      @default(0)
   winRate         Float    @default(0)
