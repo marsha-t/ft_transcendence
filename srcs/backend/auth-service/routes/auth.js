@@ -1,12 +1,97 @@
 // routes/auth.js
 
-import { registerSchema, loginSchema, login2FASchema, resendOTPSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
+import { googleLoginSchema, registerSchema, loginSchema, login2FASchema, resendOTPSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { sendEmail } from '../services/emailService.js';
+import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
 
 async function authRoutes(app, options) {
+
+  app.post('/google', { shema: googleLoginSchema}, async (request, reply) => {
+    try {
+      const { idToken } = request.body;
+      if (!idToken) return reply.code(400).send({ message: 'Missing idToken' });
+  
+      const payload = await verifyGoogleToken(idToken); // contains sub, email, name, picture
+      if (!payload) return reply.code(401).send({ message: 'Invalid Google token' });
+  
+      const { sub: googleId, email, name, picture } = payload;
+  
+      // 1) Try find by googleId
+      let user = await prisma.user.findUnique({ where: { googleId } });
+  
+      // 2) If not found, try find by email (user may have registered with same email)
+      if (!user && email) {
+        user = await prisma.user.findUnique({ where: { email } });
+        if (user) {
+          // Option: link googleId to existing account to avoid duplicate users.
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { googleId },
+          });
+        }
+      }
+  
+      // 3) If still not found, create user
+      if (!user) {
+        // 1- generate base username
+        let baseUsername = name
+          ? name.replace(/[^a-zA-Z0-9_]/g, '_') // replace invalid chars with underscore
+                 .replace(/_+/g, '_')           // collapse multiple underscores
+                 .toLowerCase()
+          : email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+      
+        // 2- truncate to max 20 chars
+        baseUsername = baseUsername.substring(0, 20);
+      
+        // 3- ensure minimum 3 characters
+        if (baseUsername.length < 3) {
+          baseUsername = baseUsername.padEnd(3, '_'); // add underscores if too short
+        }
+      
+        let username = baseUsername;
+      
+        // 4- ensure uniqueness
+        let i = 0;
+        while (await prisma.user.findUnique({ where: { username } })) {
+          i += 1;
+          const suffix = i.toString();
+          // truncate to allow suffix while respecting max length
+          username = baseUsername.substring(0, 20 - suffix.length) + suffix;
+        }
+      
+        // 5- create the user
+        user = await prisma.user.create({
+          data: {
+            username,
+            email,
+            googleId,
+            avatar: picture || "/uploads/avatars/default.png",
+            password: null,
+            status: 'ONLINE',
+          },
+        });
+      }
+  
+      // 4) Issue session token (same as login)
+      const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
+  
+      reply.setCookie('token', token, {
+        httpOnly: true,
+        secure: false, // change to true in prod
+        sameSite: 'Lax', // allows third-party contexts
+        path: '/',
+        maxAge: 60 * 60,
+      });
+  
+      return reply.code(200).send({ message: 'Login successful', twoFactorRequired: false });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Google login failed' });
+    }
+  });
 
   // Register route
   app.post('/register', { schema: registerSchema }, async (request, reply) => {
@@ -82,7 +167,7 @@ async function authRoutes(app, options) {
         reply.setCookie('pending_2fa', tempToken, {
           httpOnly: true,
           secure: false,      // change to true in production
-          sameSite: 'strict',
+          sameSite: 'Lax', // allows third-party contexts
           path: '/',
           maxAge: 5 * 60,
         });
@@ -101,7 +186,7 @@ async function authRoutes(app, options) {
       return reply.setCookie('token', token, {
         httpOnly: true,
         secure: false,
-        sameSite: 'strict',
+        sameSite: 'Lax', // allows third-party contexts
         path: '/',
         maxAge: 60 * 60,
       }).code(200).send({ message: 'Login successful' });
@@ -162,7 +247,7 @@ async function authRoutes(app, options) {
       reply.setCookie("token", sessionToken, {
         httpOnly: true,
         secure: false,
-        sameSite: "strict",
+        sameSite: 'Lax', // allows third-party contexts
         path: "/",
         maxAge: 3600
       });

@@ -33,84 +33,29 @@ export class Login implements IComponent {
 
         // Form
         this.form = document.createElement('form');
-        this.form.className =
-            'flex flex-col gap-[26px] items-center w-full leading-normal';
-    
-        // === Username group ===
-        const usernameGroup = document.createElement('div');
-        usernameGroup.className = 'flex flex-col gap-2';
-    
-        const usernameLabel = document.createElement('label');
-        usernameLabel.className = 'text-lg font-mono text-color_white';
-        usernameLabel.textContent = 'USERNAME';
-        usernameLabel.htmlFor = 'username';
-    
-        const usernameInput = document.createElement('input');
-        usernameInput.className = `
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
-            focus:text-opacity-100
-            box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
-            focus:outline-none focus:border-border-green 
-            transition-colors`;
-      
-        usernameInput.type = 'text';
-        usernameInput.id = 'username';
-        usernameInput.name = 'username';
-        usernameInput.placeholder = 'username';
-    
-        usernameGroup.appendChild(usernameLabel);
-        usernameGroup.appendChild(usernameInput);
-    
-        // === Password group ===
-        const passwordGroup = document.createElement('div');
-        passwordGroup.className = 'flex flex-col gap-2';
-    
-        const passwordLabel = document.createElement('label');
-        passwordLabel.className = 'text-lg font-mono text-color_white';
-        passwordLabel.textContent = 'Password';
-        passwordLabel.htmlFor = 'password';
-    
-        const passwordInput = document.createElement('input');
-        passwordInput.className = `
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
-            focus:text-opacity-100
-            box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
-            focus:outline-none focus:border-border-green 
-            transition-colors`;
-        passwordInput.type = 'password';
-        passwordInput.id = 'password';
-        passwordInput.name = 'password';
-        passwordInput.placeholder = '••••••••';
-    
-        passwordGroup.appendChild(passwordLabel);
-        passwordGroup.appendChild(passwordInput);
-    
-        // === Submit button ===
-        this.submitButton = document.createElement('button');
-        this.submitButton.className =
-            "w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-            "font-bold rounded-lg tracking-widest " + 
-            "shadow-[0_5px_0_var(--color-button-second)] " +
-            "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-            "hover:translate-y-1 active:translate-y-2 " +
-            "transition-all duration-150 mt-5 text-center no-underline";
+        this.form.className = 'flex flex-col gap-[26px] items-center w-full leading-normal';
 
+        // Username
+        const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
+
+        // Password
+        const passwordGroup = this.createInput('password', 'Password', 'password', '••••••••');
+
+        // Submit button
+        this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
-    
-        // === Message container ===
-        this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'none';
+        this.submitButton.className = `
+            w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white
+            font-bold rounded-lg tracking-widest shadow-[0_5px_0_var(--color-button-second)]
+            hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
+            hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline
+        `;
 
-
-        // === Build the form ===
-        this.form.appendChild(usernameGroup);
-        this.form.appendChild(passwordGroup);
-        this.form.appendChild(this.submitButton);
+        // Google button container
+        const googleButtonContainer = document.createElement('div');
+        googleButtonContainer.id = 'google-login-button';
+        googleButtonContainer.className = 'mt-4';
 
         // OTP group (hidden initially)
         this.otpGroup = document.createElement('div');
@@ -127,13 +72,11 @@ export class Login implements IComponent {
         this.otpInput.placeholder = '123456';
         this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
 
-        // OTP submit button
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
         this.otpSubmitButton.textContent = 'Verify';
         this.otpSubmitButton.className = this.submitButton.className;
 
-        // Resend OTP button
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
         this.otpResendButton.textContent = 'Resend OTP';
@@ -149,17 +92,27 @@ export class Login implements IComponent {
 
         // Build page
         subContainer.appendChild(heading);
+        this.form.appendChild(usernameGroup);
+        this.form.appendChild(passwordGroup);
+        this.form.appendChild(this.submitButton);
         subContainer.appendChild(this.form);
+        subContainer.appendChild(googleButtonContainer);
         subContainer.appendChild(this.otpGroup);
         subContainer.appendChild(this.messageContainer);
         this.container.appendChild(subContainer);
 
-        // Attach listeners
+        // Attach event listeners
         this.attachEventListeners();
+
+        // Load Google login dynamically
+        this.loadGoogleScript()
+            .then(() => this.initGoogleLogin())
+            .catch(err => console.error(err));
 
         return this.container;
     }
 
+    // ------------------ Helper methods ------------------
     private createInput(id: string, labelText: string, type: string, placeholder: string): HTMLDivElement {
         const group = document.createElement('div');
         group.className = 'flex flex-col gap-2';
@@ -220,14 +173,9 @@ export class Login implements IComponent {
 
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
-
-                // // ✅ SET USER AS LOGGED IN
                 AuthUtils.setLoggedIn({ username: userData.username });
-                this.form.reset(); //I need to clean th form after getting data
-                console.log("isloggedin", AuthUtils.isLoggedIn());
-                setTimeout(() => {
-                    navigate("/profile"); 
-                }, 2000);
+                this.form.reset();
+                setTimeout(() => navigate("/profile"), 2000);
             } else {
                 this.showMessage(response.message || 'Login failed', 'error');
             }
@@ -251,19 +199,11 @@ export class Login implements IComponent {
         this.setLoadingState(true);
         try {
             const response = await apiServices.login2FA(payload);
-            const data = response?.data || response;
-
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
-
-                // ✅ SET USER AS LOGGED IN
                 AuthUtils.setLoggedIn({ username: payload.username });
-                this.form.reset(); //I need to clean th form after getting data
-                console.log("isloggedin", AuthUtils.isLoggedIn());
-                
-                setTimeout(() => {
-                    navigate("/profile");
-                }, 2000);
+                this.form.reset();
+                setTimeout(() => navigate("/profile"), 2000);
             } else {
                 this.showMessage(response.message || 'Login failed', 'error');
             }
@@ -301,12 +241,67 @@ export class Login implements IComponent {
         this.submitButton.disabled = loading;
         this.otpSubmitButton.disabled = loading;
         this.otpResendButton.disabled = loading;
-        this.form.querySelectorAll('input').forEach((input) => (input as HTMLInputElement).disabled = loading);
+        this.form.querySelectorAll('input').forEach(input => (input as HTMLInputElement).disabled = loading);
     }
 
     private showMessage(message: string, type: 'success' | 'error') {
         this.messageContainer.style.display = 'block';
         this.messageContainer.textContent = message;
         this.messageContainer.className = `mt-4 text-center ${type === 'success' ? 'text-green-500' : 'text-red-500'}`;
+    }
+
+    // ------------------ Google Login ------------------
+    private loadGoogleScript(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            if ((window as any).google?.accounts?.id) return resolve();
+
+            const script = document.createElement('script');
+            script.src = "https://accounts.google.com/gsi/client";
+            script.async = true;
+            script.defer = true;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Google Identity script"));
+            document.head.appendChild(script);
+        });
+    }
+
+    private initGoogleLogin() {
+        if (!(window as any).google?.accounts?.id) return;
+
+        (window as any).google.accounts.id.initialize({
+            client_id: '664010514832-jrr53943l8tvr54pths5ugpnkfs9aim5.apps.googleusercontent.com',
+            callback: (response: any) => {
+                const idToken = response.credential;
+                if (!idToken) return this.showMessage('Google login failed', 'error');
+                this.handleGoogleToken(idToken);
+            }
+        });
+
+        (window as any).google.accounts.id.renderButton(
+            document.getElementById('google-login-button')!,
+            { theme: 'outline', size: 'large', width: 360 }
+        );
+
+        (window as any).google.accounts.id.prompt();
+    }
+
+    private async handleGoogleToken(idToken: string) {
+        this.setLoadingState(true);
+        try {
+            const response = await apiServices.googleLogin({ idToken });
+            if (response.success) {
+                this.showMessage(response.data?.message || 'Login successful', 'success');
+                AuthUtils.setLoggedIn({ username: response.data.username });
+                this.form.reset();
+                setTimeout(() => navigate("/profile"), 1500);
+            } else {
+                this.showMessage(response.data?.message || 'Login failed', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            this.showMessage('Google login failed', 'error');
+        } finally {
+            this.setLoadingState(false);
+        }
     }
 }
