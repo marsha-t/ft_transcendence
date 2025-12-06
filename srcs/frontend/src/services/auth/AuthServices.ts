@@ -163,6 +163,7 @@ export class AuthServices {
         }
     }
 
+    // Resend OTP
     async resendOTP(payload: { username: string }): Promise<LoginApiResponse<any>> {
         try {
             const response = await fetch(`${this.baseUrl}/login/resend-otp`, {
@@ -192,7 +193,8 @@ export class AuthServices {
                 twoFactorRequired: true
             };
         }
-    }    
+    }
+
     // Get current user (username + avatar)
     async getCurrentUser(): Promise<ApiResponse<any>> {
         try {
@@ -231,7 +233,51 @@ export class AuthServices {
             };
         }
     }    
-  
+
+    // ------------------ NEW: Google Login ------------------
+    async googleLogin(payload: { idToken: string }): Promise<LoginApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            let data: any = {};
+            try { data = await response.json(); } catch { data = {}; }
+
+            if (response.ok) {
+                return {
+                    success: true,
+                    status: response.status,
+                    data: data,
+                    message: data.message || 'Google login successful',
+                    errors: [],
+                    twoFactorRequired: false
+                };
+            }
+
+            let msg = data.message || data.error || 'Google login failed';
+            return {
+                success: false,
+                status: response.status,
+                message: msg,
+                errors: data.errors || [],
+                data: null,
+                twoFactorRequired: false
+            };
+        } catch (error) {
+            console.error('Google login API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Google login network error',
+                errors: [],
+                data: null,
+                twoFactorRequired: false
+            };
+        }
+    }
 }
 
 export const apiServices = new AuthServices();

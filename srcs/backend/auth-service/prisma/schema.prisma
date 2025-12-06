@@ -48,6 +48,7 @@ model User {
   username String  @unique
   email    String  @unique
   password String
+  googleId          String?  @unique
   avatar   String   @default("/uploads/avatars/default.png")
   status   String   @default("OFFLINE")
 

@@ -39,10 +39,14 @@ const app = Fastify({ logger: true,
   }
 });
 
+// CORS setup (adjust origin for your frontend)
+const allowedOrigins = (process.env.CORS_ORIGINS || 'https://localhost,https://localhost:443,http://localhost:3000').split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 await app.register(cors, {
-  origin: 'https://silver-space-winner-977xxpx6p6j4h79q-443.app.github.dev/',
+  origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
 
 // Swagger ------------------------------------------

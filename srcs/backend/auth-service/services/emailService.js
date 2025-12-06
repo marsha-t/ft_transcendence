@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
 
-// Configure your email account
+// Configure the email account to be used
 // For testing, you can use Gmail, Outlook, or a test SMTP service
 const transporter = nodemailer.createTransport({
   service: 'gmail', // e.g., 'gmail'
   auth: {
-    user: process.env.EMAIL_USER, // your email
-    pass: process.env.EMAIL_PASS  // your email app password or SMTP password
+    user: process.env.EMAIL_USER, // email
+    pass: process.env.EMAIL_PASS  // email app password
   }
 });
 
