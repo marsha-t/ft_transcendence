@@ -132,14 +132,17 @@ export class GameService{
     async startGame(sessionId: number):Promise<GameSession>{
         return this.updateGameStatus(sessionId, "PLAYING");
     }
+
     // 7- Pause game;
     async pauseGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "PAUSED");
     }
+
     // 8- Abort game
     async abortGame(sessionId: number): Promise<GameSession> {
         return this.updateGameStatus(sessionId, "ABORTED");
     }
+
     // 10- Transform API response to match our GameSession interface
     private transformApiResponseToGameSession(apiResponse: any){
         return {
@@ -160,19 +163,4 @@ export class GameService{
             endedAt: apiResponse.endedAt
         };
     }
-    // helper fun to handel API errors
-    // private handleApiError(response: Response, context: string): never {
-    //     switch (response.status) {
-    //         case 400:
-    //             throw new Error(`${context}: Invalid request data`);
-    //         case 404:
-    //             throw new Error(`${context}: Resource not found`);
-    //         case 409:
-    //             throw new Error(`${context}: Conflict (e.g., side already taken)`);
-    //         case 500:
-    //             throw new Error(`${context}: Server error`);
-    //         default:
-    //             throw new Error(`${context}: Unexpected error (${response.status})`);
-    //     }
-    // }
 }
