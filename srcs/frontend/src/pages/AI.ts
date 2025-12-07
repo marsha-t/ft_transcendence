@@ -27,7 +27,7 @@ export class AI implements IComponent {
     this.canvas.width = 900;
     this.canvas.height = 500;
     this.gameService = new GameService();
-    this.username = "getting username...";
+    this.username = "Getting username...";
   }
 
   public render(): HTMLElement {
@@ -164,50 +164,6 @@ export class AI implements IComponent {
       console.log("Failed to fetch username: ", err);
     }
   }
-
-
-  // private async initializeAIGame(): Promise<void> {
-  //   console.log('initializeAIGame was called');
-  //   try {
-  //     console.log('initializeAIGame try block');
-  //     const response = await fetch("/api/ai/create-game", {
-  //       method: "POST",
-  //       credentials: "include",
-  //     });
-      
-  //     if (!response.ok) {
-  //       console.log('initializeAIGame not ok');
-  //       const err = await response.text();
-  //       throw new Error(`Failed: ${response.status} ${err}`);
-  //     }
-      
-  //     const data = await response.json();
-      
-  //     this.currentSession = {
-  //       sessionId: data.id,
-  //       status: data.status,
-  //       players: data.players.map((p: any) => ({
-  //         side: p.side,
-  //         displayName: p.displayName || p.user?.username || "Player",
-  //         score: p.score || 0,
-  //       })),
-  //       winnerName: data.winnerName,
-  //     } as GameSession;
-  
-  //     console.log("AI Game Ready!", this.currentSession);
-
-
-  //     //connect websocket
-  //     console.log('before websocket connections')
-  //     await this.connectWebSocket();
-  //     console.log('after websocket connections')
-
-
-  //   } catch (err: any) {
-  //     console.error("Failed to start AI game:", err);
-  //     alert("Could not connect to game service.");
-  //   }
-  // }
   
   private async initializeAIGame(): Promise<void> {
     try {
@@ -223,7 +179,7 @@ export class AI implements IComponent {
   
       const data = await response.json();
       
-      console.log('📦 Raw data from API:', data);
+      console.log('Raw data from API:', data);
   
       this.currentSession = {
         sessionId: data.id,
@@ -236,70 +192,28 @@ export class AI implements IComponent {
         winnerName: data.winnerName,
       } as GameSession;
   
-      console.log("✅ AI Game Ready!", this.currentSession);
-      console.log('🔍 Session ID:', this.currentSession.sessionId);
-      console.log('🔍 Session is truthy?', !!this.currentSession);
+      console.log("AI Game Ready!", this.currentSession);
+      console.log('Session ID:', this.currentSession.sessionId);
+      console.log('Session is truthy?', !!this.currentSession);
   
       //connect websocket
-      console.log('🔌 Before websocket connection');
       await this.connectWebSocket();
-      console.log('✅ After websocket connection');
   
     } catch (err: any) {
-      console.error("❌ Failed to start AI game:", err);
+      console.error("Failed to start AI game:", err);
       alert("Could not connect to game service.");
     }
   }
   
-  // private async connectWebSocket(): Promise<void> {
-  //   console.log("start connectWebSocket");
-  //   if (!this.currentSession){
-      
-  //     console.log("return connectWebSocket");
-  //     return;
-  //   } 
-      
-  
-  //   try {
-  //     await aiWebSocketService.connect(this.currentSession.sessionId);
-  //     this.wsConnected = true;
-  
-  //     // Register handlers
-  //     aiWebSocketService.on('ai_move', (data: any) => {
-  //       if (data && typeof data.action === 'number') {
-  //         this.pongGame.applyAIMove(data.action);
-  //       }
-  //     });
-  
-  //     aiWebSocketService.on('ai_ready', () => {
-  //       // console.log('[AI] AI is ready → sending game constants');
-  //       this.pongGame.sendGameConstants();
-  //     });
-  
-  //     // console.log('[AI] WebSocket connected');
-  
-  //   } catch (error) {
-  //     console.error('[AI] WebSocket connection failed:', error);
-  //     alert('Failed to connect to AI opponent. Please try again.');
-  //   }
-  // }
-
-
   private async connectWebSocket(): Promise<void> {
-    console.log('=== ENTERING connectWebSocket ===');
-    console.log('Session:', this.currentSession);
-    
     if (!this.currentSession) {
       console.error('NO SESSION - RETURNING');
       return;
     }
     
-    console.log('SESSION EXISTS - CONTINUING');
     
     try {
-      console.log('ABOUT TO CONNECT');
       await aiWebSocketService.connect(this.currentSession.sessionId);
-      console.log('CONNECTED');
       
       this.wsConnected = true;
   
@@ -355,7 +269,6 @@ export class AI implements IComponent {
     const leftScore = leftPlayer?.score ?? 0;
     const rightScore = rightPlayer?.score ?? 0;
 
-    // console.log(`Score - AI: ${leftScore}, You: ${rightScore}`);
 
     const leftScoreEl = document.getElementById("left-score");
     const rightScoreEl = document.getElementById("right-score");
@@ -434,9 +347,6 @@ export class AI implements IComponent {
   private startGameLoop(): void {
     this.isGameRunning = true;
     this.pongGame.resume();
-
-    // if(this.wsConnected)
-    //   this.pongGame.sendGameConstants();
   }
 
   private stopGameLoop(): void {
@@ -517,9 +427,5 @@ export class AI implements IComponent {
       if (quitBtn) quitBtn.style.display = "block";
     }
   }
-
-
- 
-  
 
 }
