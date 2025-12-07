@@ -21,8 +21,3 @@ export interface GameState{
     },
     constants?: any;
 }
-
-export interface AIMove {
-    paddleZ: number;
-    timestamp: number;
-}

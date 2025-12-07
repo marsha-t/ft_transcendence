@@ -99,30 +99,4 @@ export class InputHandler {
             this.keys.s = true;
         }
     }
-
-    // -------------------------------------------------------------------------
-    // OPTIONAL: keep the old per-keydown behaviour for quick testing
-    // (you can delete these two methods if you never need them)
-    // -------------------------------------------------------------------------
-    private handleLeftKey(dz: number): void {
-        this.leftPaddle.move(dz);
-    }
-
-    private handleRightKey(dz: number): void {
-        this.rightPaddle.move(dz);
-    }
-
-    // If you still want the old keydown to move the paddle instantly,
-    // uncomment the lines in registerKeyboardEvents() below:
-    // -------------------------------------------------------------------------
-    // private registerKeyboardEvents(): void {
-    //     window.addEventListener("keydown", (ev) => {
-    //         switch (ev.key) {
-    //             case "w": case "W": this.handleLeftKey(this.paddleSpeed); break;
-    //             case "s": case "S": this.handleLeftKey(-this.paddleSpeed); break;
-    //             case "ArrowUp":   ev.preventDefault(); this.handleRightKey(this.paddleSpeed); break;
-    //             case "ArrowDown": ev.preventDefault(); this.handleRightKey(-this.paddleSpeed); break;
-    //         }
-    //     });
-    // }
 }
