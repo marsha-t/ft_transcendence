@@ -95,7 +95,6 @@ export class PongGame {
             }
         };
 
-        // console.log('[PongGame] Streaming to AI:', gameState.ball.x.toFixed(2), gameState.ball.z.toFixed(2));
         aiWebSocketService.sendGameState(gameState);
     }
 
@@ -123,23 +122,6 @@ export class PongGame {
         aiWebSocketService.sendGameStart(constants);
     }
 
-    // public applyAIMove(targetZ: number): void {
-    //     if (!this.leftPaddle) {
-    //       console.warn('[PongGame] Cannot apply AI move - left paddle not found');
-    //       return;
-    //     }
-    //     console.log('[PongGame] applyAIMove called with targetZ =', targetZ);
-
-    //     // Clamp to arena bounds
-    //     const minZ = -4.4;
-    //     const maxZ = 4.4;
-    //     const clampedZ = Math.max(minZ, Math.min(maxZ, targetZ));
-      
-    //     // Update paddle position
-    //     this.leftPaddle.mesh.position.z = clampedZ;
-        
-    //     console.log(`[PongGame] AI paddle moved to Z: ${clampedZ.toFixed(2)}`);
-    // }
 
     public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
 
@@ -196,10 +178,6 @@ export class PongGame {
         const ballRadius = GameConfig.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
     
-        // this.ball.mesh.position.set(0, ballY, 0);
-        // this.ball.speed.x *= -1;  // Reverse X direction
-        // this.ball.speed.z = (Math.random() - 0.5) * 2;
-        // Move ball to center
         this.ball.mesh.position.set(0, ballY, 0);
         this.ball.speed.x = 0; // stop the ball during pause
         this.ball.speed.z = 0;
@@ -248,7 +226,7 @@ export class PongGame {
         // Floor
         const floor = BABYLON.MeshBuilder.CreateGround(
             "floor",
-            { width: r.width, height: r.depth + 14 }, // ADD 14 (7 + 7) to match wall extension
+            { width: r.width, height: r.depth + 14 }, 
             this.scene
         );
         floor.position.y = -5;
@@ -336,7 +314,7 @@ export class PongGame {
         table.position.y = -1;
 
         const tableMaterial = new BABYLON.StandardMaterial("tableMat", this.scene);
-        tableMaterial.diffuseColor = new BABYLON.Color3(0, 0.6, 0);
+        tableMaterial.diffuseColor = new BABYLON.Color3(0, 0.4, 0);
         table.material = tableMaterial;
 
         const lineMaterial = new BABYLON.StandardMaterial("lineMat", this.scene);
