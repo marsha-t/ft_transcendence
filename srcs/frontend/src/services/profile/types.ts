@@ -2,6 +2,8 @@ export interface ProfileData {
     username: string;
     avatar: string;
     email: string;
+    hasPassword: boolean;
+    isGoogleUser: boolean;
 }
 
 export interface UpdateProfileData {

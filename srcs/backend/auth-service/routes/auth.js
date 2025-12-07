@@ -75,7 +75,14 @@ async function authRoutes(app, options) {
         });
       }
   
-      // 4) Issue session token (same as login)
+      // 4) Set user as online and issue session token (same as login)
+      if (user.status !== 'ONLINE') {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { status: 'ONLINE' },
+        });
+      }
+
       const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
   
       reply.setCookie('token', token, {
@@ -426,18 +433,20 @@ async function authRoutes(app, options) {
         return reply.code(404).send({ message: 'User not found' });
       }
 
-      // Check if user is already offline
-      if (user.status === "OFFLINE") {
-        return reply.code(400).send({ message: 'User is already offline' });
-      }
-
-      // Update user status to offline
-      await prisma.user.update({
-        where: { id: userId },
-        data: { status: "OFFLINE" },
+      // Check if user is already offline 
+      if (user.status === "OFFLINE") { 
+        return reply.code(400).send({ message: 'User is already offline' }); 
+      } 
+      
+      // Update user status to offline 
+      await prisma.user.update({ 
+        where: { id: userId }, 
+        data: { status: "OFFLINE" }, 
       });
 
-      reply.clearCookie('token', {path: '/',});
+      // Clear cookie
+      reply.clearCookie('token', { path: '/' });
+
       return reply.code(200).send({ message: 'Logout successful' });
       
     } catch (err) {
@@ -446,6 +455,7 @@ async function authRoutes(app, options) {
       return reply.code(500).send({ error: 'Logout failed' });
     }
   });
+  
   // ✅ Get current user info (username + avatar)
   app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {

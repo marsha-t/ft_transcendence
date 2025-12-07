@@ -163,6 +163,9 @@ export class Login implements IComponent {
                 this.form.querySelectorAll('input').forEach(input => input.closest('div')?.classList.add('hidden'));
                 this.submitButton.classList.add('hidden');
 
+                // Hide Google login button
+                document.getElementById('google-login-button')?.classList.add('hidden');
+
                 this.otpGroup.classList.remove('hidden');
                 this.otpInput.value = '';
                 this.otpInput.focus();
