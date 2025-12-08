@@ -47,6 +47,18 @@ export const GameConfig =  {
     },
     light: {
         intensity: 1
+    },
+    powerUps: {
+        enabled: false,
+        spawnInterval: 5000, // 5 seconds between spawns
+        duration: 3000, // Effect lasts 3 seconds
+        types: [] as string[] // Empty array by default
+    },
+    theme: {
+        name: 'CLASSIC' as 'CLASSIC' | 'NEON' | 'SPACE' | 'RETRO',
+        tableColor: { r: 0, g: 0.4, b: 0 },
+        ballColor: { r: 0.95, g: 0.6, b: 0.2 }
     }
+
 
 }
