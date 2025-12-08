@@ -10,7 +10,6 @@ CREATE TABLE "new_GameSession" (
     "winnerUserId" INTEGER,
     "winnerPlayerId" INTEGER,
     "isAi" BOOLEAN NOT NULL DEFAULT false,
-    CONSTRAINT "GameSession_winnerUserId_fkey" FOREIGN KEY ("winnerUserId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "GameSession_winnerPlayerId_fkey" FOREIGN KEY ("winnerPlayerId") REFERENCES "GameSessionPlayer" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 INSERT INTO "new_GameSession" ("createdAt", "endedAt", "id", "startedAt", "status", "winnerPlayerId", "winnerUserId") SELECT "createdAt", "endedAt", "id", "startedAt", "status", "winnerPlayerId", "winnerUserId" FROM "GameSession";

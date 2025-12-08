@@ -182,7 +182,7 @@ export class AI implements IComponent {
       console.log('Raw data from API:', data);
   
       this.currentSession = {
-        sessionId: data.id,
+        sessionId: data.sessionId,
         status: data.status,
         players: data.players.map((p: any) => ({
           side: p.side,
