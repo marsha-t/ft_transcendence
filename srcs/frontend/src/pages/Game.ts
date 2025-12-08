@@ -5,6 +5,8 @@ import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
+import { openGameCustomization } from "../utils/gameCustom.js";
 
 export class Game implements IComponent {
   private container!: HTMLElement;
@@ -17,6 +19,10 @@ export class Game implements IComponent {
   private isScoring: boolean = false;
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
+
+  //game cusotm
+  private customGameSettings: CustomGameSettings | null = null;
+  private cutomizationUI: any = null;
 
   constructor(opts?: GameOptions) {
     this.opts = opts;
@@ -99,6 +105,10 @@ export class Game implements IComponent {
 
     this.container.appendChild(canvasContainer);
 
+    //apply custom
+    if(this.customGameSettings){
+      gameConfigManager.applyCustomizations(this.customGameSettings);
+    }
     this.pongGame = new PongGame(this.canvas, (side: "LEFT" | "RIGHT") => {
         if (!this.isScoring) {
           this.isScoring = true;
@@ -119,6 +129,14 @@ export class Game implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
+    const customizeBtn = this.makeButton(
+      "Customize Game",
+      "customize-btn", () => this.openCustomization()
+    );
+
+    customizeBtn.style.display = "block";
+
+
     const startBtn = this.makeButton("Start Game", "start-btn", () =>
       this.toggleGame()
     );
@@ -134,6 +152,7 @@ export class Game implements IComponent {
       controlsContainer.appendChild(startBtn);
       controlsContainer.appendChild(pauseBtn);
     } else {
+      controlsContainer.appendChild(customizeBtn);
       controlsContainer.appendChild(startBtn);
       controlsContainer.appendChild(pauseBtn);
       controlsContainer.appendChild(quitBtn);
@@ -163,6 +182,47 @@ export class Game implements IComponent {
 
     this.container.appendChild(controlsContainer);
   }
+
+  openCustomization(): void {
+    if(this.isGameRunning){
+      alert("Cannot customize game while it is running.");
+      return;
+    }
+
+    this.cutomizationUI = openGameCustomization(
+      document.body,
+      (settings: CustomGameSettings) => {
+        this.customGameSettings = settings;
+
+        gameConfigManager.applyCustomizations(settings);
+        console.log("Applied custom game settings:", settings);
+        this.showCustomizationApplied(settings.preset);
+      }, ()=> {
+        console.log("Customization cancelled.");
+      }
+    );
+  }
+
+  private showCustomizationApplied(preset: string): void {
+  // Show a small indicator that custom settings are active
+  const indicator = document.createElement("div");
+  indicator.id = "custom-indicator";
+  indicator.textContent = `🎮 ${preset} Mode Active`;
+  indicator.className = 
+    "text-white bg-purple-600 px-4 py-2 rounded-lg " +
+    "font-semibold text-sm mt-2";
+  
+  // Insert after controls
+  const controls = this.container.querySelector(".flex.flex-row.gap-4");
+  if (controls) {
+    // Remove old indicator if exists
+    const oldIndicator = document.getElementById("custom-indicator");
+    if (oldIndicator) oldIndicator.remove();
+    
+    controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+  }
+}
+
 
   private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
     const btn = document.createElement("button");
@@ -333,6 +393,8 @@ export class Game implements IComponent {
     const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
     const pauseBtn = document.getElementById("pause-btn") as HTMLButtonElement;
     const quitBtn = document.getElementById("quit-btn") as HTMLButtonElement;
+    const customizeBtn = document.getElementById("customize-btn") as HTMLButtonElement;
+
 
     if (isPlaying) {
       if (startBtn) startBtn.style.display = "none";
@@ -341,6 +403,7 @@ export class Game implements IComponent {
         pauseBtn.textContent = "Pause";
       }
       if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
     } else {
       if (startBtn) startBtn.style.display = "none";
       if (pauseBtn) {
@@ -348,6 +411,7 @@ export class Game implements IComponent {
         pauseBtn.textContent = "Resume";
       }
       if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
     }
   }
 
@@ -419,15 +483,23 @@ export class Game implements IComponent {
   private resetGame(): void {
     this.currentSession = null;
 
+    this.customGameSettings = null;
+    gameConfigManager.reset();
+    const indicator = document.getElementById("custom-indicator");
+    if(indicator) 
+      indicator.remove();
+    
     const setupSection = document.getElementById("setup-section");
     const startBtn = document.getElementById("start-btn");
     const pauseBtn = document.getElementById("pause-btn");
     const quitBtn = document.getElementById("quit-btn");
+    const customizeBtn = document.getElementById("customize-btn");
 
     if (setupSection) setupSection.style.display = "flex";
     if (startBtn) startBtn.style.display = "none";
     if (pauseBtn) pauseBtn.style.display = "none";
     if (quitBtn) quitBtn.style.display = "none";
+    if (customizeBtn) customizeBtn.style.display = "block";
 
     const leftPlayerElement = document.getElementById("left-player");
     const rightPlayerElement = document.getElementById("right-player");
@@ -464,7 +536,15 @@ export class Game implements IComponent {
 
   public cleanup(): void {
     this.stopGameLoop();
+
+    if(this.cutomizationUI){
+      this.cutomizationUI.close();
+      this.cutomizationUI = null;
+    }
+    gameConfigManager.reset();
+
     this.pongGame = null as any;
     this.currentSession = null;
+    this.customGameSettings = null;
   }
 }
