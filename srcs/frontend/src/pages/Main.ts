@@ -103,15 +103,48 @@ export class Main implements IComponent {
       gif.className = "w-[600px] h-[350px]"; // Tailwind classes for size & simple animation
       rightSection.appendChild(gif);
 
-      const preloginButton = document.createElement('button');
-      preloginButton.textContent = "Log in to unlock challenges!";
-      preloginButton.className = createButtonStyle("animate-bounce", 'green');
-      preloginButton.addEventListener("click", (e) => {
-        e.preventDefault();
-        window.location.href = "/login";
-      })
-      rightSection.appendChild(preloginButton);
-    }
+    const tournamentBtn = document.createElement('a');
+    tournamentBtn.href = "/tournament";
+    tournamentBtn.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " + 
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
+    tournamentBtn.textContent = "TOURNAMENT";
+
+    const aiButton = document.createElement('a');
+    aiButton.href = "/ai"; // add link when AI game is implemented
+    aiButton.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " +
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
+    aiButton.textContent = "PLAY WITH AI";
+  
+    const playButton = document.createElement('a');
+    playButton.href = "/game";
+    // playButton.className =
+    //   "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white font-bold rounded-lg " +
+    //   "shadow-[0_5px_0_var(--color-button-second)] hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+    //   "hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline";
+
+    playButton.className =
+      "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
+      "font-bold rounded-lg tracking-widest " + 
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5 text-center no-underline";
+
+    playButton.textContent = "PLAY WITH FRIEND";
+
+    rightSection.appendChild(tournamentBtn);
+    rightSection.appendChild(aiButton);
+    rightSection.appendChild(playButton);
 
     // Add to subcontainer
     subContainer.appendChild(textSection);

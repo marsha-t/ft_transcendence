@@ -46,8 +46,10 @@ model GameSession {
   winnerUserId  Int?        // Reference only, no FK constraint
   winnerPlayerId Int?       @unique
 
-  winnerPlayer    GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
-  players         GameSessionPlayer[]
+  isAi            Boolean         @default(false) 
+  winnerUser     User?               @relation("GameUserWinner", fields: [winnerUserId], references: [id])
+  winnerPlayer   GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
+  players        GameSessionPlayer[]
   tournamentMatch TournamentMatch?
   events          GameEvent[]
 }

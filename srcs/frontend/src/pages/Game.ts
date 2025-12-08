@@ -100,13 +100,18 @@ export class Game implements IComponent {
     this.container.appendChild(canvasContainer);
 
     this.pongGame = new PongGame(this.canvas, (side: "LEFT" | "RIGHT") => {
-      if (!this.isScoring) {
-        this.isScoring = true;
-        this.scorePoint(side).then(() => {
-          setTimeout(() => (this.isScoring = false), 1000);
-        });
+        if (!this.isScoring) {
+          this.isScoring = true;
+          this.scorePoint(side).then(() => {
+            setTimeout(() => (this.isScoring = false), 1000);
+          });
+        }
+      },
+      {
+        aiEnabled: false,
+        aiSide: 'LEFT'         
       }
-    });
+    );
   }
 
   private createControlsContainer(): void {
@@ -459,12 +464,6 @@ export class Game implements IComponent {
 
   public cleanup(): void {
     this.stopGameLoop();
-
-    // To add this when pongGame has a cleanup function: destroy()
-    // if (this.pongGame && typeof this.pongGame.destroy === "function") {
-    //   this.pongGame.destroy();
-    // }
-
     this.pongGame = null as any;
     this.currentSession = null;
   }
