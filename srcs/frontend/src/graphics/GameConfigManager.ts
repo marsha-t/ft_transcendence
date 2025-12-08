@@ -5,6 +5,8 @@ type DeepPartial<T> = {
     [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
+
+//test for git branch
 export type GamePreset = 'CLASSIC' | 'FAST' | 'CHAOS' | 'CUSTOM';
 
 
