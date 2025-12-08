@@ -9,7 +9,7 @@
   - Create game session linking it to players and tournament (if applicable)
 */
 import { getUserInfo } from './authServiceClient.js';
-export async function createGameSession(prisma, { players, tournamentId, matchIndex }) {
+export async function createGameSession(prisma, { players, tournamentId, matchIndex, isAi = false }) {
   if (!players || players.length === 0) {
     throw { code: 400, message: 'At least one player is required to create a session' };
   }

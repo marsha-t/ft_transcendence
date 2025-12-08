@@ -1,4 +1,5 @@
 import prisma from "../prisma/prismaClient.js";
+import { getUserInfo } from "../services/authServiceClient.js";
 import { createGameSession } from "../services/gameSessionService.js";
 
 
@@ -21,15 +22,10 @@ async function aiRoutes(app, options){
             const userId = request.user.id;
             
             try {
-                const user = await prisma.user.findUnique({
-                    where: { id: userId },
-                    select: { username: true }
-                });
-                
-                if (!user) {
-                    return reply.code(404).send({ error: "User not found" });
-                }
-                
+                const userInfo = await getUserInfo(Number(userId));
+                if (!userInfo) {
+					throw { code: 404, message: 'User not found' };
+				}
                 const session = await createGameSession(prisma, {
                     players: [
                         {
@@ -48,47 +44,16 @@ async function aiRoutes(app, options){
                         isAi: true 
                 });
                 
-                //adding ai as guest user
-                // await prisma.gameSessionPlayer.create({
-                //     data: {
-                //         sessionId: session.id,
-                //         userId: null,
-                //         isGuest: true,
-                //         displayName: 'AI Opponent',
-                //         side: 'LEFT',
-                //         score: 0
-                //     }
-                // });
-
-                // Fetch updated session with both players
-                const updatedSession = await prisma.gameSession.findUnique({
-                    where: { id: session.id },
-                    include: {
-                      players: {
-                        select: {
-                          side: true,
-                          score: true,
-                          displayName: true,
-                          user: { select: { username: true } }  // ← include username!
-                        }
-                      }
-                    }
-                  });
-                  const formatted = {
-                    ...updatedSession,
-                    players: updatedSession.players.map(p => ({
-                      side: p.side,
-                      score: p.score,
-                      displayName: p.displayName || p.user?.username || "AI Opponent"
+                return reply.code(201).send({
+                    sessionId: session.id,
+                    isAi: true,
+                    players: session.players.map(p => ({
+                        side: p.side,
+                        displayName: p.displayName,
+                        score: p.score,
+                        isGuest: p.isGuest
                     }))
-                  };
-                return reply.code(201).send(formatted);
-
-                // return reply.code(201).send({
-                //     success: true,
-                //     gameSession: session
-                // });
-                
+                });
             } catch (err) {
                     request.log.error(err);
                     return reply.code(err.code || 500).send({
