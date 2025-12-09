@@ -1,5 +1,6 @@
 import { CustomGameSettings, GamePreset, gameConfigManager } from '../graphics/GameConfigManager';
 import { GameConfig } from '../graphics/GameConfig';
+import { makeButton } from './uiUtils';
 
 /**
  * GameCustomizationUI
@@ -36,9 +37,7 @@ export class GameCustomizationUI {
         this.showAdvanced = config.showAdvanced ?? true;
     }
 
-    /**
-     * Opens the customization modal
-     */
+    //Opens the customization modal
     public open(): void {
         this.createModal();
         this.updatePreview();
@@ -115,58 +114,35 @@ export class GameCustomizationUI {
         header.className = `mb-6 border-b-2 border-white/10 pb-4 `;
 
         const title = document.createElement('h2');
-        title.textContent = '🎮 Game Customization';
-        title.style.cssText = `
-            margin: 0;
-            color: #fff;
-            font-size: 28px;
-            font-weight: 700;
-        `;
+        title.textContent = 'Game Customization';
+        title.className = 'm-0 text-white text-2xl font-bold font-nonito';
 
         const subtitle = document.createElement('p');
         subtitle.textContent = 'Choose a preset or customize your gaming experience';
-        subtitle.style.cssText = `
-            margin: 8px 0 0 0;
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-        `;
+        subtitle.className = 'mt-2 text-white/60 text-sm text-nunito';
 
         header.appendChild(title);
         header.appendChild(subtitle);
         return header;
     }
 
-    /**
-     * Creates the preset selection section
-     */
+    //Creates the preset selection section
     private createPresetSection(): HTMLElement {
         const section = document.createElement('div');
-        section.className = `
-            mb- 24px;
-        `;
+        section.className = `mb-4`;
 
         const label = document.createElement('h3');
         label.textContent = 'Game Mode Presets';
-        label.style.cssText = `
-            color: #fff;
-            font-size: 18px;
-            margin: 0 0 16px 0;
-            font-weight: 600;
-        `;
+        label.className = 'text-white text-lg font-semibold mb-4';
 
         const presetGrid = document.createElement('div');
-        presetGrid.style.cssText = `
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-        `;
+        presetGrid.className = `grid gap-3 grid-cols-[repeat(auto-fit,minmax(120px,1fr))]`;
 
         const presets: Array<{
             value: GamePreset;
             label: string;
             icon: string;
-            description: string;
-        }> = [
+            description: string;}> = [
             { value: 'CLASSIC', label: 'Classic', icon: '🏓', description: 'Traditional pong gameplay' },
             { value: 'FAST', label: 'Fast Mode', icon: '⚡', description: 'Increased speed and intensity' },
             { value: 'CHAOS', label: 'Chaos Mode', icon: '🔥', description: 'Power-ups and mayhem' },
@@ -190,61 +166,46 @@ export class GameCustomizationUI {
         const card = document.createElement('button');
         card.type = 'button';
         card.id = `preset-${preset.value}`;
+        card.className = `
+                rounded-xl p-4 pb-8 text-left cursor-pointer transition-transform
+                bg-white/5 hover:bg-white/10 transform hover:-translate-y-1
+                border-2 border-white/10 text-white `;
         
         const isActive = this.currentPreset === preset.value;
         
-        card.style.cssText = `
-            background: ${isActive ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(255, 255, 255, 0.05)'};
-            border: 2px solid ${isActive ? '#667eea' : 'rgba(255, 255, 255, 0.1)'};
-            border-radius: 12px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            color: #fff;
-        `;
+        card.className = `rounded-xl p-4 text-left cursor-pointer transition-all
+            text-white border-2 h-[120px]`;
+
+        if(isActive) {
+            card.classList.add(
+            'bg-gradient-to-br',
+            'from-[#4fc3f7]',
+            'to-[#00b0ff]',
+            'border-[#4fc3f7]',
+            );
+        }else {
+            card.classList.add(
+            'bg-white/5',
+            'border-white/10',
+            'hover:border-white/30'
+            );
+        }
 
         const icon = document.createElement('div');
         icon.textContent = preset.icon;
-        icon.style.cssText = `
-            font-size: 32px;
-            margin-bottom: 8px;
-        `;
+        icon.className = `flex justify-center items-center text-2xl mb-1`;
 
         const title = document.createElement('div');
         title.textContent = preset.label;
-        title.style.cssText = `
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        `;
+        title.className = `font-semibold text-lg mb-1`;
 
         const desc = document.createElement('div');
         desc.textContent = preset.description;
-        desc.style.cssText = `
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.4;
-        `;
+        desc.className = `text-[10px] text-white/80`;
 
         card.appendChild(icon);
         card.appendChild(title);
         card.appendChild(desc);
-
-        // Hover effect
-        card.addEventListener('mouseenter', () => {
-            if (this.currentPreset !== preset.value) {
-                card.style.background = 'rgba(255, 255, 255, 0.1)';
-                card.style.transform = 'translateY(-2px)';
-            }
-        });
-
-        card.addEventListener('mouseleave', () => {
-            if (this.currentPreset !== preset.value) {
-                card.style.background = 'rgba(255, 255, 255, 0.05)';
-                card.style.transform = 'translateY(0)';
-            }
-        });
 
         card.addEventListener('click', () => {
             this.currentPreset = preset.value;
@@ -260,56 +221,52 @@ export class GameCustomizationUI {
      */
     private createAdvancedSection(): HTMLElement {
         const section = document.createElement('div');
-        section.style.cssText = `
-            margin-bottom: 24px;
-            display: ${this.currentPreset === 'CUSTOM' ? 'block' : 'none'};
-        `;
-        section.id = 'advanced-settings';
+        section.className = `mb-6 font-nunito ${this.currentPreset === 'CUSTOM' ? 'block' : 'hidden'}`;
 
         const label = document.createElement('h3');
         label.textContent = 'Advanced Settings';
-        label.style.cssText = `
-            color: #fff;
-            font-size: 18px;
-            margin: 0 0 16px 0;
-            font-weight: 600;
-        `;
+        label.className = 'text-white text-lg font-semibold mb-4';
+        section.appendChild(label);
 
         const settingsContainer = document.createElement('div');
-        settingsContainer.style.cssText = `
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        `;
+        settingsContainer.className = `bg-black/30 rounded-xl p-5 border border-white/10 mb-6`;
 
-        // Ball Settings
-        settingsContainer.appendChild(this.createSettingsGroup('Ball Settings', [
+        // Ball Settings section
+        const ballSection = document.createElement('div');
+        ballSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4 text-white';
+
+        ballSection.appendChild(this.createSettingsGroup('Ball Settings', [
             { key: 'ball.speed.x', label: 'Ball Speed', min: 5, max: 30, step: 1, default: GameConfig.ball.speed.x },
             { key: 'ball.maxSpeed', label: 'Max Speed', min: 10, max: 40, step: 1, default: GameConfig.ball.maxSpeed },
             { key: 'ball.speedIncrement', label: 'Speed Increment', min: 0.5, max: 3, step: 0.1, default: GameConfig.ball.speedIncrement }
         ]));
+        section.appendChild(ballSection);
 
-        // Paddle Settings
-        settingsContainer.appendChild(this.createSettingsGroup('Paddle Settings', [
+        //Paddle Settings section
+        const paddleSection = document.createElement('div');
+        paddleSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4';
+        paddleSection.appendChild(this.createSettingsGroup('Paddle Settings', [
             { key: 'paddle.speed', label: 'Paddle Speed', min: 5, max: 25, step: 1, default: GameConfig.paddle.speed },
             { key: 'paddle.depth', label: 'Paddle Size', min: 2, max: 5, step: 0.5, default: GameConfig.paddle.depth }
         ]));
+        section.appendChild(paddleSection);
 
-        // Power-ups (only for CHAOS or CUSTOM)
+        // Power-ups (only for CHAOS or CUSTOM) section
         if (this.currentPreset === 'CHAOS' || this.currentPreset === 'CUSTOM') {
-            settingsContainer.appendChild(this.createPowerUpSettings());
-        }
+            // settingsContainer.appendChild(this.createPowerUpSettings());
+            const powerUpSection = document.createElement('div');
+            powerUpSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4';
+            powerUpSection.appendChild(this.createPowerUpSettings());
+            section.appendChild(powerUpSection);
 
-        section.appendChild(label);
-        section.appendChild(settingsContainer);
+        }
         return section;
     }
 
     /**
      * Creates a settings group with sliders
      */
-    private createSettingsGroup(title: string, settings: Array<{
+private createSettingsGroup(title: string, settings: Array<{
         key: string;
         label: string;
         min: number;
@@ -317,36 +274,29 @@ export class GameCustomizationUI {
         step: number;
         default: number;
     }>): HTMLElement {
-        const group = document.createElement('div');
-        group.style.cssText = `
-            margin-bottom: 20px;
-        `;
+    const group = document.createElement('div');
+    group.className = `mb-5`;
 
-        const groupTitle = document.createElement('h4');
-        groupTitle.textContent = title;
-        groupTitle.style.cssText = `
-            color: #667eea;
-            font-size: 14px;
-            margin: 0 0 12px 0;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        `;
+    const groupTitle = document.createElement('h4');
+    groupTitle.textContent = title;
+    groupTitle.className = 'text-white text-sm font-semibold mb-3 uppercase tracking-wide drop-shadow-[0_0_10px_rgba(102,126,234,0.8)]';
 
-        group.appendChild(groupTitle);
+    group.appendChild(groupTitle);
 
-        settings.forEach(setting => {
-            const control = this.createSliderControl(setting);
-            group.appendChild(control);
-        });
+    settings.forEach(setting => {
+        const control = this.createSliderControl(setting);
+        group.appendChild(control);
+    });
 
-        return group;
+    return group;
     }
 
     /**
      * Creates a slider control with label and value display
      */
-    private createSliderControl(config: {
+    // 
+    
+private createSliderControl(config: {
         key: string;
         label: string;
         min: number;
@@ -354,137 +304,86 @@ export class GameCustomizationUI {
         step: number;
         default: number;
     }): HTMLElement {
-        const container = document.createElement('div');
-        container.style.cssText = `
-            margin-bottom: 16px;
-        `;
+    const container = document.createElement('div');
+    container.className = 'mb-4';
 
-        const labelRow = document.createElement('div');
-        labelRow.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        `;
+    const labelRow = document.createElement('div');
+    labelRow.className = 'flex justify-between items-center mb-2';
 
-        const label = document.createElement('label');
-        label.textContent = config.label;
-        label.style.cssText = `
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-        `;
+    const label = document.createElement('label');
+    label.textContent = config.label;
+    label.className = 'text-white/90 text-sm';
 
-        const value = document.createElement('span');
-        value.id = `value-${config.key}`;
-        const currentValue = this.getNestedValue(config.key) ?? config.default;
-        value.textContent = currentValue.toFixed(1);
-        value.style.cssText = `
-            color: #667eea;
-            font-weight: 600;
-            font-size: 14px;
-        `;
+    const value = document.createElement('span');
+    value.id = `value-${config.key}`;
+    const currentValue = this.getNestedValue(config.key) ?? config.default;
+    value.textContent = currentValue.toFixed(1);
+    value.className = 'text-white font-semibold text-sm';
 
-        labelRow.appendChild(label);
-        labelRow.appendChild(value);
+    labelRow.appendChild(label);
+    labelRow.appendChild(value);
 
-        const slider = document.createElement('input');
-        slider.type = 'range';
-        slider.min = config.min.toString();
-        slider.max = config.max.toString();
-        slider.step = config.step.toString();
-        slider.value = currentValue.toString();
-        slider.style.cssText = `
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.1);
-            outline: none;
-            -webkit-appearance: none;
-        `;
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = config.min.toString();
+    slider.max = config.max.toString();
+    slider.step = config.step.toString();
+    slider.value = currentValue.toString();
+    slider.className = `
+        w-full h-1.5 rounded-lg bg-white/10 appearance-none cursor-pointer
+        [&::-webkit-slider-thumb]:appearance-none
+        [&::-webkit-slider-thumb]:w-[18px]
+        [&::-webkit-slider-thumb]:h-[18px]
+        [&::-webkit-slider-thumb]:rounded-full
+        [&::-webkit-slider-thumb]:bg-[#04b143ff]
+        [&::-webkit-slider-thumb]:cursor-pointer
+        [&::-webkit-slider-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]
+        [&::-moz-range-thumb]:w-[18px]
+        [&::-moz-range-thumb]:h-[18px]
+        [&::-moz-range-thumb]:rounded-full
+        [&::-moz-range-thumb]:bg-[#04b143ff]
+        [&::-moz-range-thumb]:cursor-pointer
+        [&::-moz-range-thumb]:border-0
+        [&::-moz-range-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]
+    `;
 
-        // Slider styling
-        const style = document.createElement('style');
-        style.textContent = `
-            input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 18px;
-                height: 18px;
-                border-radius: 50%;
-                background: #667eea;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-            input[type="range"]::-moz-range-thumb {
-                width: 18px;
-                height: 18px;
-                border-radius: 50%;
-                background: #667eea;
-                cursor: pointer;
-                border: none;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            }
-        `;
-        document.head.appendChild(style);
+    slider.addEventListener('input', (e) => {
+        const val = parseFloat((e.target as HTMLInputElement).value);
+        value.textContent = val.toFixed(1);
+        this.setNestedValue(config.key, val);
+        this.updatePreview();
+    });
 
-        slider.addEventListener('input', (e) => {
-            const val = parseFloat((e.target as HTMLInputElement).value);
-            value.textContent = val.toFixed(1);
-            this.setNestedValue(config.key, val);
-            this.updatePreview();
-        });
-
-        container.appendChild(labelRow);
-        container.appendChild(slider);
-        return container;
-    }
+    container.appendChild(labelRow);
+    container.appendChild(slider);
+    return container;
+}
 
     /**
      * Creates power-up settings section
      */
     private createPowerUpSettings(): HTMLElement {
         const group = document.createElement('div');
-        group.style.cssText = `
-            margin-bottom: 20px;
-        `;
+        group.className = `mb-5`;
 
         const groupTitle = document.createElement('h4');
         groupTitle.textContent = 'Power-Ups';
-        groupTitle.style.cssText = `
-            color: #667eea;
-            font-size: 14px;
-            margin: 0 0 12px 0;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        `;
+        groupTitle.className = 'mb-4 text-white uppercase';
 
         group.appendChild(groupTitle);
 
         // Enable/Disable toggle
         const toggleContainer = document.createElement('div');
-        toggleContainer.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        `;
+        toggleContainer.className = `flex justify-between items-center mb-3`;
 
         const toggleLabel = document.createElement('label');
         toggleLabel.textContent = 'Enable Power-Ups';
-        toggleLabel.style.cssText = `
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 14px;
-        `;
+        toggleLabel.className = 'text-white text-sm';
 
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
         toggle.checked = this.currentPreset === 'CHAOS';
-        toggle.style.cssText = `
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        `;
+        toggle.className = 'w-5 h-5 cursor-pointer accent-[#04b143ff]';
 
         toggle.addEventListener('change', (e) => {
             const enabled = (e.target as HTMLInputElement).checked;
@@ -497,34 +396,21 @@ export class GameCustomizationUI {
         group.appendChild(toggleContainer);
 
         // Power-up types
-        const types = ['SPEED_BOOST', 'ENLARGE_PADDLE', 'SLOW_MOTION'];
+        const types = ['Speed_Boost', 'Enlarge_paddle', 'Slow_motion'];
         const typesContainer = document.createElement('div');
-        typesContainer.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
-        `;
+        typesContainer.className = 'flex flex-col gap-2 mt-3';
+     
 
         types.forEach(type => {
             const checkbox = document.createElement('label');
-            checkbox.style.cssText = `
-                display: flex;
-                align-items: center;
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
-                cursor: pointer;
-            `;
+            checkbox.className = 'flex items-center text-white/80 text-[13px] cursor-pointer';
+
 
             const input = document.createElement('input');
             input.type = 'checkbox';
             input.checked = this.currentPreset === 'CHAOS';
-            input.style.cssText = `
-                margin-right: 8px;
-                width: 16px;
-                height: 16px;
-            `;
-
+            input.className = 'mr-2 w-4 h-4 accent-[#04b143]';
+        
             const label = document.createElement('span');
             label.textContent = type.replace(/_/g, ' ');
 
@@ -537,115 +423,38 @@ export class GameCustomizationUI {
         return group;
     }
 
-    /**
-     * Creates the preview section showing current settings
-     */
+    //Creates the preview section showing current settings
     private createPreviewSection(): HTMLElement {
         const section = document.createElement('div');
         section.id = 'preview-section';
-        section.style.cssText = `
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        `;
+        section.className = `bg-black/30 rounded-xl p-5 border border-white/10 mb-2`;
 
         const title = document.createElement('h3');
-        title.textContent = '📊 Current Configuration';
-        title.style.cssText = `
-            color: #fff;
-            font-size: 16px;
-            margin: 0 0 12px 0;
-            font-weight: 600;
-        `;
+        title.textContent = 'Current Configuration';
+        title.className = 'text-white text-sm font-semibold mb-3 uppercase tracking-wide drop-shadow-[0_0_10px_rgba(102,126,234,0.8)]';
 
         const previewContent = document.createElement('div');
         previewContent.id = 'preview-content';
-        previewContent.style.cssText = `
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 13px;
-            line-height: 1.8;
-            font-family: 'Courier New', monospace;
-        `;
+        previewContent.className = 'text-white/80 text-[13px] leading-[1.8] font-mono';
 
         section.appendChild(title);
         section.appendChild(previewContent);
         return section;
     }
 
-    /**
-     * Creates action buttons (Apply/Cancel)
-     */
     private createActionButtons(): HTMLElement {
         const container = document.createElement('div');
-        container.style.cssText = `
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        `;
+        container.className = 'flex gap-3 justify-end';
 
-        const cancelBtn = document.createElement('button');
-        cancelBtn.textContent = 'Cancel';
-        cancelBtn.type = 'button';
-        cancelBtn.style.cssText = `
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        `;
-
-        cancelBtn.addEventListener('mouseenter', () => {
-            cancelBtn.style.background = 'rgba(255, 255, 255, 0.15)';
-        });
-
-        cancelBtn.addEventListener('mouseleave', () => {
-            cancelBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-        });
-
-        cancelBtn.addEventListener('click', () => this.handleCancel());
-
-        const applyBtn = document.createElement('button');
-        applyBtn.textContent = 'Apply & Start Game';
-        applyBtn.type = 'button';
-        applyBtn.style.cssText = `
-            padding: 12px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        `;
-
-        applyBtn.addEventListener('mouseenter', () => {
-            applyBtn.style.transform = 'translateY(-2px)';
-            applyBtn.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.5)';
-        });
-
-        applyBtn.addEventListener('mouseleave', () => {
-            applyBtn.style.transform = 'translateY(0)';
-            applyBtn.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-        });
-
-        applyBtn.addEventListener('click', () => this.handleApply());
+        const cancelBtn = makeButton('Cancel', 'cancel-game-btn', 'block', () => this.handleCancel());
+        const applyBtn = makeButton('Apply & Start', 'apply-game-btn', 'block', () => this.handleApply());
 
         container.appendChild(cancelBtn);
         container.appendChild(applyBtn);
         return container;
     }
 
-    /**
-     * Updates the preview with current settings
-     */
+    //Updates the preview with current settings
     private updatePreview(): void {
         const previewContent = document.getElementById('preview-content');
         if (!previewContent) return;
@@ -663,9 +472,7 @@ export class GameCustomizationUI {
         `;
     }
 
-    /**
-     * Refreshes the entire modal (used when preset changes)
-     */
+    //Refreshes the entire modal (used when preset changes)
     private refreshModal(): void {
         if (!this.modal) return;
         
@@ -691,9 +498,7 @@ export class GameCustomizationUI {
         this.updatePreview();
     }
 
-    /**
-     * Handles apply button click
-     */
+    //Handles apply button click
     private handleApply(): void {
         const settings: CustomGameSettings = {
             preset: this.currentPreset,
@@ -704,9 +509,7 @@ export class GameCustomizationUI {
         this.close();
     }
 
-    /**
-     * Handles cancel button click
-     */
+    // Handles cancel button click
     private handleCancel(): void {
         if (this.onCancel) {
             this.onCancel();
@@ -714,9 +517,7 @@ export class GameCustomizationUI {
         this.close();
     }
 
-    /**
-     * Gets current merged configuration
-     */
+    //Gets current merged configuration
     private getCurrentConfig(): typeof GameConfig {
         const settings: CustomGameSettings = {
             preset: this.currentPreset,
