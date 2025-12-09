@@ -2,9 +2,10 @@ import * as BABYLON from "babylonjs";
 import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
-import { GameConfig } from "./GameConfig";
+// import { GameConfig } from "./GameConfig";
 import { aiWebSocketService } from "../services/websocket/WebsocketServices";
 import { GameState } from "../services/websocket/types";
+import { gameConfigManager } from "./GameConfigManager";
 
 interface AIConfig {
     aiEnabled: boolean;
@@ -73,8 +74,8 @@ export class PongGame {
                 vz: this.ball.speed.z
             },
             arena: {
-                zMin: GameConfig.tableBounds.zMin,
-                zMax: GameConfig.tableBounds.zMax
+                zMin: gameConfigManager.current.tableBounds.zMin,
+                zMax: gameConfigManager.current.tableBounds.zMax
             },
             aiPaddle: {
                 x: this.leftPaddle.mesh.position.x,
@@ -86,12 +87,12 @@ export class PongGame {
                 vz: this.rightPaddle.velocity
             },
             constants: {
-                paddleDepth: GameConfig.paddle.depth,
-                ballRadius: GameConfig.ball.radius,
-                maxBounceAngle: GameConfig.ball.maxBounceAngle,
-                paddleInfluence: GameConfig.paddle.velocityInfluence,
-                speedIncrement: GameConfig.ball.speedIncrement,
-                maxSpeed: GameConfig.ball.maxSpeed
+                paddleDepth: gameConfigManager.current.paddle.depth,
+                ballRadius: gameConfigManager.current.ball.radius,
+                maxBounceAngle: gameConfigManager.current.ball.maxBounceAngle,
+                paddleInfluence: gameConfigManager.current.paddle.velocityInfluence,
+                speedIncrement: gameConfigManager.current.ball.speedIncrement,
+                maxSpeed: gameConfigManager.current.ball.maxSpeed
             }
         };
 
@@ -103,20 +104,20 @@ export class PongGame {
 
         const constants = {
             table: {
-                width: GameConfig.table.width,
-                depth: GameConfig.table.depth
+                width: gameConfigManager.current.table.width,
+                depth: gameConfigManager.current.table.depth
             },
             paddle: {
-                width: GameConfig.paddle.width,
-                depth: GameConfig.paddle.depth,
-                speed: GameConfig.paddle.speed
+                width: gameConfigManager.current.paddle.width,
+                depth: gameConfigManager.current.paddle.depth,
+                speed: gameConfigManager.current.paddle.speed
             },
             ball: {
-                radius: GameConfig.ball.radius,
-                speed: GameConfig.ball.speed,
-                maxSpeed: GameConfig.ball.maxSpeed
+                radius: gameConfigManager.current.ball.radius,
+                speed: gameConfigManager.current.ball.speed,
+                maxSpeed: gameConfigManager.current.ball.maxSpeed
             },
-            tableBounds: GameConfig.tableBounds
+            tableBounds: gameConfigManager.current.tableBounds
         };
 
         aiWebSocketService.sendGameStart(constants);
@@ -151,7 +152,7 @@ export class PongGame {
     }
 
     private checkScoring(): void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
         const ball = this.ball.mesh;
         const xMin = -t.width / 2;
         const xMax = t.width / 2;
@@ -173,9 +174,9 @@ export class PongGame {
     }
 
     private async resetBall(): Promise<void> {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
         const tableY = -1;
-        const ballRadius = GameConfig.ball.radius;
+        const ballRadius = gameConfigManager.current.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
     
         this.ball.mesh.position.set(0, ballY, 0);
@@ -186,10 +187,10 @@ export class PongGame {
         await new Promise((resolve) => setTimeout(resolve, 500)); 
 
         // Launch the ball
-        this.ball.speed.x = (Math.random() > 0.5 ? 1 : -1) * GameConfig.ball.speed.x;
+        this.ball.speed.x = (Math.random() > 0.5 ? 1 : -1) * gameConfigManager.current.ball.speed.x;
         this.ball.speed.z = (Math.random() - 0.5) * 2;
         // Re-apply cap if needed
-        const maxSpeed = GameConfig.ball.maxSpeed;
+        const maxSpeed = gameConfigManager.current.ball.maxSpeed;
         const currentSpeed = this.ball.speed.length();
         if (currentSpeed > maxSpeed) {
             this.ball.speed.normalize().scaleInPlace(maxSpeed);
@@ -197,7 +198,7 @@ export class PongGame {
     }
 
     private createCamera(): void {
-        const c = GameConfig.camera;
+        const c = gameConfigManager.current.camera;
         const camera = new BABYLON.ArcRotateCamera( "Camera", c.alpha, c.beta, c.radius,
             new BABYLON.Vector3(c.target.x, c.target.y, c.target.z),
             this.scene
@@ -213,11 +214,11 @@ export class PongGame {
             new BABYLON.Vector3(0, 1, 0),
             this.scene
         );
-        light.intensity = GameConfig.light.intensity;
+        light.intensity = gameConfigManager.current.light.intensity;
     }
 
     private createRoom(): void {
-        const r = GameConfig.room;
+        const r = gameConfigManager.current.room;
         
         const wallMaterial = new BABYLON.StandardMaterial("roomWallMat", this.scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.75, 0.8);
@@ -305,7 +306,7 @@ export class PongGame {
 
 
     private createTable():void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
 
         const table = BABYLON.MeshBuilder.CreateBox("table",
              {width: t.width, height: t.height, depth: t.depth}, 
@@ -348,8 +349,8 @@ export class PongGame {
     }
 
     private createSideWalls(table: BABYLON.Mesh): void {
-        const t = GameConfig.table;
-        const w = GameConfig.wall;
+        const t = gameConfigManager.current.table;
+        const w = gameConfigManager.current.wall;
 
         const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
@@ -387,23 +388,23 @@ export class PongGame {
 
     
     private createBall(): void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
 
         const tableY = -1; // same value used for table.position.y
-        const ballRadius = GameConfig.ball.radius; // diameter = 0.6 → radius = 0.3
+        const ballRadius = gameConfigManager.current.ball.radius; // diameter = 0.6 → radius = 0.3
 
         // Put ball on table surface
         const ballY = tableY + t.height / 2 + ballRadius;
 
-        this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), GameConfig.ball.diameter);
+        this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), gameConfigManager.current.ball.diameter);
     }
 
 
     private createPaddles(): void {
-        const t = GameConfig.table;
-        const p = GameConfig.paddle;
+        const t = gameConfigManager.current.table;
+        const p = gameConfigManager.current.paddle;
 
-        const offset = GameConfig.paddle.offset; // how much inside the table
+        const offset = gameConfigManager.current.paddle.offset; // how much inside the table
         const leftX = -t.width / 2 + p.width / 2 + offset;
         const rightX = t.width / 2 - p.width / 2 - offset;
 
@@ -424,9 +425,9 @@ export class PongGame {
     }
 
     private checkWallBounce(): void {
-        const bounds = GameConfig.tableBounds;
+        const bounds = gameConfigManager.current.tableBounds;
         const ball = this.ball.mesh;
-        const r = GameConfig.ball.radius;
+        const r = gameConfigManager.current.ball.radius;
 
         if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
                 this.ball.bounceZ();
@@ -438,12 +439,12 @@ export class PongGame {
         const left = this.leftPaddle.mesh;
         const right = this.rightPaddle.mesh;
     
-        const r = GameConfig.ball.radius;
-        const halfW = GameConfig.paddle.width / 2;
-        const halfD = GameConfig.paddle.depth / 2;
+        const r = gameConfigManager.current.ball.radius;
+        const halfW = gameConfigManager.current.paddle.width / 2;
+        const halfD = gameConfigManager.current.paddle.depth / 2;
     
-        const maxBounceAngle = GameConfig.ball.maxBounceAngle;
-        const paddleInfluence = GameConfig.paddle.velocityInfluence;
+        const maxBounceAngle = gameConfigManager.current.ball.maxBounceAngle;
+        const paddleInfluence = gameConfigManager.current.paddle.velocityInfluence;
     
         // Left paddle collision (unchanged logic, but now uses full velocity)
         if (

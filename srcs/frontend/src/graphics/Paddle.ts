@@ -1,5 +1,7 @@
 import * as BABYLON from "babylonjs";
-import { GameConfig } from "./GameConfig";
+// import { GameConfig } from "./GameConfig";
+import { gameConfigManager } from "./GameConfigManager";
+
 
 export class Paddle {
     public mesh: BABYLON.Mesh;
@@ -21,8 +23,8 @@ export class Paddle {
         const dz = this.velocity * dt;
         this.mesh.position.z += dz;
 
-        const bounds = GameConfig.tableBounds;
-        const halfDepth = GameConfig.paddle.depth / 2;
+        const bounds = gameConfigManager.current.tableBounds;
+        const halfDepth = gameConfigManager.current.paddle.depth / 2;
 
         // Clamp to bounds
         if (this.mesh.position.z - halfDepth < bounds.zMin) {
