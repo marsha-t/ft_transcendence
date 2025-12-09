@@ -1,12 +1,13 @@
 import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
-import {GameSession,PlayerSide,GameOptions,} from "../services/game/types.js";
+import {GameSession, PlayerSide, GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
+import { makeButton } from "../utils/uiUtils.js"
 
 export class Game implements IComponent {
   private container!: HTMLElement;
@@ -20,7 +21,7 @@ export class Game implements IComponent {
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
 
-  //game cusotm
+  //game custom
   private customGameSettings: CustomGameSettings | null = null;
   private cutomizationUI: any = null;
 
@@ -129,21 +130,17 @@ export class Game implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const customizeBtn = this.makeButton(
-      "Customize Game",
-      "customize-btn", () => this.openCustomization()
+    const customizeBtn = makeButton("Customize Game", "customize-btn", "block", () => 
+      this.openCustomizationPopUp()
     );
 
-    customizeBtn.style.display = "block";
-
-
-    const startBtn = this.makeButton("Start Game", "start-btn", () =>
+    const startBtn = makeButton("Start Game", "start-btn", "none", () =>
       this.toggleGame()
     );
-    const pauseBtn = this.makeButton("Pause", "pause-btn", () =>
+    const pauseBtn = makeButton("Pause", "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = this.makeButton("Quit Game", "quit-btn", () =>
+    const quitBtn = makeButton("Quit Game", "quit-btn", "none",() =>
       this.quitGame()
     );
 
@@ -168,9 +165,7 @@ export class Game implements IComponent {
       guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
-      const addGuestBtn = this.makeButton(
-        "Add Guest Player",
-        "add-guest-btn",
+      const addGuestBtn = makeButton("Add Guest Player", "add-guest-btn", "block",
         () => this.addGuestPlayer()
       );
       addGuestBtn.style.display = "block";
@@ -183,14 +178,9 @@ export class Game implements IComponent {
     this.container.appendChild(controlsContainer);
   }
 
-  openCustomization(): void {
-    if(this.isGameRunning){
-      alert("Cannot customize game while it is running.");
-      return;
-    }
+  private openCustomizationPopUp(): void {
 
-    this.cutomizationUI = openGameCustomization(
-      document.body,
+    this.cutomizationUI = openGameCustomization(document.body,
       (settings: CustomGameSettings) => {
         this.customGameSettings = settings;
 
@@ -203,16 +193,16 @@ export class Game implements IComponent {
     );
   }
 
+
   private showCustomizationApplied(preset: string): void {
-  // Show a small indicator that custom settings are active
+
   const indicator = document.createElement("div");
   indicator.id = "custom-indicator";
-  indicator.textContent = `🎮 ${preset} Mode Active`;
+  indicator.textContent = `${preset} Mode Active`;
   indicator.className = 
     "text-white bg-purple-600 px-4 py-2 rounded-lg " +
     "font-semibold text-sm mt-2";
   
-  // Insert after controls
   const controls = this.container.querySelector(".flex.flex-row.gap-4");
   if (controls) {
     // Remove old indicator if exists
@@ -224,22 +214,22 @@ export class Game implements IComponent {
 }
 
 
-  private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
-    const btn = document.createElement("button");
-    btn.id = id;
+  // private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
+  //   const btn = document.createElement("button");
+  //   btn.id = id;
 
-    btn.className =
-      "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5";
-    btn.style.display = "none";
-    btn.textContent = label;
-    btn.addEventListener("click", handler);
+  //   btn.className =
+  //     "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
+  //     "shadow-[0_5px_0_var(--color-button-second)] " +
+  //     "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+  //     "hover:translate-y-1 active:translate-y-2 " +
+  //     "transition-all duration-150 mt-5";
+  //   btn.style.display = "none";
+  //   btn.textContent = label;
+  //   btn.addEventListener("click", handler);
 
-    return btn;
-  }
+  //   return btn;
+  // }
 
   // INITIALIZATION
 

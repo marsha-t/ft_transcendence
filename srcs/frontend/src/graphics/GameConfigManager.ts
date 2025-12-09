@@ -97,7 +97,7 @@ class GameConfigManager{
     }
 
 
-    applyCustomizations(settings: CustomGameSettings): void {
+    public applyCustomizations(settings: CustomGameSettings): void {
         this.activePreset = settings.preset;
 
         if(settings.config){
@@ -120,7 +120,7 @@ class GameConfigManager{
 
 
     //Returns the configuration for a specific preset useful for UI test which preset being used
-    getPresetConfig(preset: GamePreset): typeof GameConfig{
+    public getPresetConfig(preset: GamePreset): typeof GameConfig{
         return this.mergeConfig(GameConfig, this.presets[preset]);
     }
 

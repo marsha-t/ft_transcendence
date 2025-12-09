@@ -1,18 +1,19 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; 
 import { createButtonStyle } from "../utils";
+import { makeCircular3DButton } from "../utils/uiUtils";
 
 export class Main implements IComponent {
   public render(): HTMLElement {
     const container = document.createElement('div');
     container.className = `
-      flex justify-center bg-color-yellow
+      flex justify-center bg-background-secondary
       h-full py-[23px]`;
 
     const subContainer = document.createElement('div');
     subContainer.className = `
         flex flex-row items-center justify-start
-        bg-background rounded-[16px] shadow-lg
+        bg-background-primary rounded-[16px] shadow-lg
         mx-[23px] w-[calc(100%-46px)]
         h-auto py-6 px-10`;
     
@@ -53,48 +54,23 @@ export class Main implements IComponent {
           tracking-wider text-center`;
         challengeHeading.textContent = "Select a Challenge";
         rightSection.appendChild(challengeHeading);
-        const tournamentBtn = document.createElement('a');
-        tournamentBtn.href = "/tournament";
-        tournamentBtn.className =
-          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-          "font-bold rounded-lg tracking-widest " + 
-          "shadow-[0_5px_0_var(--color-button-second)] " +
-          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-          "hover:translate-y-1 active:translate-y-2 " +
-          "transition-all duration-150 mt-5 text-center no-underline";
-        tournamentBtn.textContent = "TOURNAMENT";
     
-        const aiButton = document.createElement('a');
-        aiButton.href = "/ai"; // add link when AI game is implemented
-        aiButton.className =
-          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-          "font-bold rounded-lg tracking-widest " +
-          "shadow-[0_5px_0_var(--color-button-second)] " +
-          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-          "hover:translate-y-1 active:translate-y-2 " +
-          "transition-all duration-150 mt-5 text-center no-underline";
-        aiButton.textContent = "PLAY WITH AI";
+        const tournamentBtn = makeCircular3DButton("Tournament", "tournament-btn", "/tournament", "🏆");
+        const aiButton = makeCircular3DButton("Play AI", "ai-btn", "/ai", "🤖");
+        const playButton = makeCircular3DButton("VS Friend", "play-btn", "/game", "👥");
       
-        const playButton = document.createElement('a');
-        playButton.href = "/game";
-        // playButton.className =
-        //   "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white font-bold rounded-lg " +
-        //   "shadow-[0_5px_0_var(--color-button-second)] hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-        //   "hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline";
-    
-        playButton.className =
-          "inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-          "font-bold rounded-lg tracking-widest " + 
-          "shadow-[0_5px_0_var(--color-button-second)] " +
-          "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-          "hover:translate-y-1 active:translate-y-2 " +
-          "transition-all duration-150 mt-5 text-center no-underline";
-    
-        playButton.textContent = "PLAY WITH FRIEND";
-    
-        rightSection.appendChild(tournamentBtn);
-        rightSection.appendChild(aiButton);
-        rightSection.appendChild(playButton);
+
+        const buttonGrid = document.createElement('div');
+        buttonGrid.className = "flex flex-col gap-2 items-center relative";
+        tournamentBtn.className += " transform translate-x-28";
+        aiButton.className += " transform -translate-x-28";
+        playButton.className += " transform translate-x-28";
+
+        buttonGrid.appendChild(tournamentBtn);
+        buttonGrid.appendChild(aiButton);
+        buttonGrid.appendChild(playButton);
+        
+        rightSection.appendChild(buttonGrid);
     } else { 
       // GIF placeholder
       const gif = document.createElement('img');

@@ -12,7 +12,7 @@ import { GameConfig } from '../graphics/GameConfig';
  */
 
 export interface CustomizationUIConfig {
-    onApply: (settings: CustomGameSettings) => void;
+    applyUserSettings: (settings: CustomGameSettings) => void;
     onCancel?: () => void;
     container: HTMLElement;
     showAdvanced?: boolean;
@@ -22,7 +22,7 @@ export class GameCustomizationUI {
     private container: HTMLElement;
     private overlay: HTMLDivElement | null = null;
     private modal: HTMLDivElement | null = null;
-    private onApply: (settings: CustomGameSettings) => void;
+    private applyUserSettings: (settings: CustomGameSettings) => void;
     private onCancel?: () => void;
     private showAdvanced: boolean;
     
@@ -31,7 +31,7 @@ export class GameCustomizationUI {
 
     constructor(config: CustomizationUIConfig) {
         this.container = config.container;
-        this.onApply = config.onApply;
+        this.applyUserSettings = config.applyUserSettings;
         this.onCancel = config.onCancel;
         this.showAdvanced = config.showAdvanced ?? true;
     }
@@ -61,33 +61,18 @@ export class GameCustomizationUI {
     private createModal(): void {
         // Overlay
         this.overlay = document.createElement('div');
-        this.overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-        `;
+        this.overlay.className =   `fixed top-0 left-0 w-full h-full bg-modal-background/20 
+         flex items-center justify-center z-[1000] backdrop-blur-sm`;
+
 
         // Modal
         this.modal = document.createElement('div');
-        this.modal.style.cssText = `
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        this.modal.className = `
+            rounded-2xl p-8 max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto
+            shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10
+            bg-[var(--color-modal-background)]
         `;
+
 
         // Header
         const header = this.createHeader();
@@ -127,11 +112,7 @@ export class GameCustomizationUI {
      */
     private createHeader(): HTMLElement {
         const header = document.createElement('div');
-        header.style.cssText = `
-            margin-bottom: 24px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 16px;
-        `;
+        header.className = `mb-6 border-b-2 border-white/10 pb-4 `;
 
         const title = document.createElement('h2');
         title.textContent = '🎮 Game Customization';
@@ -160,8 +141,8 @@ export class GameCustomizationUI {
      */
     private createPresetSection(): HTMLElement {
         const section = document.createElement('div');
-        section.style.cssText = `
-            margin-bottom: 24px;
+        section.className = `
+            mb- 24px;
         `;
 
         const label = document.createElement('h3');
@@ -719,7 +700,7 @@ export class GameCustomizationUI {
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
 
-        this.onApply(settings);
+        this.applyUserSettings(settings);
         this.close();
     }
 
@@ -786,18 +767,12 @@ export class GameCustomizationUI {
 /**
  * Utility function to create and open customization UI
  */
-export function openGameCustomization(
-    container: HTMLElement,
-    onApply: (settings: CustomGameSettings) => void,
-    onCancel?: () => void
-): GameCustomizationUI {
-    const ui = new GameCustomizationUI({
-        container,
-        onApply,
-        onCancel,
-        showAdvanced: true
-    });
+export function openGameCustomization(container: HTMLElement, applyUserSettings: (settings: CustomGameSettings) => void, onCancel?: () => void): 
+    GameCustomizationUI {
+    
+    const ui = new GameCustomizationUI({container, applyUserSettings, onCancel, showAdvanced: true});
     
     ui.open();
-    return ui;
+    
+    return (ui);
 }
