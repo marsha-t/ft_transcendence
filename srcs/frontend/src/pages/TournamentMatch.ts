@@ -4,6 +4,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
 import {showConfirmation} from "../utils/profileUtils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -84,7 +85,7 @@ export class TournamentMatch implements IComponent {
 
     const vs = document.createElement('div');
     vs.className = 'text-[#ff3b3b] text-[1.8rem] font-bold';
-    vs.textContent = "VS";
+    vs.textContent = t("tournament.vs") as string;
 
     const p2Box = document.createElement('div');
     p2Box.className = 'border-2 border-[var(--color-border-green)] rounded-lg px-10 py-6 min-w-[160px] text-2xl text-[var(--color-text-white)] bg-[var(--color-background)] shadow-[0_4px_0_#0c1c42]';
@@ -99,7 +100,7 @@ export class TournamentMatch implements IComponent {
     readyContainer.className = "ready-container";
 
     const startBtn = document.createElement("button");
-    startBtn.textContent = "Start Match";
+    startBtn.textContent = t("tournament.startMatchBtn") as string;
     startBtn.className = "bg-[var(--color-button)] border-2 border-[#3e8b44] rounded-lg text-[var(--color-text-white)] font-['Press_Start_2P',monospace] text-base px-8 py-4 cursor-pointer shadow-[0_6px_0_#2e6b32] transition-all duration-100 uppercase hover:bg-[#6bc66f] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_6px_0_#2e6b32]";
     startBtn.addEventListener("click", () =>
       this.startGame(gameSessionId, p1, p2)
@@ -142,7 +143,7 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
+     const confirmLeave = showConfirmation(t("tournament.tournamentInProgress")as string, t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     try {
       if (this.gameInstance) {

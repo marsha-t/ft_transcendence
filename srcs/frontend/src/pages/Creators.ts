@@ -1,4 +1,5 @@
 import { IComponent } from "../components/IComponent";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Creators implements IComponent {
     public render(): HTMLElement {
@@ -22,7 +23,7 @@ export class Creators implements IComponent {
         const heading = document.createElement('h1');
         heading.className = `text-[clamp(18px,4vw,28px)]
             mb-4 tracking-widest`;
-        heading.textContent = "Creators";
+        heading.textContent = t("creators.creatorsHeader") as string;
         text_section.appendChild(heading);
 
         const description = document.createElement('p');
@@ -66,11 +67,11 @@ export class Creators implements IComponent {
 
         const marsha = document.createElement('p');
         marsha.className = "text-[8px] font-bold text-left w-full mb-1 mt-2";
-        marsha.textContent = "Marsha Teo";
+        marsha.textContent = t("creators.marshaTeo") as string;
 
         const role_marsha = document.createElement('p');
         role_marsha.className = `text-[8px] text-left w-full`;
-        role_marsha.textContent = "Backend developer";
+        role_marsha.textContent = t("creators.backendDeveloper") as string;
 
         firtsAvatar.appendChild(avatar_marsha);
         firtsAvatar.appendChild(marsha);
@@ -89,11 +90,11 @@ export class Creators implements IComponent {
 
         const sabira = document.createElement('p');
         sabira.className = `text-[8px] font-bold text-center w-full break-words mb-1 mt-2`;
-        sabira.textContent = "Makhamatkaiym kyzy Sabira";
+        sabira.textContent = t("creators.sabira") as string;
 
         const role_sabira = document.createElement('p');
         role_sabira.className = `text-[8px] text-left w-full`;
-        role_sabira.textContent = "Frontend developer";
+        role_sabira.textContent = t("creators.frontendDeveloper") as string;
 
         secondAvatar.appendChild(avatar_sabira);
         secondAvatar.appendChild(sabira);
@@ -112,11 +113,11 @@ export class Creators implements IComponent {
 
         const dina = document.createElement('p');
         dina.className = `text-[8px] font-bold text-left w-full mb-1 mt-2`;
-        dina.textContent = "Dina";
+        dina.textContent = t("creators.dinaAhmed") as string;
 
         const role_dina = document.createElement('p');
         role_dina.className = `text-[8px] text-left w-full `;
-        role_dina.textContent = "Backend developer";
+        role_dina.textContent = t("creators.devopsEngineer") as string + t("creators.frontendDeveloper") as string;
 
         thirdAvatar.appendChild(avatar_dina);
         thirdAvatar.appendChild(dina);
@@ -135,11 +136,11 @@ export class Creators implements IComponent {
 
         const rawan = document.createElement('p');
         rawan.className = `text-[8px] font-bold text-left w-full mb-1 mt-2`;
-        rawan.textContent = "Rawan";
+        rawan.textContent = t("creators.rawanAljabri") as string;
 
         const role_rawan = document.createElement('p');
         role_rawan.className = `text-[8px] text-left w-full`;
-        role_rawan.textContent = "Backend developer";
+        role_rawan.textContent = t("creators.securityEngineer") as string + t("creators.backendDeveloper") as string;
 
         fourthAvatar.appendChild(avatar_rawan);
         fourthAvatar.appendChild(rawan);

@@ -72,7 +72,7 @@ export class Header implements IComponent {
 
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
-        rightNav.className = 'flex items-center gap-[32px] w-[600px] h-[45px]';
+        rightNav.className = 'flex items-center gap-[32px] w-fit h-[45px]';
 
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
@@ -84,12 +84,12 @@ export class Header implements IComponent {
         this.languageSwitcher = this.createLanguageSwitcher();
 
         const links = [
-            {text: 'Home', href: '/main', type: 'link'},
-            {text: 'Creators', href: '/creators', type: 'link'},
+            {text: t('header.home'), href: '/main', type: 'link'},
+            {text: t('header.creators'), href: '/creators', type: 'link'},
         ];
 
         links.forEach(link => {
-            const a = this.createLink(link);
+            const a = this.createLink(link as any);
             this.linksGroup.appendChild(a);
         });
 
@@ -259,7 +259,7 @@ export class Header implements IComponent {
             const option: HTMLAnchorElement = document.createElement('a');
             option.href = item.href;
             option.textContent = item.label;
-            option.className = createButtonStyle(" w-[fit-content] h-[32px] text-[20px]", 'green');
+            option.className = createButtonStyle(" w-fit h-[32px] text-[18px]", 'green');
             option.addEventListener('click', (e: MouseEvent) => {
                 e.preventDefault();
                 history.pushState(null, '', item.href);
@@ -299,7 +299,7 @@ export class Header implements IComponent {
         const logoutBtn = document.createElement('a');
         logoutBtn.textContent = t('header.logout') as string;
         logoutBtn.href = '#';
-        logoutBtn.className = createButtonStyle(` w-[128px] h-[42px]`, 'blue');
+        logoutBtn.className = createButtonStyle(` w-fit h-[42px]`, 'blue');
         logoutBtn.addEventListener("click", async () => {
             const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
             if (!confirmed) return;
@@ -359,11 +359,15 @@ export class Header implements IComponent {
         const a = document.createElement('a');
         a.href = link.href;
         a.textContent = link.text;
-
-        if (link.text === 'Login') {
-            a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
-        } else if (link.text === 'Register') {
-            a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
+        // Decide styling based on explicit `type`/`href`, not on localized text
+        if (link.type === 'button') {
+            if (link.href === '/register') {
+                a.className = createButtonStyle('w-[188px] h-[42px] text-[16px]', 'blue');
+            } else if (link.href === '/login') {
+                a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
+            } else {
+                a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
+            }
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
@@ -423,13 +427,13 @@ export class Header implements IComponent {
 
     private updateButtonState(btn: Element, currentPath: string): void {
         const href = btn.getAttribute('href');
-        const isLogin = btn.textContent === 'Login';
-        const isRegister = btn.textContent === 'Register';
-        
+        const isLogin = href === '/login';
+        const isRegister = href === '/register';
+
         if (isLogin) {
             btn.className = this.getLoginButtonClasses(href === currentPath);
         }
-        
+
         if (isRegister) {
             btn.className = this.getRegisterButtonClasses(href === currentPath);
         }

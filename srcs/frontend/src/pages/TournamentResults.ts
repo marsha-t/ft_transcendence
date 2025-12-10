@@ -2,6 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { navigate, createButtonStyle } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class TournamentResults implements IComponent {
   private container!: HTMLElement;
@@ -181,7 +182,7 @@ export class TournamentResults implements IComponent {
     btnContainer.className = "flex justify-center mt-8";
 
     const newBtn = document.createElement("button");
-    newBtn.textContent = "Start New Tournament";
+    newBtn.textContent = t("tournament.startNewTournamentBtn") as string;
     newBtn.className = createButtonStyle(
       "w-auto h-[50px] text-[16px]",
       "green"

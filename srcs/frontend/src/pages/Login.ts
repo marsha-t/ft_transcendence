@@ -53,10 +53,10 @@ export class Login implements IComponent {
         registerLink.className =
             'font-mono text-color_white text-left mb-4';
         registerLink.innerHTML = `
-            Don't have an account?
+            ${t('auth.noAccount')}
             <a href="/register"
             class="font-mono text-color-green underline ml-40 hover:opacity-80">
-            Register
+            ${t('auth.register-btn')}
             </a>`;
         
         // Form
@@ -86,7 +86,7 @@ export class Login implements IComponent {
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
-        usernameInput.placeholder = 'username';
+        usernameInput.placeholder = t('auth.yourUsername') as string;
     
         usernameGroup.appendChild(usernameLabel);
         usernameGroup.appendChild(usernameInput);
@@ -151,7 +151,7 @@ export class Login implements IComponent {
             rounded-[16px] p-8 hidden`;
 
         const otpLabel = document.createElement('label');
-        otpLabel.textContent = 'Enter 2FA Code';
+        otpLabel.textContent = t("auth.enter2FA") as string;
         otpLabel.htmlFor = 'otp';
         otpLabel.className = 'text-lg font-mono text-color_white';
 
@@ -164,13 +164,13 @@ export class Login implements IComponent {
         // OTP submit button
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
-        this.otpSubmitButton.textContent = 'Verify';
+        this.otpSubmitButton.textContent = t("auth.verify") as string;
         this.otpSubmitButton.className = this.submitButton.className;
 
         // Resend OTP button
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
-        this.otpResendButton.textContent = 'Resend OTP';
+        this.otpResendButton.textContent = t("auth.resendOTP") as string;
         this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
 
         this.otpGroup.appendChild(otpLabel);
@@ -337,7 +337,7 @@ export class Login implements IComponent {
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
-        this.submitButton.textContent = loading ? 'Login account' : 'Login';
+        this.submitButton.textContent = loading ? t("auth.loggingIn") : t("auth.login-btn");
 
         const inputs = this.form.querySelectorAll('input');
         inputs.forEach(input => {

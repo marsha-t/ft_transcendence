@@ -15,8 +15,8 @@ export const SUPPORTED_LANGUAGES = {
 
 export const DEFAULT_LANGUAGE = 'en';
 
-// Initialize i18next
-i18next
+// Create initialization promise
+export const i18nReady = i18next
   .use(LanguageDetector)
   .init({
     resources: {
