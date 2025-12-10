@@ -3,6 +3,7 @@ import { navigate, createButtonStyle } from "../utils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
@@ -28,7 +29,7 @@ export class TournamentSetup implements IComponent {
 
     const title = document.createElement("h2");
     title.className = "text-[1.8rem] font-pixel font-normal mb-10";
-    title.textContent = "Tournament Setup";
+    title.textContent = t("tournament.tournamentSetup") as string;
     this.container.appendChild(title);
 
     // --- Input section ---
@@ -41,7 +42,7 @@ export class TournamentSetup implements IComponent {
     counter.className = "flex items-center justify-center gap-4 w-full";
 
     const label = document.createElement("label");
-    label.textContent = "NUMBER OF PLAYERS";
+    label.textContent = t("tournament.numberOfPlayers") as string;
     label.className = `text-[var(--color-text-white)] text-[24px] font-pixel font-[400]  whitespace-nowrap`;
     counter.appendChild(label);
 
@@ -73,7 +74,7 @@ export class TournamentSetup implements IComponent {
     // --- Buttons actions ---
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
-    nextBtn.textContent = "NEXT";
+    nextBtn.textContent = t("common.next") as string;
     nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]", 'green');
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
 
@@ -107,7 +108,7 @@ export class TournamentSetup implements IComponent {
     
     const h2 = document.createElement("h2");
     h2.className = "font-['Press_Start_2P',monospace] text-base uppercase text-[var(--color-text-white)] m-0";
-    h2.textContent = "Add Players";
+    h2.textContent = t("tournament.addPlayers") as string;
     
     const closeBtn = document.createElement("button");
     closeBtn.className = `bg-transparent border-none text-[var(--color-text-white)] text-[2rem]
@@ -172,13 +173,13 @@ export class TournamentSetup implements IComponent {
     toggleContainer.className = "flex justify-between mb-6 gap-5";
 
     const guestBtn = document.createElement("button");
-    guestBtn.textContent = "GUEST";
+    guestBtn.textContent = t("tournament.guest") as string;
     guestBtn.className = `flex-1 flex items-center justify-center text-center bg-[var(--color-button)]
       text-[var(--color-text-white)] font-['VT323'] text-[1.6rem] py-3.5 px-2.5 rounded-lg cursor-pointer
       uppercase transition-all border-2 border-[#7ab96f] shadow-[0_6px_0_#4e7245] hover:brightness-110`;
 
     const userBtn = document.createElement("div");
-    userBtn.textContent = "REGISTERED USER";
+    userBtn.textContent = t("tournament.registeredUser") as string;
     userBtn.className = `flex-1 flex items-center justify-center text-center bg-[#3b5f9c]
       text-[var(--color-text-white)] font-['VT323'] text-[1.6rem] py-3.5 px-2.5 rounded-lg
       cursor-pointer uppercase transition-all border-none shadow-[0_6px_0_#1e3263] hover:brightness-110`;
@@ -207,7 +208,7 @@ export class TournamentSetup implements IComponent {
     `;
 
     const addBtn = document.createElement("button");
-    addBtn.textContent = "ADD PLAYER";
+    addBtn.textContent = t("tournament.addPlayerBtn") as string;
     addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
       py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
       shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8`;
@@ -323,7 +324,7 @@ export class TournamentSetup implements IComponent {
     const h3 = document.createElement("h3");
     h3.className = `text-center font-['Press_Start_2P',monospace] text-xs mb-5 
       text-[var(--color-text-white)] uppercase`;
-    h3.textContent = "Current Lineup";
+    h3.textContent = t("tournament.currentLineup") as string;
     section.appendChild(h3);
 
     const ul = document.createElement("ul");
@@ -345,7 +346,7 @@ export class TournamentSetup implements IComponent {
     confirmBtn.className = `w-full bg-[#3b5f9c] text-white border-none rounded-[10px] 
       py-4 px-0 font-['VT323'] text-[1.6rem] font-bold tracking-wider cursor-pointer 
       shadow-[0_3px_0_#1e3263] uppercase mt-2.5 hover:bg-[#4c73b8] transition-colors`;
-    confirmBtn.textContent = "Confirm & Start Game";
+    confirmBtn.textContent = t("tournament.confirmStart") as string;
     confirmBtn.style.display = "none";
     confirmBtn.addEventListener(
       "click",

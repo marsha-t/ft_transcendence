@@ -3,7 +3,7 @@ import { getRouter } from './utils.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
-import './services/i18n/i18nService.js';
+import { i18nReady } from './services/i18n/i18nService.js';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const headerContainer = document.getElementById('header-container');
@@ -15,7 +15,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    await AuthUtils.initialize();
+    // Wait for both auth and i18n to be ready
+    await Promise.all([AuthUtils.initialize(), i18nReady]);
     
     const headerComponent = new Header();
     headerContainer.appendChild(headerComponent.render());

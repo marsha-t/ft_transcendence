@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; 
 import { createButtonStyle } from "../utils";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Main implements IComponent {
   public render(): HTMLElement {
@@ -26,18 +27,14 @@ export class Main implements IComponent {
     heading.className = `
       text-[clamp(18px,4vw,28px)] font-press mb-4
       text-[16px] tracking-widest`;
-    heading.textContent = "About the game";
+    heading.textContent = t("main.discriptionHeader") as string;
     textSection.appendChild(heading);
 
     const description = document.createElement('p');
     description.className = `
       text-[clamp(8px,1.2vw,10px)] leading-[1.5]
       font-press text-[10px] leading-[3] tracking-wider`;
-    description.textContent = `Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
-                                Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
-                                Sign up or log in to join the fun and test your skills in this timeless arcade classic! Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
-                                Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
-                                Sign up or log in to join the fun and test your skills in this timeless arcade classic!`;
+    description.textContent = t("main.discription") as string;
     textSection.appendChild(description);
 
     // Right side (buttons)
@@ -51,7 +48,7 @@ export class Main implements IComponent {
         challengeHeading.className = `
           text-white text-[36px] font-pixel mb-6
           tracking-wider text-center`;
-        challengeHeading.textContent = "Select a Challenge";
+        challengeHeading.textContent = t("main.challengeHeader") as string;
         rightSection.appendChild(challengeHeading);
         const tournamentBtn = document.createElement('a');
         tournamentBtn.href = "/tournament";
@@ -62,7 +59,7 @@ export class Main implements IComponent {
           "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
           "hover:translate-y-1 active:translate-y-2 " +
           "transition-all duration-150 mt-5 text-center no-underline";
-        tournamentBtn.textContent = "TOURNAMENT";
+        tournamentBtn.textContent = t("main.play-tournament") as string;
     
         const aiButton = document.createElement('a');
         // aiButton.href = "/game"; // add link when AI game is implemented
@@ -73,7 +70,7 @@ export class Main implements IComponent {
           "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
           "hover:translate-y-1 active:translate-y-2 " +
           "transition-all duration-150 mt-5 text-center no-underline";
-        aiButton.textContent = "PLAY WITH AI";
+        aiButton.textContent = t("main.play-AI") as string;
       
         const playButton = document.createElement('a');
         playButton.href = "/game";
@@ -90,7 +87,7 @@ export class Main implements IComponent {
           "hover:translate-y-1 active:translate-y-2 " +
           "transition-all duration-150 mt-5 text-center no-underline";
     
-        playButton.textContent = "PLAY WITH FRIEND";
+        playButton.textContent = t("main.play-friend") as string;
     
         rightSection.appendChild(tournamentBtn);
         rightSection.appendChild(aiButton);
@@ -104,7 +101,7 @@ export class Main implements IComponent {
       rightSection.appendChild(gif);
 
       const preloginButton = document.createElement('button');
-      preloginButton.textContent = "Log in to unlock challenges!";
+      preloginButton.textContent = t("main.loginToUnlock") as string;
       preloginButton.className = createButtonStyle("animate-bounce", 'green');
       preloginButton.addEventListener("click", (e) => {
         e.preventDefault();

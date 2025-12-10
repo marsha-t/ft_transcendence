@@ -65,7 +65,7 @@ export class Register implements IComponent {
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
-        usernameInput.placeholder = 'Your Username';
+        usernameInput.placeholder = t('auth.yourUsername') as string;
         usernameInput.required = true;
 
         usernameGroup.appendChild(usernameLabel);
@@ -267,7 +267,7 @@ export class Register implements IComponent {
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
-        this.submitButton.textContent = loading ? 'Creating Account...' : 'Register';
+        this.submitButton.textContent = loading ? t("auth.creatingAccount") as string : t("auth.register-btn") as string;
         // Optionally disable form inputs during loading
         const inputs = this.form.querySelectorAll('input');
         inputs.forEach(input => {

@@ -268,7 +268,7 @@ export class friendsAndUsers implements IComponent {
     hover:bg-[#77AB55] hover:text-white
     transition-all duration-200
   `;
-    acceptBtn.textContent = t("profile.accept") as string;
+    acceptBtn.textContent = t("profile.acceptRequest") as string;
     acceptBtn.addEventListener("click", async () => {
       // console.log(`Accepted friend request from ${name}`);
       // handle accept logic !!!
@@ -298,7 +298,7 @@ export class friendsAndUsers implements IComponent {
     hover:bg-[#C44C4C] hover:text-white
     transition-all duration-200
   `;
-    declineBtn.textContent = t("profile.decline") as string;
+    declineBtn.textContent = t("profile.declineRequest") as string;
     declineBtn.addEventListener("click", async () => {
     const res = await apiServices.profile.respondToRequest(name, "reject");
     if (res.success) {
@@ -439,7 +439,7 @@ private openAddFriendPopup(): void {
   searchInput.placeholder = "Search username...";
   searchInput.className = `
      w-[calc(100%-30px)] h-[50px] rounded-[10px] px-3
-     bg-[#7EA2DD] text-white border border-gray-500
+     bg-[white] text-white border border-gray-500
     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500
   `;
 
@@ -518,7 +518,7 @@ private openAddFriendPopup(): void {
         action.appendChild(pendingLabel);
       } else {
         const addBtn = document.createElement("button");
-        addBtn.textContent = t("profile.addFriend") as string;
+        addBtn.textContent = t("profile.sendRequest") as string;
         addBtn.className = `
             px-4 py-1 rounded-[7px]
             border border-[#77AB55]
@@ -568,7 +568,8 @@ private openAddFriendPopup(): void {
       return;
     }
 
-    resultsContainer.innerHTML = "<p class='loading-text'>Searching...</p>";
+    const text: string = t("profile.searchLoading"); // t returns string
+    resultsContainer.innerHTML = `<p class='loading-text'>${text}</p>`;
 
     typingTimer = setTimeout(async () => {
       const response = await apiServices.profile.searchUsers(query);

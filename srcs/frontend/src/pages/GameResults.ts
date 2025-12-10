@@ -4,6 +4,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
 import {  navigate, createButtonStyle } from "../utils.js"
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { t } from "../services/i18n/i18nService.js";
 
 declare const Plotly: any;
 
@@ -68,7 +69,7 @@ export class GameResults implements IComponent {
 
     if (this.isTournament && this.onMatchEnd) {
       const nextBtn = document.createElement("button");
-      nextBtn.textContent = "Next";
+      nextBtn.textContent = t("common.next") as string;
       nextBtn.className = createButtonStyle("w-[160px] h[56px]", 'green');
       nextBtn.onclick = async () => {
         await this.onMatchEnd?.();
