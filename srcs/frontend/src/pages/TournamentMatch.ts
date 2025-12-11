@@ -72,7 +72,7 @@ export class TournamentMatch implements IComponent {
 
 
     const h3 = document.createElement("h3");
-    h3.textContent = `Match ${matchIndex}`;
+    h3.textContent = `${t("tournament.match") as string} ${matchIndex}`;
     matchInfo.appendChild(h3);
 
     const playerContainer = document.createElement('div');

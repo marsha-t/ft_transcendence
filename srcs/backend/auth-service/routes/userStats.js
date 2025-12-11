@@ -1,4 +1,5 @@
 import prisma from '../prisma/prismaClient.js';
+import bcrypt from 'bcrypt';
 
 async function userStatsRoutes(app, options) {
   // Update user stats after game completion (called by Game Service)
@@ -133,12 +134,17 @@ async function userStatsRoutes(app, options) {
         select: { id: true, username: true, password: true }
       });
 
+      // Debug log (do NOT log passwords in production)
+      request.log.info({ username }, 'Validate attempt for username');
+
       if (!user) {
+        request.log.info({ username }, 'User not found');
         return reply.code(401).send({ error: 'Invalid credentials' });
       }
 
       // Verify password
       const isValid = await bcrypt.compare(password, user.password);
+      request.log.info({ username, valid: isValid }, 'Password comparison result');
       if (!isValid) {
         return reply.code(401).send({ error: 'Invalid credentials' });
       }

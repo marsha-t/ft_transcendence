@@ -118,14 +118,14 @@ export class GameResults implements IComponent {
       <div class="flex flex-col items-center">
         <img src="${this.getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" class="w-[150px] h-[150px] rounded-full border-4 border-[#fdd835] object-cover mb-3 bg-black/25 shadow-[0_0_8px_rgba(255,255,0,0.5)]" />
         <div class="text-[150px] leading-none m-[10px] h-[200px] overflow-hidden flex items-center justify-center">🏆</div>
-        <div class="uppercase text-[18px] text-[#b0b6e6] mb-1">winner</div>
+        <div class="uppercase text-[18px] text-[#b0b6e6] mb-1">${t("game-result.winner") as string}</div>
         <div class="text-[74px] font-bold mb-5 text-[#fdd835]">${summary.winner?.displayName ?? "No Winner"}</div>
       </div>
       <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto mb-4">
-        <p class="text-lg text-white font-semibold tracking-wider">Final Score: ${summary.finalScore.left} - ${summary.finalScore.right}</p>
+        <p class="text-lg text-white font-semibold tracking-wider">${t("game-result.finalScore") as string}: ${summary.finalScore.left} - ${summary.finalScore.right}</p>
       </div>
       <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto">
-        <p class="text-lg text-white font-semibold tracking-wider">Total Duration: ${summary.totalDurationSec.toFixed(1)}s</p>
+        <p class="text-lg text-white font-semibold tracking-wider">${t("game-result.totalDuration") as string}: ${summary.totalDurationSec.toFixed(1)}s</p>
       </div>
     `;
   }
@@ -142,7 +142,7 @@ export class GameResults implements IComponent {
       x: timeline.map((p) => p.elapsedSec),
       y: timeline.map((p) => p.scoreLeft),
       mode: "lines+markers",
-      name: "Left Player",
+      name: t("game-result.leftPlayer") as string,
       line: { color: "#82D64B", width: 3 },
       marker: { size: 6 },
     };
@@ -151,15 +151,15 @@ export class GameResults implements IComponent {
       x: timeline.map((p) => p.elapsedSec),
       y: timeline.map((p) => p.scoreRight),
       mode: "lines+markers",
-      name: "Right Player",
+      name: t("game-result.rightPlayer") as string,
       line: { color: "#E43E64", width: 3 },
       marker: { size: 6 },
     };
 
     const layout = {
-      title: { text: "Score Progression Over Time", font: { color: "#fff", family: "'Press Start 2P'", size: 22 } },
-      xaxis: { title: { text: "Elapsed Time (Seconds)", font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f" },
-      yaxis: { title: { text: "Score", font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f", dtick: 1 },
+      title: { text: t("game-result.scoreProgress") as string, font: { color: "#fff", family: "'Press Start 2P'", size: 22 } },
+      xaxis: { title: { text: t("game-result.elapsedTime") as string, font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f" },
+      yaxis: { title: { text: t("game-result.score") as string, font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f", dtick: 1 },
       legend: { x: 0.1, y: 1.1, orientation: "h", font: { color: "#fff" } },
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
@@ -182,12 +182,12 @@ export class GameResults implements IComponent {
           <img src="${this.getAvatarUrl(p.avatar)}" class="w-[100px] h-[100px] rounded-full object-cover mx-auto mb-3 shadow-md border-2 border-[#fdd835]" />
           <h3 class="mb-4 text-xl font-bold font-['Press_Start_2P']">${p.displayName}</h3>
           <ul class="list-none p-0 text-left text-[#d0d0ff] leading-relaxed">
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Score:</strong> ${p.score}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Time to 1st Point:</strong> ${p.timeToFirstPointSec?.toFixed(1) ?? "-"}s</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Avg Time:</strong> ${p.avgTimePerPointSec?.toFixed(1) ?? "-"}s</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Matches:</strong> ${p.totalMatches}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Wins:</strong> ${p.totalWins}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">Win Rate:</strong> ${p.winRate.toFixed(1)}%</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.score") as string}:</strong> ${p.score}</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.timeTo1stPoint") as string}:</strong> ${p.timeToFirstPointSec?.toFixed(1) ?? "-"}s</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.avgTime") as string}:</strong> ${p.avgTimePerPointSec?.toFixed(1) ?? "-"}s</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.matches") as string}:</strong> ${p.totalMatches}</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.wins") as string}:</strong> ${p.totalWins}</li>
+            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.winRate") as string}:</strong> ${p.winRate.toFixed(1)}%</li>
           </ul>
         </div>`
       )

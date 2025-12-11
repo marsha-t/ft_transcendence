@@ -72,7 +72,7 @@ export class Header implements IComponent {
 
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
-        rightNav.className = 'flex items-center gap-[32px] w-fit h-[45px]';
+        rightNav.className = 'flex items-center gap-[32px] w-[800px] h-[45px]';
 
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
@@ -110,49 +110,6 @@ export class Header implements IComponent {
 
         return rightNav;
     }
-
-    // private createLanguageSwitcher(): HTMLElement {
-    //     const container = document.createElement('div');
-    //     container.className = 'relative inline-block ml-4';
-
-    //     const currentLang = getCurrentLanguage();
-    //     const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
-
-    //     container.innerHTML = `
-    //         <button 
-    //             class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-color-green rounded-lg transition-colors border border-border-green text-color_white font-pixel text-[14px]"
-    //             aria-label="${String(t('settings.selectLanguage'))}"
-    //         >
-    //             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    //                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-    //                       d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
-    //             </svg>
-    //             <span class="font-medium">${currentLangInfo.nativeName}</span>
-    //             <svg class="w-3 h-3 transition-transform dropdown-arrow" fill="currentColor" viewBox="0 0 20 20">
-    //                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
-    //             </svg>
-    //         </button>
-            
-    //         <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50">
-    //             ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
-    //                 <button 
-    //                     class="lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors flex items-center justify-between text-color_white font-pixel text-[14px] ${code === currentLang ? 'bg-color-green bg-opacity-30' : ''}"
-    //                     data-lang="${code}"
-    //                 >
-    //                     <span class="font-medium">${info.nativeName}</span>
-    //                     ${code === currentLang ? `
-    //                         <svg class="w-4 h-4 text-color-yellow" fill="currentColor" viewBox="0 0 20 20">
-    //                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-    //                         </svg>
-    //                     ` : ''}
-    //                 </button>
-    //             `).join('')}
-    //         </div>
-    //     `;
-
-    //     this.attachLanguageSwitcherListeners(container);
-    //     return container;
-    // }
 
     private attachLanguageSwitcherListeners(container: HTMLElement): void {
         const button = container.querySelector('.lang-button') as HTMLButtonElement;
@@ -347,6 +304,9 @@ export class Header implements IComponent {
             });
             
             this.buttonsGroup.appendChild(avatarLink);
+            // Recreate language switcher to ensure it has the latest icon format
+            const newSwitcher = this.createLanguageSwitcher();
+            this.languageSwitcher = newSwitcher;
             this.buttonsGroup.appendChild(this.languageSwitcher);
 
         } catch (error) {
@@ -362,9 +322,9 @@ export class Header implements IComponent {
         // Decide styling based on explicit `type`/`href`, not on localized text
         if (link.type === 'button') {
             if (link.href === '/register') {
-                a.className = createButtonStyle('w-[188px] h-[42px] text-[16px]', 'blue');
+                a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
             } else if (link.href === '/login') {
-                a.className = createButtonStyle('w-[138px] h-[42px] text-[16px]', 'blue');
+                a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
             } else {
                 a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
             }
@@ -384,7 +344,7 @@ export class Header implements IComponent {
     private getNavLinkClasses(href: string): string {
         const currentPath = window.location.pathname;
         const baseClass = `
-            text-[14px] font-pixel no-underline
+            text-[14px] font-pixel no-underline whitespace-nowrap
             underline-offset-[3px] transition-all duration-200 decoration-2`;
 
         if (href === currentPath) {
@@ -402,7 +362,7 @@ export class Header implements IComponent {
             linksGroup.querySelectorAll('a').forEach(navLink => {
                 const href = navLink.getAttribute('href');
                 const baseClass = `
-                    text-[14px] font-pixel no-underline
+                    text-[14px] font-pixel no-underline whitespace-nowrap
                     underline-offset-[3px] transition-all duration-200 decoration-2`;
                 
                 if (href === currentPath) {
@@ -471,49 +431,57 @@ export class Header implements IComponent {
 
     /* ---------- BUTTON (TOP) ---------- */
     const button = document.createElement('button');
-    button.className = createButtonStyle('lang-button w-[130px] h-[42px] text-[20px]', 'blue');
+    button.className = createButtonStyle('lang-button w-[50px] h-[42px] text-[20px] flex items-center justify-center', 'blue');
     button.setAttribute('aria-label', String(t('settings.selectLanguage')));
 
-    // ICON (Left SVG)
+   // MULTILINGUAL ICON (A + 文 + あ)
     const langIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    langIcon.setAttribute('class', 'w-4 h-4');
-    langIcon.setAttribute('fill', 'none');
-    langIcon.setAttribute('stroke', 'currentColor');
-    langIcon.setAttribute('viewBox', '0 0 24 24');
+    langIcon.setAttribute('viewBox', '0 0 32 32');
+    langIcon.setAttribute('class', 'w-5 h-5 fill-current');
 
-    const langPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    langPath.setAttribute('stroke-linecap', 'round');
-    langPath.setAttribute('stroke-linejoin', 'round');
-    langPath.setAttribute('stroke-width', '2');
-    langPath.setAttribute(
-        'd',
-        'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129'
-    );
-    langIcon.appendChild(langPath);
+    // "A"
+    const aText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    aText.setAttribute('x', '4');
+    aText.setAttribute('y', '14');
+    aText.setAttribute('font-size', '12');
+    aText.setAttribute('font-weight', 'bold');
+    aText.setAttribute('font-family', 'Arial, sans-serif');
+    aText.setAttribute('fill', 'currentColor');
+    aText.setAttribute('dominant-baseline', 'middle');
+    aText.setAttribute('text-anchor', 'middle');
+    aText.textContent = 'A';
 
-    const label = document.createElement('span');
-    label.className = 'font-medium';
-    label.textContent = currentLangInfo.nativeName;
+    // "文"
+    const cnText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    cnText.setAttribute('x', '16');
+    cnText.setAttribute('y', '16');
+    cnText.setAttribute('font-size', '11');
+    cnText.setAttribute('font-weight', 'bold');
+    cnText.setAttribute('font-family', 'SimSun, serif');
+    cnText.setAttribute('fill', 'currentColor');
+    cnText.setAttribute('dominant-baseline', 'middle');
+    cnText.setAttribute('text-anchor', 'middle');
+    cnText.textContent = '文';
 
-    // ARROW ICON
-    const arrowIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    arrowIcon.setAttribute('class', 'w-3 h-3 transition-transform dropdown-arrow');
-    arrowIcon.setAttribute('fill', 'currentColor');
-    arrowIcon.setAttribute('viewBox', '0 0 20 20');
+    // "あ"
+    const jpText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    jpText.setAttribute('x', '28');
+    jpText.setAttribute('y', '18');
+    jpText.setAttribute('font-size', '10');
+    jpText.setAttribute('font-weight', 'bold');
+    jpText.setAttribute('font-family', 'Hiragino Maru Gothic Pro, serif');
+    jpText.setAttribute('fill', 'currentColor');
+    jpText.setAttribute('dominant-baseline', 'middle');
+    jpText.setAttribute('text-anchor', 'middle');
+    jpText.textContent = 'あ';
 
-    const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    arrowPath.setAttribute('fill-rule', 'evenodd');
-    arrowPath.setAttribute(
-        'd',
-        'M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
-    );
-    arrowPath.setAttribute('clip-rule', 'evenodd');
-    arrowIcon.appendChild(arrowPath);
+    langIcon.appendChild(aText);
+    langIcon.appendChild(cnText);
+    langIcon.appendChild(jpText);
 
-    // Assemble top button
+    // Add to button
     button.appendChild(langIcon);
-    button.appendChild(label);
-    button.appendChild(arrowIcon);
+
 
     /* ---------- DROPDOWN ---------- */
     const dropdown = document.createElement('div');

@@ -9,6 +9,7 @@ export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
   private modal!: HTMLElement;
   private creatorUsername: string = "Creator";
+  private creatorId: number | null = null;
 
   public render(): HTMLElement {
     TournamentStore.tournamentId = null;
@@ -191,20 +192,20 @@ export class TournamentSetup implements IComponent {
     const guestForm = document.createElement("div");
     guestForm.className = "";
     guestForm.innerHTML = `
-    <p class="text-[var(--color-text-white)]">If you don't have an account, enter a guest name to join temporarily.</p>
+    <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
     <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
-    <input placeholder="Guest Name" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+    <input placeholder= "${t("tournament.guestName") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
 
     // --- Registered form ---
     const userForm = document.createElement("div");
     userForm.className = "hidden";
     userForm.innerHTML = `
-    <p class="text-[var(--color-text-white)]">Enter your username and password if you already have an account.</p>
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">USERNAME</label>
-    <input placeholder="Username" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">PASSWORD</label>
-    <input type="password" placeholder="Password" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+    <p class="text-[var(--color-text-white)]">${t("tournament.registeredInstruction") as string}</p>
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.username") as string}</label>
+    <input placeholder= "${t("auth.username") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.password") as string}</label>
+    <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
 
     const addBtn = document.createElement("button");
@@ -336,7 +337,7 @@ export class TournamentSetup implements IComponent {
     li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
       font-['VT323'] text-[1.6rem] flex justify-between items-center`;
     await this.fetchCreatorUsername();
-    li.textContent = `1. ${this.creatorUsername} (Creator)`;
+    li.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
     ul.appendChild(li);
 
     section.appendChild(ul);
@@ -366,7 +367,7 @@ export class TournamentSetup implements IComponent {
     creator.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
       font-['VT323'] text-[1.6rem] flex justify-between items-center`;
     const creatorNameSpan = document.createElement("span");
-    creatorNameSpan.textContent = `1. ${this.creatorUsername} (Creator)`;
+    creatorNameSpan.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
     creator.appendChild(creatorNameSpan);
     ul.appendChild(creator);
 
@@ -380,7 +381,19 @@ export class TournamentSetup implements IComponent {
       li.appendChild(nameSpan);
 
       // Add delete button for non-creator players
-      if (p.userId !== 1) {
+      const isCreator = (() => {
+        // If both have numeric userId, compare by id
+        if (p.userId != null && this.creatorId != null) {
+          return p.userId === this.creatorId;
+        }
+        // Fallback to comparing displayName (case-insensitive)
+        if (p.displayName && this.creatorUsername) {
+          return p.displayName.toLowerCase() === this.creatorUsername.toLowerCase();
+        }
+        return false;
+      })();
+
+      if (!isCreator) {
         const delBtn = document.createElement("button");
         delBtn.textContent = "×";
         delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold 
@@ -404,8 +417,10 @@ export class TournamentSetup implements IComponent {
     try {
       const response = await apiServices.profile.getProfile();
       const username = response.data?.username;
+      const id = response.data?.id ?? null;
       if (response.success && username) {
         this.creatorUsername = username;
+        this.creatorId = id;
       }
     } catch (err) {
       console.log("Failed to fetch creator username: ", err);
