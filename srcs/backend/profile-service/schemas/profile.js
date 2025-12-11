@@ -13,8 +13,10 @@ export const getCurrentUserSchema = {
         username: { type: 'string' },
         email: { type: 'string' },
         avatar: { type: 'string' },
+        hasPassword: { type: 'boolean' },
+        isGoogleUser: { type: 'boolean' },
       },
-      required: ['username', 'avatar', 'email'],
+      required: ['username', 'avatar', 'email', 'hasPassword', 'isGoogleUser'],
     },
     400: {
       type: 'object',
@@ -92,9 +94,7 @@ export const updateProfileSchema = {
         }
       },
       oldPassword: {
-        type: 'string',
-        minLength: 1,
-        errorMessage: { minLength: 'Old password is required' }
+        type: 'string'
       },
       newPassword: {
         type: 'string',
