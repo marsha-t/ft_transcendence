@@ -112,8 +112,9 @@
     "controls": "Controls",
     "useArrows": "Use arrow keys to move"
   },
-  "gema-result": {
+  "game-result": {
     "winner": "WINNER",
+    "finalScore": "FINAL SCORE",
     "scoreProgress": "SCORE PROGRESSION OVER TIME",
     "elapsedTime": "ELAPSED TIME (seconds)",
     "leftPlayer": "LEFT PLAYER",
@@ -125,7 +126,7 @@
     "winRate": "WIN RATE",
     "totalDuration": "TOTAL DURATION",
     "score": "SCORE",
-    "point": "POINT",
+    "timeTo1stPoint": "TIME TO 1ST POINT",
     "avgTime": "AVG TIME",
     "returnHome": "RETURN HOME"
   },
