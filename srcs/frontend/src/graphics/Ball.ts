@@ -45,7 +45,6 @@ export class Ball {
         const increment = GameConfig.ball.speedIncrement;
         const currentMag = this.speed.length();
         this.speed.scaleInPlace(increment);
-        // Optional: Preserve direction, just scale magnitude
     }
 
     public dispose(): void {
