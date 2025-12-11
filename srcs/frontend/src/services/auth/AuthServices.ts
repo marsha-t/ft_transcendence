@@ -117,6 +117,41 @@ export class AuthServices {
         }
     }
 
+    async logout(): Promise<ApiResponse<null>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/logout`, {
+                method: 'POST',
+                        credentials: 'include',
+            });
+            const data = await response.json();
+  
+            if (!response.ok) {
+                const msg = data.error || 'Logout failed';
+                return {
+                    success: false,
+                    status: response.status,
+                    message: msg,
+                    errors: data.errors || []
+                };
+            }
+  
+            return {
+                success: true,
+                status: response.status,
+                data: null,
+                message: 'Logout successful'
+            };
+        } catch (error) {
+            console.error('Logout API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                errors: []
+            };
+        }
+      }
+
     // ⚡ New method for 2FA verification during login
     async login2FA(payload: { username: string; code: string }): Promise<LoginApiResponse<any>> {
         try {

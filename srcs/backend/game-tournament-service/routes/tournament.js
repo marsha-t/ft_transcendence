@@ -7,7 +7,11 @@ import {
   validatePlayerSchema,
   finalizeTournamentSchema,
 } from "../schemas/tournament.js";
-import { getParentMatchIndex } from "../services/tournamentService.js";
+import {
+  seedPlayersRandom,
+  propagateWinner,
+} from "../services/tournamentService.js";
+import { getUserInfo } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app, options) {
   // Validate player
@@ -16,33 +20,46 @@ async function tournamentRoutes(app, options) {
 	*/
   app.post('/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const { username, password } = request.body;
-      try {
-        if (username && password) {
-          const user = await prisma.user.findUnique({ where: { username } });
-          if (!user) {
-            return reply
-              .code(401)
-              .send({ valid: false, error: "Invalid username or password " });
+    try {
+      if (username && password) {
+        // Call Auth Service to validate credentials
+        try {
+          const response = await fetch(
+            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/auth/validate`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username, password })
+            }
+          );
+
+          if (!response.ok) {
+            return reply.code(401).send({ 
+              valid: false, 
+              error: "Invalid username or password" 
+            });
           }
-          const isPasswordValid = await bcrypt.compare(password, user.password);
-          if (!isPasswordValid) {
-            return reply
-              .code(401)
-              .send({ valid: false, error: "Invalid username or password" });
-          }
+
+          const userData = await response.json();
+          
           return reply.send({
             valid: true,
-            displayName: user.username,
-            userId: user.id,
+            displayName: userData.username,
+            userId: userData.id,
+          });
+        } catch (err) {
+          console.error('Failed to validate user:', err);
+          return reply.code(500).send({ 
+            valid: false, 
+            error: "Failed to validate credentials" 
           });
         }
+      }
       } catch (err) {
         request.log.error(err);
-        return reply
-          .code(err.code || 500)
-          .send({
-            error: err.message || "Failed to validate tournament player",
-          });
+        return reply.code(err.code || 500).send({
+          error: err.message || "Failed to validate tournament player",
+        });
       }
     }
   );
@@ -50,6 +67,7 @@ async function tournamentRoutes(app, options) {
   // Finalise tournament details
   /*
 		- Compute bracket size and number of matches from number of players
+      - Bracket Size = round up to nearest power of 2
 		- Insert new tournament in Tournament table
 		- Generate rows in tournamentMatch and tournamentPlayers table
 		- Player can join by:
@@ -61,26 +79,32 @@ async function tournamentRoutes(app, options) {
 				- Add tournamentPlayer with guest info
 		- Enforce unique constraint - if same displayName already in tournament 
 	*/
-  app.post('/tournaments/finalize', { schema: finalizeTournamentSchema, preHandler: [ app.authenticate ], }, async(request, reply) => {
-    const creatorId = request.user?.id;
-    const { numberOfPlayers, players } = request.body;
+  app.post(
+    "/tournaments/finalize",
+    { schema: finalizeTournamentSchema, preHandler: [app.authenticate] },
+    async (request, reply) => {
+      const creatorId = request.user?.id;
+      const { numberOfPlayers, players } = request.body;
       if (players.length != numberOfPlayers - 1) {
         return reply
-      .code(400)
-      .send({ error: "Wrong number of players credentials given" });
+          .code(400)
+          .send({ error: "Wrong number of players credentials given" });
       }
-      
-      try {
-        const creator = await prisma.user.findUnique({
-          where: { id: creatorId },
-          select: { username: true },
-        });
-        if (!creator)
-          return reply.code(404).send({ error: "Creator user not found" });
 
+      try {
+        // Fetch creator username from Auth Service
+        let creatorUsername;
+        try {
+          const creatorInfo = await getUserInfo(creatorId);
+          creatorUsername = creatorInfo.username;
+        } catch (err) {
+          console.error('Failed to fetch creator info:', err);
+          return reply.code(404).send({ error: "Creator user not found" });
+        }
+  
         const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
         const numMatches = bracketSize - 1;
-        
+
         const tournament = await prisma.tournament.create({
           data: {
             status: "CREATED",
@@ -92,7 +116,7 @@ async function tournamentRoutes(app, options) {
         const tournamentPlayers = [
         {
           tournamentId: tournament.id,
-          displayName: creator.username,
+          displayName: creatorUsername,
           userId: creatorId,
           isGuest: false,
         },
@@ -133,7 +157,7 @@ async function tournamentRoutes(app, options) {
 	*/
   app.get(
     "/tournaments/next-match",
-    { schema: getNextMatchSchema, preHandler: [ app.authenticate ] },
+    { schema: getNextMatchSchema, preHandler: [app.authenticate] },
     async (request, reply) => {
       const userId = request.user.id;
       const tournamentId = Number(request.headers["x-current-tournament-id"]);
@@ -151,9 +175,13 @@ async function tournamentRoutes(app, options) {
         if (!tournament) {
           return reply.code(404).send({ error: "Tournament not found" });
         }
-        const isParticipant = tournament.players.some(p => p.userId === userId);
+        const isParticipant = tournament.players.some(
+          (p) => p.userId === userId
+        );
         if (!isParticipant) {
-          return reply.code(403).send({ error: "You are not a participant in this tournament" });
+          return reply
+            .code(403)
+            .send({ error: "You are not a participant in this tournament" });
         }
         const nextMatch = await prisma.tournamentMatch.findFirst({
           where: {
@@ -226,51 +254,58 @@ async function tournamentRoutes(app, options) {
         });
       } catch (err) {
         request.log.error(err);
-        return reply
-          .code(err.code || 500)
-          .send({
-            error: err.message || "Failed to get next match in tournament",
-          });
+        return reply.code(err.code || 500).send({
+          error: err.message || "Failed to get next match in tournament",
+        });
       }
     }
   );
 
   // Update tournament status
   /*
+    - Check tournament exists
 		- Check that request user is in the tournament
-		- Check tournament exists
 		- Check that status transition is allowed
-    	- Update timestamps where appropriate
 		- If updating to 'STARTED', 
 			- Ensure tournament has at least 2 players
-			- Seed players into brackets
-			- For each round 1 match: 
+			- Seed players into brackets; Any empty slots become null
+			- Assign Round 1 matches: for each match: 
 				- If both players exist, create game session
 				- If only one player exists, auto-advance them as winner 
-		- If updating to 'ABORTED', abort tournament and its linked game sessions
+        - If both are null, ignore
+		- If updating to 'ABORTED', abort tournament and its game sessions
     - Return updated tournament object 
 	*/
-  app.patch('/tournaments/status', { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
- 		const userId = request.user.id;
-    const tournamentId = Number(request.headers['x-current-tournament-id']);
-		const { status } = request.body;
+  app.patch(
+    "/tournaments/status",
+    { schema: updateTournamentStatusSchema, preHandler: [app.authenticate] },
+    async (request, reply) => {
+      const userId = request.user.id;
+      const tournamentId = Number(request.headers["x-current-tournament-id"]);
+      const { status } = request.body;
 
       try {
         const tournament = await prisma.tournament.findUnique({
-          where: { id: Number(tournamentId) },
-	        include: { 
-            players: true, 
-            matches: { include: { gameSession: true } } }, 
-          
+          where: { id: tournamentId },
+          include: {
+            players: true,
+            matches: { include: { gameSession: true } },
+          },
         });
+
         if (!tournament) {
           return reply.code(404).send({ error: "Tournament not found" });
         }
-        
-        const isParticipant = tournament.players.some(p => p.userId === userId);
+
+        const isParticipant = tournament.players.some(
+          (p) => p.userId === userId
+        );
         if (!isParticipant) {
-          return reply.code(403).send({ error: "You are not a participant in this tournament" });
+          return reply
+            .code(403)
+            .send({ error: "You are not a participant in this tournament" });
         }
+
         const current = tournament.status;
         const validTransitions = {
           CREATED: new Set(["STARTED", "ABORTED"]),
@@ -289,8 +324,9 @@ async function tournamentRoutes(app, options) {
         if (status === "STARTED") {
           updateData.startedAt = new Date();
 
+          // 1) Ensure at least 2 players in tournament
           const players = await prisma.tournamentPlayer.findMany({
-            where: { tournamentId: Number(tournamentId) },
+            where: { tournamentId },
           });
 
           if (players.length < 2) {
@@ -300,30 +336,32 @@ async function tournamentRoutes(app, options) {
           }
 
           const bracketSize = tournament.bracketSize;
-          const seeds = [
-            ...players,
-            ...Array(bracketSize - players.length).fill(null),
-          ];
+          const round1MatchesCount = bracketSize / 2;
 
-          const round1Matches = bracketSize / 2;
-          for (let i = 0; i < round1Matches; i++) {
+          // 2) Seed players into bracket slots (with byes)
+          const seeds = seedPlayersRandom(players, bracketSize);
+
+          // 3) Assign Round 1 matches and handle byes
+          for (let i = 0; i < round1MatchesCount; i++) {
             const p1 = seeds[i * 2];
             const p2 = seeds[i * 2 + 1];
+            const matchIndex = i + 1;
+
+            await prisma.tournamentMatch.update({
+              where: {
+                tournamentId_matchIndex: { tournamentId, matchIndex },
+              },
+              data: {
+                player1Id: p1 ? p1.id : null,
+                player2Id: p2 ? p2.id : null,
+              },
+            });
 
             if (p1 && p2) {
-              await prisma.tournamentMatch.updateMany({
-                where: {
-                  tournamentId: Number(tournamentId),
-                  matchIndex: i + 1,
-                },
-                data: {
-                  player1Id: p1.id,
-                  player2Id: p2.id,
-                },
-              });
+              // Scenario 1: Both players available so create game session
               await createGameSession(prisma, {
                 tournamentId,
-                matchIndex: i + 1,
+                matchIndex,
                 players: [
                   {
                     userId: p1.userId,
@@ -337,89 +375,26 @@ async function tournamentRoutes(app, options) {
                   },
                 ],
               });
-            } else {
-              // Auto advance for odd number of players
-              const winner = p1 && !p2 ? p1 : p2 && !p1 ? p2 : null;
+            } else if (p1 || p2) {
+              // Scenario 2: Only one player so auto-advance player as winner
+              const winner = p1 || p2;
 
-              await prisma.tournamentMatch.updateMany({
+              await prisma.tournamentMatch.update({
                 where: {
-                  tournamentId: Number(tournamentId),
-                  matchIndex: i + 1,
+                  tournamentId_matchIndex: { tournamentId, matchIndex },
                 },
                 data: {
-                  player1Id: p1?.id ?? null,
-                  player2Id: p2?.id ?? null,
-                  ...(winner
-                    ? {
-                        winnerUserId: winner.userId ?? null,
-                        winnerPlayerId: winner.id,
-                      }
-                    : {}),
+                  winnerPlayerId: winner.id,
+                  winnerUserId: winner.userId ?? null,
                 },
               });
-              if (winner) {
-                const parentIndex = getParentMatchIndex(i + 1, bracketSize);
-                const parentMatch = await prisma.tournamentMatch.findUnique({
-                  where: {
-                    tournamentId_matchIndex: {
-                      tournamentId,
-                      matchIndex: parentIndex,
-                    },
-                  },
-                });
-
-                if (parentMatch) {
-                  const updateData = {};
-                  if (!parentMatch.player1Id) updateData.player1Id = winner.id;
-                  else if (!parentMatch.player2Id)
-                    updateData.player2Id = winner.id;
-
-                  const updatedParent = await prisma.tournamentMatch.update({
-                    where: { id: parentMatch.id },
-                    data: updateData,
-                  });
-
-                  // If both players now exist, pre-create their game session
-                  if (
-                    updatedParent.player1Id &&
-                    updatedParent.player2Id &&
-                    !updatedParent.gameSessionId
-                  ) {
-                    const parentPlayers =
-                      await prisma.tournamentPlayer.findMany({
-                        where: {
-                          id: {
-                            in: [
-                              updatedParent.player1Id,
-                              updatedParent.player2Id,
-                            ],
-                          },
-                        },
-                      });
-
-                    await createGameSession(prisma, {
-                      tournamentId,
-                      matchIndex: updatedParent.matchIndex,
-                      players: [
-                        {
-                          userId: parentPlayers[0].userId,
-                          guestName: parentPlayers[0].isGuest
-                            ? parentPlayers[0].displayName
-                            : null,
-                          side: "LEFT",
-                        },
-                        {
-                          userId: parentPlayers[1].userId,
-                          guestName: parentPlayers[1].isGuest
-                            ? parentPlayers[1].displayName
-                            : null,
-                          side: "RIGHT",
-                        },
-                      ],
-                    });
-                  }
-                }
-              }
+              // recursively advance winner of match up the tournament 
+              await propagateWinner(prisma, {
+                tournamentId,
+                bracketSize,
+                fromMatchIndex: matchIndex,
+                winnerPlayerId: winner.id,
+              });
             }
           }
         } else if (status === "FINISHED") {
@@ -428,21 +403,24 @@ async function tournamentRoutes(app, options) {
           const now = new Date();
 
           const updatedTournament = await prisma.tournament.update({
-              where: { id: Number(tournamentId) },
-              data: { status: "ABORTED", endedAt: now }, 
-              include: { matches: true }
-            });
+            where: { id: tournamentId },
+            data: { status: "ABORTED", endedAt: now },
+            include: { matches: true },
+          });
 
-          const sessionIds = updatedTournament.matches.map((m) => m.gameSessionId).filter(Boolean);
+          const sessionIds = updatedTournament.matches
+            .map((m) => m.gameSessionId)
+            .filter(Boolean);
+
           if (sessionIds.length > 0) {
             await prisma.gameSession.updateMany({
               where: { id: { in: sessionIds } },
               data: { status: "ABORTED", endedAt: now },
             });
           }
-                    
+
           return reply.send({
-            id: updatedTournament.tournamentId,
+            id: updatedTournament.id,
             status: updatedTournament.status,
             startedAt: updatedTournament.startedAt,
             endedAt: updatedTournament.endedAt,
@@ -450,7 +428,7 @@ async function tournamentRoutes(app, options) {
         }
 
         const updated = await prisma.tournament.update({
-          where: { id: Number(tournamentId) },
+          where: { id: tournamentId },
           data: updateData,
         });
 
