@@ -10,6 +10,8 @@ export class ProfileInfo implements IComponent {
     private avatar: string = "";
     private username: string = "";
     private email: string = "";
+    private hasPassword: boolean = false;
+    private isGoogleUser: boolean = false;
     private container: HTMLElement | null = null;
     private onProfileUpdate?: () => void;
 
@@ -66,6 +68,8 @@ export class ProfileInfo implements IComponent {
                 this.username = profileResponse.data.username;
                 this.email = profileResponse.data.email;
                 this.avatar = profileResponse.data.avatar || "";
+                this.hasPassword = profileResponse.data.hasPassword;
+                this.isGoogleUser = profileResponse.data.isGoogleUser;
                 await this.updateProfileUI();
             } else {
                 console.error('Failed to fetch profile data:', profileResponse.message);
@@ -230,6 +234,38 @@ export class ProfileInfo implements IComponent {
         // Form fields
         const form = this.createSettingsForm();
         modal.appendChild(form);
+        
+        // --- Disable old password input for Google users without a password + Disable email change ---
+        if (this.isGoogleUser) {
+
+            // Hide old password ONLY if the user has no password
+            if (!this.hasPassword) {
+                const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
+                if (oldPasswordInput) {
+                    oldPasswordInput.style.display = "none";
+                    oldPasswordInput.value = "";
+                }
+        
+                const newPasswordInput = form.querySelector<HTMLInputElement>("#newPassword");
+                if (newPasswordInput) {
+                    newPasswordInput.placeholder = "Set password for this Google account";
+                }
+            }
+        
+            // Hide email input and label regardless
+            const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
+            if (emailInput) {
+                emailInput.style.display = "none";
+                emailInput.value = "";
+            }
+        
+            // Fix for label selection (select by text content)
+            const emailLabel = Array.from(form.querySelectorAll("label"))
+                .find(label => label.textContent === "Email");
+            if (emailLabel) {
+                emailLabel.style.display = "none";
+            }
+        }
 
         // === 2FA Toggle ===
         const twoFactorGroup = document.createElement("div");
@@ -401,6 +437,7 @@ export class ProfileInfo implements IComponent {
         const newPasswordInput = document.createElement("input");
         newPasswordInput.type = "password";
         newPasswordInput.placeholder = "New Password";
+        newPasswordInput.id = "newPassword"; // <- added id to be able to call it when google user has a new placeholder
         newPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(oldPasswordInput);
@@ -427,12 +464,12 @@ export class ProfileInfo implements IComponent {
         cancelBtn.textContent = "Cancel";
 
         saveBtn.addEventListener("click", async () => {
-            if (await this.showConfirmation("Do you Want to save changes?", "Update Profile", true) ===true)  
+            if (await this.showConfirmation("Do you want to save changes?", "Update Profile", true) ===true)  
             {
                 const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
                 const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
                 const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
-                const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='New Password']");
+                const newPasswordInput = form.querySelector<HTMLInputElement>("#newPassword");
     
                 const data: any = {
                     username: usernameInput?.value || undefined,

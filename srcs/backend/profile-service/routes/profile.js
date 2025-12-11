@@ -20,6 +20,8 @@ async function profileRoutes(app, options) {
           username: true,
           email: true,
           avatar: true,
+          password: true,
+          googleId: true
         },
       });
 
@@ -27,8 +29,13 @@ async function profileRoutes(app, options) {
         return reply.code(404).send({ message: 'User not found' });
       }
 
-      return reply.code(200).send(user);
-
+      return reply.send({
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        hasPassword: !!user.password,
+        isGoogleUser: !!user.googleId
+      });
 
     } catch (err) {
       request.log.error(err);
@@ -68,11 +75,19 @@ async function profileRoutes(app, options) {
       }
 
       // --- Password ---
-      if ((oldPassword && !newPassword) || (!oldPassword && newPassword)) {
-        reply.code(400).send({ message: 'Both oldPassword and newPassword are required to change password' });
+      if (newPassword && !oldPassword) {
+        // Case: Google user adding a password for the first time
+        if (!user.password && user.googleId) {
+          const hashedPassword = await bcrypt.hash(newPassword, 12);
+          updates.password = hashedPassword;
+        } else {
+          // Normal users MUST provide oldPassword
+          reply.code(400).send({ message: 'Both oldPassword and newPassword are required to change password' });
+        }
       }
       
       if (oldPassword && newPassword) {
+        // Normal password change
         const isValid = await bcrypt.compare(oldPassword, user.password);
         if (!isValid) return reply.code(401).send({ message: 'Old password is incorrect' });
         const hashedPassword = await bcrypt.hash(newPassword, 12);

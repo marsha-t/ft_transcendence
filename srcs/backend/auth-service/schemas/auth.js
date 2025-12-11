@@ -1,5 +1,69 @@
 // schemas/auth.js
 
+export const googleLoginSchema = {
+  tags: ['Authentication'],
+  summary: 'Log in or register a user via Google OAuth',
+  body: {
+    type: 'object',
+    required: ['idToken'],
+    properties: {
+      idToken: {
+        type: 'string',
+        minLength: 10, // rough check for token length
+        errorMessage: {
+          minLength: 'idToken is invalid or too short'
+        }
+      }
+    },
+    additionalProperties: false,
+    errorMessage: {
+      required: {
+        idToken: 'idToken is required'
+      },
+      additionalProperties: 'No extra fields are allowed'
+    }
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+        twoFactorRequired: { type: 'boolean' },
+        }
+      }
+    },
+    400: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' },
+        validation: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              field: { type: 'string' },
+              message: { type: 'string' }
+            }
+          }
+        }
+      }
+    },
+    401: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' },
+        message: { type: 'string' }
+      }
+    },
+    500: {
+      type: 'object',
+      properties: {
+        error: { type: 'string' }
+      }
+    }
+};
+
 export const registerSchema = {
   tags: ['Authentication'],
   summary: 'Register a new user',
