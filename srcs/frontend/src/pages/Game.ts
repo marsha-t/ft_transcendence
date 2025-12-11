@@ -47,20 +47,20 @@ export class Game implements IComponent {
   private createTitleContainer(): void {
     const titleContainer = document.createElement("div");
     titleContainer.className =
-      "flex flex-row items-center justify-between w-[800px] text-3xl font-bold text-white pointer-events-none mb-6";
+      "grid grid-cols-3 items-center w-full max-w-[900px] text-3xl font-bold text-white mb-6";
 
     const userLeft = document.createElement("h2");
     userLeft.textContent = this.opts?.displayNames?.leftName ?? "User 1";
-    userLeft.className = "user";
+    userLeft.className = "justify-self-start break-all max-w-[250px] text-left";
     userLeft.id = "left-player";
-
+    
     const VS = document.createElement("h1");
     VS.textContent = "VS";
-    VS.className = "VS";
-
+    VS.className = "justify-self-center";
+    
     const userRight = document.createElement("h2");
     userRight.textContent = this.opts?.displayNames?.rightName ?? "User 2";
-    userRight.className = "user";
+    userRight.className = "justify-self-end break-all max-w-[250px] text-right";
     userRight.id = "right-player";
 
     titleContainer.appendChild(userLeft);

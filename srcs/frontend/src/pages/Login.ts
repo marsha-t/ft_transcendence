@@ -6,6 +6,7 @@ import { AuthUtils } from "../utils/authUtils.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
+    private loginCard!: HTMLElement;
     private messageContainer!: HTMLElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
@@ -20,28 +21,52 @@ export class Login implements IComponent {
     private currentUsername: string = '';
 
     public render(): HTMLElement {
+        // === Main container ===
         this.container = document.createElement('div');
-        this.container.className = 'flex justify-center bg-color-yellow h-full py-[23px]';
-
+        this.container.className = `
+            flex justify-center bg-color-yellow
+            h-full py-[23px]`;
+    
         const subContainer = document.createElement('div');
-        subContainer.className = 'flex flex-col items-center justify-start bg-background rounded-[16px] shadow-lg mx-[23px] w-[calc(100%-46px)] py-6 px-10';
-
-        // Heading
+        subContainer.className = `
+            flex flex-col items-center justify-start
+            bg-background rounded-[16px] shadow-lg
+            mx-[23px] w-[calc(100%-46px)]
+            h-auto py-6 px-10`;
+    
+        // === Heading ===
         const heading = document.createElement('h2');
-        heading.className = 'text-center mb-4 text-[18px] font-press text-color_white';
+        heading.className =
+            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
         heading.textContent = 'Welcome Back!';
-
-        // Form
+    
+        // === Login card (form wrapper) ===
+        this.loginCard = document.createElement('div');
+        this.loginCard.className =
+            `flex flex-col items-center justify-center 
+             bg-background border-2 border-border-green 
+             rounded-[16px] p-8`;
+    
+        // === Register link ===
+        const registerLink = document.createElement('p');
+        registerLink.className =
+            'font-mono text-color_white text-left mb-4';
+        registerLink.innerHTML = `
+            Don't have an account?
+            <a href="/register"
+            class="font-mono text-color-green underline ml-40 hover:opacity-80">
+            Register
+            </a>`;
+    
+        // === Form ===
         this.form = document.createElement('form');
         this.form.className = 'flex flex-col gap-[26px] items-center w-full leading-normal';
-
-        // Username
+    
+        // Username & Password inputs
         const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
-
-        // Password
         const passwordGroup = this.createInput('password', 'Password', 'password', '••••••••');
-
-        // Submit button
+    
+        // === Submit button ===
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
@@ -51,64 +76,72 @@ export class Login implements IComponent {
             hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
             hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline
         `;
-
-        // Google button container
+    
+        // === Build the form ===
+        this.form.appendChild(usernameGroup);
+        this.form.appendChild(passwordGroup);
+        this.form.appendChild(this.submitButton);
+    
+        // === Google button container ===
         const googleButtonContainer = document.createElement('div');
         googleButtonContainer.id = 'google-login-button';
         googleButtonContainer.className = 'mt-4';
-
-        // OTP group (hidden initially)
+    
+        // === Assemble login card ===
+        this.loginCard.appendChild(registerLink);
+        this.loginCard.appendChild(this.form);
+        this.loginCard.appendChild(googleButtonContainer);
+    
+        // === OTP group (hidden initially) ===
         this.otpGroup = document.createElement('div');
-        this.otpGroup.className = 'flex flex-col gap-2 mt-4 hidden';
-
+        this.otpGroup.className = `flex flex-col items-center justify-center 
+            bg-background border-2 border-border-green 
+            rounded-[16px] p-8 hidden`;
+    
         const otpLabel = document.createElement('label');
         otpLabel.textContent = 'Enter 2FA Code';
         otpLabel.htmlFor = 'otp';
         otpLabel.className = 'text-lg font-mono text-color_white';
-
+    
         this.otpInput = document.createElement('input');
         this.otpInput.type = 'text';
         this.otpInput.id = 'otp';
         this.otpInput.placeholder = '123456';
         this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
-
+    
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
         this.otpSubmitButton.textContent = 'Verify';
         this.otpSubmitButton.className = this.submitButton.className;
-
+    
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
         this.otpResendButton.textContent = 'Resend OTP';
         this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
-
+    
         this.otpGroup.appendChild(otpLabel);
         this.otpGroup.appendChild(this.otpInput);
         this.otpGroup.appendChild(this.otpSubmitButton);
         this.otpGroup.appendChild(this.otpResendButton);
-
-        // Message container
+    
+        // === Message container ===
         this.messageContainer = document.createElement('div');
-
-        // Build page
+    
+        // === Build page ===
         subContainer.appendChild(heading);
-        this.form.appendChild(usernameGroup);
-        this.form.appendChild(passwordGroup);
-        this.form.appendChild(this.submitButton);
-        subContainer.appendChild(this.form);
-        subContainer.appendChild(googleButtonContainer);
+        subContainer.appendChild(this.loginCard);
         subContainer.appendChild(this.otpGroup);
         subContainer.appendChild(this.messageContainer);
         this.container.appendChild(subContainer);
-
-        // Attach event listeners
+    
+        // === Attach event listeners ===
         this.attachEventListeners();
-
-        // Load Google login dynamically
+    
+        // === Load Google login dynamically ===
         this.loadGoogleScript()
             .then(() => this.initGoogleLogin())
             .catch(err => console.error(err));
-
+    
         return this.container;
     }
 
@@ -160,8 +193,8 @@ export class Login implements IComponent {
                 this.currentUsername = userData.username;
                 this.is2FAActive = true;
 
-                this.form.querySelectorAll('input').forEach(input => input.closest('div')?.classList.add('hidden'));
-                this.submitButton.classList.add('hidden');
+                // Hide the entire login card
+                this.loginCard.classList.add('hidden');
 
                 // Hide Google login button
                 document.getElementById('google-login-button')?.classList.add('hidden');
@@ -176,9 +209,18 @@ export class Login implements IComponent {
 
             if (response.success) {
                 this.showMessage(response.message || 'Login successful', 'success');
+
+                // Reset UI && Set user as logged-in
                 AuthUtils.setLoggedIn({ username: userData.username });
+
                 this.form.reset();
+                this.loginCard.classList.remove('hidden');
+                this.otpGroup.classList.add('hidden');
+                this.is2FAActive = false;
+                this.currentUsername = '';
+
                 setTimeout(() => navigate("/profile"), 2000);
+
             } else {
                 this.showMessage(response.message || 'Login failed', 'error');
             }
@@ -239,18 +281,41 @@ export class Login implements IComponent {
         }
     }
 
-    private setLoadingState(loading: boolean) {
+    private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
         this.otpSubmitButton.disabled = loading;
         this.otpResendButton.disabled = loading;
         this.form.querySelectorAll('input').forEach(input => (input as HTMLInputElement).disabled = loading);
     }
-
-    private showMessage(message: string, type: 'success' | 'error') {
+    
+    private showMessage(message: string, type: 'success' | 'error'): void {
         this.messageContainer.style.display = 'block';
+        const baseClass = `
+            mt-6 px-4 py-3    
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            text-color_white font-mono text-[20px]
+            text-center          
+            flex items-center justify-center 
+            transition-opacity duration-300
+        `;
+
+        const typeClasses = type === 'error' 
+            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
+            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+        
+        this.messageContainer.className = `${baseClass} ${typeClasses}`;
         this.messageContainer.textContent = message;
-        this.messageContainer.className = `mt-4 text-center ${type === 'success' ? 'text-green-500' : 'text-red-500'}`;
+        
+        // Auto-hide success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                this.messageContainer.style.display = 'none';
+            }, 5001);
+        }
+        // Scroll to top to show message
+        this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
     }
 
     // ------------------ Google Login ------------------

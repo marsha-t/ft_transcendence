@@ -75,19 +75,33 @@ export class TournamentMatch implements IComponent {
     matchInfo.appendChild(h3);
 
     const playerContainer = document.createElement('div');
-    playerContainer.className = 'flex justify-center items-center gap-12 mb-10';
-
+    playerContainer.className =
+      'grid grid-cols-3 items-center justify-items-center w-full max-w-[700px] gap-4 mt-4';
 
     const p1Box = document.createElement('div');
-    p1Box.className = 'border-2 border-[var(--color-border-green)] rounded-lg px-10 py-6 min-w-[160px] text-2xl text-[var(--color-text-white)] bg-[var(--color-background)] shadow-[0_4px_0_#0c1c42]';
+    p1Box.className = `
+      justify-self-start
+      border-2 border-[var(--color-border-green)]
+      rounded-lg px-10 py-6 min-w-[200px] md:min-w-[260px] max-w-[300px] md:max-w-[380px]
+      break-all text-2xl bg-[var(--color-background)]
+      shadow-[0_4px_0_#0c1c42] text-center
+    `;
     p1Box.textContent = p1?.displayName ?? "Player 1";
 
     const vs = document.createElement('div');
-    vs.className = 'text-[#ff3b3b] text-[1.8rem] font-bold';
+    vs.className = `
+      justify-self-center text-[#ff3b3b] text-[1.8rem] font-bold
+    `;
     vs.textContent = "VS";
 
     const p2Box = document.createElement('div');
-    p2Box.className = 'border-2 border-[var(--color-border-green)] rounded-lg px-10 py-6 min-w-[160px] text-2xl text-[var(--color-text-white)] bg-[var(--color-background)] shadow-[0_4px_0_#0c1c42]';
+    p2Box.className = `
+      justify-self-end
+      border-2 border-[var(--color-border-green)]
+      rounded-lg px-10 py-6 min-w-[200px] md:min-w-[260px] max-w-[300px] md:max-w-[380px]
+      break-all text-2xl bg-[var(--color-background)]
+      shadow-[0_4px_0_#0c1c42] text-center
+    `;
     p2Box.textContent = p2?.displayName ?? "Player 2";
 
     playerContainer.append(p1Box, vs, p2Box);
@@ -99,8 +113,13 @@ export class TournamentMatch implements IComponent {
     readyContainer.className = "ready-container";
 
     const startBtn = document.createElement("button");
-    startBtn.textContent = "Start Match";
-    startBtn.className = "bg-[var(--color-button)] border-2 border-[#3e8b44] rounded-lg text-[var(--color-text-white)] font-['Press_Start_2P',monospace] text-base px-8 py-4 cursor-pointer shadow-[0_6px_0_#2e6b32] transition-all duration-100 uppercase hover:bg-[#6bc66f] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_6px_0_#2e6b32]";
+    startBtn.textContent = "START MATCH";
+    startBtn.className =
+      "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
+      "shadow-[0_5px_0_var(--color-button-second)] " +
+      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
+      "hover:translate-y-1 active:translate-y-2 " +
+      "transition-all duration-150 mt-5";
     startBtn.addEventListener("click", () =>
       this.startGame(gameSessionId, p1, p2)
     );
@@ -142,7 +161,7 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
+     const confirmLeave = await showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
     if (!confirmLeave) return false;
     try {
       if (this.gameInstance) {

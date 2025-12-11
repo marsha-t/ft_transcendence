@@ -8,57 +8,6 @@ import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAv
 
 async function profileRoutes(app, options) {
   // Get play counts for heatmap (top-level route inside profileRoutes)
-  app.get('/profile/play-counts', {
-    schema: getPlayCountsSchema,
-    preHandler: [app.authenticate]
-  }, async (request, reply) => {
-    try {
-      const userId = request.user.id;
-      const { start, end } = request.query;
-
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-
-      // Fetch finished game session players within range (select session.createdAt)
-      const sessions = await prisma.gameSessionPlayer.findMany({
-        where: {
-          userId: userId,
-          session: { status: 'FINISHED' },
-          // createdAt is on the session, not on GameSessionPlayer
-          session: {
-            createdAt: {
-              gte: startDate,
-              lte: endDate
-            }
-          }
-        },
-        select: { session: { select: { createdAt: true } } }
-      });
-
-      // Group by date (YYYY-MM-DD)
-      const countsByDate = {};
-      sessions.forEach(s => {
-        const created = s.session && s.session.createdAt;
-        if (!created) return;
-        const d = created.toISOString().split('T')[0];
-        countsByDate[d] = (countsByDate[d] || 0) + 1;
-      });
-
-      // Build result array for the range (include zero days if needed)
-      const result = [];
-      const cur = new Date(startDate);
-      while (cur <= endDate) {
-        const key = cur.toISOString().split('T')[0];
-        result.push({ date: key, count: countsByDate[key] || 0 });
-        cur.setDate(cur.getDate() + 1);
-      }
-
-      return reply.code(200).send(result);
-    } catch (error) {
-      request.log.error(error);
-      return reply.code(500).send({ error: 'Failed to fetch play counts' });
-    }
-  });
 
   // 1- Get current user's profile by ID 
   app.get('/profile', { schema: getCurrentUserSchema, preHandler: [app.authenticate] }, async (request, reply) => {

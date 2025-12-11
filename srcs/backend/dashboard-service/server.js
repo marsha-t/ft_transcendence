@@ -56,8 +56,16 @@ app.decorate('authenticate', async (request, reply) => {
 // Register Auth Routes
 app.register(dashboardRoutes, { prefix: '/api/dashboardServ' });
 
+// Health check endpoint
+app.get('/health', async (request, reply) => {
+  return { 
+    status: 'ok', 
+    service: 'auth-service'  // Change name for each service
+  };
+});
+
 // Start server
-const PORT = process.env.DASHBOARD_SERVICE_PORT || 5005;
+const PORT = process.env.DASHBOARD_SERVICE_PORT || 5004;
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: '0.0.0.0' });

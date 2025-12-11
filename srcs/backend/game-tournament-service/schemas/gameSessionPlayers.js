@@ -16,7 +16,7 @@ export const joinSessionSchema = {
 			type: 'integer', 
 		  },
 		  guestName: { 
-			type: 'string', 
+			type: 'string', maxLength: 20
 		  },
 		  side: { 
 			type: 'string', 
