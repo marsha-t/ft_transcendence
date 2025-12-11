@@ -2,10 +2,10 @@ import * as BABYLON from "babylonjs";
 import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
-// import { GameConfig } from "./GameConfig";
 import { aiWebSocketService } from "../services/websocket/WebsocketServices";
 import { GameState } from "../services/websocket/types";
 import { gameConfigManager } from "./GameConfigManager";
+import { PowerUpManager, PowerUpTypes } from "./PowerUps";
 
 interface AIConfig {
     aiEnabled: boolean;
@@ -26,6 +26,10 @@ export class PongGame {
 
     private aiConfig: AIConfig;
     private isAIGame: boolean = false;
+
+    //powerup
+    private powerUpManager: PowerUpManager | null = null;
+    private activePowerUps: Map<PowerUpTypes, number> = new Map();
 
     constructor(canvas: HTMLCanvasElement, 
                 onScore?: (side: 'LEFT' | 'RIGHT') => void,
@@ -48,6 +52,11 @@ export class PongGame {
         this.createBall();
         this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
+        //Initial power Ups
+        if(gameConfigManager.current.powerUps.enabled){
+            this.powerUpManager = new PowerUpManager(this.scene);
+            console.log('Power-ups enabled!');
+        }
         // Render loop
         this.engine.runRenderLoop(() => {
             const dt = this.engine.getDeltaTime() / 1000;
@@ -55,6 +64,9 @@ export class PongGame {
                 this.input.update(dt);
                 this.ball.update(dt);
                 this.checkCollisions();
+                //powerup
+                this.updatePowerUps();
+
                 this.checkScoring();
 
                 if(this.isAIGame)
@@ -63,6 +75,90 @@ export class PongGame {
             }
             this.scene.render();
         });
+    }
+    private updatePowerUps(): void {
+        if(!this.powerUpManager)
+                return;
+
+        const currentTime = Date.now();
+
+        this.powerUpManager.updatePowerUp(currentTime);
+        // Check if ball hit a power-up
+        const collectedType = this.powerUpManager.checkCollisionPowerUp(
+            this.ball.mesh.position.x,
+            this.ball.mesh.position.z,
+            gameConfigManager.current.ball.radius
+        );
+        if(collectedType)
+            this.activePowerUp(collectedType);
+
+        this.updateActivePowerUpEffects(currentTime);
+    }
+
+    private activePowerUp(type: PowerUpTypes): void {
+        const config = gameConfigManager.current.powerUps;
+        const endTime = Date.now() + config.duration;
+
+        this.activePowerUps.set(type, endTime);
+
+        switch(type){
+            case 'SPEED_BOOST':
+                // Increase ball speed by 50%
+                this.ball.speed.x *= 1.5;
+                this.ball.speed.z *= 1.5;
+                console.log('SPEED BOOST activated!');
+                break;
+
+            case 'ENLARGE_PADDLE':
+                // Make the paddle that will hit the ball next 50% bigger
+                const paddleToEnlarge = this.ball.speed.x > 0 
+                    ? this.rightPaddle 
+                    : this.leftPaddle;
+                paddleToEnlarge.mesh.scaling.z = 1.5;
+                console.log('ENLARGE PADDLE activated!');
+                break;
+
+            case 'SLOW_MOTION':
+                // Slow ball by 50%
+                this.ball.speed.x *= 0.5;
+                this.ball.speed.z *= 0.5;
+                console.log('SLOW MOTION activated!');
+                break;
+        }
+    }
+
+    private updateActivePowerUpEffects(currentTime: number): void {
+        this.activePowerUps.forEach((endTime, type) => {
+            if(currentTime >= endTime){
+                this.deactivatePowerUp(type);
+                this.activePowerUps.delete(type);
+            }
+        });
+    }
+
+    private deactivatePowerUp(type: PowerUpTypes): void {
+        switch (type) {
+            case 'SPEED_BOOST':
+                // Restore speed
+                this.ball.speed.x /= 1.5;
+                this.ball.speed.z /= 1.5;
+                console.log('Speed boost ended');
+                break;
+
+            case 'ENLARGE_PADDLE':
+                // Restore paddle sizes
+                this.leftPaddle.mesh.scaling.z = 1.0;
+                this.rightPaddle.mesh.scaling.z = 1.0;
+                console.log('Paddle size restored');
+                break;
+
+            case 'SLOW_MOTION':
+                // Restore speed (reverse the division)
+                this.ball.speed.x /= 0.5;
+                this.ball.speed.z /= 0.5;
+                console.log('Slow motion ended');
+                break;
+        }
     }
 
     private streamGameStateToAI(): void {
@@ -135,6 +231,11 @@ export class PongGame {
         if (this.isAIGame) {
             aiWebSocketService.disconnect();
         }
+
+        if(this.powerUpManager){
+            this.powerUpManager.cleanPowerUp();
+            this.powerUpManager = null;
+        }
         this.engine.dispose();
     }
 
@@ -182,6 +283,12 @@ export class PongGame {
         this.ball.mesh.position.set(0, ballY, 0);
         this.ball.speed.x = 0; // stop the ball during pause
         this.ball.speed.z = 0;
+
+         // Clear active power-up effects when ball resets
+         this.activePowerUps.forEach((_, type) => {
+            this.deactivatePowerUp(type);
+        });
+        this.activePowerUps.clear();
 
         // Wait for 1.5 seconds before launching
         await new Promise((resolve) => setTimeout(resolve, 500)); 
