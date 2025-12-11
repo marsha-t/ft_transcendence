@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { UserDashboard } from "../services/dashboard/types";
+import { t } from "../services/i18n/i18nService.js";
 
 declare const Plotly: any;
 
@@ -14,16 +15,19 @@ export class ProfileDashboard implements IComponent {
         flex flex-col items-center justify-start
         bg-background rounded-[16px] shadow-lg
         mx-[23px] w-[calc(100%-46px)]
-        h-full py-6 px-10`;
+        h-full py-6 px-10 `;
 
     this.container = document.createElement("div");
     this.container.className = "p-8 flex flex-col items-center gap-8 h-auto w-full font-pixel text-yellow-300";
 
 
     // Title
+    const isRtl = document.documentElement.dir === 'rtl';
+    const alignClass = isRtl ? 'text-right' : 'text-left';
+
     const title = document.createElement("h1");
-    title.textContent = "Your Performance Dashboard";
-    title.className = "text-[1.8rem] font-bold text-yellow-300 text-center mb-4 drop-shadow-[2px_2px_0_#000]";
+    title.textContent = t("dashboard.title") as string;
+    title.className = `text-[1.8rem] font-bold text-yellow-300 ${alignClass} mb-4 drop-shadow-[2px_2px_0_#000]`;
   
     this.container.appendChild(title);
 
@@ -109,14 +113,16 @@ export class ProfileDashboard implements IComponent {
     if (!overviewDiv) return;
   
     const { overview } = this.dashboardData;
+    const isRtl = document.documentElement.dir === 'rtl';
+    const alignClass = isRtl ? 'text-right' : 'text-left';
   
     const metrics = [
-      { label: "Total Matches", value: overview.totalMatches },
-      { label: "Total Wins", value: overview.totalWins },
-      { label: "Win Rate", value: overview.winRate + "%" },
-      { label: "Average Score", value: overview.avgScore },
-      { label: "Current Streak", value: overview.currentWinStreak },
-      { label: "Longest Streak", value: overview.longestWinStreak },
+      { label: t("dashboard.totalMatches") as string, value: overview.totalMatches },
+      { label: t("dashboard.totalWins") as string, value: overview.totalWins },
+      { label: t("dashboard.winRate") as string, value: overview.winRate + "%" },
+      { label: t("dashboard.averageScore") as string, value: overview.avgScore },
+      { label: t("dashboard.currentStreak") as string, value: overview.currentWinStreak },
+      { label: t("dashboard.longestStreak") as string, value: overview.longestWinStreak },
     ];
   
     const metricsHTML = metrics
@@ -131,7 +137,7 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     overviewDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4 text-xl font-bold">Overview</h2>
+      <h2 class="text-yellow-300 mb-4 text-xl font-bold ${alignClass}">${t("dashboard.overview")}</h2>
       <div class="flex flex-col gap-2">
         ${metricsHTML}
       </div>
@@ -153,7 +159,7 @@ export class ProfileDashboard implements IComponent {
       line: { color: "#E43E64", width: 3 },
     };
     const layout = {
-      title: "Win Rate Over Time",
+      title: t("dashboard.winRateOverTime"),
       font: {
         family: "'DM Sans', sans-serif",
         color: "#FFD400",
@@ -162,7 +168,7 @@ export class ProfileDashboard implements IComponent {
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       xaxis: {
-        title: "Date",
+        title: t("dashboard.date"),
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
@@ -191,7 +197,7 @@ export class ProfileDashboard implements IComponent {
       xbins: { start: -0.5, end: 5.5, size: 1 },
     };
     const layout = {
-      title: "Score Distribution",
+      title: t("dashboard.scoreDistribution"),
       font: {
         family: "'DM Sans', sans-serif",
         color: "#FFD400",
@@ -200,7 +206,7 @@ export class ProfileDashboard implements IComponent {
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       xaxis: {
-        title: "Score",
+        title: t("dashboard.score"),
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
         dtick: 1,
@@ -208,7 +214,7 @@ export class ProfileDashboard implements IComponent {
         tickvals: [0, 1, 2, 3, 4, 5],
       },
       yaxis: {
-        title: "Frequency",
+        title: t("dashboard.numberOfGames"),
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
@@ -233,7 +239,7 @@ export class ProfileDashboard implements IComponent {
       marker: { color: "#6B5B95" },
     };
     const layout = {
-      title: "% Wins per Opponent",
+      title: t("dashboard.winsPerOpponent"),
       font: {
         family: "'DM Sans', sans-serif",
         color: "#FFD400",
@@ -261,6 +267,9 @@ export class ProfileDashboard implements IComponent {
   
     const leaderboardDiv = document.getElementById("leaderboard");
     if (!leaderboardDiv) return;
+
+    const isRtl = document.documentElement.dir === 'rtl';
+    const alignClass = isRtl ? 'text-right' : 'text-left';
   
     const { leaderboard } = this.dashboardData;
   
@@ -288,16 +297,16 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     leaderboardDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4">Leaderboard</h2>
+      <h2 class="text-yellow-300 mb-4 ${alignClass}">${t("dashboard.leaderboard")}</h2>
       <table class="w-full text-white text-[1rem] border-collapse">
         <thead>
           <tr class="bg-yellow-300/10 text-yellow-300">
             <th class="py-2 px-3">#</th>
-            <th class="py-2 px-3">Player</th>
-            <th class="py-2 px-3">Matches</th>
-            <th class="py-2 px-3">Win Rate</th>
-            <th class="py-2 px-3">Average Score</th>
-            <th class="py-2 px-3">Leaderboard Score</th>
+            <th class="py-2 px-3">${t("dashboard.player")}</th>
+            <th class="py-2 px-3">${t("dashboard.matches")}</th>
+            <th class="py-2 px-3">${t("dashboard.winRate")}</th>
+            <th class="py-2 px-3">${t("dashboard.averageScore")}</th>
+            <th class="py-2 px-3">${t("dashboard.leaderboardScore")}</th>
           </tr>
         </thead>
         <tbody>
@@ -310,17 +319,19 @@ export class ProfileDashboard implements IComponent {
 
   private renderNoDataMessages() {
     const placeholders = [
-      { id: "winRateChart", title: "Win Rate Over Time" },
-      { id: "scoreHistogram", title: "Score Distribution" },
-      { id: "winsPerOpponent", title: "Wins per Opponent" },
-      { id: "leaderboard", title: "Leaderboard" },
+      { id: "winRateChart", title: t('dashboard.winRateOverTime') as string },
+      { id: "scoreHistogram", title: t('dashboard.scoreDistribution') as string },
+      { id: "winsPerOpponent", title: t('dashboard.winsPerOpponent') as string },
+      { id: "leaderboard", title: t('dashboard.leaderboard') as string },
     ];
+    const isRtl = document.documentElement.dir === 'rtl';
+    const alignClass = isRtl ? 'text-right' : 'text-left';
     placeholders.forEach(({ id, title }) => {
       const div = document.getElementById(id);
       if (div) {
         div.innerHTML = `
-          <h2>${title}</h2>
-          <p class="no-data">Not enough matches yet — play a few games to unlock insights!</p>
+          <h2 class="${alignClass}">${title}</h2>
+          <p class="no-data">${t('dashboard.noDataMessage') || 'Not enough matches yet — play a few games to unlock insights!'}</p>
         `;
       }
     });

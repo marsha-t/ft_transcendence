@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/auth/AuthServices.js';
 import { RegisterData } from "../services/auth/types";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Register implements IComponent {
     private container!: HTMLElement;
@@ -27,7 +28,7 @@ export class Register implements IComponent {
         heading.className = `
             w-[596px] text-center mb-4 
             text-[18px] font-press text-color_white`;
-        heading.textContent = 'Create an Account';
+        heading.textContent = t('auth.createNewAccount') as string;
 
         // === Login card (form wrapper) ===
         const registerCard = document.createElement('div');
@@ -49,7 +50,7 @@ export class Register implements IComponent {
 
         const usernameLabel = document.createElement('label');
         usernameLabel.className = 'text-lg font-mono text-color_white';
-        usernameLabel.textContent = 'USERNAME';
+        usernameLabel.textContent = t('auth.username') as string;
         usernameLabel.htmlFor = 'username';
 
         const usernameInput = document.createElement('input');
@@ -64,7 +65,7 @@ export class Register implements IComponent {
         usernameInput.type = 'text';
         usernameInput.id = 'username';
         usernameInput.name = 'username';
-        usernameInput.placeholder = 'Your Username';
+        usernameInput.placeholder = t('auth.yourUsername') as string;
         usernameInput.required = true;
 
         usernameGroup.appendChild(usernameLabel);
@@ -76,7 +77,7 @@ export class Register implements IComponent {
 
         const emailLabel = document.createElement('label');
         emailLabel.className = 'text-lg font-mono text-color_white';
-        emailLabel.textContent = 'Email';
+        emailLabel.textContent = t('auth.email') as string;
         emailLabel.htmlFor = 'email';
 
         const emailInput = document.createElement('input');
@@ -102,7 +103,7 @@ export class Register implements IComponent {
     
         const passwordLabel = document.createElement('label');
         passwordLabel.className = 'text-lg font-mono text-color_white';
-        passwordLabel.textContent = 'Password';
+        passwordLabel.textContent = t('auth.password') as string;
         passwordLabel.htmlFor = 'password';
     
         const passwordInput = document.createElement('input');
@@ -133,7 +134,7 @@ export class Register implements IComponent {
             "transition-all duration-150 mt-5 text-center no-underline";
 
         this.submitButton.type = 'submit';
-        this.submitButton.textContent = 'Register';
+        this.submitButton.textContent = t('auth.register-btn') as string;
 
         // === Register link ===
         const loginLink = document.createElement('p');
@@ -266,7 +267,7 @@ export class Register implements IComponent {
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;
         this.submitButton.disabled = loading;
-        this.submitButton.textContent = loading ? 'Creating Account...' : 'Register';
+        this.submitButton.textContent = loading ? t("auth.creatingAccount") as string : t("auth.register-btn") as string;
         // Optionally disable form inputs during loading
         const inputs = this.form.querySelectorAll('input');
         inputs.forEach(input => {

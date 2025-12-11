@@ -3,6 +3,7 @@ import { apiServices } from '../services/ApiServices.js';
 import { MatchHistory as MatchHistoryType, ApiResponse } from '../services/profile/types'; 
 import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
+import { t } from "../services/i18n/i18nService.js";
 
 export class MatchHistory implements IComponent {
   private container!: HTMLElement;
@@ -18,7 +19,7 @@ export class MatchHistory implements IComponent {
 
     const matchTitle = document.createElement("h3");
     matchTitle.className = " h-[30px] text-[24px] font-pixel font-[400] text-color_white mb-[10px]";
-    matchTitle.textContent = "Match History";
+    matchTitle.textContent = t("match-history.title") as string;
     matchHistory.appendChild(matchTitle);
 
     const table = document.createElement("table");
@@ -34,7 +35,7 @@ export class MatchHistory implements IComponent {
         text-[16px] font-semibold text-color_white bg-none
         mb-[10px] border-b border-gray-500 rounded-l-lg`;
 
-    const columns = ["Opponent", "Result", "Score", "Date"];
+    const columns = [t("match-history.opponent") as string, t("match-history.result") as string, t("match-history.score") as string, t("match-history.date") as string];
     columns.forEach((col) => {
       const th = document.createElement("th");
       th.className = "text-center text-[16px] leading-[18px] uppercase text-left px-4 py-3 font-pixel font-[400] text-color_white";
@@ -70,6 +71,7 @@ export class MatchHistory implements IComponent {
   }
 
   private createMatch(opponent: string, opponentAvatar: string, result: "WIN" | "LOSS", score: string, date: string, index: number): HTMLElement {
+    const localizedResult = result === "WIN" ? t("match-history.win") : t("match-history.loss");
     const row = document.createElement("tr");
     row.className = `w-[full] h-[65px] justify-between  text-center px-4 py-3 m-3
     ${index % 2 === 0 ? "bg-[#7EA2DD]" : "bg-[none]"} `;
@@ -94,7 +96,7 @@ export class MatchHistory implements IComponent {
     opponentCell.appendChild(opponentWrapper);
 
     const resultCell = document.createElement("td");
-    resultCell.textContent = result;
+    resultCell.textContent = localizedResult;
     const scoreCell = document.createElement("td");
     scoreCell.textContent = score;
 
@@ -126,7 +128,7 @@ export class MatchHistory implements IComponent {
       const emptyRow = document.createElement("tr");
       const emptyCell = document.createElement("td");
       emptyCell.colSpan = 4;
-      emptyCell.textContent = "No matches played yet.";
+      emptyCell.textContent = t("match-history.noMatches") as string;
       emptyCell.className = "text-gray-400 text-center py-3";
       emptyRow.appendChild(emptyCell);
       tableBody.appendChild(emptyRow);
@@ -266,7 +268,7 @@ private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): P
 
   // "Learn More" button — navigate to dashboard page
   const button = document.createElement("button");
-  button.textContent = ">> Learn More";
+  button.textContent = t("profile.dashboardBtn") as string;
   button.className = createButtonStyle("absolute bottom-4 right-4 w-[190px] h-[32px] whitespace-nowrap font-pixel", 'green');
   button.addEventListener("click", () => {
     history.pushState(null, '', '/dashboard');

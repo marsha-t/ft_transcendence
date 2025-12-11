@@ -4,25 +4,25 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 // Import translation files
 import enTranslation from '../../locales/en/translation.json';
 import arTranslation from '../../locales/ar/translation.json';
-// import frTranslation from '../locales/fr/translation.json';
+import ruTranslation from '../../locales/ru/translation.json';
 
 // Language configuration
 export const SUPPORTED_LANGUAGES = {
   en: { name: 'English', nativeName: 'English', dir: 'ltr' },
-  ar: { name: 'Arabic', nativeName: 'العربية', dir: 'rtl' }
-//   fr: { name: 'French', nativeName: 'Français', dir: 'ltr' }
+  ar: { name: 'Arabic', nativeName: 'العربية', dir: 'rtl' },
+  ru: { name: 'Russian', nativeName: 'Русский', dir: 'ltr' }
 };
 
 export const DEFAULT_LANGUAGE = 'en';
 
-// Initialize i18next
-i18next
+// Create initialization promise
+export const i18nReady = i18next
   .use(LanguageDetector)
   .init({
     resources: {
       en: { translation: enTranslation },
-      ar: { translation: arTranslation }
-    //   fr: { translation: frTranslation }
+      ar: { translation: arTranslation },
+      ru: { translation: ruTranslation }
     },
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: Object.keys(SUPPORTED_LANGUAGES),

@@ -3,6 +3,7 @@ import { apiServices } from "../services/auth/AuthServices.js";
 import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils.js";
 import { AuthUtils } from "../utils/authUtils.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Login implements IComponent {
     private container!: HTMLElement;
@@ -38,8 +39,8 @@ export class Login implements IComponent {
         const heading = document.createElement('h2');
         heading.className =
             'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
-        heading.textContent = 'Welcome Back!';
-    
+        heading.textContent = t('auth.welcomeBack') as string;
+
         // === Login card (form wrapper) ===
         this.loginCard = document.createElement('div');
         this.loginCard.className =
@@ -52,15 +53,66 @@ export class Login implements IComponent {
         registerLink.className =
             'font-mono text-color_white text-left mb-4';
         registerLink.innerHTML = `
-            Don't have an account?
+            ${t('auth.noAccount')}
             <a href="/register"
             class="font-mono text-color-green underline ml-40 hover:opacity-80">
-            Register
+            ${t('auth.register-btn')}
             </a>`;
-    
-        // === Form ===
+        
+        // Form
         this.form = document.createElement('form');
-        this.form.className = 'flex flex-col gap-[26px] items-center w-full leading-normal';
+        this.form.className =
+            'flex flex-col gap-[26px] items-center w-full leading-normal';
+    
+        // === Username group ===
+        const usernameGroup = document.createElement('div');
+        usernameGroup.className = 'flex flex-col gap-2';
+    
+        const usernameLabel = document.createElement('label');
+        usernameLabel.className = 'text-lg font-mono text-color_white';
+        usernameLabel.textContent = t('auth.username') as string;
+        usernameLabel.htmlFor = 'username';
+    
+        const usernameInput = document.createElement('input');
+        usernameInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
+      
+        usernameInput.type = 'text';
+        usernameInput.id = 'username';
+        usernameInput.name = 'username';
+        usernameInput.placeholder = t('auth.yourUsername') as string;
+    
+        usernameGroup.appendChild(usernameLabel);
+        usernameGroup.appendChild(usernameInput);
+    
+        // === Password group ===
+        const passwordGroup = document.createElement('div');
+        passwordGroup.className = 'flex flex-col gap-2';
+    
+        const passwordLabel = document.createElement('label');
+        passwordLabel.className = 'text-lg font-mono text-color_white';
+        passwordLabel.textContent = t('auth.password') as string;
+        passwordLabel.htmlFor = 'password';
+    
+        const passwordInput = document.createElement('input');
+        passwordInput.className = `
+            w-[360px] h-[54px] px-4 rounded-[16px]
+            bg-color_white text-background text-opacity-60 font-mono
+            focus:text-opacity-100
+            box-border placeholder:text-color-secondary 
+            placeholder:font-mono placeholder:text-mono
+            focus:outline-none focus:border-border-green 
+            transition-colors`;
+        passwordInput.type = 'password';
+        passwordInput.id = 'password';
+        passwordInput.name = 'password';
+        passwordInput.placeholder = '••••••••';
     
         // Username & Password inputs
         const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
@@ -69,13 +121,7 @@ export class Login implements IComponent {
         // === Submit button ===
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
-        this.submitButton.textContent = 'Login';
-        this.submitButton.className = `
-            w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white
-            font-bold rounded-lg tracking-widest shadow-[0_5px_0_var(--color-button-second)]
-            hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
-            hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline
-        `;
+        this.submitButton.textContent = t('auth.login-btn') as string;
     
         // === Build the form ===
         this.form.appendChild(usernameGroup);
@@ -99,7 +145,7 @@ export class Login implements IComponent {
             rounded-[16px] p-8 hidden`;
     
         const otpLabel = document.createElement('label');
-        otpLabel.textContent = 'Enter 2FA Code';
+        otpLabel.textContent = t("auth.enter2FA") as string;
         otpLabel.htmlFor = 'otp';
         otpLabel.className = 'text-lg font-mono text-color_white';
     
@@ -111,12 +157,12 @@ export class Login implements IComponent {
     
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
-        this.otpSubmitButton.textContent = 'Verify';
+        this.otpSubmitButton.textContent = t("auth.verify") as string;
         this.otpSubmitButton.className = this.submitButton.className;
     
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
-        this.otpResendButton.textContent = 'Resend OTP';
+        this.otpResendButton.textContent = t("auth.resendOTP") as string;
         this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
     
         this.otpGroup.appendChild(otpLabel);
@@ -287,6 +333,12 @@ export class Login implements IComponent {
         this.otpSubmitButton.disabled = loading;
         this.otpResendButton.disabled = loading;
         this.form.querySelectorAll('input').forEach(input => (input as HTMLInputElement).disabled = loading);
+        this.submitButton.textContent = loading ? t("auth.loggingIn") : t("auth.login-btn");
+
+        const inputs = this.form.querySelectorAll('input');
+        inputs.forEach(input => {
+            (input as HTMLInputElement).disabled = loading;
+        });
     }
     
     private showMessage(message: string, type: 'success' | 'error'): void {
