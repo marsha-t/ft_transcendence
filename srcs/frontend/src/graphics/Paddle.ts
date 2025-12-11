@@ -13,7 +13,7 @@ export class Paddle {
         this.mesh.position = position;
 
         const mat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
-        mat.diffuseColor = new BABYLON.Color3(0.8, 0.1, 0.1);
+        mat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
         this.mesh.material = mat;
     }
 

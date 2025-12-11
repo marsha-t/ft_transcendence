@@ -88,29 +88,15 @@ export class InputHandler {
         this.rightPaddle.move(dt);
     }
 
-    // -------------------------------------------------------------------------
-    // OPTIONAL: keep the old per-keydown behaviour for quick testing
-    // (you can delete these two methods if you never need them)
-    // -------------------------------------------------------------------------
-    private handleLeftKey(dz: number): void {
-        this.leftPaddle.move(dz);
-    }
+    public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
+        // Reset both keys first
+        this.keys.w = false;
+        this.keys.s = false;
 
-    private handleRightKey(dz: number): void {
-        this.rightPaddle.move(dz);
+        if (direction === "UP") {
+            this.keys.w = true;
+        } else if (direction === "DOWN") {
+            this.keys.s = true;
+        }
     }
-
-    // If you still want the old keydown to move the paddle instantly,
-    // uncomment the lines in registerKeyboardEvents() below:
-    // -------------------------------------------------------------------------
-    // private registerKeyboardEvents(): void {
-    //     window.addEventListener("keydown", (ev) => {
-    //         switch (ev.key) {
-    //             case "w": case "W": this.handleLeftKey(this.paddleSpeed); break;
-    //             case "s": case "S": this.handleLeftKey(-this.paddleSpeed); break;
-    //             case "ArrowUp":   ev.preventDefault(); this.handleRightKey(this.paddleSpeed); break;
-    //             case "ArrowDown": ev.preventDefault(); this.handleRightKey(-this.paddleSpeed); break;
-    //         }
-    //     });
-    // }
 }

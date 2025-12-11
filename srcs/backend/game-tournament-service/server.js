@@ -10,6 +10,9 @@ import gameSessionRoutes from './routes/gameSession.js';
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js'; 
 import tournamentRoutes from './routes/tournament.js';
 import AjvErrors from 'ajv-errors';
+import aiRoutes from './routes/ai.js';
+import fastifyWebsocket from '@fastify/websocket';
+import websocketRoutes from './routes/websocket.js';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +48,8 @@ if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
 
+await app.register(fastifyWebsocket); //Websocket
+
 // JWT authentication decorator
 app.decorate('authenticate', async (request, reply) => {
   try {
@@ -60,6 +65,9 @@ app.decorate('authenticate', async (request, reply) => {
 app.register(gameSessionRoutes, { prefix: '/api/gameSessionServ' });
 app.register(gameSessionPlayersRoutes, { prefix: '/api/gameSessionPlayersServ' });
 app.register(tournamentRoutes, { prefix: '/api/tournamentServ' });
+app.register(aiRoutes, { prefix: '/api/ai' });
+//register websocket routes
+app.register(websocketRoutes, {prefix: '/ws'});
 
 // Health check endpoint
 app.get('/health', async (request, reply) => {
@@ -68,6 +76,7 @@ app.get('/health', async (request, reply) => {
     service: 'auth-service'  // Change name for each service
   };
 });
+
 
 // Start server
 const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5005;

@@ -38,16 +38,17 @@ enum TournamentStatus {
 
 // Game models (keep all, remove User relations)
 model GameSession {
-  id            Int         @id @default(autoincrement())
-  status        GameStatus  @default(CREATED)
-  createdAt     DateTime    @default(now())
-  startedAt     DateTime?
-  endedAt       DateTime?
-  winnerUserId  Int?        // Reference only, no FK constraint
-  winnerPlayerId Int?       @unique
+  id             Int              @id @default(autoincrement())
+  status         GameStatus       @default(CREATED)
+  createdAt      DateTime         @default(now())
+  startedAt      DateTime?
+  endedAt        DateTime?
+  winnerUserId   Int?
+  winnerPlayerId Int?             @unique
+  isAi            Boolean         @default(false) 
 
-  winnerPlayer    GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
-  players         GameSessionPlayer[]
+  winnerPlayer   GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
+  players        GameSessionPlayer[]
   tournamentMatch TournamentMatch?
   events          GameEvent[]
 }

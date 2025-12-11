@@ -3,7 +3,13 @@ import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
 import { GameConfig } from "./GameConfig";
-import { Game } from "../pages/Game";
+import { aiWebSocketService } from "../services/websocket/WebsocketServices";
+import { GameState } from "../services/websocket/types";
+
+interface AIConfig {
+    aiEnabled: boolean;
+    aiSide: 'LEFT' | 'RIGHT';
+}
 
 export class PongGame {
     private canvas: HTMLCanvasElement;
@@ -17,12 +23,21 @@ export class PongGame {
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
     private isPaused: boolean = true;
 
-    constructor(canvas: HTMLCanvasElement, onScore?: (side: 'LEFT' | 'RIGHT') => void) {
+    private aiConfig: AIConfig;
+    private isAIGame: boolean = false;
+
+    constructor(canvas: HTMLCanvasElement, 
+                onScore?: (side: 'LEFT' | 'RIGHT') => void,
+                aiConfig: AIConfig = { aiEnabled: false, aiSide: 'LEFT'}) {
         this.canvas = canvas;
         this.onScoreCallback = onScore; // Store callback
 
         this.engine = new BABYLON.Engine(this.canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
+
+
+        this.aiConfig = aiConfig;
+        this.isAIGame = aiConfig.aiEnabled;
 
         this.createCamera();
         this.createLight();
@@ -40,11 +55,89 @@ export class PongGame {
                 this.ball.update(dt);
                 this.checkCollisions();
                 this.checkScoring();
+
+                if(this.isAIGame)
+                    this.streamGameStateToAI();
                 this.scene.render();
             }
             this.scene.render();
         });
     }
+
+    private streamGameStateToAI(): void {
+        const gameState: GameState = {
+            ball: {
+                x: this.ball.mesh.position.x,
+                z: this.ball.mesh.position.z,
+                vx: this.ball.speed.x,
+                vz: this.ball.speed.z
+            },
+            arena: {
+                zMin: GameConfig.tableBounds.zMin,
+                zMax: GameConfig.tableBounds.zMax
+            },
+            aiPaddle: {
+                x: this.leftPaddle.mesh.position.x,
+                z: this.leftPaddle.mesh.position.z
+            },
+            oppPaddle: {
+                x: this.rightPaddle.mesh.position.x,
+                z: this.rightPaddle.mesh.position.z,
+                vz: this.rightPaddle.velocity
+            },
+            constants: {
+                paddleDepth: GameConfig.paddle.depth,
+                ballRadius: GameConfig.ball.radius,
+                maxBounceAngle: GameConfig.ball.maxBounceAngle,
+                paddleInfluence: GameConfig.paddle.velocityInfluence,
+                speedIncrement: GameConfig.ball.speedIncrement,
+                maxSpeed: GameConfig.ball.maxSpeed
+            }
+        };
+
+        aiWebSocketService.sendGameState(gameState);
+    }
+
+    public sendGameConstants(): void {
+        if (!this.isAIGame) return;
+
+        const constants = {
+            table: {
+                width: GameConfig.table.width,
+                depth: GameConfig.table.depth
+            },
+            paddle: {
+                width: GameConfig.paddle.width,
+                depth: GameConfig.paddle.depth,
+                speed: GameConfig.paddle.speed
+            },
+            ball: {
+                radius: GameConfig.ball.radius,
+                speed: GameConfig.ball.speed,
+                maxSpeed: GameConfig.ball.maxSpeed
+            },
+            tableBounds: GameConfig.tableBounds
+        };
+
+        aiWebSocketService.sendGameStart(constants);
+    }
+
+
+    public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
+
+        if (!this.input) return;
+
+        this.input.applyAIDirection(direction);
+    }
+
+    public dispose(): void {
+        if (this.isAIGame) {
+            aiWebSocketService.disconnect();
+        }
+        this.engine.dispose();
+    }
+
+
     public pause(): void {
         this.isPaused = true;
     }
@@ -85,10 +178,6 @@ export class PongGame {
         const ballRadius = GameConfig.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
     
-        // this.ball.mesh.position.set(0, ballY, 0);
-        // this.ball.speed.x *= -1;  // Reverse X direction
-        // this.ball.speed.z = (Math.random() - 0.5) * 2;
-        // Move ball to center
         this.ball.mesh.position.set(0, ballY, 0);
         this.ball.speed.x = 0; // stop the ball during pause
         this.ball.speed.z = 0;
@@ -137,7 +226,7 @@ export class PongGame {
         // Floor
         const floor = BABYLON.MeshBuilder.CreateGround(
             "floor",
-            { width: r.width, height: r.depth + 14 }, // ADD 14 (7 + 7) to match wall extension
+            { width: r.width, height: r.depth + 14 }, 
             this.scene
         );
         floor.position.y = -5;
@@ -225,7 +314,7 @@ export class PongGame {
         table.position.y = -1;
 
         const tableMaterial = new BABYLON.StandardMaterial("tableMat", this.scene);
-        tableMaterial.diffuseColor = new BABYLON.Color3(0, 0.6, 0);
+        tableMaterial.diffuseColor = new BABYLON.Color3(0, 0.4, 0);
         table.material = tableMaterial;
 
         const lineMaterial = new BABYLON.StandardMaterial("lineMat", this.scene);
