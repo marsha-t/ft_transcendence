@@ -4,6 +4,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
 import {showConfirmation} from "../utils/profileUtils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -71,7 +72,7 @@ export class TournamentMatch implements IComponent {
 
 
     const h3 = document.createElement("h3");
-    h3.textContent = `Match ${matchIndex}`;
+    h3.textContent = `${t("tournament.match") as string} ${matchIndex}`;
     matchInfo.appendChild(h3);
 
     const playerContainer = document.createElement('div');
@@ -89,10 +90,8 @@ export class TournamentMatch implements IComponent {
     p1Box.textContent = p1?.displayName ?? "Player 1";
 
     const vs = document.createElement('div');
-    vs.className = `
-      justify-self-center text-[#ff3b3b] text-[1.8rem] font-bold
-    `;
-    vs.textContent = "VS";
+    vs.className = 'text-[#ff3b3b] text-[1.8rem] font-bold';
+    vs.textContent = t("tournament.vs") as string;
 
     const p2Box = document.createElement('div');
     p2Box.className = `
@@ -113,13 +112,8 @@ export class TournamentMatch implements IComponent {
     readyContainer.className = "ready-container";
 
     const startBtn = document.createElement("button");
-    startBtn.textContent = "START MATCH";
-    startBtn.className =
-      "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5";
+    startBtn.textContent = t("tournament.startMatchBtn") as string;
+    startBtn.className = "bg-[var(--color-button)] border-2 border-[#3e8b44] rounded-lg text-[var(--color-text-white)] font-['Press_Start_2P',monospace] text-base px-8 py-4 cursor-pointer shadow-[0_6px_0_#2e6b32] transition-all duration-100 uppercase hover:bg-[#6bc66f] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-[0_6px_0_#2e6b32]";
     startBtn.addEventListener("click", () =>
       this.startGame(gameSessionId, p1, p2)
     );

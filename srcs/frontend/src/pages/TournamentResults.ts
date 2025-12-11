@@ -3,6 +3,7 @@ import { navigate, createButtonStyle } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import mermaid from "mermaid";
+import { t } from "../services/i18n/i18nService.js";
 
 export class TournamentResults implements IComponent {
   private container!: HTMLElement;
@@ -293,7 +294,7 @@ classDef winner fill:#059669,stroke:#34d399,stroke-width:3px,color:white;
     btnContainer.className = "flex justify-center mt-8";
 
     const newBtn = document.createElement("button");
-    newBtn.textContent = "Start New Tournament";
+    newBtn.textContent = t("tournament.startNewTournamentBtn") as string;
     newBtn.className = createButtonStyle(
       "w-auto h-[50px] text-[16px]",
       "green"

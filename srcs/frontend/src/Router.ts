@@ -13,8 +13,10 @@ import { AI } from './pages/AI.js';
 
 export class Router {
   private currentPage: any = null;
+  private container: HTMLElement;
 
   constructor(container: HTMLElement) {
+    this.container = container;
     const renderRoute = async () => {
       // Check if current page allows navigation
       if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
@@ -103,6 +105,9 @@ export class Router {
           this.currentPage = null;
       }
     };
+
+    // Listen for language changes and re-render the current page
+    window.addEventListener('languageChanged', renderRoute);
 
     // renderRoute();
     window.removeEventListener('popstate', renderRoute);

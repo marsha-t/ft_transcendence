@@ -25,7 +25,7 @@ async function tournamentRoutes(app, options) {
         // Call Auth Service to validate credentials
         try {
           const response = await fetch(
-            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/auth/validate`,
+            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -34,14 +34,32 @@ async function tournamentRoutes(app, options) {
           );
 
           if (!response.ok) {
-            return reply.code(401).send({ 
+            // Try to parse response body to forward error details for debugging
+            let body = null;
+            try {
+              body = await response.json();
+            } catch (e) {
+              try {
+                body = await response.text();
+              } catch (e2) {
+                body = null;
+              }
+            }
+            request.log.warn({ status: response.status, body }, 'Auth validate failed');
+            return reply.code(response.status === 401 ? 401 : 500).send({ 
               valid: false, 
-              error: "Invalid username or password" 
+              error: body?.error || body?.message || "Invalid username or password"
             });
           }
 
           const userData = await response.json();
-          
+
+          // Prevent validating the creator as a player (UX/server-side guard)
+          const creatorId = request.user?.id;
+          if (userData && userData.id && creatorId && userData.id === creatorId) {
+            return reply.code(400).send({ valid: false, error: 'Player is the creator' });
+          }
+
           return reply.send({
             valid: true,
             displayName: userData.username,
@@ -101,7 +119,7 @@ async function tournamentRoutes(app, options) {
           console.error('Failed to fetch creator info:', err);
           return reply.code(404).send({ error: "Creator user not found" });
         }
-  
+
         const bracketSize = 2 ** Math.ceil(Math.log2(numberOfPlayers));
         const numMatches = bracketSize - 1;
 

@@ -1,4 +1,5 @@
 export interface ProfileData {
+    id?: number;
     username: string;
     avatar: string;
     email: string;

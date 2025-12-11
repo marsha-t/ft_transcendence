@@ -5,6 +5,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { t } from "../services/i18n/i18nService.js";
 
 export class Game implements IComponent {
   private container!: HTMLElement;
@@ -119,13 +120,13 @@ export class Game implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const startBtn = this.makeButton("Start Game", "start-btn", () =>
+    const startBtn = this.makeButton(t("game.startGame"), "start-btn", () =>
       this.toggleGame()
     );
-    const pauseBtn = this.makeButton("Pause", "pause-btn", () =>
+    const pauseBtn = this.makeButton(t("game.pause"), "pause-btn", () =>
       this.pauseGame()
     );
-    const quitBtn = this.makeButton("Quit Game", "quit-btn", () =>
+    const quitBtn = this.makeButton(t("game.quitGame"), "quit-btn", () =>
       this.quitGame()
     );
 
@@ -145,12 +146,12 @@ export class Game implements IComponent {
 
       const guestInput = document.createElement("input");
       guestInput.type = "text";
-      guestInput.placeholder = "Enter guest name";
+      guestInput.placeholder = t("game.enterGuestName") as string;
       guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
       const addGuestBtn = this.makeButton(
-        "Add Guest Player",
+        t("game.addGuestPlayer") as string,
         "add-guest-btn",
         () => this.addGuestPlayer()
       );
@@ -338,14 +339,14 @@ export class Game implements IComponent {
       if (startBtn) startBtn.style.display = "none";
       if (pauseBtn) {
         pauseBtn.style.display = "block";
-        pauseBtn.textContent = "Pause";
+        pauseBtn.textContent = t("game.pause") as string;
       }
       if (quitBtn) quitBtn.style.display = "block";
     } else {
       if (startBtn) startBtn.style.display = "none";
       if (pauseBtn) {
         pauseBtn.style.display = "block";
-        pauseBtn.textContent = "Resume";
+        pauseBtn.textContent = t("game.resume") as string;
       }
       if (quitBtn) quitBtn.style.display = "block";
     }
