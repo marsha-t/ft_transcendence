@@ -58,7 +58,7 @@ class GameConfigManager{
                     x: 20,
                     z: 0
                 },
-                maxSpeed: 30,
+                maxSpeed: 26,
                 speedIncrement: 2.5
             },
             paddle: {
@@ -66,7 +66,7 @@ class GameConfigManager{
             },
             powerUps: {
                 enabled: true,
-                spawnInterval: 3000,
+                spawnInterval: 5000,
                 duration: 3000,
                 types: ['SPEED_BOOST', 'ENLARGE_PADDLE', 'SLOW_MOTION']
             }
@@ -209,6 +209,14 @@ class GameConfigManager{
       return false;
     }
   }
+  public debugCurrentConfig(): void {
+    console.log(' Current GameConfig:', {
+        preset: this.activePreset,
+        powerUps: this.current.powerUps,
+        ballSpeed: this.current.ball.speed.x
+    });
+  }
 }
 export const gameConfigManager = new GameConfigManager();
 export type {DeepPartial};
+

@@ -388,6 +388,9 @@ private createSliderControl(config: {
         toggle.addEventListener('change', (e) => {
             const enabled = (e.target as HTMLInputElement).checked;
             this.setNestedValue('powerUps.enabled', enabled);
+            // if(!enabled){
+                
+            // }
             this.updatePreview();
         });
 
@@ -504,6 +507,11 @@ private createSliderControl(config: {
             preset: this.currentPreset,
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
+        console.log('[UI] Applying settings:', {
+            preset: settings.preset,
+            hasConfig: !!settings.config,
+            configKeys: settings.config ? Object.keys(settings.config) : []
+        })
 
         this.applyUserSettings(settings);
         this.close();

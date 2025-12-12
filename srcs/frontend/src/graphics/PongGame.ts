@@ -58,42 +58,102 @@ export class PongGame {
             console.log('Power-ups enabled!');
         }
         // Render loop
-        this.engine.runRenderLoop(() => {
-            const dt = this.engine.getDeltaTime() / 1000;
-            if (!this.isPaused){
-                this.input.update(dt);
-                this.ball.update(dt);
-                this.checkCollisions();
-                //powerup
-                this.updatePowerUps();
+        // this.engine.runRenderLoop(() => {
+        //     const dt = this.engine.getDeltaTime() / 1000;
+        //     if (!this.isPaused){
+        //         this.input.update(dt);
+        //         this.ball.update(dt);
+        //         this.checkCollisions();
+        //         //powerup
+        //         this.updatePowerUps();
 
+        //         this.checkScoring();
+
+        //         if(this.isAIGame)
+        //             this.streamGameStateToAI();
+        //         this.scene.render();
+        //     }
+        //     this.scene.render();
+        // });
+        this.engine.runRenderLoop(() => {
+            if (this.isPaused) {
+                this.scene.render();
+                return;
+            }
+
+            const rawDt = this.engine.getDeltaTime() / 1000;
+            // Prevent huge dt when tab is inactive
+            const dt = Math.min(rawDt, 1 / 30);
+
+            const subDt = 1 / 120; // 120 Hz physics = no more tunneling
+            let accumulator = 0;
+            accumulator += dt;
+
+            while (accumulator >= subDt) {
+                // Physics updates (run many times per frame)
+                this.input.update(subDt);
+                this.ball.update(subDt);
+                this.checkCollisions();
+
+                // Power-up collection (inside physics loop!)
+                if (this.powerUpManager) {
+                    const collectedType = this.powerUpManager.checkCollisionPowerUp(
+                        this.ball.mesh.position.x,
+                        this.ball.mesh.position.z,
+                        gameConfigManager.current.ball.radius
+                    );
+                    if (collectedType) {
+                        this.activePowerUp(collectedType);
+                    }
+                }
+
+                // Scoring (inside physics loop so ball can’t tunnel past the goal line)
                 this.checkScoring();
 
-                if(this.isAIGame)
-                    this.streamGameStateToAI();
-                this.scene.render();
+                accumulator -= subDt;
             }
+
+            // Visuals & things that only need to run once per frame
+            this.updatePowerUpVisuals();
+
+            if (this.isAIGame) {
+                this.streamGameStateToAI();
+            }
+
             this.scene.render();
         });
     }
-    private updatePowerUps(): void {
-        if(!this.powerUpManager)
-                return;
 
+    private updatePowerUpVisuals(): void {
+        if (!this.powerUpManager) return;
+    
         const currentTime = Date.now();
-
+    
+        // Visuals + spawning only (time-based, frame-rate independent)
         this.powerUpManager.updatePowerUp(currentTime);
-        // Check if ball hit a power-up
-        const collectedType = this.powerUpManager.checkCollisionPowerUp(
-            this.ball.mesh.position.x,
-            this.ball.mesh.position.z,
-            gameConfigManager.current.ball.radius
-        );
-        if(collectedType)
-            this.activePowerUp(collectedType);
-
+        
+        // Effects expiration (once/frame ok)
         this.updateActivePowerUpEffects(currentTime);
     }
+    
+    // private updatePowerUps(): void {
+    //     if(!this.powerUpManager)
+    //             return;
+
+    //     const currentTime = Date.now();
+
+    //     this.powerUpManager.updatePowerUp(currentTime);
+    //     // Check if ball hit a power-up
+    //     const collectedType = this.powerUpManager.checkCollisionPowerUp(
+    //         this.ball.mesh.position.x,
+    //         this.ball.mesh.position.z,
+    //         gameConfigManager.current.ball.radius
+    //     );
+    //     if(collectedType)
+    //         this.activePowerUp(collectedType);
+
+    //     this.updateActivePowerUpEffects(currentTime);
+    // }
 
     private activePowerUp(type: PowerUpTypes): void {
         const config = gameConfigManager.current.powerUps;
@@ -104,24 +164,45 @@ export class PongGame {
         switch(type){
             case 'SPEED_BOOST':
                 // Increase ball speed by 50%
-                this.ball.speed.x *= 1.5;
-                this.ball.speed.z *= 1.5;
+                const speedMultiplier = 2.0;
+                this.ball.speed.x *= speedMultiplier;
+                this.ball.speed.z *= speedMultiplier;
+
+                const ballMat = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMat) {
+                    ballMat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
+                }
                 console.log('SPEED BOOST activated!');
                 break;
 
             case 'ENLARGE_PADDLE':
                 // Make the paddle that will hit the ball next 50% bigger
+                const paddleScale = 2.0;
                 const paddleToEnlarge = this.ball.speed.x > 0 
                     ? this.rightPaddle 
                     : this.leftPaddle;
-                paddleToEnlarge.mesh.scaling.z = 1.5;
+                
+                paddleToEnlarge.mesh.scaling.z = paddleScale;
+                
+                // Change paddle color to GREEN
+                const paddleMat = paddleToEnlarge.mesh.material as BABYLON.StandardMaterial;
+                if (paddleMat) {
+                    paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
+                }
                 console.log('ENLARGE PADDLE activated!');
                 break;
 
             case 'SLOW_MOTION':
                 // Slow ball by 50%
-                this.ball.speed.x *= 0.5;
-                this.ball.speed.z *= 0.5;
+                const slowMultiplier = 0.3;
+                this.ball.speed.x *= slowMultiplier;
+                this.ball.speed.z *= slowMultiplier;
+                
+                // Change ball color to BLUE
+                const ballMatSlow = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMatSlow) {
+                    ballMatSlow.emissiveColor = new BABYLON.Color3(0, 0.5, 1); // Blue
+                }
                 console.log('SLOW MOTION activated!');
                 break;
         }
@@ -140,8 +221,13 @@ export class PongGame {
         switch (type) {
             case 'SPEED_BOOST':
                 // Restore speed
-                this.ball.speed.x /= 1.5;
-                this.ball.speed.z /= 1.5;
+                this.ball.speed.x /= 2.0;
+                this.ball.speed.z /= 2.0;   
+
+                const ballMat = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMat) {
+                    ballMat.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
+                }
                 console.log('Speed boost ended');
                 break;
 
@@ -149,13 +235,25 @@ export class PongGame {
                 // Restore paddle sizes
                 this.leftPaddle.mesh.scaling.z = 1.0;
                 this.rightPaddle.mesh.scaling.z = 1.0;
+
+                [this.leftPaddle, this.rightPaddle].forEach(paddle => {
+                    const paddleMat = paddle.mesh.material as BABYLON.StandardMaterial;
+                    if (paddleMat) {
+                        paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0); // Original
+                    }
+                });
                 console.log('Paddle size restored');
                 break;
 
             case 'SLOW_MOTION':
                 // Restore speed (reverse the division)
-                this.ball.speed.x /= 0.5;
-                this.ball.speed.z /= 0.5;
+                this.ball.speed.x /= 0.3;
+                this.ball.speed.z /= 0.3;
+
+                const ballMatSlow = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMatSlow) {
+                    ballMatSlow.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
+                }
                 console.log('Slow motion ended');
                 break;
         }
