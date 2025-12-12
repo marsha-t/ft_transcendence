@@ -6,7 +6,7 @@ import { gameConfigManager } from "./GameConfigManager";
 export class Paddle {
     public mesh: BABYLON.Mesh;
     private scene: BABYLON.Scene;
-    public velocity: number = 0;  // Now full units/second (set by InputHandler)
+    public velocity: number = 0; 
 
     constructor(scene: BABYLON.Scene, position: BABYLON.Vector3, name: string) {
         this.scene = scene;

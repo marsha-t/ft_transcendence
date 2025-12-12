@@ -105,23 +105,32 @@ export class Game implements IComponent {
     canvasContainer.appendChild(scoreContainer);
 
     this.container.appendChild(canvasContainer);
+    this.createPongGame();
+  }
 
-    //apply custom
-    if(this.customGameSettings){
-      gameConfigManager.applyCustomizations(this.customGameSettings);
+  private createPongGame(): void {
+      if (this.customGameSettings) {
+        gameConfigManager.applyCustomizations(this.customGameSettings);
+        console.log('[Game] Applied customizations BEFORE PongGame creation:', {
+            preset: this.customGameSettings.preset,
+            powerUps: gameConfigManager.current.powerUps
+        });
     }
-    this.pongGame = new PongGame(this.canvas, (side: "LEFT" | "RIGHT") => {
-        if (!this.isScoring) {
-          this.isScoring = true;
-          this.scorePoint(side).then(() => {
-            setTimeout(() => (this.isScoring = false), 1000);
-          });
+
+    this.pongGame = new PongGame(
+        this.canvas,
+        (side: "LEFT" | "RIGHT") => {
+            if (!this.isScoring) {
+                this.isScoring = true;
+                this.scorePoint(side).then(() => {
+                    setTimeout(() => (this.isScoring = false), 1000);
+                });
+            }
+        },
+        {
+            aiEnabled: false,
+            aiSide: 'LEFT'
         }
-      },
-      {
-        aiEnabled: false,
-        aiSide: 'LEFT'         
-      }
     );
   }
 
@@ -182,10 +191,17 @@ export class Game implements IComponent {
 
     this.cutomizationUI = openGameCustomization(document.body,
       (settings: CustomGameSettings) => {
-        this.customGameSettings = settings;
+        console.log('[Game] Received settings:', settings);
 
+        this.customGameSettings = settings;
         gameConfigManager.applyCustomizations(settings);
-        console.log("Applied custom game settings:", settings);
+        // console.log("Applied custom game settings:", settings);
+        console.log('[Game] After applying:', {
+          enabled: gameConfigManager.current.powerUps.enabled,
+          types: gameConfigManager.current.powerUps.types,
+          spawnInterval: gameConfigManager.current.powerUps.spawnInterval
+      });
+        this.recreatePongGame();
         this.showCustomizationApplied(settings.preset);
       }, ()=> {
         console.log("Customization cancelled.");
@@ -193,43 +209,49 @@ export class Game implements IComponent {
     );
   }
 
+  private recreatePongGame(): void {
+    console.log('[Game] Recreating PongGame with new config...');
+    
+    // Dispose old game
+    if (this.pongGame) {
+        this.pongGame.dispose();
+    }
+
+    // Reset game state
+    this.isGameRunning = false;
+    this.isScoring = false;
+
+    // Reset score display
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+    if (leftScoreEl) leftScoreEl.textContent = "0";
+    if (rightScoreEl) rightScoreEl.textContent = "0";
+
+    // Create new PongGame with updated config
+    this.createPongGame();
+
+    console.log('[Game] PongGame recreated successfully!');
+    console.log('[Game] Power-ups enabled:', gameConfigManager.current.powerUps.enabled);
+  }
 
   private showCustomizationApplied(preset: string): void {
 
-  const indicator = document.createElement("div");
-  indicator.id = "custom-indicator";
-  indicator.textContent = `${preset} Mode Active`;
-  indicator.className = 
-    "text-white bg-purple-600 px-4 py-2 rounded-lg " +
-    "font-semibold text-sm mt-2";
-  
-  const controls = this.container.querySelector(".flex.flex-row.gap-4");
-  if (controls) {
-    // Remove old indicator if exists
-    const oldIndicator = document.getElementById("custom-indicator");
-    if (oldIndicator) oldIndicator.remove();
+    const indicator = document.createElement("div");
+    indicator.id = "custom-indicator";
+    indicator.textContent = `${preset} Mode Active`;
+    indicator.className = 
+      "text-white bg-purple-600 px-4 py-2 rounded-lg " +
+      "font-semibold text-sm mt-2";
     
-    controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+    const controls = this.container.querySelector(".flex.flex-row.gap-4");
+    if (controls) {
+      // Remove old indicator if exists
+      const oldIndicator = document.getElementById("custom-indicator");
+      if (oldIndicator) oldIndicator.remove();
+      
+      controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+    }
   }
-}
-
-
-  // private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
-  //   const btn = document.createElement("button");
-  //   btn.id = id;
-
-  //   btn.className =
-  //     "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
-  //     "shadow-[0_5px_0_var(--color-button-second)] " +
-  //     "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-  //     "hover:translate-y-1 active:translate-y-2 " +
-  //     "transition-all duration-150 mt-5";
-  //   btn.style.display = "none";
-  //   btn.textContent = label;
-  //   btn.addEventListener("click", handler);
-
-  //   return btn;
-  // }
 
   // INITIALIZATION
 
@@ -531,9 +553,14 @@ export class Game implements IComponent {
       this.cutomizationUI.close();
       this.cutomizationUI = null;
     }
-    gameConfigManager.reset();
 
-    this.pongGame = null as any;
+    if(this.pongGame){
+      this.pongGame.dispose();
+      this.cutomizationUI = null as any;
+    }
+
+    gameConfigManager.reset();
+    // this.pongGame = null as any;
     this.currentSession = null;
     this.customGameSettings = null;
   }
