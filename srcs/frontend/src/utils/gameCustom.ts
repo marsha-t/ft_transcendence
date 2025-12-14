@@ -368,6 +368,8 @@ private createSliderControl(config: {
     /**
      * Creates power-up settings section
      */
+    // In your createPowerUpSettings() method, update the toggle section:
+
     private createPowerUpSettings(): HTMLElement {
         const group = document.createElement('div');
         group.className = `mb-5`;
@@ -377,6 +379,16 @@ private createSliderControl(config: {
         groupTitle.className = 'mb-4 text-white uppercase';
 
         group.appendChild(groupTitle);
+
+        //  Initialize powerUps object if not exists
+        if (!this.customSettings.powerUps) {
+            this.customSettings.powerUps = {
+                enabled: this.currentPreset === 'CHAOS',  // Default based on preset
+                types: this.currentPreset === 'CHAOS' 
+                    ? ['SPEED_BOOST', 'ENLARGE_PADDLE', 'SLOW_MOTION']
+                    : []
+            };
+        }
 
         // Enable/Disable toggle
         const toggleContainer = document.createElement('div');
@@ -388,15 +400,26 @@ private createSliderControl(config: {
 
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
-        toggle.checked = this.currentPreset === 'CHAOS';
+        //  Read from customSettings (which was just initialized above)
+        toggle.checked = this.customSettings.powerUps.enabled ?? false;
         toggle.className = 'w-5 h-5 cursor-pointer accent-[#04b143ff]';
 
         toggle.addEventListener('change', (e) => {
             const enabled = (e.target as HTMLInputElement).checked;
-            this.setNestedValue('powerUps.enabled', enabled);
-            // if(!enabled){
-                
-            // }
+            
+            //  Make sure powerUps object exists
+            if (!this.customSettings.powerUps) {
+                this.customSettings.powerUps = { types: [] };
+            }
+            
+            // Set enabled property directly on the object
+            this.customSettings.powerUps.enabled = enabled;
+            
+            console.log('[UI] Power-ups enabled changed:', {
+                enabled,
+                fullPowerUps: this.customSettings.powerUps
+            });
+            
             this.updatePreview();
         });
 
@@ -405,23 +428,53 @@ private createSliderControl(config: {
         group.appendChild(toggleContainer);
 
         // Power-up types
-        const types = ['Speed_Boost', 'Enlarge_paddle', 'Slow_motion'];
+        const types: Array<{ key: string; label: string }> = [
+            { key: 'SPEED_BOOST', label: 'Speed Boost' },
+            { key: 'ENLARGE_PADDLE', label: 'Enlarge Paddle' },
+            { key: 'SLOW_MOTION', label: 'Slow Motion' }
+        ];
+        
         const typesContainer = document.createElement('div');
         typesContainer.className = 'flex flex-col gap-2 mt-3';
-     
 
         types.forEach(type => {
             const checkbox = document.createElement('label');
             checkbox.className = 'flex items-center text-white/80 text-[13px] cursor-pointer';
 
-
             const input = document.createElement('input');
             input.type = 'checkbox';
-            input.checked = this.currentPreset === 'CHAOS';
+            input.checked = this.customSettings.powerUps.types.includes(type.key);
             input.className = 'mr-2 w-4 h-4 accent-[#04b143]';
         
             const label = document.createElement('span');
-            label.textContent = type.replace(/_/g, ' ');
+            label.textContent = type.label;
+
+            input.addEventListener('change', (e) => {
+                const checked = (e.target as HTMLInputElement).checked;
+                
+                if (!this.customSettings.powerUps.types) {
+                    this.customSettings.powerUps.types = [];
+                }
+
+                if (checked) {
+                    if (!this.customSettings.powerUps.types.includes(type.key)) {
+                        this.customSettings.powerUps.types.push(type.key);
+                    }
+                } else {
+                    this.customSettings.powerUps.types = this.customSettings.powerUps.types.filter(
+                        (t: string) => t !== type.key
+                    );
+                }
+
+                console.log('[UI] Power-up types updated:', {
+                    type: type.key,
+                    checked,
+                    allTypes: this.customSettings.powerUps.types,
+                    enabled: this.customSettings.powerUps.enabled  // ✅ Show enabled state
+                });
+                
+                this.updatePreview();
+            });
 
             checkbox.appendChild(input);
             checkbox.appendChild(label);
@@ -429,6 +482,12 @@ private createSliderControl(config: {
         });
 
         group.appendChild(typesContainer);
+        
+        console.log('[UI] Power-up settings created:', {
+            enabled: this.customSettings.powerUps.enabled,  // Should show true/false
+            types: this.customSettings.powerUps.types
+        });
+        
         return group;
     }
 
@@ -471,6 +530,19 @@ private createSliderControl(config: {
 
         const config = this.getCurrentConfig();
         
+        // power-up info string
+        let powerUpInfo = '';
+        if (config.powerUps.enabled) {
+            const types = config.powerUps.types || [];
+            const typeNames = types.map((t: string) => 
+                t.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
+            ).join(', ');
+            powerUpInfo = `
+                <strong>Power-Ups:</strong> Enabled ✓<br>
+                <strong>Types:</strong> ${typeNames || 'None selected'}<br>
+            `;
+        }
+
         previewContent.innerHTML = `
             <strong>Preset:</strong> ${this.currentPreset}<br>
             <strong>Ball Speed:</strong> ${config.ball.speed.x} units/s<br>
@@ -478,7 +550,7 @@ private createSliderControl(config: {
             <strong>Speed Increment:</strong> ${config.ball.speedIncrement}<br>
             <strong>Paddle Speed:</strong> ${config.paddle.speed} units/s<br>
             <strong>Paddle Size:</strong> ${config.paddle.depth} units<br>
-            ${config.powerUps.enabled ? '<strong>Power-Ups:</strong> Enabled ✓' : ''}
+            ${powerUpInfo}
         `;
     }
 
@@ -518,11 +590,12 @@ private createSliderControl(config: {
             preset: this.currentPreset,
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
-        console.log('🎮 [handleApply] Applying settings:', {
+        console.log(' [handleApply] Applying settings:', {
             preset: settings.preset,
             hasConfig: !!settings.config,
-            customSettings: JSON.stringify(this.customSettings),  // ✅ Show actual values
-            config: JSON.stringify(settings.config)  // ✅ Show actual values
+            customSettings: JSON.stringify(this.customSettings, null, 2),
+            powerUpsEnabled: this.customSettings.powerUps?.enabled,  // Show this explicitly
+            powerUpTypes: this.customSettings.powerUps?.types        //
         });
 
         this.applyUserSettings(settings);
