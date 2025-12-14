@@ -21,11 +21,11 @@ export class Main implements IComponent {
     const textSection = document.createElement('div');
     textSection.className = `
       flex-1 basis-[400px] max-w-[600px]
-      text-color_white`;
+      text-white`;
 
     const heading = document.createElement('h1');
     heading.className = `
-      text-[clamp(18px,4vw,28px)] font-press mb-4
+      text-[clamp(18px,4vw,28px)] font-nunito mb-4
       text-[16px] tracking-widest`;
     heading.textContent = "About the game";
     textSection.appendChild(heading);
@@ -33,7 +33,7 @@ export class Main implements IComponent {
     const description = document.createElement('p');
     description.className = `
       text-[clamp(8px,1.2vw,10px)] leading-[1.5]
-      font-press text-[10px] leading-[3] tracking-wider`;
+      font-sans text-[10px] leading-[3] tracking-wider`;
     description.textContent = `Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
                                 Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
                                 Sign up or log in to join the fun and test your skills in this timeless arcade classic! Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
@@ -61,7 +61,7 @@ export class Main implements IComponent {
       
 
         const buttonGrid = document.createElement('div');
-        buttonGrid.className = "flex flex-col gap-2 items-center relative";
+        buttonGrid.className = "flex flex-col gap-0 items-center relative";
         tournamentBtn.className += " transform translate-x-28";
         aiButton.className += " transform -translate-x-28";
         playButton.className += " transform translate-x-28";
