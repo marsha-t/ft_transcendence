@@ -27,6 +27,9 @@ export class PongGame {
     private aiConfig: AIConfig;
     private isAIGame: boolean = false;
 
+    private enlargedPaddle: 'LEFT' | 'RIGHT' | null = null;
+    private enlargedPaddleSize: number = 2.0; // Multiplier
+
     //powerup
     private powerUpManager: PowerUpManager | null = null;
     private activePowerUps: Map<PowerUpTypes, number> = new Map();
@@ -157,22 +160,41 @@ export class PongGame {
                 break;
 
             case 'ENLARGE_PADDLE':
-                // Make the paddle that will hit the ball next 50% bigger
+                //original depth for restoration
+                const originalDepth = gameConfigManager.current.paddle.depth;
                 const paddleScale = 2.0;
+
                 const paddleToEnlarge = this.ball.speed.x > 0 
                     ? this.rightPaddle 
                     : this.leftPaddle;
                 
-                paddleToEnlarge.mesh.scaling.z = paddleScale;
-                
-                // Change paddle color to GREEN
-                const paddleMat = paddleToEnlarge.mesh.material as BABYLON.StandardMaterial;
-                if (paddleMat) {
-                    paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
-                }
-                console.log('ENLARGE PADDLE activated!');
-                break;
+                        // which paddle is enlarged
+                this.enlargedPaddle = this.ball.speed.x > 0 ? 'RIGHT' : 'LEFT';
+                this.enlargedPaddleSize = paddleScale;
 
+                // Recreate mesh with larger size instead of scaling
+                const pos = paddleToEnlarge.mesh.position.clone();
+                const name = paddleToEnlarge.mesh.name;
+                paddleToEnlarge.mesh.dispose();
+                
+                paddleToEnlarge.mesh = BABYLON.MeshBuilder.CreateBox(
+                    name,
+                    {
+                        width: gameConfigManager.current.paddle.width,
+                        height: gameConfigManager.current.paddle.height,
+                        depth: originalDepth * paddleScale  // ✅ Physically larger
+                    },
+                    this.scene
+                );
+                paddleToEnlarge.mesh.position = pos;
+                
+                const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+                paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+                paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
+                paddleToEnlarge.mesh.material = paddleMat;
+                
+                console.log(`ENLARGE PADDLE activated for ${this.enlargedPaddle} paddle!`);
+                break;
             case 'SLOW_MOTION':
                 // Slow ball by 50%
                 const slowMultiplier = 0.3;
@@ -213,15 +235,30 @@ export class PongGame {
                 break;
 
             case 'ENLARGE_PADDLE':
-                // Restore paddle sizes
-                this.leftPaddle.mesh.scaling.z = 1.0;
-                this.rightPaddle.mesh.scaling.z = 1.0;
-
+                //Clear enlarged paddle state
+                this.enlargedPaddle = null;
+                this.enlargedPaddleSize = 1.0;
+                // Recreate both paddles at normal size
                 [this.leftPaddle, this.rightPaddle].forEach(paddle => {
-                    const paddleMat = paddle.mesh.material as BABYLON.StandardMaterial;
-                    if (paddleMat) {
-                        paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0); // Original
-                    }
+                    const pos = paddle.mesh.position.clone();
+                    const name = paddle.mesh.name;
+                    paddle.mesh.dispose();
+                    
+                    paddle.mesh = BABYLON.MeshBuilder.CreateBox(
+                        name,
+                        {
+                            width: gameConfigManager.current.paddle.width,
+                            height: gameConfigManager.current.paddle.height,
+                            depth: gameConfigManager.current.paddle.depth  //  Normal size
+                        },
+                        this.scene
+                    );
+                    paddle.mesh.position = pos;
+                    
+                    const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+                    paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+                    paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
+                    paddle.mesh.material = paddleMat;
                 });
                 console.log('Paddle size restored');
                 break;
@@ -602,8 +639,8 @@ export class PongGame {
         this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(rightX, y, 0), "rightPaddle");
         
         //Apply custom scaling
-        this.leftPaddle.updateScale();
-        this.rightPaddle.updateScale()
+        // this.leftPaddle.updateScale();
+        // this.rightPaddle.updateScale()
     
     }
 
@@ -632,34 +669,38 @@ export class PongGame {
     
         const r = gameConfigManager.current.ball.radius;
         const halfW = gameConfigManager.current.paddle.width / 2;
-        const halfD = gameConfigManager.current.paddle.depth / 2;
+        
+        // Get the actual depth for each paddle (accounting for power-ups)
+        const baseDepth = gameConfigManager.current.paddle.depth;
+        const leftHalfD = this.enlargedPaddle === 'LEFT' 
+            ? (baseDepth * this.enlargedPaddleSize) / 2 
+            : baseDepth / 2;
+        const rightHalfD = this.enlargedPaddle === 'RIGHT' 
+            ? (baseDepth * this.enlargedPaddleSize) / 2 
+            : baseDepth / 2;
     
         const maxBounceAngle = gameConfigManager.current.ball.maxBounceAngle;
         const paddleInfluence = gameConfigManager.current.paddle.velocityInfluence;
     
-        // Left paddle collision (unchanged logic, but now uses full velocity)
+        // Left paddle collision - uses leftHalfD (may be enlarged)
         if (
             ball.position.x - r <= left.position.x + halfW &&
             ball.position.x >= left.position.x - halfW &&
-            Math.abs(ball.position.z - left.position.z) <= halfD
+            Math.abs(ball.position.z - left.position.z) <= leftHalfD
         ) {
-            const hitFactor = (ball.position.z - left.position.z) / halfD;
+            const hitFactor = (ball.position.z - left.position.z) / leftHalfD;
             this.ball.bounceX();
-    
-            // Increment speed post-bounce (elasticity + escalation)
             this.ball.applySpeedIncrement();
-    
-            // Set Z with wider angle + momentum transfer
             this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.leftPaddle.velocity * paddleInfluence);
         }
     
-        // Right paddle (symmetric, unchanged)
+        // Right paddle collision - uses rightHalfD (may be enlarged)
         if (
             ball.position.x + r >= right.position.x - halfW &&
             ball.position.x <= right.position.x + halfW &&
-            Math.abs(ball.position.z - right.position.z) <= halfD
+            Math.abs(ball.position.z - right.position.z) <= rightHalfD
         ) {
-            const hitFactor = (ball.position.z - right.position.z) / halfD;
+            const hitFactor = (ball.position.z - right.position.z) / rightHalfD;
             this.ball.bounceX();
             this.ball.applySpeedIncrement();
             this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.rightPaddle.velocity * paddleInfluence);
