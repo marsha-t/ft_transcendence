@@ -12,7 +12,7 @@ export class Main implements IComponent {
 
     const subContainer = document.createElement('div');
     subContainer.className = `
-        flex flex-row items-center justify-start
+        flex flex-row items-start justify-start
         bg-background-primary rounded-[16px] shadow-lg
         mx-[23px] w-[calc(100%-46px)]
         h-auto py-6 px-10`;
@@ -20,20 +20,17 @@ export class Main implements IComponent {
     // Left side (title + description)
     const textSection = document.createElement('div');
     textSection.className = `
-      flex-1 basis-[400px] max-w-[600px]
-      text-white`;
+      flex-1 basis-[400px] max-w-[600px] text-white pt-16`;
 
     const heading = document.createElement('h1');
     heading.className = `
-      text-[clamp(18px,4vw,28px)] font-nunito mb-4
-      text-[16px] tracking-widest`;
+      text-[clamp(18px,4vw,36px)] font-nunito mb-4 tracking-widest`;
     heading.textContent = "About the game";
     textSection.appendChild(heading);
 
     const description = document.createElement('p');
     description.className = `
-      text-[clamp(8px,1.2vw,10px)] leading-[1.5]
-      font-sans text-[10px] leading-[3] tracking-wider`;
+      text-[clamp(8px,1.2vw,20px)] leading-[2] font-sans tracking-wider`;
     description.textContent = `Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
                                 Transcendence Pong offers fast-paced gameplay, sleek design, and exciting multiplayer features. 
                                 Sign up or log in to join the fun and test your skills in this timeless arcade classic! Experience the classic Pong game with a modern twist! Challenge friends or compete in thrilling matches. 
@@ -44,13 +41,13 @@ export class Main implements IComponent {
     // Right side (buttons)
     const rightSection = document.createElement('div')
     rightSection.className = `
-      flex flex-col justify-center items-center flex-1 gap-4`;
+      flex flex-col items-center flex-1 pt-16`;
 
       
       if (AuthUtils.isLoggedIn()) {
         const challengeHeading = document.createElement('h2');
         challengeHeading.className = `
-          text-white text-[36px] font-pixel mb-6
+          text-white text-[36px] font-pixel mb-4
           tracking-wider text-center`;
         challengeHeading.textContent = "Select a Challenge";
         rightSection.appendChild(challengeHeading);
@@ -61,10 +58,10 @@ export class Main implements IComponent {
       
 
         const buttonGrid = document.createElement('div');
-        buttonGrid.className = "flex flex-col gap-0 items-center relative";
-        tournamentBtn.className += " transform translate-x-28";
-        aiButton.className += " transform -translate-x-28";
-        playButton.className += " transform translate-x-28";
+        buttonGrid.className = "flex flex-col items-center relative -space-y-4";
+        tournamentBtn.className += " transform translate-x-28 m-0";
+        aiButton.className += " transform -translate-x-28 m-0";
+        playButton.className += " transform translate-x-28 m-0";
 
         buttonGrid.appendChild(tournamentBtn);
         buttonGrid.appendChild(aiButton);
