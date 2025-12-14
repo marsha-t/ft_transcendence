@@ -98,18 +98,33 @@ class GameConfigManager{
 
 
     public applyCustomizations(settings: CustomGameSettings): void {
+      console.log('🔧 [ConfigManager] BEFORE apply:', {
+        oldPreset: this.activePreset,
+        oldCustomConfigKeys: Object.keys(this.customConfig),
+        oldCustomConfig: JSON.stringify(this.customConfig)  // ✅ Show actual values
+    });
         this.activePreset = settings.preset;
 
         if(settings.config){
             this.customConfig = settings.config;
+            console.log('[ConfigManager] Using provided config:', this.customConfig);
+
         }else {
             this.customConfig = {};
+            console.log('[ConfigManager] No config provided, reset to empty');
+
         }
 
-        console.log('Applied customizations:', {
-            preset: this.activePreset,
-            hasCustomConfig: !!settings.config
-          });
+      const finalConfig = this.current;
+      console.log('🔧 [ConfigManager] AFTER apply - Final values:', {
+          preset: this.activePreset,
+          customConfigKeys: Object.keys(this.customConfig),
+          ballSpeed: finalConfig.ball.speed.x,
+          paddleSpeed: finalConfig.paddle.speed,
+          paddleDepth: finalConfig.paddle.depth,
+          powerUpsEnabled: finalConfig.powerUps.enabled,
+          powerUpTypes: finalConfig.powerUps.types
+      });
     }
 
     reset(): void {

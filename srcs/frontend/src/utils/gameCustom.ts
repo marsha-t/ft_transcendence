@@ -351,6 +351,12 @@ private createSliderControl(config: {
         const val = parseFloat((e.target as HTMLInputElement).value);
         value.textContent = val.toFixed(1);
         this.setNestedValue(config.key, val);
+        
+        console.log('[UI] Slider changed:', {
+            key: config.key,
+            value: val,
+            customSettings: this.customSettings
+        });
         this.updatePreview();
     });
 
@@ -460,7 +466,8 @@ private createSliderControl(config: {
     //Updates the preview with current settings
     private updatePreview(): void {
         const previewContent = document.getElementById('preview-content');
-        if (!previewContent) return;
+        if (!previewContent) 
+            return;
 
         const config = this.getCurrentConfig();
         
@@ -479,6 +486,10 @@ private createSliderControl(config: {
     private refreshModal(): void {
         if (!this.modal) return;
         
+        // Only reset if switching AWAY from CUSTOM
+        if (this.currentPreset !== 'CUSTOM') {
+            this.customSettings = {};
+        }
         this.modal.innerHTML = '';
         
         const header = this.createHeader();
@@ -507,11 +518,12 @@ private createSliderControl(config: {
             preset: this.currentPreset,
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
-        console.log('[UI] Applying settings:', {
+        console.log('🎮 [handleApply] Applying settings:', {
             preset: settings.preset,
             hasConfig: !!settings.config,
-            configKeys: settings.config ? Object.keys(settings.config) : []
-        })
+            customSettings: JSON.stringify(this.customSettings),  // ✅ Show actual values
+            config: JSON.stringify(settings.config)  // ✅ Show actual values
+        });
 
         this.applyUserSettings(settings);
         this.close();
@@ -526,14 +538,49 @@ private createSliderControl(config: {
     }
 
     //Gets current merged configuration
+    // private getCurrentConfig(): typeof GameConfig {
+    //     const settings: CustomGameSettings = {
+    //         preset: this.currentPreset,
+    //         config: this.customSettings
+    //     };
+        
+    //     gameConfigManager.applyCustomizations(settings);
+    //     return gameConfigManager.current;
+    // }
     private getCurrentConfig(): typeof GameConfig {
         const settings: CustomGameSettings = {
             preset: this.currentPreset,
-            config: this.customSettings
+            config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
         
-        gameConfigManager.applyCustomizations(settings);
-        return gameConfigManager.current;
+        // ✅ Get the preset config
+        const presetConfig = gameConfigManager.getPresetConfig(this.currentPreset);
+        
+        // ✅ If CUSTOM, merge with customSettings locally
+        if (this.currentPreset === 'CUSTOM' && this.customSettings) {
+            return this.mergeConfigLocally(presetConfig, this.customSettings);
+        }
+        
+        return presetConfig;
+    }
+
+    private mergeConfigLocally(base: any, overrides: any): any {
+        const result = JSON.parse(JSON.stringify(base)); // Deep clone
+        
+        // Simple deep merge
+        const merge = (target: any, source: any) => {
+            for (const key in source) {
+                if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                    if (!target[key]) target[key] = {};
+                    merge(target[key], source[key]);
+                } else {
+                    target[key] = source[key];
+                }
+            }
+        };
+        
+        merge(result, overrides);
+        return result;
     }
 
     /**
@@ -570,6 +617,12 @@ private createSliderControl(config: {
         }
         
         obj[keys[keys.length - 1]] = value;
+
+        console.log('[UI] Set nested value:', {
+            key,
+            value,
+            fullSettings: JSON.stringify(this.customSettings, null, 2)
+        });
     }
 }
 

@@ -135,25 +135,6 @@ export class PongGame {
         // Effects expiration (once/frame ok)
         this.updateActivePowerUpEffects(currentTime);
     }
-    
-    // private updatePowerUps(): void {
-    //     if(!this.powerUpManager)
-    //             return;
-
-    //     const currentTime = Date.now();
-
-    //     this.powerUpManager.updatePowerUp(currentTime);
-    //     // Check if ball hit a power-up
-    //     const collectedType = this.powerUpManager.checkCollisionPowerUp(
-    //         this.ball.mesh.position.x,
-    //         this.ball.mesh.position.z,
-    //         gameConfigManager.current.ball.radius
-    //     );
-    //     if(collectedType)
-    //         this.activePowerUp(collectedType);
-
-    //     this.updateActivePowerUpEffects(currentTime);
-    // }
 
     private activePowerUp(type: PowerUpTypes): void {
         const config = gameConfigManager.current.powerUps;
@@ -619,6 +600,11 @@ export class PongGame {
 
         this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(leftX, y, 0), "leftPaddle");
         this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(rightX, y, 0), "rightPaddle");
+        
+        //Apply custom scaling
+        this.leftPaddle.updateScale();
+        this.rightPaddle.updateScale()
+    
     }
 
 
