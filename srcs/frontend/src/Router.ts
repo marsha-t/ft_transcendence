@@ -58,6 +58,13 @@ export class Router {
           container.appendChild(this.currentPage.render());
           break;
         case '/game/results':
+          const sessionId = state?.sessionId;
+          if (!sessionId) {
+            history.pushState({}, "", "/main");
+            this.currentPage = new Main();
+            container.appendChild(this.currentPage.render());
+            return;
+          }
           this.currentPage = new GameResults(state);
           container.appendChild(this.currentPage.render());
           break; 
