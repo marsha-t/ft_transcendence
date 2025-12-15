@@ -2,9 +2,10 @@ import * as BABYLON from "babylonjs";
 import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
-import { GameConfig } from "./GameConfig";
 import { aiWebSocketService } from "../services/websocket/WebsocketServices";
 import { GameState } from "../services/websocket/types";
+import { gameConfigManager } from "./GameConfigManager";
+import { PowerUpManager, PowerUpTypes } from "./PowerUps";
 
 interface AIConfig {
     aiEnabled: boolean;
@@ -25,6 +26,13 @@ export class PongGame {
 
     private aiConfig: AIConfig;
     private isAIGame: boolean = false;
+
+    private enlargedPaddle: 'LEFT' | 'RIGHT' | null = null;
+    private enlargedPaddleSize: number = 2.0; // Multiplier
+
+    //powerup
+    private powerUpManager: PowerUpManager | null = null;
+    private activePowerUps: Map<PowerUpTypes, number> = new Map();
 
     constructor(canvas: HTMLCanvasElement, 
                 onScore?: (side: 'LEFT' | 'RIGHT') => void,
@@ -47,21 +55,226 @@ export class PongGame {
         this.createBall();
         this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
+        //Initial power Ups
+        if(gameConfigManager.current.powerUps.enabled){
+            this.powerUpManager = new PowerUpManager(this.scene);
+            console.log('Power-ups enabled!');
+        }
         // Render loop
+        // this.engine.runRenderLoop(() => {
+        //     const dt = this.engine.getDeltaTime() / 1000;
+        //     if (!this.isPaused){
+        //         this.input.update(dt);
+        //         this.ball.update(dt);
+        //         this.checkCollisions();
+        //         //powerup
+        //         this.updatePowerUps();
+
+        //         this.checkScoring();
+
+        //         if(this.isAIGame)
+        //             this.streamGameStateToAI();
+        //         this.scene.render();
+        //     }
+        //     this.scene.render();
+        // });
         this.engine.runRenderLoop(() => {
-            const dt = this.engine.getDeltaTime() / 1000;
-            if (!this.isPaused){
-                this.input.update(dt);
-                this.ball.update(dt);
+            if (this.isPaused) {
+                this.scene.render();
+                return;
+            }
+
+            const rawDt = this.engine.getDeltaTime() / 1000;
+            // Prevent huge dt when tab is inactive
+            const dt = Math.min(rawDt, 1 / 30);
+
+            const subDt = 1 / 120; // 120 Hz physics = no more tunneling
+            let accumulator = 0;
+            accumulator += dt;
+
+            while (accumulator >= subDt) {
+                // Physics updates (run many times per frame)
+                this.input.update(subDt);
+                this.ball.update(subDt);
                 this.checkCollisions();
+
+                // Power-up collection (inside physics loop!)
+                if (this.powerUpManager) {
+                    const collectedType = this.powerUpManager.checkCollisionPowerUp(
+                        this.ball.mesh.position.x,
+                        this.ball.mesh.position.z,
+                        gameConfigManager.current.ball.radius
+                    );
+                    if (collectedType) {
+                        this.activePowerUp(collectedType);
+                    }
+                }
+
+                // Scoring (inside physics loop so ball can’t tunnel past the goal line)
                 this.checkScoring();
 
-                if(this.isAIGame)
-                    this.streamGameStateToAI();
-                this.scene.render();
+                accumulator -= subDt;
             }
+
+            // Visuals & things that only need to run once per frame
+            this.updatePowerUpVisuals();
+
+            if (this.isAIGame) {
+                this.streamGameStateToAI();
+            }
+
             this.scene.render();
         });
+    }
+
+    private updatePowerUpVisuals(): void {
+        if (!this.powerUpManager) return;
+    
+        const currentTime = Date.now();
+    
+        // Visuals + spawning only (time-based, frame-rate independent)
+        this.powerUpManager.updatePowerUp(currentTime);
+        
+        // Effects expiration (once/frame ok)
+        this.updateActivePowerUpEffects(currentTime);
+    }
+
+    private activePowerUp(type: PowerUpTypes): void {
+        const config = gameConfigManager.current.powerUps;
+        const endTime = Date.now() + config.duration;
+
+        this.activePowerUps.set(type, endTime);
+
+        switch(type){
+            case 'SPEED_BOOST':
+                // Increase ball speed by 50%
+                const speedMultiplier = 2.0;
+                this.ball.speed.x *= speedMultiplier;
+                this.ball.speed.z *= speedMultiplier;
+
+                const ballMat = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMat) {
+                    ballMat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
+                }
+                console.log('SPEED BOOST activated!');
+                break;
+
+            case 'ENLARGE_PADDLE':
+                //original depth for restoration
+                const originalDepth = gameConfigManager.current.paddle.depth;
+                const paddleScale = 2.0;
+
+                const paddleToEnlarge = this.ball.speed.x > 0 
+                    ? this.rightPaddle 
+                    : this.leftPaddle;
+                
+                        // which paddle is enlarged
+                this.enlargedPaddle = this.ball.speed.x > 0 ? 'RIGHT' : 'LEFT';
+                this.enlargedPaddleSize = paddleScale;
+
+                // Recreate mesh with larger size instead of scaling
+                const pos = paddleToEnlarge.mesh.position.clone();
+                const name = paddleToEnlarge.mesh.name;
+                paddleToEnlarge.mesh.dispose();
+                
+                paddleToEnlarge.mesh = BABYLON.MeshBuilder.CreateBox(
+                    name,
+                    {
+                        width: gameConfigManager.current.paddle.width,
+                        height: gameConfigManager.current.paddle.height,
+                        depth: originalDepth * paddleScale  // ✅ Physically larger
+                    },
+                    this.scene
+                );
+                paddleToEnlarge.mesh.position = pos;
+                
+                const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+                paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+                paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
+                paddleToEnlarge.mesh.material = paddleMat;
+                
+                console.log(`ENLARGE PADDLE activated for ${this.enlargedPaddle} paddle!`);
+                break;
+            case 'SLOW_MOTION':
+                // Slow ball by 50%
+                const slowMultiplier = 0.3;
+                this.ball.speed.x *= slowMultiplier;
+                this.ball.speed.z *= slowMultiplier;
+                
+                // Change ball color to BLUE
+                const ballMatSlow = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMatSlow) {
+                    ballMatSlow.emissiveColor = new BABYLON.Color3(0, 0.5, 1); // Blue
+                }
+                console.log('SLOW MOTION activated!');
+                break;
+        }
+    }
+
+    private updateActivePowerUpEffects(currentTime: number): void {
+        this.activePowerUps.forEach((endTime, type) => {
+            if(currentTime >= endTime){
+                this.deactivatePowerUp(type);
+                this.activePowerUps.delete(type);
+            }
+        });
+    }
+
+    private deactivatePowerUp(type: PowerUpTypes): void {
+        switch (type) {
+            case 'SPEED_BOOST':
+                // Restore speed
+                this.ball.speed.x /= 2.0;
+                this.ball.speed.z /= 2.0;   
+
+                const ballMat = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMat) {
+                    ballMat.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
+                }
+                console.log('Speed boost ended');
+                break;
+
+            case 'ENLARGE_PADDLE':
+                //Clear enlarged paddle state
+                this.enlargedPaddle = null;
+                this.enlargedPaddleSize = 1.0;
+                // Recreate both paddles at normal size
+                [this.leftPaddle, this.rightPaddle].forEach(paddle => {
+                    const pos = paddle.mesh.position.clone();
+                    const name = paddle.mesh.name;
+                    paddle.mesh.dispose();
+                    
+                    paddle.mesh = BABYLON.MeshBuilder.CreateBox(
+                        name,
+                        {
+                            width: gameConfigManager.current.paddle.width,
+                            height: gameConfigManager.current.paddle.height,
+                            depth: gameConfigManager.current.paddle.depth  //  Normal size
+                        },
+                        this.scene
+                    );
+                    paddle.mesh.position = pos;
+                    
+                    const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+                    paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+                    paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
+                    paddle.mesh.material = paddleMat;
+                });
+                console.log('Paddle size restored');
+                break;
+
+            case 'SLOW_MOTION':
+                // Restore speed (reverse the division)
+                this.ball.speed.x /= 0.3;
+                this.ball.speed.z /= 0.3;
+
+                const ballMatSlow = this.ball.mesh.material as BABYLON.StandardMaterial;
+                if (ballMatSlow) {
+                    ballMatSlow.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
+                }
+                console.log('Slow motion ended');
+                break;
+        }
     }
 
     private streamGameStateToAI(): void {
@@ -73,8 +286,8 @@ export class PongGame {
                 vz: this.ball.speed.z
             },
             arena: {
-                zMin: GameConfig.tableBounds.zMin,
-                zMax: GameConfig.tableBounds.zMax
+                zMin: gameConfigManager.current.tableBounds.zMin,
+                zMax: gameConfigManager.current.tableBounds.zMax
             },
             aiPaddle: {
                 x: this.leftPaddle.mesh.position.x,
@@ -86,12 +299,12 @@ export class PongGame {
                 vz: this.rightPaddle.velocity
             },
             constants: {
-                paddleDepth: GameConfig.paddle.depth,
-                ballRadius: GameConfig.ball.radius,
-                maxBounceAngle: GameConfig.ball.maxBounceAngle,
-                paddleInfluence: GameConfig.paddle.velocityInfluence,
-                speedIncrement: GameConfig.ball.speedIncrement,
-                maxSpeed: GameConfig.ball.maxSpeed
+                paddleDepth: gameConfigManager.current.paddle.depth,
+                ballRadius: gameConfigManager.current.ball.radius,
+                maxBounceAngle: gameConfigManager.current.ball.maxBounceAngle,
+                paddleInfluence: gameConfigManager.current.paddle.velocityInfluence,
+                speedIncrement: gameConfigManager.current.ball.speedIncrement,
+                maxSpeed: gameConfigManager.current.ball.maxSpeed
             }
         };
 
@@ -103,20 +316,20 @@ export class PongGame {
 
         const constants = {
             table: {
-                width: GameConfig.table.width,
-                depth: GameConfig.table.depth
+                width: gameConfigManager.current.table.width,
+                depth: gameConfigManager.current.table.depth
             },
             paddle: {
-                width: GameConfig.paddle.width,
-                depth: GameConfig.paddle.depth,
-                speed: GameConfig.paddle.speed
+                width: gameConfigManager.current.paddle.width,
+                depth: gameConfigManager.current.paddle.depth,
+                speed: gameConfigManager.current.paddle.speed
             },
             ball: {
-                radius: GameConfig.ball.radius,
-                speed: GameConfig.ball.speed,
-                maxSpeed: GameConfig.ball.maxSpeed
+                radius: gameConfigManager.current.ball.radius,
+                speed: gameConfigManager.current.ball.speed,
+                maxSpeed: gameConfigManager.current.ball.maxSpeed
             },
-            tableBounds: GameConfig.tableBounds
+            tableBounds: gameConfigManager.current.tableBounds
         };
 
         aiWebSocketService.sendGameStart(constants);
@@ -133,6 +346,11 @@ export class PongGame {
     public dispose(): void {
         if (this.isAIGame) {
             aiWebSocketService.disconnect();
+        }
+
+        if(this.powerUpManager){
+            this.powerUpManager.cleanPowerUp();
+            this.powerUpManager = null;
         }
         this.engine.dispose();
     }
@@ -151,7 +369,7 @@ export class PongGame {
     }
 
     private checkScoring(): void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
         const ball = this.ball.mesh;
         const xMin = -t.width / 2;
         const xMax = t.width / 2;
@@ -173,23 +391,29 @@ export class PongGame {
     }
 
     private async resetBall(): Promise<void> {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
         const tableY = -1;
-        const ballRadius = GameConfig.ball.radius;
+        const ballRadius = gameConfigManager.current.ball.radius;
         const ballY = tableY + t.height / 2 + ballRadius;
     
         this.ball.mesh.position.set(0, ballY, 0);
         this.ball.speed.x = 0; // stop the ball during pause
         this.ball.speed.z = 0;
 
+         // Clear active power-up effects when ball resets
+         this.activePowerUps.forEach((_, type) => {
+            this.deactivatePowerUp(type);
+        });
+        this.activePowerUps.clear();
+
         // Wait for 1.5 seconds before launching
         await new Promise((resolve) => setTimeout(resolve, 500)); 
 
         // Launch the ball
-        this.ball.speed.x = (Math.random() > 0.5 ? 1 : -1) * GameConfig.ball.speed.x;
+        this.ball.speed.x = (Math.random() > 0.5 ? 1 : -1) * gameConfigManager.current.ball.speed.x;
         this.ball.speed.z = (Math.random() - 0.5) * 2;
         // Re-apply cap if needed
-        const maxSpeed = GameConfig.ball.maxSpeed;
+        const maxSpeed = gameConfigManager.current.ball.maxSpeed;
         const currentSpeed = this.ball.speed.length();
         if (currentSpeed > maxSpeed) {
             this.ball.speed.normalize().scaleInPlace(maxSpeed);
@@ -197,7 +421,7 @@ export class PongGame {
     }
 
     private createCamera(): void {
-        const c = GameConfig.camera;
+        const c = gameConfigManager.current.camera;
         const camera = new BABYLON.ArcRotateCamera( "Camera", c.alpha, c.beta, c.radius,
             new BABYLON.Vector3(c.target.x, c.target.y, c.target.z),
             this.scene
@@ -213,11 +437,11 @@ export class PongGame {
             new BABYLON.Vector3(0, 1, 0),
             this.scene
         );
-        light.intensity = GameConfig.light.intensity;
+        light.intensity = gameConfigManager.current.light.intensity;
     }
 
     private createRoom(): void {
-        const r = GameConfig.room;
+        const r = gameConfigManager.current.room;
         
         const wallMaterial = new BABYLON.StandardMaterial("roomWallMat", this.scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(0.7, 0.75, 0.8);
@@ -305,7 +529,7 @@ export class PongGame {
 
 
     private createTable():void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
 
         const table = BABYLON.MeshBuilder.CreateBox("table",
              {width: t.width, height: t.height, depth: t.depth}, 
@@ -348,8 +572,8 @@ export class PongGame {
     }
 
     private createSideWalls(table: BABYLON.Mesh): void {
-        const t = GameConfig.table;
-        const w = GameConfig.wall;
+        const t = gameConfigManager.current.table;
+        const w = gameConfigManager.current.wall;
 
         const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
@@ -387,23 +611,23 @@ export class PongGame {
 
     
     private createBall(): void {
-        const t = GameConfig.table;
+        const t = gameConfigManager.current.table;
 
         const tableY = -1; // same value used for table.position.y
-        const ballRadius = GameConfig.ball.radius; // diameter = 0.6 → radius = 0.3
+        const ballRadius = gameConfigManager.current.ball.radius; // diameter = 0.6 → radius = 0.3
 
         // Put ball on table surface
         const ballY = tableY + t.height / 2 + ballRadius;
 
-        this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), GameConfig.ball.diameter);
+        this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), gameConfigManager.current.ball.diameter);
     }
 
 
     private createPaddles(): void {
-        const t = GameConfig.table;
-        const p = GameConfig.paddle;
+        const t = gameConfigManager.current.table;
+        const p = gameConfigManager.current.paddle;
 
-        const offset = GameConfig.paddle.offset; // how much inside the table
+        const offset = gameConfigManager.current.paddle.offset; // how much inside the table
         const leftX = -t.width / 2 + p.width / 2 + offset;
         const rightX = t.width / 2 - p.width / 2 - offset;
 
@@ -413,6 +637,11 @@ export class PongGame {
 
         this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(leftX, y, 0), "leftPaddle");
         this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(rightX, y, 0), "rightPaddle");
+        
+        //Apply custom scaling
+        // this.leftPaddle.updateScale();
+        // this.rightPaddle.updateScale()
+    
     }
 
 
@@ -424,9 +653,9 @@ export class PongGame {
     }
 
     private checkWallBounce(): void {
-        const bounds = GameConfig.tableBounds;
+        const bounds = gameConfigManager.current.tableBounds;
         const ball = this.ball.mesh;
-        const r = GameConfig.ball.radius;
+        const r = gameConfigManager.current.ball.radius;
 
         if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
                 this.ball.bounceZ();
@@ -438,36 +667,40 @@ export class PongGame {
         const left = this.leftPaddle.mesh;
         const right = this.rightPaddle.mesh;
     
-        const r = GameConfig.ball.radius;
-        const halfW = GameConfig.paddle.width / 2;
-        const halfD = GameConfig.paddle.depth / 2;
+        const r = gameConfigManager.current.ball.radius;
+        const halfW = gameConfigManager.current.paddle.width / 2;
+        
+        // Get the actual depth for each paddle (accounting for power-ups)
+        const baseDepth = gameConfigManager.current.paddle.depth;
+        const leftHalfD = this.enlargedPaddle === 'LEFT' 
+            ? (baseDepth * this.enlargedPaddleSize) / 2 
+            : baseDepth / 2;
+        const rightHalfD = this.enlargedPaddle === 'RIGHT' 
+            ? (baseDepth * this.enlargedPaddleSize) / 2 
+            : baseDepth / 2;
     
-        const maxBounceAngle = GameConfig.ball.maxBounceAngle;
-        const paddleInfluence = GameConfig.paddle.velocityInfluence;
+        const maxBounceAngle = gameConfigManager.current.ball.maxBounceAngle;
+        const paddleInfluence = gameConfigManager.current.paddle.velocityInfluence;
     
-        // Left paddle collision (unchanged logic, but now uses full velocity)
+        // Left paddle collision - uses leftHalfD (may be enlarged)
         if (
             ball.position.x - r <= left.position.x + halfW &&
             ball.position.x >= left.position.x - halfW &&
-            Math.abs(ball.position.z - left.position.z) <= halfD
+            Math.abs(ball.position.z - left.position.z) <= leftHalfD
         ) {
-            const hitFactor = (ball.position.z - left.position.z) / halfD;
+            const hitFactor = (ball.position.z - left.position.z) / leftHalfD;
             this.ball.bounceX();
-    
-            // Increment speed post-bounce (elasticity + escalation)
             this.ball.applySpeedIncrement();
-    
-            // Set Z with wider angle + momentum transfer
             this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.leftPaddle.velocity * paddleInfluence);
         }
     
-        // Right paddle (symmetric, unchanged)
+        // Right paddle collision - uses rightHalfD (may be enlarged)
         if (
             ball.position.x + r >= right.position.x - halfW &&
             ball.position.x <= right.position.x + halfW &&
-            Math.abs(ball.position.z - right.position.z) <= halfD
+            Math.abs(ball.position.z - right.position.z) <= rightHalfD
         ) {
-            const hitFactor = (ball.position.z - right.position.z) / halfD;
+            const hitFactor = (ball.position.z - right.position.z) / rightHalfD;
             this.ball.bounceX();
             this.ball.applySpeedIncrement();
             this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.rightPaddle.velocity * paddleInfluence);
