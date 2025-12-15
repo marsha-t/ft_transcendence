@@ -24,37 +24,37 @@ export class Login implements IComponent {
         // === Main container ===
         this.container = document.createElement('div');
         this.container.className = `
-            flex justify-center bg-color-yellow
+            flex justify-center bg-yellow
             h-full py-[23px]`;
     
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
-            bg-background rounded-[16px] shadow-lg
+            bg-background-primary rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
     
         // === Heading ===
         const heading = document.createElement('h2');
         heading.className =
-            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
+            'w-[596px] text-center mb-6 text-[28px] font-press text-white';
         heading.textContent = 'Welcome Back!';
     
         // === Login card (form wrapper) ===
         this.loginCard = document.createElement('div');
         this.loginCard.className =
             `flex flex-col items-center justify-center 
-             bg-background border-2 border-border-green 
+             bg-background-primary border-2 border-border-green 
              rounded-[16px] p-8`;
     
         // === Register link ===
         const registerLink = document.createElement('p');
         registerLink.className =
-            'font-mono text-color_white text-left mb-4';
+            'font-nunito text-white text-left mb-4';
         registerLink.innerHTML = `
             Don't have an account?
             <a href="/register"
-            class="font-mono text-color-green underline ml-40 hover:opacity-80">
+            class="font-mono text-green underline ml-40 hover:opacity-80">
             Register
             </a>`;
     
@@ -71,10 +71,21 @@ export class Login implements IComponent {
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Login';
         this.submitButton.className = `
-            w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white
-            font-bold rounded-lg tracking-widest shadow-[0_5px_0_var(--color-button-second)]
-            hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
-            hover:translate-y-1 active:translate-y-2 transition-all duration-150 mt-5 text-center no-underline
+            w-[360px] h-[54px]
+            inline-flex items-center justify-center
+            px-8 py-3
+            bg-[var(--color-button-active)]
+            text-[var(--color-button-text)]
+            font-bold tracking-widest
+            rounded-lg
+            no-underline text-center
+            shadow-[0_5px_0_var(--color-button-shadow)]
+            hover:shadow-[0_2px_0_var(--color-button-shadow)]
+            active:shadow-none
+            hover:translate-y-1
+            active:translate-y-2
+            transition-all duration-150
+            mb-4 mt-5
         `;
     
         // === Build the form ===
@@ -95,19 +106,19 @@ export class Login implements IComponent {
         // === OTP group (hidden initially) ===
         this.otpGroup = document.createElement('div');
         this.otpGroup.className = `flex flex-col items-center justify-center 
-            bg-background border-2 border-border-green 
+            bg-background-primary border-2 border-border-green 
             rounded-[16px] p-8 hidden`;
     
         const otpLabel = document.createElement('label');
         otpLabel.textContent = 'Enter 2FA Code';
         otpLabel.htmlFor = 'otp';
-        otpLabel.className = 'text-lg font-mono text-color_white';
+        otpLabel.className = 'text-lg font-nunito text-white';
     
         this.otpInput = document.createElement('input');
         this.otpInput.type = 'text';
         this.otpInput.id = 'otp';
         this.otpInput.placeholder = '123456';
-        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
     
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
@@ -117,7 +128,7 @@ export class Login implements IComponent {
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
         this.otpResendButton.textContent = 'Resend OTP';
-        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
+        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-yellow hover:bg-button-active';
     
         this.otpGroup.appendChild(otpLabel);
         this.otpGroup.appendChild(this.otpInput);
@@ -153,14 +164,14 @@ export class Login implements IComponent {
         const label = document.createElement('label');
         label.textContent = labelText;
         label.htmlFor = id;
-        label.className = 'text-lg font-mono text-color_white';
+        label.className = 'text-lg font-mono text-white';
 
         const input = document.createElement('input');
         input.type = type;
         input.id = id;
         input.name = id;
         input.placeholder = placeholder;
-        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
 
         group.appendChild(label);
         group.appendChild(input);
@@ -294,7 +305,7 @@ export class Login implements IComponent {
         const baseClass = `
             mt-6 px-4 py-3    
             w-[360px] h-[54px] px-4 rounded-[16px]
-            text-color_white font-mono text-[20px]
+            text-white font-mono text-[20px]
             text-center          
             flex items-center justify-center 
             transition-opacity duration-300

@@ -20,14 +20,14 @@ export class Creators implements IComponent {
             text-white font-nunito `;
 
         const heading = document.createElement('h1');
-        heading.className = `text-[clamp(18px,4vw,28px)]
+        heading.className = `text-[clamp(18px,4vw,38px)]
             mb-4 tracking-widest`;
         heading.textContent = "Creators";
         text_section.appendChild(heading);
 
         const description = document.createElement('p');
         description.className = `text-[clamp(8px,1.2vw,10px)] 
-            leading-[1.5]font-nunito text-[10px] 
+            leading-[1.5]font-nunito text-[16px] 
             leading-[3] tracking-wider`;
         description.textContent = `Contrary to popular belief, Lorem Ipsum is not simply 
                                     random text. It has roots in a piece of classical Latin 

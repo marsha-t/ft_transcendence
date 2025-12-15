@@ -18,22 +18,22 @@ export class Register implements IComponent {
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
-            bg-background rounded-[16px] shadow-lg
+            bg-background-primary rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
 
         // Heading stays above the card
         const heading = document.createElement('h2');
         heading.className = `
-            w-[596px] text-center mb-4 
-            text-[18px] font-press text-color_white`;
+            w-[596px] text-center mb-8 
+            text-[28px] font-nunito text-white`;
         heading.textContent = 'Create an Account';
 
         // === Login card (form wrapper) ===
         const registerCard = document.createElement('div');
         registerCard.className =
             `flex flex-col items-center justify-center 
-            bg-background border-2 border-border-green 
+            bg-background-primary border-2 border-border-green 
             rounded-[16px] p-8` ;
     
 
@@ -48,17 +48,17 @@ export class Register implements IComponent {
         usernameGroup.className = 'flex flex-col gap-2';
 
         const usernameLabel = document.createElement('label');
-        usernameLabel.className = 'text-lg font-mono text-color_white';
+        usernameLabel.className = 'text-lg font-nunito text-white';
         usernameLabel.textContent = 'USERNAME';
         usernameLabel.htmlFor = 'username';
 
         const usernameInput = document.createElement('input');
         usernameInput.className = `
             w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
+            bg-white text-background-primary text-opacity-60 font-nunito
             focus:text-opacity-100
             box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
+            placeholder:font-nunito placeholder:text-mono
             focus:outline-none focus:border-border-green 
             transition-colors`;
         usernameInput.type = 'text';
@@ -75,17 +75,17 @@ export class Register implements IComponent {
         emailGroup.className = 'flex flex-col gap-2';
 
         const emailLabel = document.createElement('label');
-        emailLabel.className = 'text-lg font-mono text-color_white';
+        emailLabel.className = 'text-lg font-nunito text-white';
         emailLabel.textContent = 'Email';
         emailLabel.htmlFor = 'email';
 
         const emailInput = document.createElement('input');
         emailInput.className = `
             w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
+            bg-white text-background-primary text-opacity-60 font-nunito
             focus:text-opacity-100
             box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
+            placeholder:font-nunito placeholder:text-mono
             focus:outline-none focus:border-border-green 
             transition-colors`;
         emailInput.type = 'email';
@@ -101,17 +101,17 @@ export class Register implements IComponent {
         passwordGroup.className = 'flex flex-col gap-2';
     
         const passwordLabel = document.createElement('label');
-        passwordLabel.className = 'text-lg font-mono text-color_white';
+        passwordLabel.className = 'text-lg font-nunito text-white';
         passwordLabel.textContent = 'Password';
         passwordLabel.htmlFor = 'password';
     
         const passwordInput = document.createElement('input');
         passwordInput.className = `
             w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
+            bg-white text-background-primary text-opacity-60 font-nunito
             focus:text-opacity-100
             box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
+            placeholder:font-nunito placeholder:text-nunito
             focus:outline-none focus:border-border-green 
             transition-colors`;
         passwordInput.type = 'password';
@@ -124,13 +124,23 @@ export class Register implements IComponent {
 
         // === Submit button ===
         this.submitButton = document.createElement('button');
-        this.submitButton.className = 
-            "w-[360px] h-[54px] inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white " +
-            "font-bold rounded-lg tracking-widest " + 
-            "shadow-[0_5px_0_var(--color-button-second)] " +
-            "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-            "hover:translate-y-1 active:translate-y-2 " +
-            "transition-all duration-150 mt-5 text-center no-underline";
+        this.submitButton.className = `
+               w-[360px] h-[54px]
+            inline-flex items-center justify-center
+            px-8 py-3
+            bg-[var(--color-button-active)]
+            text-[var(--color-button-text)]
+            font-bold tracking-widest
+            rounded-lg
+            no-underline text-center
+            shadow-[0_5px_0_var(--color-button-shadow)]
+            hover:shadow-[0_2px_0_var(--color-button-shadow)]
+            active:shadow-none
+            hover:translate-y-1
+            active:translate-y-2
+            transition-all duration-150
+            mb-4 mt-5
+        `;
 
         this.submitButton.type = 'submit';
         this.submitButton.textContent = 'Register';
@@ -138,11 +148,11 @@ export class Register implements IComponent {
         // === Register link ===
         const loginLink = document.createElement('p');
         loginLink.className =
-            'font-mono text-color_white text-left mt-2';
+            'font-nunito text-white text-left mt-2';
             loginLink.innerHTML = `
             Already have an account? 
             <a href="/login"
-            class="font-mono text-color-green underline mt-4
+            class="font-nunito text-green underline mt-4
             ml-40 hover:opacity-80">Login</a>`;
 
         // === Message container ===
@@ -239,7 +249,7 @@ export class Register implements IComponent {
         const baseClass = `
             mt-6 px-4 py-3    
             w-[360px] h-[54px] px-4 rounded-[16px]
-            text-color_white font-mono text-[20px]
+            text-white font-nunito text-[20px]
             text-center          
             flex items-center justify-center 
             transition-opacity duration-300
