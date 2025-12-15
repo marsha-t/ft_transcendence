@@ -38,7 +38,6 @@ export class Router {
 
       container.innerHTML = ''; // Clear container
       const path = window.location.pathname;
-      // console.log("Path:", window.location.pathname);
       const state = history.state;
 
       switch (path) {
@@ -83,8 +82,10 @@ export class Router {
         case '/tournament/match': {
           const tournamentId = state?.tournamentId;
           if (!tournamentId) {
-            container.textContent = 'Error: Missing tournament ID';
-            break;
+            history.pushState({}, "", "/tournament");
+            this.currentPage = new TournamentSetup();
+            container.appendChild(this.currentPage.render());
+            return;
           }
           this.currentPage = new TournamentMatch(tournamentId);
           container.appendChild(await this.currentPage.render());
@@ -92,6 +93,12 @@ export class Router {
         }
         case '/tournament/results': {
           const tournamentId = state?.tournamentId;
+          if (!tournamentId) {
+            history.pushState({}, "", "/tournament");
+            this.currentPage = new TournamentSetup();
+            container.appendChild(this.currentPage.render());
+            return;
+          }
           this.currentPage = new TournamentResults(tournamentId);
           container.appendChild(await this.currentPage.render());
           break;
