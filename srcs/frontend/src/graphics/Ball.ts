@@ -1,5 +1,6 @@
 import * as BABYLON from "babylonjs";
-import { GameConfig } from "./GameConfig";
+// import { GameConfig } from "./GameConfig";
+import { gameConfigManager } from "./GameConfigManager";
 
 export class Ball {
     public mesh: BABYLON.Mesh;
@@ -8,7 +9,7 @@ export class Ball {
 
     constructor(scene: BABYLON.Scene, position: BABYLON.Vector3, diameter?: number) {
         this.scene = scene;
-        const ballDiameter = diameter ?? GameConfig.ball.diameter;
+        const ballDiameter = diameter ?? gameConfigManager.current.ball.diameter;
 
         this.mesh = BABYLON.MeshBuilder.CreateSphere("pongBall", { diameter: ballDiameter }, this.scene);
         this.mesh.position.copyFrom(position);
@@ -18,7 +19,7 @@ export class Ball {
         mat.emissiveColor = new BABYLON.Color3(0.35, 0.15, 0);
         this.mesh.material = mat;
 
-        this.speed = new BABYLON.Vector3(GameConfig.ball.speed.x, 0, GameConfig.ball.speed.z);
+        this.speed = new BABYLON.Vector3(gameConfigManager.current.ball.speed.x, 0, gameConfigManager.current.ball.speed.z);
     }
 
     public update(dt: number): void {  // Now takes dt in seconds
@@ -26,7 +27,7 @@ export class Ball {
         this.mesh.position.addInPlace(deltaV);
 
         // Cap speed magnitude (total, not components) for balanced rallies
-        const maxSpeed = GameConfig.ball.maxSpeed;
+        const maxSpeed = gameConfigManager.current.ball.maxSpeed;
         const currentSpeed = this.speed.length();
         if (currentSpeed > maxSpeed) {
             this.speed.normalize().scaleInPlace(maxSpeed);
@@ -42,7 +43,7 @@ export class Ball {
     }
 
     public applySpeedIncrement(): void {
-        const increment = GameConfig.ball.speedIncrement;
+        const increment = gameConfigManager.current.ball.speedIncrement;
         const currentMag = this.speed.length();
         this.speed.scaleInPlace(increment);
     }

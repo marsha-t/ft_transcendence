@@ -1,11 +1,12 @@
 // InputHandler.ts
-import { GameConfig } from "./GameConfig";
+// import { GameConfig } from "./GameConfig";
 import { Paddle } from "./Paddle";
+import { gameConfigManager } from "./GameConfigManager";
 
 export class InputHandler {
     private leftPaddle: Paddle;
     private rightPaddle: Paddle;
-    private paddleSpeed = GameConfig.paddle.speed;
+    private paddleSpeed = gameConfigManager.current.paddle.speed;
 
     // ---- key-state tracking -------------------------------------------------
     private keys: { [key: string]: boolean } = {
@@ -18,7 +19,7 @@ export class InputHandler {
     constructor(leftPaddle: Paddle, rightPaddle: Paddle) {
         this.leftPaddle = leftPaddle;
         this.rightPaddle = rightPaddle;
-        this.paddleSpeed = GameConfig.paddle.speed;
+        this.paddleSpeed = gameConfigManager.current.paddle.speed;
 
         this.registerKeyboardEvents();
     }

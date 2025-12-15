@@ -25,8 +25,8 @@ export const GameConfig =  {
         target: { x: 0, y: 0, z: 3}
     },
     tableBounds: {
-        zMin: -4.4,
-        zMax: 4.4
+        zMin: -4.85,  // depth/2 - wall.thickness/2 - paddle.depth/2 - margin
+        zMax: 4.85 // Keeps paddle away from walls
     }, 
     ball: {
         diameter: 0.4,

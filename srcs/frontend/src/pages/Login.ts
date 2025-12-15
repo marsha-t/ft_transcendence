@@ -25,33 +25,33 @@ export class Login implements IComponent {
         // === Main container ===
         this.container = document.createElement('div');
         this.container.className = `
-            flex justify-center bg-color-yellow
+            flex justify-center bg-yellow
             h-full py-[23px]`;
     
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
-            bg-background rounded-[16px] shadow-lg
+            bg-background-primary rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
     
         // === Heading ===
         const heading = document.createElement('h2');
         heading.className =
-            'w-[596px] text-center mb-4 text-[18px] font-press text-color_white';
+            'w-[596px] text-center mb-6 text-[28px] font-press text-white';
         heading.textContent = t('auth.welcomeBack') as string;
-
+        
         // === Login card (form wrapper) ===
         this.loginCard = document.createElement('div');
         this.loginCard.className =
             `flex flex-col items-center justify-center 
-             bg-background border-2 border-border-green 
+             bg-background-primary border-2 border-border-green 
              rounded-[16px] p-8`;
     
         // === Register link ===
         const registerLink = document.createElement('p');
         registerLink.className =
-            'font-mono text-color_white text-left mb-4';
+            'font-nunito text-white text-left mb-4';
         registerLink.innerHTML = `
             ${t('auth.noAccount')}
             <a href="/register"
@@ -65,54 +65,54 @@ export class Login implements IComponent {
             'flex flex-col gap-[26px] items-center w-full leading-normal';
     
         // === Username group ===
-        const usernameGroup = document.createElement('div');
-        usernameGroup.className = 'flex flex-col gap-2';
+        // const usernameGroup = document.createElement('div');
+        // usernameGroup.className = 'flex flex-col gap-2';
     
-        const usernameLabel = document.createElement('label');
-        usernameLabel.className = 'text-lg font-mono text-color_white';
-        usernameLabel.textContent = t('auth.username') as string;
-        usernameLabel.htmlFor = 'username';
+        // const usernameLabel = document.createElement('label');
+        // usernameLabel.className = 'text-lg font-mono text-color_white';
+        // usernameLabel.textContent = t('auth.username') as string;
+        // usernameLabel.htmlFor = 'username';
     
-        const usernameInput = document.createElement('input');
-        usernameInput.className = `
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
-            focus:text-opacity-100
-            box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
-            focus:outline-none focus:border-border-green 
-            transition-colors`;
+        // const usernameInput = document.createElement('input');
+        // usernameInput.className = `
+        //     w-[360px] h-[54px] px-4 rounded-[16px]
+        //     bg-color_white text-background text-opacity-60 font-mono
+        //     focus:text-opacity-100
+        //     box-border placeholder:text-color-secondary 
+        //     placeholder:font-mono placeholder:text-mono
+        //     focus:outline-none focus:border-border-green 
+        //     transition-colors`;
       
-        usernameInput.type = 'text';
-        usernameInput.id = 'username';
-        usernameInput.name = 'username';
-        usernameInput.placeholder = t('auth.yourUsername') as string;
+        // usernameInput.type = 'text';
+        // usernameInput.id = 'username';
+        // usernameInput.name = 'username';
+        // usernameInput.placeholder = t('auth.yourUsername') as string;
     
-        usernameGroup.appendChild(usernameLabel);
-        usernameGroup.appendChild(usernameInput);
+        // usernameGroup.appendChild(usernameLabel);
+        // usernameGroup.appendChild(usernameInput);
     
         // === Password group ===
-        const passwordGroup = document.createElement('div');
-        passwordGroup.className = 'flex flex-col gap-2';
+        // const passwordGroup = document.createElement('div');
+        // passwordGroup.className = 'flex flex-col gap-2';
     
-        const passwordLabel = document.createElement('label');
-        passwordLabel.className = 'text-lg font-mono text-color_white';
-        passwordLabel.textContent = t('auth.password') as string;
-        passwordLabel.htmlFor = 'password';
+        // const passwordLabel = document.createElement('label');
+        // passwordLabel.className = 'text-lg font-mono text-color_white';
+        // passwordLabel.textContent = t('auth.password') as string;
+        // passwordLabel.htmlFor = 'password';
     
-        const passwordInput = document.createElement('input');
-        passwordInput.className = `
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            bg-color_white text-background text-opacity-60 font-mono
-            focus:text-opacity-100
-            box-border placeholder:text-color-secondary 
-            placeholder:font-mono placeholder:text-mono
-            focus:outline-none focus:border-border-green 
-            transition-colors`;
-        passwordInput.type = 'password';
-        passwordInput.id = 'password';
-        passwordInput.name = 'password';
-        passwordInput.placeholder = '••••••••';
+        // const passwordInput = document.createElement('input');
+        // passwordInput.className = `
+        //     w-[360px] h-[54px] px-4 rounded-[16px]
+        //     bg-color_white text-background text-opacity-60 font-mono
+        //     focus:text-opacity-100
+        //     box-border placeholder:text-color-secondary 
+        //     placeholder:font-mono placeholder:text-mono
+        //     focus:outline-none focus:border-border-green 
+        //     transition-colors`;
+        // passwordInput.type = 'password';
+        // passwordInput.id = 'password';
+        // passwordInput.name = 'password';
+        // passwordInput.placeholder = '••••••••';
     
         // Username & Password inputs
         const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
@@ -122,6 +122,23 @@ export class Login implements IComponent {
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
         this.submitButton.textContent = t('auth.login-btn') as string;
+        this.submitButton.className = `
+            w-[360px] h-[54px]
+            inline-flex items-center justify-center
+            px-8 py-3
+            bg-[var(--color-button-active)]
+            text-[var(--color-button-text)]
+            font-bold tracking-widest
+            rounded-lg
+            no-underline text-center
+            shadow-[0_5px_0_var(--color-button-shadow)]
+            hover:shadow-[0_2px_0_var(--color-button-shadow)]
+            active:shadow-none
+            hover:translate-y-1
+            active:translate-y-2
+            transition-all duration-150
+            mb-4 mt-5
+        `;
     
         // === Build the form ===
         this.form.appendChild(usernameGroup);
@@ -141,19 +158,19 @@ export class Login implements IComponent {
         // === OTP group (hidden initially) ===
         this.otpGroup = document.createElement('div');
         this.otpGroup.className = `flex flex-col items-center justify-center 
-            bg-background border-2 border-border-green 
+            bg-background-primary border-2 border-border-green 
             rounded-[16px] p-8 hidden`;
     
         const otpLabel = document.createElement('label');
         otpLabel.textContent = t("auth.enter2FA") as string;
         otpLabel.htmlFor = 'otp';
-        otpLabel.className = 'text-lg font-mono text-color_white';
+        otpLabel.className = 'text-lg font-nunito text-white';
     
         this.otpInput = document.createElement('input');
         this.otpInput.type = 'text';
         this.otpInput.id = 'otp';
         this.otpInput.placeholder = '123456';
-        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
     
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
@@ -163,7 +180,7 @@ export class Login implements IComponent {
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
         this.otpResendButton.textContent = t("auth.resendOTP") as string;
-        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-color-yellow hover:bg-color-button';
+        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-yellow hover:bg-button-active';
     
         this.otpGroup.appendChild(otpLabel);
         this.otpGroup.appendChild(this.otpInput);
@@ -199,14 +216,14 @@ export class Login implements IComponent {
         const label = document.createElement('label');
         label.textContent = labelText;
         label.htmlFor = id;
-        label.className = 'text-lg font-mono text-color_white';
+        label.className = 'text-lg font-mono text-white';
 
         const input = document.createElement('input');
         input.type = type;
         input.id = id;
         input.name = id;
         input.placeholder = placeholder;
-        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-color_white text-background text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
 
         group.appendChild(label);
         group.appendChild(input);
@@ -346,7 +363,7 @@ export class Login implements IComponent {
         const baseClass = `
             mt-6 px-4 py-3    
             w-[360px] h-[54px] px-4 rounded-[16px]
-            text-color_white font-mono text-[20px]
+            text-white font-mono text-[20px]
             text-center          
             flex items-center justify-center 
             transition-opacity duration-300
