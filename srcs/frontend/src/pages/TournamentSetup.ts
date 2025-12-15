@@ -4,6 +4,8 @@ import { TournamentDraftStore } from "../services/tournament/TournamentDraftStor
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
+import { openGameCustomization } from "../utils/gameCustom";
+import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
@@ -11,6 +13,7 @@ export class TournamentSetup implements IComponent {
   private isModalOpen = false;
   private creatorUsername: string = "Creator";
   private creatorId: number | null = null;
+  private customizationSection!: HTMLElement;
 
   public render(): HTMLElement {
     TournamentStore.tournamentId = null;
@@ -40,6 +43,34 @@ export class TournamentSetup implements IComponent {
       border-2 border-[var(--color-border-green)] p-[10px] rounded-[16px] w-[500px] min-h-[320px]
       bg-transparent box-border`;
 
+    // Game customisation
+    // --- Game customisation section ---
+    this.customizationSection = document.createElement("div");
+    this.customizationSection.className = `
+      flex flex-col items-center gap-3
+    `;
+    const customizeBtn = document.createElement("button");
+    customizeBtn.textContent = t("tournament.customizeGame") as string;
+    customizeBtn.className = createButtonStyle(
+      "w-[390px] h-[60px] text-[24px]",
+      "blue"
+    );
+    customizeBtn.addEventListener("click", () => {
+      openGameCustomization(
+        document.body,
+        (settings: CustomGameSettings) => {
+          TournamentStore.gameSettings = settings;
+          gameConfigManager.applyCustomizations(settings);
+          this.updateCustomizationIndicator();
+        },
+        () => {}
+      );
+    });
+
+    this.customizationSection.appendChild(customizeBtn);
+    counterContainer.appendChild(this.customizationSection);
+
+    // Number of players
     const counter = document.createElement("div");
     counter.className = "flex items-center justify-center gap-4 w-full";
 
@@ -72,6 +103,8 @@ export class TournamentSetup implements IComponent {
     });
 
     counter.appendChild(input);
+
+
     counterContainer.appendChild(counter);
     // --- Buttons actions ---
     const actions = document.createElement("div");
@@ -82,10 +115,37 @@ export class TournamentSetup implements IComponent {
 
     actions.appendChild(nextBtn);
     counterContainer.appendChild(actions);
+    
     this.container.appendChild(counterContainer);
     page.appendChild(this.container);
 
+    if (TournamentStore.gameSettings) {
+      this.updateCustomizationIndicator();
+    }
+
     return page;
+  }
+
+  private updateCustomizationIndicator(): void {
+    // Remove old indicator if it exists
+    const oldIndicator = document.getElementById("tournament-custom-indicator");
+    if (oldIndicator) oldIndicator.remove();
+
+    const settings = TournamentStore.gameSettings;
+    if (!settings || !this.customizationSection) return;
+
+    const indicator = document.createElement("div");
+    indicator.id = "tournament-custom-indicator";
+    indicator.className = `
+      text-white bg-purple-600
+      px-4 py-2 rounded-lg
+      font-semibold text-sm
+    `;
+
+    indicator.textContent = `${settings.preset} Mode Active`;
+
+    // Insert BELOW the customize button
+    this.customizationSection.appendChild(indicator);
   }
 
   //----------------------------------------
