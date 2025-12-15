@@ -1,35 +1,81 @@
 import * as BABYLON from "babylonjs";
+// import { GameConfig } from "./GameConfig";
+import { gameConfigManager } from "./GameConfigManager";
 import { GameConfig } from "./GameConfig";
+
 
 export class Paddle {
     public mesh: BABYLON.Mesh;
     private scene: BABYLON.Scene;
-    public velocity: number = 0;  // Now full units/second (set by InputHandler)
+    public velocity: number = 0; 
+
+    private currentMeshDepth: number;
 
     constructor(scene: BABYLON.Scene, position: BABYLON.Vector3, name: string) {
         this.scene = scene;
 
-        this.mesh = BABYLON.MeshBuilder.CreateBox(name, { width: 0.2, height: 0.5, depth: 3 }, this.scene);
+        const config = gameConfigManager.current.paddle;
+
+
+        this.mesh = BABYLON.MeshBuilder.CreateBox(
+            name, 
+            { 
+                width: config.width, 
+                height: config.height, 
+                depth: config.depth 
+            }, this.scene);
         this.mesh.position = position;
 
+        // this.mesh.position = position;
+
+        this.currentMeshDepth = config.depth;
+        
         const mat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
         mat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
         this.mesh.material = mat;
     }
 
-    public move(dt: number): void {  // dt in seconds; moves based on current velocity
+    public updateMeshDepth(newDepth: number): void {
+        this.currentMeshDepth = newDepth;
+        console.log(`[Paddle] Mesh depth updated to: ${newDepth}`);
+
+    }
+
+
+    public getActualDepth(): number {
+        return this.currentMeshDepth;
+    }
+
+    public updateScale(): void {
+
+        console.log('[Paddle] updateScale() called but not needed - mesh already has correct size');
+
+    }
+
+    public move(dt: number): void {
         const dz = this.velocity * dt;
         this.mesh.position.z += dz;
 
-        const bounds = GameConfig.tableBounds;
-        const halfDepth = GameConfig.paddle.depth / 2;
+        const t = gameConfigManager.current.table;
+        const wallThickness = gameConfigManager.current.wall.thickness;
+        
+        // Calculate wall inner surface positions
+        const wallInnerZ = (t.depth / 2) - (wallThickness / 2);
+        
+        // ACTUAL mesh depth, not config depth
+        const halfDepth = this.currentMeshDepth / 2;
 
-        // Clamp to bounds
-        if (this.mesh.position.z - halfDepth < bounds.zMin) {
-            this.mesh.position.z = bounds.zMin + halfDepth;
+        // Calculate bounds for paddle movement
+        const minZ = -wallInnerZ + halfDepth;
+        const maxZ = wallInnerZ - halfDepth;
+
+        // Clamp paddle position to prevent wall tunneling
+        if (this.mesh.position.z < minZ) {
+            this.mesh.position.z = minZ;
         }
-        if (this.mesh.position.z + halfDepth > bounds.zMax) {
-            this.mesh.position.z = bounds.zMax - halfDepth;
+        if (this.mesh.position.z > maxZ) {
+            this.mesh.position.z = maxZ;
         }
+    
     }
 }

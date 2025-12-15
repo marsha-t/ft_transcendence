@@ -19,10 +19,10 @@ export class Header implements IComponent {
     }
     public render(): HTMLElement {
         const header = document.createElement('header');
-        header.className = `bg-color-yellow pb-3`;
+        header.className = `bg-yellow pb-3`;
 
         const subHeader = document.createElement('div');
-        subHeader.className = `bg-background py-6 rounded-[16px]
+        subHeader.className = `bg-background-primary py-6 rounded-[16px]
             shadow-[0_4px_4px_rgba(0,0,0,0.50)]`;
 
         const nav = this.createNav();
@@ -56,7 +56,7 @@ export class Header implements IComponent {
         });
 
         const logoText = document.createElement('span');
-        logoText.className = `text-[24px] font-press text-color_white`;
+        logoText.className = `text-[24px] font-press text-white`;
         logoText.textContent = 'PONG';
 
         const logoIcon = document.createElement('img');
@@ -233,9 +233,9 @@ export class Header implements IComponent {
             e.preventDefault();
             dropdown.classList.toggle('hidden');
             if (!dropdown.classList.contains("hidden")) {
-                playBtn.classList.add("bg-color-green");
+                playBtn.classList.add("bg-green");
             } else {
-                playBtn.classList.remove("bg-color-green");
+                playBtn.classList.remove("bg-green");
             }
         });
 
@@ -243,7 +243,7 @@ export class Header implements IComponent {
         document.addEventListener('click', (e) => {
             if (!playBtnWrapper.contains(e.target as Node)) {
                 dropdown.classList.add('hidden');
-                playBtn.classList.remove("bg-color-green");
+                playBtn.classList.remove("bg-green");
             }
         });
 
@@ -287,7 +287,7 @@ export class Header implements IComponent {
             avatarLink.className = `
                 w-[40px] h-[40px]
                 rounded-full overflow-hidden
-                border border-[3px] border-border-green
+                border border-[3px] border-green
                 inline-flex justify-center items-center cursor-pointer
             `;
             
@@ -348,9 +348,9 @@ export class Header implements IComponent {
             underline-offset-[3px] transition-all duration-200 decoration-2`;
 
         if (href === currentPath) {
-            return `${baseClass} text-color-yellow underline`;
+            return `${baseClass} text-yellow underline`;
         } else {
-            return `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+            return `${baseClass} text-white hover:underline hover:text-yellow`;
         }
     }
 
@@ -367,11 +367,11 @@ export class Header implements IComponent {
                 
                 if (href === currentPath) {
                     navLink.style.textDecoration = 'underline';
-                    navLink.style.textDecorationColor = 'var(--color-yellow)';
-                    navLink.className = `${baseClass} text-color-yellow`;
+                    navLink.style.textDecorationColor = 'var(yellow)';
+                    navLink.className = `${baseClass} text-yellow`;
                 } else {
                     navLink.style.textDecoration = 'none';
-                    navLink.className = `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+                    navLink.className = `${baseClass} text-white hover:underline hover:text-yellow`;
                 }
             });
 
@@ -402,26 +402,27 @@ export class Header implements IComponent {
     private getLoginButtonClasses(isActive: boolean): string {
         const baseClasses = `
             w-[138px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
+            text-[16px] font-pixel text-white
+            border border-[1px] border-green
             inline-flex justify-center items-center
             no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
         
-        return isActive ? `${baseClasses} bg-color-green`
-            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+        return isActive ? `${baseClasses} bg-green`
+            : `${baseClasses} hover:bg-green hover:text-white`;
     }
 
     private getRegisterButtonClasses(isActive: boolean): string {
         const baseClasses = `
             w-[188px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
+            text-[16px] font-pixel text-white
+            border border-[1px] border-green
             inline-flex justify-center items-center
             no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
         
-        return isActive ? `${baseClasses} bg-color-green`
-            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+        return isActive ? `${baseClasses} bg-green`
+        : `${baseClasses} hover:bg-green hover:text-white`;
     }
+    
     private createLanguageSwitcher(): HTMLElement {
     const container = document.createElement('div');
     container.className = 'relative inline-block';

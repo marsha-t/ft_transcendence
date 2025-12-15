@@ -1,10 +1,13 @@
 import { IComponent } from "../components/IComponent.js";
 import { GameService } from "../services/game/GameService.js";
-import {GameSession,PlayerSide,GameOptions,} from "../services/game/types.js";
+import {GameSession, PlayerSide, GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate, confirmationPopup } from "../utils";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
+import { openGameCustomization } from "../utils/gameCustom.js";
+import { makeButton } from "../utils/uiUtils.js"
 import { t } from "../services/i18n/i18nService.js";
 
 export class Game implements IComponent {
@@ -19,6 +22,10 @@ export class Game implements IComponent {
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
 
+  //game custom
+  private customGameSettings: CustomGameSettings | null = null;
+  private cutomizationUI: any = null;
+
   constructor(opts?: GameOptions) {
     this.opts = opts;
     this.canvas = document.createElement("canvas");
@@ -30,7 +37,7 @@ export class Game implements IComponent {
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
-      "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6 ";
+      "flex flex-col items-center min-h-[80vh] p-20 bg-background-primary rounded-[30px] ml-6 mr-6 ";
 
     this.createTitleContainer();
     this.createCanvas();
@@ -99,19 +106,32 @@ export class Game implements IComponent {
     canvasContainer.appendChild(scoreContainer);
 
     this.container.appendChild(canvasContainer);
+    this.createPongGame();
+  }
 
-    this.pongGame = new PongGame(this.canvas, (side: "LEFT" | "RIGHT") => {
-        if (!this.isScoring) {
-          this.isScoring = true;
-          this.scorePoint(side).then(() => {
-            setTimeout(() => (this.isScoring = false), 1000);
-          });
+  private createPongGame(): void {
+      if (this.customGameSettings) {
+        gameConfigManager.applyCustomizations(this.customGameSettings);
+        console.log('[Game] Applied customizations BEFORE PongGame creation:', {
+            preset: this.customGameSettings.preset,
+            powerUps: gameConfigManager.current.powerUps
+        });
+    }
+
+    this.pongGame = new PongGame(
+        this.canvas,
+        (side: "LEFT" | "RIGHT") => {
+            if (!this.isScoring) {
+                this.isScoring = true;
+                this.scorePoint(side).then(() => {
+                    setTimeout(() => (this.isScoring = false), 1000);
+                });
+            }
+        },
+        {
+            aiEnabled: false,
+            aiSide: 'LEFT'
         }
-      },
-      {
-        aiEnabled: false,
-        aiSide: 'LEFT'         
-      }
     );
   }
 
@@ -120,13 +140,17 @@ export class Game implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const startBtn = this.makeButton(t("game.startGame"), "start-btn", () =>
+    const customizeBtn = makeButton("Customize Game", "customize-btn", "block", () => 
+      this.openCustomizationPopUp()
+    );
+
+    const startBtn = makeButton(t("game.startGame"), "start-btn", "none", () =>
       this.toggleGame()
     );
-    const pauseBtn = this.makeButton(t("game.pause"), "pause-btn", () =>
+    const pauseBtn = makeButton(t("game.pause"), "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = this.makeButton(t("game.quitGame"), "quit-btn", () =>
+    const quitBtn = makeButton(t("game.quitGame"), "quit-btn", "none",() =>
       this.quitGame()
     );
 
@@ -135,6 +159,7 @@ export class Game implements IComponent {
       controlsContainer.appendChild(startBtn);
       controlsContainer.appendChild(pauseBtn);
     } else {
+      controlsContainer.appendChild(customizeBtn);
       controlsContainer.appendChild(startBtn);
       controlsContainer.appendChild(pauseBtn);
       controlsContainer.appendChild(quitBtn);
@@ -150,9 +175,7 @@ export class Game implements IComponent {
       guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
-      const addGuestBtn = this.makeButton(
-        t("game.addGuestPlayer") as string,
-        "add-guest-btn",
+      const addGuestBtn = makeButton(t("game.addGuestPlayer"), "add-guest-btn", "block",
         () => this.addGuestPlayer()
       );
       addGuestBtn.style.display = "block";
@@ -165,21 +188,70 @@ export class Game implements IComponent {
     this.container.appendChild(controlsContainer);
   }
 
-  private makeButton(label: string, id: string, handler: () => void): HTMLButtonElement {
-    const btn = document.createElement("button");
-    btn.id = id;
+  private openCustomizationPopUp(): void {
 
-    btn.className =
-      "w-48 h-12 bg-color-green text-color_white font-bold rounded-lg " +
-      "shadow-[0_5px_0_var(--color-button-second)] " +
-      "hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none " +
-      "hover:translate-y-1 active:translate-y-2 " +
-      "transition-all duration-150 mt-5";
-    btn.style.display = "none";
-    btn.textContent = label;
-    btn.addEventListener("click", handler);
+    this.cutomizationUI = openGameCustomization(document.body,
+      (settings: CustomGameSettings) => {
+        console.log('[Game] Received settings:', settings);
 
-    return btn;
+        this.customGameSettings = settings;
+        gameConfigManager.applyCustomizations(settings);
+        // console.log("Applied custom game settings:", settings);
+        console.log('[Game] After applying:', {
+          enabled: gameConfigManager.current.powerUps.enabled,
+          types: gameConfigManager.current.powerUps.types,
+          spawnInterval: gameConfigManager.current.powerUps.spawnInterval
+      });
+        this.recreatePongGame();
+        this.showCustomizationApplied(settings.preset);
+      }, ()=> {
+        console.log("Customization cancelled.");
+      }
+    );
+  }
+
+  private recreatePongGame(): void {
+    console.log('[Game] Recreating PongGame with new config...');
+    
+    // Dispose old game
+    if (this.pongGame) {
+        this.pongGame.dispose();
+    }
+
+    // Reset game state
+    this.isGameRunning = false;
+    this.isScoring = false;
+
+    // Reset score display
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+    if (leftScoreEl) leftScoreEl.textContent = "0";
+    if (rightScoreEl) rightScoreEl.textContent = "0";
+
+    // Create new PongGame with updated config
+    this.createPongGame();
+
+    console.log('[Game] PongGame recreated successfully!');
+    console.log('[Game] Power-ups enabled:', gameConfigManager.current.powerUps.enabled);
+  }
+
+  private showCustomizationApplied(preset: string): void {
+
+    const indicator = document.createElement("div");
+    indicator.id = "custom-indicator";
+    indicator.textContent = `${preset} Mode Active`;
+    indicator.className = 
+      "text-white bg-purple-600 px-4 py-2 rounded-lg " +
+      "font-semibold text-sm mt-2";
+    
+    const controls = this.container.querySelector(".flex.flex-row.gap-4");
+    if (controls) {
+      // Remove old indicator if exists
+      const oldIndicator = document.getElementById("custom-indicator");
+      if (oldIndicator) oldIndicator.remove();
+      
+      controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+    }
   }
 
   // INITIALIZATION
@@ -334,6 +406,8 @@ export class Game implements IComponent {
     const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
     const pauseBtn = document.getElementById("pause-btn") as HTMLButtonElement;
     const quitBtn = document.getElementById("quit-btn") as HTMLButtonElement;
+    const customizeBtn = document.getElementById("customize-btn") as HTMLButtonElement;
+
 
     if (isPlaying) {
       if (startBtn) startBtn.style.display = "none";
@@ -342,6 +416,7 @@ export class Game implements IComponent {
         pauseBtn.textContent = t("game.pause") as string;
       }
       if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
     } else {
       if (startBtn) startBtn.style.display = "none";
       if (pauseBtn) {
@@ -349,6 +424,7 @@ export class Game implements IComponent {
         pauseBtn.textContent = t("game.resume") as string;
       }
       if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
     }
   }
 
@@ -420,15 +496,23 @@ export class Game implements IComponent {
   private resetGame(): void {
     this.currentSession = null;
 
+    this.customGameSettings = null;
+    gameConfigManager.reset();
+    const indicator = document.getElementById("custom-indicator");
+    if(indicator) 
+      indicator.remove();
+    
     const setupSection = document.getElementById("setup-section");
     const startBtn = document.getElementById("start-btn");
     const pauseBtn = document.getElementById("pause-btn");
     const quitBtn = document.getElementById("quit-btn");
+    const customizeBtn = document.getElementById("customize-btn");
 
     if (setupSection) setupSection.style.display = "flex";
     if (startBtn) startBtn.style.display = "none";
     if (pauseBtn) pauseBtn.style.display = "none";
     if (quitBtn) quitBtn.style.display = "none";
+    if (customizeBtn) customizeBtn.style.display = "block";
 
     const leftPlayerElement = document.getElementById("left-player");
     const rightPlayerElement = document.getElementById("right-player");
@@ -465,7 +549,20 @@ export class Game implements IComponent {
 
   public cleanup(): void {
     this.stopGameLoop();
-    this.pongGame = null as any;
+
+    if(this.cutomizationUI){
+      this.cutomizationUI.close();
+      this.cutomizationUI = null;
+    }
+
+    if(this.pongGame){
+      this.pongGame.dispose();
+      this.cutomizationUI = null as any;
+    }
+
+    gameConfigManager.reset();
+    // this.pongGame = null as any;
     this.currentSession = null;
+    this.customGameSettings = null;
   }
 }

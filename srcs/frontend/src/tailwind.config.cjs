@@ -1,32 +1,59 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: [
-      "./src/**/*.{ts,tsx,js,jsx}",
-      "./public/**/*.html",
-    ],
-    theme: {
-      extend: {
-        
-        fontFamily: {
-          pixel: ['Silkscreen', 'cursive'],    // retro pixel style
-          press: ['"Press Start 2P"', 'cursive'], // 8-bit arcade style
-          mono: ['VT323', 'monospace'],        // terminal style
+  content: [
+    "./src/**/*.{ts,tsx,js,jsx}",
+    "./public/**/*.html",
+  ],
+  theme: {
+    extend: {
+      // Font Families
+      fontFamily: {
+        sans: ['Nunito Sans', 'sans-serif'],
+        nunito: ['Nunito', 'sans-serif'],
+      },
+
+      // Colors
+      colors: {
+        // Background Colors
+        background: {
+          primary: 'var(--color-background-primary)',
+          secondary: 'var(--color-background-secondary)',
         },
 
-        colors: {
-          background: 'var(--color-background)',
-          'background-yellow': 'var(--color-background-secondary)',
-          color_button: 'var(--color-button)',
-          color_white: 'var(--color-text-white)',
-          'color-secondary': 'var(--color-text-secondary)',
-          'color-yellow': 'var(--color-text-yellow)',
-          'color-green': 'var(--color-text-green)',
-          'color-green-secodary': 'var(--color-button-second)',
-          color_border: 'var(--color-border-red)',
-          'border-green': 'var(--color-border-green)'
-        }
+        // Button Colors
+        button: {
+          active: 'var(--color-button-active)',
+          inactive: 'var(--color-button-inactive)',
+          text: 'var(--color-button-text)',
+          shadow: 'var(--color-button-shadow)',
+        },
+
+        // Text Colors
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+        },
+
+        // Border Colors
+        border: {
+          yellow: 'var(--color-border-yellow)',
+          red: 'var(--color-border-red)',
+          green: 'var(--color-border-green)',
+        },
+
+        // Modal Colors
+        modal: {
+          background: 'var(--color-modal-background)',
+        },
+
+        // Quick Access Colors (for convenience)
+        blue: '#143367',
+        yellow: '#FFD248',
+        green: '#77AB55',
+        'blue-inactive': '#1F4D9A',
+        red: '#DA483B',
       },
     },
-    plugins: [],
-  };
-  
+  },
+  plugins: [],
+};
