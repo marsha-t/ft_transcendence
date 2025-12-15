@@ -19,10 +19,10 @@ export class Header implements IComponent {
     }
     public render(): HTMLElement {
         const header = document.createElement('header');
-        header.className = `bg-color-yellow pb-3`;
+        header.className = `bg-yellow pb-3`;
 
         const subHeader = document.createElement('div');
-        subHeader.className = `bg-background py-6 rounded-[16px]
+        subHeader.className = `bg-background-primary py-6 rounded-[16px]
             shadow-[0_4px_4px_rgba(0,0,0,0.50)]`;
 
         const nav = this.createNav();
@@ -56,7 +56,7 @@ export class Header implements IComponent {
         });
 
         const logoText = document.createElement('span');
-        logoText.className = `text-[24px] font-press text-color_white`;
+        logoText.className = `text-[24px] font-press text-white`;
         logoText.textContent = 'PONG';
 
         const logoIcon = document.createElement('img');
@@ -121,7 +121,7 @@ export class Header implements IComponent {
 
         container.innerHTML = `
             <button 
-                class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-color-green rounded-lg transition-colors border border-border-green text-color_white font-pixel text-[14px]"
+                class="lang-button flex items-center gap-2 px-3 py-2 bg-background hover:bg-green rounded-lg transition-colors border border-green text-white font-pixel text-[14px]"
                 aria-label="${String(t('settings.selectLanguage'))}"
             >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,15 +134,15 @@ export class Header implements IComponent {
                 </svg>
             </button>
             
-            <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50">
+            <div class="lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-green z-50">
                 ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
                     <button 
-                        class="lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors flex items-center justify-between text-color_white font-pixel text-[14px] ${code === currentLang ? 'bg-color-green bg-opacity-30' : ''}"
+                        class="lang-option w-full text-left px-4 py-3 hover:bg-green transition-colors flex items-center justify-between text-white font-pixel text-[14px] ${code === currentLang ? 'bg-green bg-opacity-30' : ''}"
                         data-lang="${code}"
                     >
                         <span class="font-medium">${info.nativeName}</span>
                         ${code === currentLang ? `
-                            <svg class="w-4 h-4 text-color-yellow" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-4 h-4 text-yellow" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                             </svg>
                         ` : ''}
@@ -276,9 +276,9 @@ export class Header implements IComponent {
             e.preventDefault();
             dropdown.classList.toggle('hidden');
             if (!dropdown.classList.contains("hidden")) {
-                playBtn.classList.add("bg-color-green");
+                playBtn.classList.add("bg-green");
             } else {
-                playBtn.classList.remove("bg-color-green");
+                playBtn.classList.remove("bg-green");
             }
         });
 
@@ -286,7 +286,7 @@ export class Header implements IComponent {
         document.addEventListener('click', (e) => {
             if (!playBtnWrapper.contains(e.target as Node)) {
                 dropdown.classList.add('hidden');
-                playBtn.classList.remove("bg-color-green");
+                playBtn.classList.remove("bg-green");
             }
         });
 
@@ -330,7 +330,7 @@ export class Header implements IComponent {
             avatarLink.className = `
                 w-[40px] h-[40px]
                 rounded-full overflow-hidden
-                border border-[3px] border-border-green
+                border border-[3px] border-green
                 inline-flex justify-center items-center cursor-pointer
             `;
             
@@ -363,25 +363,25 @@ export class Header implements IComponent {
                 w-[138px] h-[36px]
                 px-4 rounded-[8px] tracking-[0.4em]
                 text-[16px] font-pixel
-                text-color_white
-                border border-[1px] border-border-green
+                text-white
+                border border-[1px] border-green
                 inline-flex justify-center items-center
                 no-underline cursor-pointer
                 transition-colors duration-200 ease-in-out
-                hover:bg-color-green
-                hover:text-color_white`;
+                hover:bg-green
+                hover:text-white`;
         } else if (link.text === 'Register') {
             a.className = `
                 w-[188px] h-[36px]
                 px-4 rounded-[8px] tracking-[0.4em]
                 text-[16px] font-pixel
-                text-color_white
-                border border-[1px] border-border-green
+                text-white
+                border border-[1px] border-green
                 inline-flex justify-center items-center
                 no-underline cursor-pointer
                 transition-colors duration-200 ease-in-out
-                hover:bg-color-green
-                hover:text-color_white`;
+                hover:bg-green
+                hover:text-white`;
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
@@ -402,9 +402,9 @@ export class Header implements IComponent {
             underline-offset-[3px] transition-all duration-200 decoration-2`;
 
         if (href === currentPath) {
-            return `${baseClass} text-color-yellow underline`;
+            return `${baseClass} text-yellow underline`;
         } else {
-            return `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+            return `${baseClass} text-white hover:underline hover:text-yellow`;
         }
     }
 
@@ -421,11 +421,11 @@ export class Header implements IComponent {
                 
                 if (href === currentPath) {
                     navLink.style.textDecoration = 'underline';
-                    navLink.style.textDecorationColor = 'var(--color-yellow)';
-                    navLink.className = `${baseClass} text-color-yellow`;
+                    navLink.style.textDecorationColor = 'var(yellow)';
+                    navLink.className = `${baseClass} text-yellow`;
                 } else {
                     navLink.style.textDecoration = 'none';
-                    navLink.className = `${baseClass} text-color_white hover:underline hover:text-color-yellow`;
+                    navLink.className = `${baseClass} text-white hover:underline hover:text-yellow`;
                 }
             });
 
@@ -456,24 +456,24 @@ export class Header implements IComponent {
     private getLoginButtonClasses(isActive: boolean): string {
         const baseClasses = `
             w-[138px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
+            text-[16px] font-pixel text-white
+            border border-[1px] border-green
             inline-flex justify-center items-center
             no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
         
-        return isActive ? `${baseClasses} bg-color-green`
-            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+        return isActive ? `${baseClasses} bg-green`
+            : `${baseClasses} hover:bg-green hover:text-white`;
     }
 
     private getRegisterButtonClasses(isActive: boolean): string {
         const baseClasses = `
             w-[188px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-color_white
-            border border-[1px] border-border-green
+            text-[16px] font-pixel text-white
+            border border-[1px] border-green
             inline-flex justify-center items-center
             no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
         
-        return isActive ? `${baseClasses} bg-color-green`
-            : `${baseClasses} hover:bg-color-green hover:text-color_white`;
+        return isActive ? `${baseClasses} bg-green`
+            : `${baseClasses} hover:bg-green hover:text-white`;
     }
 }

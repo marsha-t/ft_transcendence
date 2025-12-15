@@ -10,14 +10,14 @@ export class Creators implements IComponent {
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-row items-center justify-start
-            bg-background rounded-[16px] shadow-lg
+            bg-background-primary rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
             
         //left half
         const text_section = document.createElement('div');
         text_section.className = `flex-1 basis-[400px] max-w-[600px]
-            text-color_white font-press `;
+            text-white font-nunito `;
 
         const heading = document.createElement('h1');
         heading.className = `text-[clamp(18px,4vw,28px)]
@@ -27,7 +27,7 @@ export class Creators implements IComponent {
 
         const description = document.createElement('p');
         description.className = `text-[clamp(8px,1.2vw,10px)] 
-            leading-[1.5]font-press text-[10px] 
+            leading-[1.5]font-nunito text-[10px] 
             leading-[3] tracking-wider`;
         description.textContent = `Contrary to popular belief, Lorem Ipsum is not simply 
                                     random text. It has roots in a piece of classical Latin 
@@ -48,7 +48,7 @@ export class Creators implements IComponent {
         // Update the image_section
         const image_section = document.createElement('div');
         image_section.className = `flex-1 flex justify-center 
-            font-press text-color_white ml-20`;
+            font-nunito text-white ml-20`;
 
         const avatarsGrid = document.createElement('div');
         avatarsGrid.className = `grid grid-cols-2 gap-[40px] mt-[20px]`;

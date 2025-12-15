@@ -7,7 +7,7 @@ export class Footer implements IComponent {
 
 
     const subFooter = document.createElement('div');
-    subFooter.className = `bg-background py-6 rounded-[16px]
+    subFooter.className = `bg-background-primary py-6 rounded-[16px]
         shadow-[0_-4px_4px_rgba(0,0,0,0.50)] flex items-end justify-between `;
 
 
@@ -19,7 +19,7 @@ export class Footer implements IComponent {
 
     // === CENTER: COPYRIGHT ===
     const content = document.createElement('p');
-    content.className = 'text-color_white font-pixel text-[14px]';
+    content.className = 'text-white font-nunito text-[14px]';
     content.innerHTML = `© ${new Date().getFullYear()} Transcendence. All rights reserved.`;
 
     // === RIGHT SIDE: BUTTON + STICK ===

@@ -33,7 +33,7 @@ export class AI implements IComponent {
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
-      "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6";
+      "flex flex-col items-center min-h-[80vh] p-20 bg-background-primary rounded-[30px] ml-6 mr-6";
 
     this.loadUserAndUpdateName().then(() => {
       this.createTitleContainer();

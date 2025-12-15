@@ -103,16 +103,16 @@ export async function confirmationPopup(message: string, title = "Please Confirm
 }
 
 export function createButtonStyle(customization: string = "", color: 'blue' | 'green'): string {
-  const mainGreenStyle = ` inline-flex items-center justify-center px-8 py-3 bg-color-green text-color_white
+  const mainGreenStyle = ` inline-flex items-center justify-center px-8 py-3 bg-button-active text-white
     font-bold rounded-lg tracking-widest 
-    shadow-[0_5px_0_var(--color-button-second)]
-    hover:shadow-[0_2px_0_var(--color-button-second)] active:shadow-none
+    shadow-[0_5px_0_var(--color-button-shadow)]
+    hover:shadow-[0_2px_0_var(--color-button-shadow)] active:shadow-none
     hover:translate-y-1 active:translate-y-2
     transition-all duration-150 mt-5 text-center no-underline`;
 
     const mainBlueStyle = `
       inline-flex items-center justify-center px-8 py-3
-      bg-[#1F4D9A] text-color_white font-bold rounded-lg tracking-widest 
+      bg-[#1F4D9A] text-white font-bold rounded-lg tracking-widest 
       shadow-[0px_-2px_2px_0px_#0000001A_inset,0px_2px_2px_0px_#00000040]
       transition-all duration-150 text-center no-underline
       hover:translate-y-1 active:translate-y-2

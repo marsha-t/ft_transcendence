@@ -58,7 +58,7 @@ class GameConfigManager{
                     x: 20,
                     z: 0
                 },
-                maxSpeed: 30,
+                maxSpeed: 26,
                 speedIncrement: 2.5
             },
             paddle: {
@@ -66,7 +66,7 @@ class GameConfigManager{
             },
             powerUps: {
                 enabled: true,
-                spawnInterval: 3000,
+                spawnInterval: 5000,
                 duration: 3000,
                 types: ['SPEED_BOOST', 'ENLARGE_PADDLE', 'SLOW_MOTION']
             }
@@ -97,19 +97,34 @@ class GameConfigManager{
     }
 
 
-    applyCustomizations(settings: CustomGameSettings): void {
+    public applyCustomizations(settings: CustomGameSettings): void {
+      console.log('🔧 [ConfigManager] BEFORE apply:', {
+        oldPreset: this.activePreset,
+        oldCustomConfigKeys: Object.keys(this.customConfig),
+        oldCustomConfig: JSON.stringify(this.customConfig)  // ✅ Show actual values
+    });
         this.activePreset = settings.preset;
 
         if(settings.config){
             this.customConfig = settings.config;
+            console.log('[ConfigManager] Using provided config:', this.customConfig);
+
         }else {
             this.customConfig = {};
+            console.log('[ConfigManager] No config provided, reset to empty');
+
         }
 
-        console.log('Applied customizations:', {
-            preset: this.activePreset,
-            hasCustomConfig: !!settings.config
-          });
+      const finalConfig = this.current;
+      console.log('🔧 [ConfigManager] AFTER apply - Final values:', {
+          preset: this.activePreset,
+          customConfigKeys: Object.keys(this.customConfig),
+          ballSpeed: finalConfig.ball.speed.x,
+          paddleSpeed: finalConfig.paddle.speed,
+          paddleDepth: finalConfig.paddle.depth,
+          powerUpsEnabled: finalConfig.powerUps.enabled,
+          powerUpTypes: finalConfig.powerUps.types
+      });
     }
 
     reset(): void {
@@ -120,7 +135,7 @@ class GameConfigManager{
 
 
     //Returns the configuration for a specific preset useful for UI test which preset being used
-    getPresetConfig(preset: GamePreset): typeof GameConfig{
+    public getPresetConfig(preset: GamePreset): typeof GameConfig{
         return this.mergeConfig(GameConfig, this.presets[preset]);
     }
 
@@ -209,6 +224,14 @@ class GameConfigManager{
       return false;
     }
   }
+  public debugCurrentConfig(): void {
+    console.log(' Current GameConfig:', {
+        preset: this.activePreset,
+        powerUps: this.current.powerUps,
+        ballSpeed: this.current.ball.speed.x
+    });
+  }
 }
 export const gameConfigManager = new GameConfigManager();
 export type {DeepPartial};
+
