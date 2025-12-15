@@ -55,6 +55,11 @@ class DraftStore {
 		this.draft = { numberOfPlayers: null, players: [], createdBy: null };
 		localStorage.removeItem("tournamentDraft");
 	}
+
+	clearPlayers() {
+		this.draft.players = [];
+		this.save();
+	}
 }
 
 export const TournamentDraftStore = new DraftStore();

@@ -6,6 +6,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager";
+import {showConfirmation} from "../utils/profileUtils";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
@@ -21,7 +22,6 @@ export class TournamentSetup implements IComponent {
     TournamentStore.isInternalTournamentNavigation = false;
 
     TournamentDraftStore.clear();
-    TournamentDraftStore.setNumberOfPlayers(2);
 
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)] flex justify-center items-center
@@ -87,9 +87,10 @@ export class TournamentSetup implements IComponent {
 
     input.type = "number";
     input.min = "2";
-    input.max = "64";
+    input.max = "16";
     input.value = "2";
-
+    
+    TournamentDraftStore.setNumberOfPlayers(2);
     input.addEventListener("change", () => {
       const newNum = parseInt(input.value, 10);
 
@@ -99,11 +100,15 @@ export class TournamentSetup implements IComponent {
         TournamentDraftStore.setNumberOfPlayers(2);
         return;
       }
+      if (newNum > 16) {
+        input.value = "16";
+        TournamentDraftStore.setNumberOfPlayers(16);
+        return ;
+      }
       TournamentDraftStore.setNumberOfPlayers(newNum);
     });
 
     counter.appendChild(input);
-
 
     counterContainer.appendChild(counter);
     // --- Buttons actions ---
@@ -152,8 +157,6 @@ export class TournamentSetup implements IComponent {
   // Pop up window functions
   //----------------------------------------
   private async openAddPlayersPopup() {
-    const n = TournamentDraftStore.numberOfPlayers;
-    if (!n || n < 2) return alert("Please set at least 2 players");
 
     // overlay
     if (this.isModalOpen) return;
@@ -195,30 +198,15 @@ export class TournamentSetup implements IComponent {
     document.body.appendChild(this.modal);
   }
 
-  private closeModal() {
-    const hasDraft = TournamentDraftStore.players.length > 1;
+  private async closeModal() {
+    const hasDraft = TournamentDraftStore.players.length > 0;
 
     if (hasDraft) {
-      const confirmClose = confirm(
-        "Closing this window will discard your current tournament setup. Continue?"
-      );
-      if (!confirmClose) return;
-
-      TournamentDraftStore.clear();
-      TournamentDraftStore.setNumberOfPlayers(2);
-      const input = this.container.querySelector(
-        'input[type="number"]'
-      ) as HTMLInputElement;
-      if (input) input.value = "2";
-    } else {
-      TournamentDraftStore.clear();
-      // resave number of players to preserve it in memory
-      const currentVal = (
-        this.container.querySelector('input[type="number"]') as HTMLInputElement
-      )?.value;
-      if (currentVal)
-        TournamentDraftStore.setNumberOfPlayers(parseInt(currentVal, 10));
+      const confirmClose = await showConfirmation("Closing this window will discard your current tournament setup. Continue?", "Please Confirm", true);
+      if (!confirmClose) return ;
     }
+    
+    TournamentDraftStore.clearPlayers();
 
     if (this.modal && document.body.contains(this.modal)) {
       document.body.removeChild(this.modal);
@@ -245,17 +233,8 @@ export class TournamentSetup implements IComponent {
       "data-[active=true]:bg-[var(--color-button)] data-[active=true]:border-2 " +
       "data-[active=true]:border-[#7ab96f] data-[active=true]:shadow-[0_6px_0_#4e7245]";
     guestBtn.dataset.active = "true";
-    guestBtn.addEventListener("click", () => {
-      guestBtn.dataset.active = "true";
-      userBtn.dataset.active = "false";
-      const errorBox = document.getElementById("add-player-error");
-      if (errorBox) errorBox.classList.add("hidden");
 
-      guestForm.classList.remove("hidden");
-      userForm.classList.add("hidden");
-    });
-
-    const userBtn = document.createElement("div");
+    const userBtn = document.createElement("button");
     userBtn.textContent = t("tournament.registeredUser") as string;
     userBtn.className =
       "flex-1 flex items-center justify-center text-center rounded-lg cursor-pointer " +
@@ -264,16 +243,10 @@ export class TournamentSetup implements IComponent {
       "data-[active=true]:bg-[var(--color-button)] data-[active=true]:border-2 " +
       "data-[active=true]:border-[#7ab96f] data-[active=true]:shadow-[0_6px_0_#4e7245]";
     userBtn.dataset.active = "false";
-    userBtn.addEventListener("click", () => {
-      userBtn.dataset.active = "true";
-      guestBtn.dataset.active = "false";
-      const errorBox = document.getElementById("add-player-error");
-      if (errorBox) errorBox.classList.add("hidden");
-      userForm.classList.remove("hidden");
-      guestForm.classList.add("hidden");
-    });
 
     toggleContainer.append(guestBtn, userBtn);
+    
+
     form.appendChild(toggleContainer);
 
     // --- Guest form ---
@@ -332,7 +305,7 @@ export class TournamentSetup implements IComponent {
       py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
       shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8`;
     addBtn.addEventListener("click", async () => {
-      const isGuest = guestBtn.classList.contains("active");
+      const isGuest = guestBtn.dataset.active === "true";
       const guestName = guestForm.querySelector("input") as HTMLInputElement;
       const username = userForm.querySelectorAll(
         "input"
@@ -348,18 +321,17 @@ export class TournamentSetup implements IComponent {
       this.updateLineup();
     });
 
-    guestBtn.addEventListener("click", () => {
-      guestBtn.classList.add("active");
-      userBtn.classList.remove("active");
-      guestForm.classList.remove("hidden");
-      userForm.classList.add("hidden");
-    });
-    userBtn.addEventListener("click", () => {
-      userBtn.classList.add("active");
-      guestBtn.classList.remove("active");
-      userForm.classList.remove("hidden");
-      guestForm.classList.add("hidden");
-    });
+    const toggleForm = (type: "guest" | "user") => {
+      guestBtn.dataset.active = (type === "guest").toString();
+      userBtn.dataset.active = (type === "user").toString();
+
+      guestForm.classList.toggle("hidden", type !== "guest");
+      userForm.classList.toggle("hidden", type !== "user");
+
+      errorBox.classList.add("hidden");
+    };
+    guestBtn.addEventListener("click", () => toggleForm("guest"));
+    userBtn.addEventListener("click", () => toggleForm("user"));
 
     form.append(guestForm, userForm, errorBox, addBtn);
 
