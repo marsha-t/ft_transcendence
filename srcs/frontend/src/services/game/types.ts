@@ -1,3 +1,5 @@
+import { CustomGameSettings } from "../../graphics/GameConfigManager";
+
 export type PlayerSide = "LEFT" | "RIGHT";
 
 export type GameOptions = {
@@ -5,6 +7,7 @@ export type GameOptions = {
     isTournament?: boolean;
     tournamentId?: number;
     displayNames?: { leftName: string; rightName: string };
+    customGameSettings?: CustomGameSettings | null;
   };
 
 export type GameStatus =

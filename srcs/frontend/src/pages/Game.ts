@@ -28,6 +28,7 @@ export class Game implements IComponent {
 
   constructor(opts?: GameOptions) {
     this.opts = opts;
+    this.customGameSettings = opts?.customGameSettings ?? null;
     this.canvas = document.createElement("canvas");
     this.canvas.width = 900;
     this.canvas.height = 500;
@@ -48,6 +49,10 @@ export class Game implements IComponent {
       this.initializeTournament();
     } else {
       this.initializeStandalone();
+    }
+    // After controls are created
+    if (this.opts?.isTournament && this.customGameSettings) {
+      this.showCustomizationApplied(this.customGameSettings.preset);
     }
     return this.container;
   }
