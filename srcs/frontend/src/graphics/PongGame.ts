@@ -160,40 +160,7 @@ export class PongGame {
                 break;
 
             case 'ENLARGE_PADDLE':
-                //original depth for restoration
-                const originalDepth = gameConfigManager.current.paddle.depth;
-                const paddleScale = 2.0;
-
-                const paddleToEnlarge = this.ball.speed.x > 0 
-                    ? this.rightPaddle 
-                    : this.leftPaddle;
-                
-                        // which paddle is enlarged
-                this.enlargedPaddle = this.ball.speed.x > 0 ? 'RIGHT' : 'LEFT';
-                this.enlargedPaddleSize = paddleScale;
-
-                // Recreate mesh with larger size instead of scaling
-                const pos = paddleToEnlarge.mesh.position.clone();
-                const name = paddleToEnlarge.mesh.name;
-                paddleToEnlarge.mesh.dispose();
-                
-                paddleToEnlarge.mesh = BABYLON.MeshBuilder.CreateBox(
-                    name,
-                    {
-                        width: gameConfigManager.current.paddle.width,
-                        height: gameConfigManager.current.paddle.height,
-                        depth: originalDepth * paddleScale  // ✅ Physically larger
-                    },
-                    this.scene
-                );
-                paddleToEnlarge.mesh.position = pos;
-                
-                const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
-                paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
-                paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
-                paddleToEnlarge.mesh.material = paddleMat;
-                
-                console.log(`ENLARGE PADDLE activated for ${this.enlargedPaddle} paddle!`);
+                this.enlargePaddle();
                 break;
             case 'SLOW_MOTION':
                 // Slow ball by 50%
@@ -209,6 +176,47 @@ export class PongGame {
                 console.log('SLOW MOTION activated!');
                 break;
         }
+    }
+
+    private enlargePaddle(): void {
+        const originalDepth = gameConfigManager.current.paddle.depth;
+        const paddleScale = 2.0;
+
+        const paddleToEnlarge = this.ball.speed.x > 0 
+            ? this.rightPaddle 
+            : this.leftPaddle;
+        
+        // which paddle is enlarged
+        this.enlargedPaddle = this.ball.speed.x > 0 ? 'RIGHT' : 'LEFT';
+        this.enlargedPaddleSize = paddleScale;
+
+        // Recreate mesh with larger size
+        const pos = paddleToEnlarge.mesh.position.clone();
+        const name = paddleToEnlarge.mesh.name;
+        paddleToEnlarge.mesh.dispose();
+        
+        const newDepth = originalDepth * paddleScale;  //Calculate new depth
+        
+        paddleToEnlarge.mesh = BABYLON.MeshBuilder.CreateBox(
+            name,
+            {
+                width: gameConfigManager.current.paddle.width,
+                height: gameConfigManager.current.paddle.height,
+                depth: newDepth  // Use scaled depth
+            },
+            this.scene
+        );
+        paddleToEnlarge.mesh.position = pos;
+        
+        // Update the paddle's tracked depth
+        paddleToEnlarge.updateMeshDepth(newDepth);
+        
+        const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+        paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+        paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
+        paddleToEnlarge.mesh.material = paddleMat;
+        
+        console.log(`ENLARGE PADDLE activated for ${this.enlargedPaddle} paddle!`);
     }
 
     private updateActivePowerUpEffects(currentTime: number): void {
@@ -235,32 +243,7 @@ export class PongGame {
                 break;
 
             case 'ENLARGE_PADDLE':
-                //Clear enlarged paddle state
-                this.enlargedPaddle = null;
-                this.enlargedPaddleSize = 1.0;
-                // Recreate both paddles at normal size
-                [this.leftPaddle, this.rightPaddle].forEach(paddle => {
-                    const pos = paddle.mesh.position.clone();
-                    const name = paddle.mesh.name;
-                    paddle.mesh.dispose();
-                    
-                    paddle.mesh = BABYLON.MeshBuilder.CreateBox(
-                        name,
-                        {
-                            width: gameConfigManager.current.paddle.width,
-                            height: gameConfigManager.current.paddle.height,
-                            depth: gameConfigManager.current.paddle.depth  //  Normal size
-                        },
-                        this.scene
-                    );
-                    paddle.mesh.position = pos;
-                    
-                    const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
-                    paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
-                    paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
-                    paddle.mesh.material = paddleMat;
-                });
-                console.log('Paddle size restored');
+                this.delargePaddle();
                 break;
 
             case 'SLOW_MOTION':
@@ -275,6 +258,41 @@ export class PongGame {
                 console.log('Slow motion ended');
                 break;
         }
+    }
+
+    private delargePaddle(): void {
+        //Clear enlarged paddle state
+        this.enlargedPaddle = null;
+        this.enlargedPaddleSize = 1.0;
+        
+        // Recreate both paddles at normal size
+        [this.leftPaddle, this.rightPaddle].forEach(paddle => {
+            const pos = paddle.mesh.position.clone();
+            const name = paddle.mesh.name;
+            paddle.mesh.dispose();
+            
+            const normalDepth = gameConfigManager.current.paddle.depth;  //Get normal depth
+            
+            paddle.mesh = BABYLON.MeshBuilder.CreateBox(
+                name,
+                {
+                    width: gameConfigManager.current.paddle.width,
+                    height: gameConfigManager.current.paddle.height,
+                    depth: normalDepth  // Use normal depth
+                },
+                this.scene
+            );
+            paddle.mesh.position = pos;
+            
+            //Restore the paddle's tracked depth
+            paddle.updateMeshDepth(normalDepth);
+            
+            const paddleMat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
+            paddleMat.diffuseColor = new BABYLON.Color3(0, 0, 0.4);
+            paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
+            paddle.mesh.material = paddleMat;
+        });
+        console.log('Paddle size restored');
     }
 
     private streamGameStateToAI(): void {
@@ -574,18 +592,21 @@ export class PongGame {
     private createSideWalls(table: BABYLON.Mesh): void {
         const t = gameConfigManager.current.table;
         const w = gameConfigManager.current.wall;
-
+    
         const wallMaterial = new BABYLON.StandardMaterial("wallMat", this.scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-
-        // Z position offset (half depth minus a small gap)
-        const zOffset = (t.depth / 2) - w.thickness;
-
-        // Top wall
+    
+        // Position walls EXACTLY at table edges (±depth/2)
+        const zOffset = t.depth / 2;
+        
+        // Make walls FULL WIDTH (no gaps on sides)
+        const wallWidth = t.width;
+    
+        // Top wall (at -Z boundary)
         const topWall = BABYLON.MeshBuilder.CreateBox(
             "topWall",
             {
-                width: t.width - 2,      // slightly shorter than table width
+                width: wallWidth,
                 height: w.height,
                 depth: w.thickness
             },
@@ -594,11 +615,12 @@ export class PongGame {
         topWall.position.set(0, t.height / 2, -zOffset);
         topWall.material = wallMaterial;
         topWall.parent = table;
-
+    
+        // Bottom wall (at +Z boundary)
         const bottomWall = BABYLON.MeshBuilder.CreateBox(
             "bottomWall",
             {
-                width: t.width - 2,
+                width: wallWidth,
                 height: w.height,
                 depth: w.thickness
             },
@@ -653,13 +675,30 @@ export class PongGame {
     }
 
     private checkWallBounce(): void {
-        const bounds = gameConfigManager.current.tableBounds;
+        const t = gameConfigManager.current.table;
         const ball = this.ball.mesh;
         const r = gameConfigManager.current.ball.radius;
-
-        if (ball.position.z - r <= bounds.zMin || ball.position.z + r >= bounds.zMax) {
-                this.ball.bounceZ();
-            }
+        const wallThickness = gameConfigManager.current.wall.thickness;
+        
+        // Calculate ACTUAL wall positions
+        // Walls are positioned at ±(depth/2)
+        // Wall collision surface is INWARD by half the wall thickness
+        const wallInnerZ = (t.depth / 2) - (wallThickness / 2);
+        
+        const minZ = -wallInnerZ;
+        const maxZ = wallInnerZ;
+    
+        // Check collision with ball radius
+        if (ball.position.z - r <= minZ) {
+            // Hit top wall
+            ball.position.z = minZ + r;  // Clamp position
+            this.ball.bounceZ();
+        } 
+        else if (ball.position.z + r >= maxZ) {
+            // Hit bottom wall
+            ball.position.z = maxZ - r;  // Clamp position
+            this.ball.bounceZ();
+        }
     }
 
     private checkPaddleBounce(): void {
