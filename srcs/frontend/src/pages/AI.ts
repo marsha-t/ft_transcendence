@@ -108,23 +108,6 @@ export class AI implements IComponent {
     canvasContainer.appendChild(scoreContainer);
 
     this.container.appendChild(canvasContainer);
-
-    // Initialize PongGame with AI enabled
-    // this.pongGame = new PongGame(
-    //   this.canvas,
-    //   (side: "LEFT" | "RIGHT") => {
-    //     if (!this.isScoring) {
-    //       this.isScoring = true;
-    //       this.scorePoint(side).then(() => {
-    //         setTimeout(() => (this.isScoring = false), 1000);
-    //       });
-    //     }
-    //   },
-    //   {
-    //     aiEnabled: true,
-    //     aiSide: "LEFT",
-    //   }
-    // );
     this.createPongGame();
   }
 
@@ -537,12 +520,68 @@ export class AI implements IComponent {
     try {
       await this.gameService.abortGame(this.currentSession.sessionId);
       this.stopGameLoop();
-      navigate("/");
+      // navigate("/");
+      this.resetGame();
     } catch (error) {
       console.error("Failed to quit game:", error);
     }
   }
   
+  private async resetGame(): Promise<void> {
+
+    this.stopGameLoop();
+    if(this.wsConnected){
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+
+    if(this.pongGame){
+      this.pongGame.dispose();
+    }
+
+    this.currentSession = null;
+    this.customGameSettings = null;
+    this.isGameRunning = false;
+    this.isScoring = false;
+    this.hasEndedNaturally = false;
+
+    gameConfigManager.reset();
+
+
+    const indicator = document.getElementById("custom-indicator");
+    if(indicator)
+      indicator.remove();
+
+
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const quitBtn = document.getElementById("quit-btn");
+    const customizeBtn = document.getElementById("customize-btn");
+
+    if(startBtn)
+      startBtn.style.display = "block";
+    if(pauseBtn)
+      pauseBtn.style.display = "none";
+    if(quitBtn)
+      quitBtn.style.display = "none";
+    if(customizeBtn)
+      customizeBtn.style.display = "block";
+
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+    if (leftScoreEl) leftScoreEl.textContent = "0";
+    if (rightScoreEl) rightScoreEl.textContent = "0";
+
+    const leftPlayerElement = document.getElementById("left-player");
+    const rightPlayerElement = document.getElementById("right-player");
+    if(leftPlayerElement)
+      leftPlayerElement.textContent = "🤖 AI";
+    if(rightPlayerElement)
+        rightPlayerElement.textContent = this.username || "Player";
+    
+    this.createPongGame();
+    await this.initializeAIGame();
+  }
 
   private updateGameButtons(isPlaying: boolean): void {
     const startBtn = document.getElementById("start-btn") as HTMLButtonElement;

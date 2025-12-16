@@ -206,7 +206,7 @@ export class Header implements IComponent {
         }
 
         const dropdownItems: DropdownItem[] = [
-            { label: t("header.play-AI"), href: '/game' }, //put ai link
+            { label: t("header.play-AI"), href: '/ai' }, 
             { label: t("header.play-friend"), href: '/game' },
             { label: t("header.play-tournament"), href: '/tournament' },
         ];
