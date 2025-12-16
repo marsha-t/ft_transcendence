@@ -17,6 +17,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Wait for both auth and i18n to be ready
     await Promise.all([AuthUtils.initialize(), i18nReady]);
+    // await Promise.all([i18nReady]);
     
     const headerComponent = new Header();
     headerContainer.appendChild(headerComponent.render());

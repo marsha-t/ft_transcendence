@@ -1,8 +1,11 @@
+import {AuthServices} from "../services/auth/AuthServices"
+
 export class AuthUtils {
     // In-memory authentication state
     private static isLoggedIn_flag: boolean = false;
     private static currentUser: any = null;
     private static initPromise: Promise<void> | null = null;
+
     static async initialize(): Promise<void> {
         // If already initializing, return the existing promise
         if (this.initPromise) {
@@ -11,17 +14,25 @@ export class AuthUtils {
 
         this.initPromise = (async () => {
             try {
-                const response = await fetch('/api/auth/userInfo', {
-                    credentials: 'include', // Send HTTP-only cookie
-                });
+                const response = await fetch("/api/auth/loginStatus", {
+                    credentials: "include",
+                })
 
                 if (response.ok) {
-                    const userData = await response.json();
-                    this.isLoggedIn_flag = true;
-                    this.currentUser = userData;
-                    window.dispatchEvent(new CustomEvent('authChange', { 
-                        detail: { isLoggedIn: true, userData } 
-                    }));
+                    const status = await response.json();
+                    let userData = null;
+                    if (status.loggedIn === true) {
+                        const authService = new AuthServices();
+                        userData = await authService.getCurrentUser();
+                        this.isLoggedIn_flag = true;
+                        this.currentUser = userData;
+                        window.dispatchEvent(new CustomEvent('authChange', { 
+                            detail: { isLoggedIn: true, userData } 
+                        }));
+                    } else {
+                        this.isLoggedIn_flag = false;
+                        this.currentUser = null;
+                    }
                 } else {
                     this.isLoggedIn_flag = false;
                     this.currentUser = null;

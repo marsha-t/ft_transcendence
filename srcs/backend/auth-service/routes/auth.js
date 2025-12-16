@@ -455,6 +455,34 @@ async function authRoutes(app, options) {
       return reply.code(500).send({ error: 'Logout failed' });
     }
   });
+
+  app.get("/loginStatus", async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) {
+        return reply.code(200).send({ loggedIn: false });
+      }
+
+      let payload;
+      try {
+        payload = app.jwt.verify(token);
+      } catch {
+        return reply.code(200).send({ loggedIn: false });
+      }
+
+      const userId = payload.id;
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) {
+        return reply.code(200).send({ loggedIn: false });
+      }
+
+      return reply.code(200).send({ loggedIn: true });
+
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to check login status' });
+    }
+  })
   
   // Get current user info (username + avatar)
   app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
