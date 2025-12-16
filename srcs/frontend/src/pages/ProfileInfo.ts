@@ -3,7 +3,6 @@ import { apiServices } from '../services/ApiServices.js';
 import { ProfileData, ApiResponse } from '../services/profile/types';
 import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
-import { t } from "../services/i18n/i18nService.js";
 
 export class ProfileInfo implements IComponent {
     private messageContainer: HTMLDivElement | null = null;
@@ -26,7 +25,7 @@ export class ProfileInfo implements IComponent {
             p-4 relative flex flex-col items-center`;
 
         const editProfileBtn = document.createElement("div");
-        editProfileBtn.textContent = t("profile.editProfile") as string;
+        editProfileBtn.textContent = "edit";
         editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-[105px] h-[32px] font-pixel", 'green');
   
         editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
@@ -210,15 +209,15 @@ export class ProfileInfo implements IComponent {
 
         const changeBtn = document.createElement('button');
         changeBtn.type = 'button';
-        changeBtn.textContent = t("profile.avatarUpload") as string;
-        changeBtn.className =  createButtonStyle("w-[120px] h-[36px] font-pixel",  'green');
+        changeBtn.textContent = 'Change';
+        changeBtn.className =  createButtonStyle("w-[100px] h-[36px] font-pixel",  'green');
         changeBtn.classList.remove("mt-5");
         changeBtn.addEventListener('click', () => this.handleAvatarEdit('external', ""));
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
-        removeBtn.textContent = t("profile.avatarRemove") as string;
-        removeBtn.className = createButtonStyle("w-[120px] h-[36px] font-pixel",  'blue');
+        removeBtn.textContent = 'Remove';
+        removeBtn.className = createButtonStyle("w-[100px] h-[36px] font-pixel",  'blue');
         removeBtn.addEventListener('click', () => this.handleAvatarDelete());
 
         btnRow.appendChild(changeBtn);
@@ -278,11 +277,11 @@ export class ProfileInfo implements IComponent {
 
         const twoFactorTitle = document.createElement("span");
         twoFactorTitle.className = "text-sm font-semibold";
-        twoFactorTitle.textContent = t("profile.twoFactorAuth") as string;
+        twoFactorTitle.textContent = "Two-Factor Authentication";
 
         const twoFactorDesc = document.createElement("span");
         twoFactorDesc.className = "text-xs text-gray-400";
-        twoFactorDesc.textContent = t("profile.twoFactorAuthDesc") as string;
+        twoFactorDesc.textContent = "Add an extra layer of security to your account";
 
         twoFactorLabel.appendChild(twoFactorTitle);
         twoFactorLabel.appendChild(twoFactorDesc);
@@ -311,7 +310,7 @@ export class ProfileInfo implements IComponent {
         otpInput.className = `w-1/2 rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
 
         const otpButton = document.createElement("button");
-        otpButton.textContent = t("common.cofirm") as string;
+        otpButton.textContent = "Confirm";
         otpButton.className = `px-4 py-2 rounded-[8px] bg-[#77AB55] text-white font-semibold hover:bg-green-500 transition-colors`;
 
         otpButton.addEventListener("click", async () => {
@@ -404,7 +403,7 @@ export class ProfileInfo implements IComponent {
         usernameGroup.className = `flex flex-col gap-1`;
         const usernameLabel = document.createElement("label");
         usernameLabel.className = `text-sm font-semibold`;
-        usernameLabel.textContent = t("auth.username") as string;
+        usernameLabel.textContent = "Username";
         const usernameInput = document.createElement("input");
         usernameInput.type = "text";
         usernameInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
@@ -417,7 +416,7 @@ export class ProfileInfo implements IComponent {
         emailGroup.className = `flex flex-col gap-1`;
         const emailLabel = document.createElement("label");
         emailLabel.className = `text-sm font-semibold`;
-        emailLabel.textContent = t("auth.email") as string;
+        emailLabel.textContent = "Email";
         const emailInput = document.createElement("input");
         emailInput.type = "email";
         emailInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
@@ -430,14 +429,14 @@ export class ProfileInfo implements IComponent {
         passwordGroup.className = `flex flex-col gap-1`;
         const passwordLabel = document.createElement("label");
         passwordLabel.className = `text-sm font-semibold`;
-        passwordLabel.textContent = t("auth.password") as string;
+        passwordLabel.textContent = "Password";
         const oldPasswordInput = document.createElement("input");
         oldPasswordInput.type = "password";
-        oldPasswordInput.placeholder = t("auth.oldPassword") as string;
+        oldPasswordInput.placeholder = "Old Password";
         oldPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
         const newPasswordInput = document.createElement("input");
         newPasswordInput.type = "password";
-         newPasswordInput.placeholder = t("auth.newPassword") as string;
+        newPasswordInput.placeholder = "New Password";
         newPasswordInput.id = "newPassword"; // <- added id to be able to call it when google user has a new placeholder
         newPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
         passwordGroup.appendChild(passwordLabel);
@@ -458,18 +457,19 @@ export class ProfileInfo implements IComponent {
         const saveBtn = document.createElement("button");
         saveBtn.className =  createButtonStyle("w-[100px] h-[36px]  font-pixel",  'green');
         saveBtn.classList.remove("mt-5");
-        saveBtn.textContent = t("common.save") as string;
+        saveBtn.textContent = "Save";
 
         const cancelBtn = document.createElement("button");
         cancelBtn.className = createButtonStyle("w-[100px] h-[36px]  font-pixel",  'blue');
-        cancelBtn.textContent = t("common.cancel") as string;
+        cancelBtn.textContent = "Cancel";
+
         saveBtn.addEventListener("click", async () => {
             if (await this.showConfirmation("Do you want to save changes?", "Update Profile", true) ===true)  
             {
                 const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
                 const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
-                const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder=" + t("auth.oldPassword") as string + "]");
-                const newPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder=" + t("auth.newPassword") as string + "]");
+                const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
+                const newPasswordInput = form.querySelector<HTMLInputElement>("#newPassword");
     
                 const data: any = {
                     username: usernameInput?.value || undefined,
@@ -630,11 +630,11 @@ export class ProfileInfo implements IComponent {
             buttons.style.cssText = "display:flex;justify-content:center;gap:1rem";
 
             const yesBtn = document.createElement("button");
-            yesBtn.textContent = t("common.yes") as string;
+            yesBtn.textContent = "Yes";
             yesBtn.style.cssText = `padding:0.5rem 1.2rem;border:none;border-radius:8px;background:${action ? '#4caf50' : 'red'};color:white;cursor:pointer;font-size:0.9rem`;
 
             const noBtn = document.createElement("button");
-            noBtn.textContent = t("common.cancel") as string;
+            noBtn.textContent = "Cancel";
             noBtn.style.cssText = "padding:0.5rem 1.2rem;border:none;border-radius:8px;background:#ddd;cursor:pointer;font-size:0.9rem";
 
             buttons.appendChild(yesBtn);
