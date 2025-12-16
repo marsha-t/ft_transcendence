@@ -9,6 +9,7 @@ import { TournamentMatch } from './pages/TournamentMatch.js';
 import { TournamentResults } from './pages/TournamentResults.js';
 import { GameResults } from './pages/GameResults.js';
 import { ProfileDashboard } from './pages/UserDashboard.js';
+import { AuthUtils } from './utils/authUtils.js';
 import { AI } from './pages/AI.js';
 
 export class Router {
@@ -18,6 +19,30 @@ export class Router {
   constructor(container: HTMLElement) {
     this.container = container;
     const renderRoute = async () => {
+      const path = window.location.pathname;
+      const state = history.state;
+
+      const PROTECTED_ROUTES = [
+        '/game',
+        '/game/results',
+        '/profile',
+        '/dashboard',
+        '/tournament',
+        '/tournament/setup',
+        '/tournament/match',
+        '/tournament/results',
+        '/ai',
+      ] 
+
+      // Check authentication for protected routes
+      if (PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
+        history.pushState({}, "", "/login");
+        this.currentPage = new Login();
+        container.innerHTML = ''; // Clear container
+        container.appendChild(this.currentPage.render());
+        return;
+      }
+
       // Check if current page allows navigation
       if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
         const canLeave = await this.currentPage.canDeactivate();
@@ -37,8 +62,6 @@ export class Router {
       }
 
       container.innerHTML = ''; // Clear container
-      const path = window.location.pathname;
-      const state = history.state;
 
       switch (path) {
         case '/register':

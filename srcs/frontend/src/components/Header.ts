@@ -114,34 +114,26 @@ export class Header implements IComponent {
     private attachLanguageSwitcherListeners(container: HTMLElement): void {
         const button = container.querySelector('.lang-button') as HTMLButtonElement;
         const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
-        const arrow = container.querySelector('.dropdown-arrow') as HTMLElement;
-
-        // Toggle dropdown
+    
         button.addEventListener('click', (e) => {
             e.stopPropagation();
-            const isHidden = dropdown.classList.contains('hidden');
-            dropdown.classList.toggle('hidden', !isHidden);
-            arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            dropdown.classList.toggle('hidden');
         });
-
-        // Close dropdown when clicking outside
+    
         document.addEventListener('click', () => {
             dropdown.classList.add('hidden');
-            arrow.style.transform = 'rotate(0deg)';
         });
-
-        // Language selection
-        const options = container.querySelectorAll('.lang-option');
-        options.forEach(option => {
+    
+        container.querySelectorAll('.lang-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const selectedLang = (e.currentTarget as HTMLElement).dataset.lang!;
                 changeLanguage(selectedLang);
                 dropdown.classList.add('hidden');
-                arrow.style.transform = 'rotate(0deg)';
             });
         });
     }
+    
 
     private updateContent(): void {
         // Update links text
@@ -424,115 +416,61 @@ export class Header implements IComponent {
     }
     
     private createLanguageSwitcher(): HTMLElement {
-    const container = document.createElement('div');
-    container.className = 'relative inline-block';
+        const container = document.createElement('div');
+        container.className = 'relative inline-block';
 
-    const currentLang = getCurrentLanguage();
-    const currentLangInfo = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES];
+        const currentLang = getCurrentLanguage();
 
-    /* ---------- BUTTON (TOP) ---------- */
-    const button = document.createElement('button');
-    button.className = createButtonStyle('lang-button w-[50px] h-[42px] text-[20px] flex items-center justify-center', 'blue');
-    button.setAttribute('aria-label', String(t('settings.selectLanguage')));
+        /* ---------- BUTTON (TOP) ---------- */
+        const button = document.createElement('button');
+        button.className = createButtonStyle('lang-button w-[50px] h-[42px] text-[20px] flex items-center justify-center', 'blue');
+        button.setAttribute('aria-label', String(t('settings.selectLanguage')));
 
-   // MULTILINGUAL ICON (A + 文 + あ)
-    const langIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    langIcon.setAttribute('viewBox', '0 0 32 32');
-    langIcon.setAttribute('class', 'w-5 h-5 fill-current');
+        // Simplified multi-language symbol using letters
+        const langSymbol = document.createElement('span');
+        langSymbol.textContent = 'Aあ'; // Letters representing multiple languages
+        langSymbol.className = 'text-[18px] font-bold'; // Adjust size and style as needed
 
-    // "A"
-    const aText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    aText.setAttribute('x', '4');
-    aText.setAttribute('y', '14');
-    aText.setAttribute('font-size', '12');
-    aText.setAttribute('font-weight', 'bold');
-    aText.setAttribute('font-family', 'Arial, sans-serif');
-    aText.setAttribute('fill', 'currentColor');
-    aText.setAttribute('dominant-baseline', 'middle');
-    aText.setAttribute('text-anchor', 'middle');
-    aText.textContent = 'A';
+        // Add to button
+        button.appendChild(langSymbol);
 
-    // "文"
-    const cnText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    cnText.setAttribute('x', '16');
-    cnText.setAttribute('y', '16');
-    cnText.setAttribute('font-size', '11');
-    cnText.setAttribute('font-weight', 'bold');
-    cnText.setAttribute('font-family', 'SimSun, serif');
-    cnText.setAttribute('fill', 'currentColor');
-    cnText.setAttribute('dominant-baseline', 'middle');
-    cnText.setAttribute('text-anchor', 'middle');
-    cnText.textContent = '文';
+        /* ---------- DROPDOWN ---------- */
+        const dropdown = document.createElement('div');
+        dropdown.className =
+            'lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50';
 
-    // "あ"
-    const jpText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    jpText.setAttribute('x', '28');
-    jpText.setAttribute('y', '18');
-    jpText.setAttribute('font-size', '10');
-    jpText.setAttribute('font-weight', 'bold');
-    jpText.setAttribute('font-family', 'Hiragino Maru Gothic Pro, serif');
-    jpText.setAttribute('fill', 'currentColor');
-    jpText.setAttribute('dominant-baseline', 'middle');
-    jpText.setAttribute('text-anchor', 'middle');
-    jpText.textContent = 'あ';
+        Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
+            const option = document.createElement('button');
+            option.className =
+                `lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors ` +
+                `flex items-center justify-between text-color_white font-pixel text-[14px] ` +
+                (code === currentLang ? 'bg-color-green bg-opacity-30' : '');
+            option.dataset.lang = code;
 
-    langIcon.appendChild(aText);
-    langIcon.appendChild(cnText);
-    langIcon.appendChild(jpText);
+            const span = document.createElement('span');
+            span.className = 'font-medium';
+            span.textContent = info.nativeName;
 
-    // Add to button
-    button.appendChild(langIcon);
+            option.appendChild(span);
 
+            // Checkmark if selected
+            if (code === currentLang) {
+                const check = document.createElement('span');
+                check.textContent = '✔'; // Unicode checkmark
+                check.className = 'text-color-yellow';
+                option.appendChild(check);
+            }
 
-    /* ---------- DROPDOWN ---------- */
-    const dropdown = document.createElement('div');
-    dropdown.className =
-        'lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50';
+            dropdown.appendChild(option);
+        });
 
-    Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
-        const option = document.createElement('button');
-        option.className =
-            `lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors ` +
-            `flex items-center justify-between text-color_white font-pixel text-[14px] ` +
-            (code === currentLang ? 'bg-color-green bg-opacity-30' : '');
-        option.dataset.lang = code;
+        /* ---------- Assemble Container ---------- */
+        container.appendChild(button);
+        container.appendChild(dropdown);
 
-        const span = document.createElement('span');
-        span.className = 'font-medium';
-        span.textContent = info.nativeName;
+        /* ---------- Attach Events ---------- */
+        this.attachLanguageSwitcherListeners(container);
 
-        option.appendChild(span);
-
-        // Checkmark if selected
-        if (code === currentLang) {
-            const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            check.setAttribute('class', 'w-4 h-4 text-color-yellow');
-            check.setAttribute('fill', 'currentColor');
-            check.setAttribute('viewBox', '0 0 20 20');
-
-            const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            checkPath.setAttribute('fill-rule', 'evenodd');
-            checkPath.setAttribute(
-                'd',
-                'M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-            );
-            checkPath.setAttribute('clip-rule', 'evenodd');
-
-            check.appendChild(checkPath);
-            option.appendChild(check);
-        }
-
-        dropdown.appendChild(option);
-    });
-
-    /* ---------- Assemble Container ---------- */
-    container.appendChild(button);
-    container.appendChild(dropdown);
-
-    /* ---------- Attach Events ---------- */
-    this.attachLanguageSwitcherListeners(container);
-
-    return container;
-}
-
+        return container;
+    }
 }
