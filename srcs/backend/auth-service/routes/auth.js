@@ -8,8 +8,112 @@ import { sendEmail } from '../services/emailService.js';
 import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
 
 async function authRoutes(app, options) {
+  
+  // Register route
+  app.post('/register', { schema: registerSchema }, async (request, reply) => {
+    try {
+      const { username, email, password } = request.body;
 
-  app.post('/google', { shema: googleLoginSchema}, async (request, reply) => {
+      // Check if username/email already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: username },
+            { email: email }
+          ]
+        }
+      });
+
+      if (existingUser) {
+        return reply.code(409).send({ message: 'Username or email already exists' });
+      }
+
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      // Save user to the database
+      await prisma.user.create({
+        data: {
+          username: username,
+          email: email,
+          password: hashedPassword,
+        },
+      });
+
+      // Success
+      return reply.code(201).send({ message: 'User registered successfully' });
+
+    } catch (err) {
+      request.log.error(err);
+      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
+      return reply.code(500).send({ error: 'User registration failed' });
+    }
+  });
+
+  // Login Route
+  app.post('/login', { schema: loginSchema }, async (request, reply) => {
+    try {
+      const { username, password } = request.body;
+
+      // Find user
+      const user = await prisma.user.findUnique({ where: { username } });
+      if (!user || !await bcrypt.compare(password, user.password)) {
+        return reply.code(401).send({ message: 'Invalid credentials' });
+      }
+
+      // If 2FA is enabled
+      if (user.twoFactorEnabled) {
+        const otpCode = crypto.randomInt(100000, 999999).toString();
+        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { twoFactorCode: otpCode, twoFactorExpiry: otpExpiry },
+        });
+
+        await sendEmail(user.email, '2FA Verification Code', `Your OTP is: ${otpCode}`);
+
+        // CREATE TEMP 2FA JWT (SHORT-LIVED TOKEN)
+        const tempToken = app.jwt.sign(
+          { pendingUserId: user.id },
+          { expiresIn: '5m' }
+        );
+
+        // Store in secure HttpOnly cookie
+        reply.setCookie('pending_2fa', tempToken, {
+          httpOnly: true,
+          secure: true,  
+          sameSite: 'Lax', // allows third-party contexts
+          path: '/',
+          maxAge: 5 * 60,
+        });
+
+        return reply.code(200).send({
+          message: 'Two-Factor Authentication required',
+          twoFactorRequired: true
+        });
+      }
+
+      // If no 2FA, normal login
+      await prisma.user.update({ where: { id: user.id }, data: { status: "ONLINE" } });
+
+      const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
+
+      return reply.setCookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'Lax', // allows third-party contexts
+        path: '/',
+        maxAge: 60 * 60,
+      }).code(200).send({ message: 'Login successful' });
+
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Login failed' });
+    }
+  });
+
+  app.post('/google', { schema: googleLoginSchema}, async (request, reply) => {
     try {
       const { idToken } = request.body;
       if (!idToken) return reply.code(400).send({ message: 'Missing idToken' });
@@ -87,7 +191,7 @@ async function authRoutes(app, options) {
   
       reply.setCookie('token', token, {
         httpOnly: true,
-        secure: true, // change to true in prod
+        secure: true,
         sameSite: 'Lax', // allows third-party contexts
         path: '/',
         maxAge: 60 * 60,
@@ -100,112 +204,8 @@ async function authRoutes(app, options) {
     }
   });
 
-  // Register route
-  app.post('/register', { schema: registerSchema }, async (request, reply) => {
-    try {
-      const { username, email, password } = request.body;
-
-      // Check if username/email already exists
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { username: username },
-            { email: email }
-          ]
-        }
-      });
-
-      if (existingUser) {
-        return reply.code(409).send({ message: 'Username or email already exists' });
-      }
-
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 12);
-
-      // Save user to the database
-      await prisma.user.create({
-        data: {
-          username: username,
-          email: email,
-          password: hashedPassword,
-        },
-      });
-
-      // Success
-      return reply.code(201).send({ message: 'User registered successfully' });
-
-    } catch (err) {
-      request.log.error(err);
-      if (err.code && err.message) { return reply.code(err.code).send({ error: err.message }); }
-      return reply.code(500).send({ error: 'User registration failed' });
-    }
-  });
-
-  // Login Route
-  app.post('/login', { schema: loginSchema }, async (request, reply) => {
-    try {
-      const { username, password } = request.body;
-
-      // Find user
-      const user = await prisma.user.findUnique({ where: { username } });
-      if (!user || !await bcrypt.compare(password, user.password)) {
-        return reply.code(401).send({ message: 'Invalid credentials' });
-      }
-
-      // If 2FA is enabled
-      if (user.twoFactorEnabled) {
-        const otpCode = crypto.randomInt(100000, 999999).toString();
-        const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
-
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { twoFactorCode: otpCode, twoFactorExpiry: otpExpiry },
-        });
-
-        await sendEmail(user.email, '2FA Verification Code', `Your OTP is: ${otpCode}`);
-
-        // CREATE TEMP 2FA JWT (SHORT-LIVED TOKEN)
-        const tempToken = app.jwt.sign(
-          { pendingUserId: user.id },
-          { expiresIn: '5m' }
-        );
-
-        // Store in secure HttpOnly cookie
-        reply.setCookie('pending_2fa', tempToken, {
-          httpOnly: true,
-          secure: true,      // change to true in production
-          sameSite: 'Lax', // allows third-party contexts
-          path: '/',
-          maxAge: 5 * 60,
-        });
-
-        return reply.code(200).send({
-          message: 'Two-Factor Authentication required',
-          twoFactorRequired: true
-        });
-      }
-
-      // If no 2FA, normal login
-      await prisma.user.update({ where: { id: user.id }, data: { status: "ONLINE" } });
-
-      const token = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
-
-      return reply.setCookie('token', token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Lax', // allows third-party contexts
-        path: '/',
-        maxAge: 60 * 60,
-      }).code(200).send({ message: 'Login successful' });
-
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: 'Login failed' });
-    }
-  });
-
   // 2FA verification during login
-  app.post('/login/2fa', async (request, reply) => {
+  app.post('/login/2fa', { schema: login2FASchema }, async (request, reply) => {
     try {
       const { code } = request.body;
       if (!code) return reply.code(400).send({ message: "OTP required" });
@@ -268,7 +268,7 @@ async function authRoutes(app, options) {
   });
 
   // Resend OTP route
-  app.post('/login/resend-otp', async (request, reply) => {
+  app.post('/login/resend-otp', { schema: resendOTPSchema }, async (request, reply) => {
     try {
       const tempToken = request.cookies.pending_2fa;
       if (!tempToken) return reply.code(401).send({ message: "2FA session expired" });
@@ -311,6 +311,20 @@ async function authRoutes(app, options) {
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: "Failed to resend OTP" });
+    }
+  });
+
+  // 2FA status route (needed for the settings toggle button)
+  app.get('/2fa/status', { schema: status2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user) return reply.code(404).send({ message: 'User not found' });
+
+      return reply.send({ enabled: !!user.twoFactorEnabled });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to fetch 2FA status' });
     }
   });
 
@@ -379,20 +393,6 @@ async function authRoutes(app, options) {
     }
   });
 
-  // 2FA status route (needed for the settings toggle button)
-  app.get('/2fa/status', { schema: status2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
-    try {
-      const userId = request.user.id;
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) return reply.code(404).send({ message: 'User not found' });
-
-      return reply.send({ enabled: !!user.twoFactorEnabled });
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to fetch 2FA status' });
-    }
-  });
-
   //  Route to disable 2FA
   app.post('/2fa/disable', { schema: disable2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
@@ -456,7 +456,7 @@ async function authRoutes(app, options) {
     }
   });
   
-  // ✅ Get current user info (username + avatar)
+  // Get current user info (username + avatar)
   app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // extracted from JWT
@@ -479,9 +479,6 @@ async function authRoutes(app, options) {
       return reply.code(500).send({ error: 'Failed to fetch user info' });
     }
   });
-
-
-
 }
 
 export default authRoutes;
