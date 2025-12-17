@@ -47,9 +47,10 @@ export class Profile implements IComponent {
     subContainer.className = `
       grid gap-4 grid-cols-1 sm:grid-cols-[1fr_1.3fr]
       grid-rows-[250px_1fr] min-h-0
-      bg-background rounded-[16px] shadow-lg
+      rounded-[16px] shadow-lg
       mx-[23px] w-[calc(100%-46px)]
       py-6 px-10`;
+    subContainer.style.backgroundColor = 'var(--color-background-primary)';
     subContainer.style.maxHeight = 'calc(100vh - 46px)';
     subContainer.style.overflow = 'hidden';
 

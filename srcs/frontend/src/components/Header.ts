@@ -437,14 +437,11 @@ export class Header implements IComponent {
         /* ---------- DROPDOWN ---------- */
         const dropdown = document.createElement('div');
         dropdown.className =
-            'lang-dropdown hidden absolute right-0 mt-2 w-48 bg-background rounded-lg shadow-xl border border-border-green z-50';
+            'lang-dropdown hidden absolute right-0 mt-2 w-30 bg-background rounded-lg shadow-xl z-50';
 
         Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
             const option = document.createElement('button');
-            option.className =
-                `lang-option w-full text-left px-4 py-3 hover:bg-color-green transition-colors ` +
-                `flex items-center justify-between text-color_white font-pixel text-[14px] ` +
-                (code === currentLang ? 'bg-color-green bg-opacity-30' : '');
+            option.className = createButtonStyle('lang-option w-full text-left px-4 py-3 flex items-center justify-between text-[14px]', code === currentLang ? 'green' : 'blue');
             option.dataset.lang = code;
 
             const span = document.createElement('span');
