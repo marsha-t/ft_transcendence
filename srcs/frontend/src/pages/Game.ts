@@ -145,17 +145,17 @@ export class Game implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const customizeBtn = makeButton("Customize Game", "customize-btn", "block", () => 
+    const customizeBtn = makeButton(t("game.customizeGame") as string, "customize-btn", "block", () => 
       this.openCustomizationPopUp()
     );
 
-    const startBtn = makeButton(t("game.startGame"), "start-btn", "none", () =>
+    const startBtn = makeButton(t("game.startGame") as string, "start-btn", "none", () =>
       this.toggleGame()
     );
-    const pauseBtn = makeButton(t("game.pause"), "pause-btn", "none", () =>
+    const pauseBtn = makeButton(t("game.pause") as string, "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = makeButton(t("game.quitGame"), "quit-btn", "none",() =>
+    const quitBtn = makeButton(t("game.quitGame") as string, "quit-btn", "none",() =>
       this.quitGame()
     );
 
@@ -485,7 +485,7 @@ export class Game implements IComponent {
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
       // alert(`Game Over! ${winnerName} wins!`);
-      const confirmed = confirmationPopup(`Game Over! ${winnerName} wins!`, "Game Over", true);
+      const confirmed = await confirmationPopup(`${t("game-result.gameOver") as string}! ${winnerName} ${t("game-result.wins") as string}!`, `${t("game-result.gameOver") as string}`, true);
       if (!confirmed) return;
       if (this.opts?.isTournament) {
         TournamentStore.isInternalTournamentNavigation = true;
