@@ -9,6 +9,8 @@ import {makeButton} from "../utils/uiUtils.js";
 import { aiWebSocketService } from "../services/websocket/WebsocketServices.js";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
+import { t } from "../services/i18n/i18nService.js";
+
 
 
 
@@ -145,17 +147,17 @@ export class AI implements IComponent {
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const startBtn = makeButton("Start Game", "start-btn", "block", () =>
+    const startBtn = makeButton(t("game.startGame") as string, "start-btn", "block", () =>
       this.toggleGame()
     );
-    const pauseBtn = makeButton("Pause", "pause-btn", "none", () =>
+    const pauseBtn = makeButton(t("game.pause") as string, "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = makeButton("Quit Game", "quit-btn", "none", () =>
+    const quitBtn = makeButton(t("game.quitGame") as string, "quit-btn", "none", () =>
       this.quitGame()
     );
 
-    const customizeBtn = makeButton("Customize Game", "customize-btn", "block", () =>
+    const customizeBtn = makeButton(t("game.customizeGame") as string, "customize-btn", "block", () =>
       this.openCustomizationPopUp()
     );
 
@@ -391,9 +393,9 @@ export class AI implements IComponent {
       this.stopGameLoop();
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
-      const confirmed = confirmationPopup(
-        `Game Over! ${winnerName} wins!`,
-        "Game Over",
+      const confirmed = await confirmationPopup(
+        `${t("game-result.gameOver") as string}! ${winnerName} ${t("game-result.wins") as string}!`,
+        `${t("game-result.gameOver") as string}`,
         true
       );
       

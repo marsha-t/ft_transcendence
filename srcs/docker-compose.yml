@@ -26,11 +26,7 @@ services:
       - ./backend/auth-service/prisma/migrations:/app/prisma/migrations
       - ./backend/auth-service/uploads:/app/uploads
     restart: always
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
 
   profile:
     build:

@@ -1,6 +1,7 @@
 import { CustomGameSettings, GamePreset, gameConfigManager } from '../graphics/GameConfigManager';
 import { GameConfig } from '../graphics/GameConfig';
 import { makeButton } from './uiUtils';
+import { t } from "../services/i18n/i18nService";
 
 /**
  * GameCustomizationUI
@@ -114,11 +115,11 @@ export class GameCustomizationUI {
         header.className = `mb-6 border-b-2 border-white/10 pb-4 `;
 
         const title = document.createElement('h2');
-        title.textContent = 'Game Customization';
+        title.textContent = t("gameCustomization.title") as string;
         title.className = 'm-0 text-white text-2xl font-bold font-nonito';
 
         const subtitle = document.createElement('p');
-        subtitle.textContent = 'Choose a preset or customize your gaming experience';
+        subtitle.textContent = t("gameCustomization.discription") as string;
         subtitle.className = 'mt-2 text-white/60 text-sm text-nunito';
 
         header.appendChild(title);
@@ -132,7 +133,7 @@ export class GameCustomizationUI {
         section.className = `mb-4`;
 
         const label = document.createElement('h3');
-        label.textContent = 'Game Mode Presets';
+        label.textContent = t("gameCustomization.gameModePresets") as string;
         label.className = 'text-white text-lg font-semibold mb-4';
 
         const presetGrid = document.createElement('div');
@@ -143,10 +144,10 @@ export class GameCustomizationUI {
             label: string;
             icon: string;
             description: string;}> = [
-            { value: 'CLASSIC', label: 'Classic', icon: '🏓', description: 'Traditional pong gameplay' },
-            { value: 'FAST', label: 'Fast Mode', icon: '⚡', description: 'Increased speed and intensity' },
-            { value: 'CHAOS', label: 'Chaos Mode', icon: '🔥', description: 'Power-ups and mayhem' },
-            { value: 'CUSTOM', label: 'Custom', icon: '⚙️', description: 'Fine-tune everything' }
+            { value: 'CLASSIC', label: t("gameCustomization.classic") as string, icon: '🏓', description: t("gameCustomization.classicDesc") as string },
+            { value: 'FAST', label: t("gameCustomization.fastMode") as string, icon: '⚡', description: t("gameCustomization.fastModeDesc") as string },
+            { value: 'CHAOS', label: t("gameCustomization.chaosMode") as string, icon: '🔥', description: t("gameCustomization.chaosModeDesc") as string },
+            { value: 'CUSTOM', label: t("gameCustomization.customMode") as string, icon: '⚙️', description: t("gameCustomization.customModeDesc") as string }
         ];
 
         presets.forEach(preset => {
@@ -236,18 +237,18 @@ export class GameCustomizationUI {
         ballSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4 text-white';
 
         ballSection.appendChild(this.createSettingsGroup('Ball Settings', [
-            { key: 'ball.speed.x', label: 'Ball Speed', min: 5, max: 30, step: 1, default: GameConfig.ball.speed.x },
-            { key: 'ball.maxSpeed', label: 'Max Speed', min: 10, max: 40, step: 1, default: GameConfig.ball.maxSpeed },
-            { key: 'ball.speedIncrement', label: 'Speed Increment', min: 0.5, max: 3, step: 0.1, default: GameConfig.ball.speedIncrement }
+            { key: 'ball.speed.x', label: t("gameCustomization.ballSpeed") as string, min: 5, max: 30, step: 1, default: GameConfig.ball.speed.x },
+            { key: 'ball.maxSpeed', label: t("gameCustomization.maxSpeed") as string, min: 10, max: 40, step: 1, default: GameConfig.ball.maxSpeed },
+            { key: 'ball.speedIncrement', label: t("gameCustomization.speedIncrement") as string, min: 0.5, max: 3, step: 0.1, default: GameConfig.ball.speedIncrement }
         ]));
         section.appendChild(ballSection);
 
         //Paddle Settings section
         const paddleSection = document.createElement('div');
         paddleSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4';
-        paddleSection.appendChild(this.createSettingsGroup('Paddle Settings', [
-            { key: 'paddle.speed', label: 'Paddle Speed', min: 5, max: 25, step: 1, default: GameConfig.paddle.speed },
-            { key: 'paddle.depth', label: 'Paddle Size', min: 2, max: 5, step: 0.5, default: GameConfig.paddle.depth }
+        paddleSection.appendChild(this.createSettingsGroup(t("gameCustomization.paddleSettings") as string, [
+            { key: 'paddle.speed', label: t("gameCustomization.paddleSpeed") as string, min: 5, max: 25, step: 1, default: GameConfig.paddle.speed },
+            { key: 'paddle.depth', label: t("gameCustomization.paddleSize") as string, min: 2, max: 5, step: 0.5, default: GameConfig.paddle.depth }
         ]));
         section.appendChild(paddleSection);
 
@@ -514,8 +515,8 @@ private createSliderControl(config: {
         const container = document.createElement('div');
         container.className = 'flex gap-3 justify-end';
 
-        const cancelBtn = makeButton('Cancel', 'cancel-game-btn', 'block', () => this.handleCancel());
-        const applyBtn = makeButton('Apply & Start', 'apply-game-btn', 'block', () => this.handleApply());
+        const cancelBtn = makeButton(t("common.cancel") as string, 'cancel-game-btn', 'block', () => this.handleCancel());
+        const applyBtn = makeButton(t("gameCustomization.apply&Start") as string, 'apply-game-btn', 'block', () => this.handleApply());
 
         container.appendChild(cancelBtn);
         container.appendChild(applyBtn);
