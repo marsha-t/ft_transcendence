@@ -204,6 +204,7 @@
   },
   "dashboard": {
     "title": "YOUR PERFORMANCE DASHBOARD",
+    "noDataMessage": "No game data available. Play some matches to see your statistics here!",
     "overview": "Overview",
     "totalMatches": "Total Matches",
     "totalWins": "Total Wins",

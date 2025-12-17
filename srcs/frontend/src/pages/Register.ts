@@ -28,7 +28,7 @@ export class Register implements IComponent {
         heading.className = `
             w-[596px] text-center mb-8 
             text-[28px] font-nunito text-white`;
-        heading.textContent = t('auth.createNewAccount') as string;
+        heading.textContent = t('auth.noAccount') as string;
 
         // === Login card (form wrapper) ===
         const registerCard = document.createElement('div');
