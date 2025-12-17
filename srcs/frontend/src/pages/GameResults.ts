@@ -32,7 +32,8 @@ export class GameResults implements IComponent {
 
   public render(): HTMLElement {
     this.container = document.createElement("div");
-    this.container.className = `min-h-screen flex flex-col items-center gap-8 p-8 bg-[var(--color-background)] rounded-[16px] text-[var(--color-text-yellow)] font-pixel`;
+    this.container.className = `min-h-screen flex flex-col items-center gap-8 p-8  rounded-[16px] text-[var(--color-text-yellow)] font-pixel`;
+    this.container.style.backgroundColor = 'var(--color-background-primary)';
 
     const summaryDiv = document.createElement("div");
     summaryDiv.id = "summaryDiv";

@@ -16,10 +16,10 @@ export class ProfileDashboard implements IComponent {
         bg-background rounded-[16px] shadow-lg
         mx-[23px] w-[calc(100%-46px)]
         h-full py-6 px-10 `;
+    page.style.backgroundColor = 'var(--color-background-primary)';
 
     this.container = document.createElement("div");
     this.container.className = "p-8 flex flex-col items-center gap-8 h-auto w-full font-pixel text-yellow-300";
-
 
     // Title
     const isRtl = document.documentElement.dir === 'rtl';
