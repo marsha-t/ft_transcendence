@@ -352,10 +352,6 @@ private updateFriendsList(): void {
     // Clear current items
     friendsList.innerHTML = "";
 
-    console.log('Updating friends list. Active:', this.isFriendsActive);
-    console.log('Friends data:', this.friendsListData);
-    console.log('Requests data:', this.requestsListData);
-
     // Add new items
     if (this.isFriendsActive) {
         if (this.friendsListData.length === 0) {

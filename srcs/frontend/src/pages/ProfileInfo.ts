@@ -46,11 +46,12 @@ export class ProfileInfo implements IComponent {
         }
 
         const name = document.createElement("h2");
-        name.className = `profile-name text-[18px] leading-[22px] tracking-[-0.01em]
-            font-pixel font-[400] text-color_white
-            w-[125px] h-[22px]
+        name.className = `profile-name text-[20px] leading-[24px] tracking-[-0.01em]
+            font-pixel font-[500]
+            w-[125px] h-[24px]
             flex justify-center items-center
             rounded-md mt-3`;
+name.style.color = "white"; // Explicitly set the text color to white
         name.textContent = this.username || "username";
 
         profileInfo.appendChild(editProfileBtn);
