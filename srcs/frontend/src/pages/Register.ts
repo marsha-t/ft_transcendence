@@ -199,7 +199,6 @@ export class Register implements IComponent {
         this.setLoadingState(true);
         //send data to API
         try{
-            console.log('Sending registration data', userData);
             const response = await apiServices.register(userData);
             if(response.success){
                 this.showMessage(response.message, 'success');
