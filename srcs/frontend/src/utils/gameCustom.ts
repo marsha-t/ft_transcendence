@@ -546,11 +546,11 @@ private createSliderControl(config: {
 
         previewContent.innerHTML = `
             <strong>Preset:</strong> ${this.currentPreset}<br>
-            <strong>Ball Speed:</strong> ${config.ball.speed.x} units/s<br>
-            <strong>Max Speed:</strong> ${config.ball.maxSpeed} units/s<br>
-            <strong>Speed Increment:</strong> ${config.ball.speedIncrement}<br>
-            <strong>Paddle Speed:</strong> ${config.paddle.speed} units/s<br>
-            <strong>Paddle Size:</strong> ${config.paddle.depth} units<br>
+            <strong>Ball Speed:</strong> ${config.ball.speed.x} <br>
+            <strong>Max Speed:</strong> ${config.ball.maxSpeed} <br>
+            <strong>Speed Increment:</strong> ${config.ball.speedIncrement} %<br>
+            <strong>Paddle Speed:</strong> ${config.paddle.speed} <br>
+            <strong>Paddle Size:</strong> ${config.paddle.depth}<br>
             ${powerUpInfo}
         `;
     }
