@@ -269,7 +269,7 @@ private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): P
   // "Learn More" button — navigate to dashboard page
   const button = document.createElement("button");
   button.textContent = t("profile.dashboardBtn") as string;
-  button.className = createButtonStyle("absolute bottom-4 right-4 w-[190px] h-[32px] whitespace-nowrap font-pixel", 'green');
+  button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-pixel", 'green');
   button.addEventListener("click", () => {
     history.pushState(null, '', '/dashboard');
     window.dispatchEvent(new PopStateEvent('popstate'));

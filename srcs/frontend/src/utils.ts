@@ -1,4 +1,5 @@
 import { Router } from './Router.js';
+import { t } from './services/i18n/i18nService.js';
 //--------------------------
 // Routing
 //--------------------------
@@ -64,7 +65,7 @@ export async function confirmationPopup(message: string, title = "Please Confirm
     buttons.style.gap = "1rem";
 
     const yesBtn = document.createElement("button");
-    yesBtn.textContent = "Check Results";
+    yesBtn.textContent = t("game-result.checkResults") as string;
     yesBtn.style.padding = "0.5rem 1.2rem";
     yesBtn.style.border = "none";
     yesBtn.style.borderRadius = "8px";
@@ -197,7 +198,7 @@ export function createButtonStyle(customization: string = "", color: 'blue' | 'g
   if (color === 'blue') {
     return mainBlueStyle + " " + customization;
   }
-  return mainGreenStyle + " " + customization;
+  return mainGreenStyle + " " + customization;  
   
 }
 //--------------------------

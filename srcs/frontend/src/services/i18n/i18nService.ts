@@ -3,13 +3,13 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 // Import translation files
 import enTranslation from '../../locales/en/translation.json';
-import arTranslation from '../../locales/ar/translation.json';
+import arTranslation from '../../locales/sp/translation.json';
 import ruTranslation from '../../locales/ru/translation.json';
 
 // Language configuration
 export const SUPPORTED_LANGUAGES = {
   en: { name: 'English', nativeName: 'English', dir: 'ltr' },
-  ar: { name: 'Arabic', nativeName: 'العربية', dir: 'rtl' },
+  ar: { name: 'Spanish', nativeName: 'Español', dir: 'ltr' }, // Corrected to Spanish and LTR
   ru: { name: 'Russian', nativeName: 'Русский', dir: 'ltr' }
 };
 
@@ -43,9 +43,8 @@ export const changeLanguage = (lang: string) => {
     i18next.changeLanguage(lang);
     localStorage.setItem('i18nextLng', lang);
     
-    // Update document direction for RTL languages
-    const direction = SUPPORTED_LANGUAGES[lang as keyof typeof SUPPORTED_LANGUAGES].dir;
-    document.documentElement.dir = direction;
+    // Update document direction for all languages to LTR
+    document.documentElement.dir = 'ltr';
     document.documentElement.lang = lang;
     
     // Trigger custom event for components to re-render

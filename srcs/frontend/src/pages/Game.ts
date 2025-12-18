@@ -68,7 +68,7 @@ export class Game implements IComponent {
     userLeft.id = "left-player";
     
     const VS = document.createElement("h1");
-    VS.textContent = "VS";
+    VS.textContent = t("game.VS") as string;
     VS.className = "justify-self-center";
     
     const userRight = document.createElement("h2");
