@@ -65,7 +65,7 @@ export class AI implements IComponent {
     aiName.id = "left-player";
 
     const VS = document.createElement("h1");
-    VS.textContent = "VS";
+    VS.textContent = t("game.VS") as string;
     VS.className = "VS";
 
     // User on RIGHT

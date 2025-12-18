@@ -20,14 +20,12 @@ export class ProfileDashboard implements IComponent {
 
     this.container = document.createElement("div");
     this.container.className = "p-8 flex flex-col items-center gap-8 h-auto w-full font-pixel text-yellow-300";
+    this.container.dir = "ltr"; // Ensure left-to-right text direction
 
     // Title
-    const isRtl = document.documentElement.dir === 'rtl';
-    const alignClass = isRtl ? 'text-right' : 'text-left';
-
     const title = document.createElement("h1");
     title.textContent = t("dashboard.title") as string;
-    title.className = `text-[1.8rem] font-bold text-yellow-300 ${alignClass} mb-4 drop-shadow-[2px_2px_0_#000]`;
+    title.className = `text-[1.8rem] font-bold text-yellow-300 mb-4 drop-shadow-[2px_2px_0_#000]`;
   
     this.container.appendChild(title);
 
@@ -113,8 +111,6 @@ export class ProfileDashboard implements IComponent {
     if (!overviewDiv) return;
   
     const { overview } = this.dashboardData;
-    const isRtl = document.documentElement.dir === 'rtl';
-    const alignClass = isRtl ? 'text-right' : 'text-left';
   
     const metrics = [
       { label: t("dashboard.totalMatches") as string, value: overview.totalMatches },
@@ -137,7 +133,7 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     overviewDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4 text-xl font-bold ${alignClass}">${t("dashboard.overview")}</h2>
+      <h2 class="text-yellow-300 mb-4 text-xl font-bold">${t("dashboard.overview")}</h2>
       <div class="flex flex-col gap-2">
         ${metricsHTML}
       </div>
@@ -267,9 +263,6 @@ export class ProfileDashboard implements IComponent {
   
     const leaderboardDiv = document.getElementById("leaderboard");
     if (!leaderboardDiv) return;
-
-    const isRtl = document.documentElement.dir === 'rtl';
-    const alignClass = isRtl ? 'text-right' : 'text-left';
   
     const { leaderboard } = this.dashboardData;
   
@@ -297,7 +290,7 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     leaderboardDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4 ${alignClass}">${t("dashboard.leaderboard")}</h2>
+      <h2 class="text-yellow-300 mb-4">${t("dashboard.leaderboard")}</h2>
       <table class="w-full text-white text-[1rem] border-collapse">
         <thead>
           <tr class="bg-yellow-300/10 text-yellow-300">
@@ -324,13 +317,11 @@ export class ProfileDashboard implements IComponent {
       { id: "winsPerOpponent", title: t('dashboard.winsPerOpponent') as string },
       { id: "leaderboard", title: t('dashboard.leaderboard') as string },
     ];
-    const isRtl = document.documentElement.dir === 'rtl';
-    const alignClass = isRtl ? 'text-right' : 'text-left';
     placeholders.forEach(({ id, title }) => {
       const div = document.getElementById(id);
       if (div) {
         div.innerHTML = `
-          <h2 class="${alignClass}">${title}</h2>
+          <h2>${title}</h2>
           <p class="no-data">${t('dashboard.noDataMessage') || 'Not enough matches yet — play a few games to unlock insights!'}</p>
         `;
       }

@@ -34,7 +34,7 @@ export class Header implements IComponent {
 
     private createNav(): HTMLElement {
         const nav = document.createElement('nav');
-        nav.className = `flex justify-between items-center px-[20px] ml-0 mr-[60px]`;
+        nav.className = `flex justify-between items-center px-[20px] ml-0`;
 
         const logo = this.createLogo();
         const rightNav = this.createRightNav();
@@ -72,7 +72,7 @@ export class Header implements IComponent {
 
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
-        rightNav.className = 'flex items-center gap-[32px] w-[800px] h-[45px]';
+        rightNav.className = 'flex items-center h-[45px]';
 
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
@@ -311,10 +311,10 @@ export class Header implements IComponent {
         const a = document.createElement('a');
         a.href = link.href;
         a.textContent = link.text;
+        a.dir = 'ltr'; // Force left-to-right text direction
         // Decide styling based on explicit `type`/`href`, not on localized text
         if (link.type === 'button') {
             if (link.href === '/register') {
-                a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
             } else if (link.href === '/login') {
                 a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
             } else {
@@ -437,11 +437,14 @@ export class Header implements IComponent {
         /* ---------- DROPDOWN ---------- */
         const dropdown = document.createElement('div');
         dropdown.className =
-            'lang-dropdown hidden absolute right-0 mt-2 w-30 bg-background rounded-lg shadow-xl z-50';
+            'lang-dropdown hidden absolute right-0 mt-0 w-30 bg-background rounded-lg shadow-xl z-50'; // Adjusted margin-top to `mt-0`
 
         Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
             const option = document.createElement('button');
             option.className = createButtonStyle('lang-option w-full text-left px-4 py-3 flex items-center justify-between text-[14px]', code === currentLang ? 'green' : 'blue');
+            if (code === currentLang) {
+                option.classList.remove('mt-5');
+            }
             option.dataset.lang = code;
 
             const span = document.createElement('span');
