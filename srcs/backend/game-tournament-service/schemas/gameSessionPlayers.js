@@ -16,7 +16,15 @@ export const joinSessionSchema = {
 			type: 'integer', 
 		  },
 		  guestName: { 
-			type: 'string', maxLength: 20
+			type: 'string', 
+			minLength: 3, 
+			maxLength: 20, 
+			pattern: '^[a-zA-Z0-9_]+$',
+			errorMessage: {
+				minLength: 'Username must be at least 3 characters',
+				maxLength: 'Username must not exceed 20 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores'
+			}
 		  },
 		  side: { 
 			type: 'string', 

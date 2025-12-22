@@ -1,5 +1,4 @@
 import prisma from "../prisma/prismaClient.js";
-import bcrypt from "bcrypt";
 import { createGameSession } from "../services/gameSessionService.js";
 import {
   updateTournamentStatusSchema,
@@ -14,66 +13,70 @@ import {
 import { getUserInfo } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app, options) {
+
   // Validate player
   /* 
-		- Checks that registered user credentials are correct
+		- Check that guestName follows correct format (using schema)
+    - Check that registered user credentials are correct via Auth service
+    - Check that registered user is not the creator
 	*/
   app.post('/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-		const { username, password } = request.body;
+    
+    const { username, password, guestName } = request.body ?? {};
+
     try {
+      // 1) Guest name validation
+      if (guestName) {
+        return reply.send({
+          valid: true, 
+          displayName: guestName.trim(),
+          userId: null,
+        });
+      }
+      // 2) Registered user validation
       if (username && password) {
-        // Call Auth Service to validate credentials
-        try {
-          const response = await fetch(
-            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            }
-          );
+        const response = await fetch(
+          `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          }
+        );
+
+        if (response.status === 401) {
+          return reply.code(401).send({
+            valid: false,
+            error: 'Invalid username or password',
+          });
+        }
 
           if (!response.ok) {
-            // Try to parse response body to forward error details for debugging
-            let body = null;
-            try {
-              body = await response.json();
-            } catch (e) {
-              try {
-                body = await response.text();
-              } catch (e2) {
-                body = null;
-              }
-            }
-            request.log.warn({ status: response.status, body }, 'Auth validate failed');
-            return reply.code(response.status === 401 ? 401 : 500).send({ 
-              valid: false, 
-              error: body?.error || body?.message || "Invalid username or password"
+            request.log.error(
+              { status: response.status },
+              'Auth service error during validate-player'
+            );
+            return reply.code(500).send({
+              valid: false,
+              error: 'Authentication service unavailable',
             });
           }
 
-          const userData = await response.json();
+        const userData = await response.json();
 
-          // Prevent validating the creator as a player (UX/server-side guard)
-          const creatorId = request.user?.id;
-          if (userData && userData.id && creatorId && userData.id === creatorId) {
-            return reply.code(400).send({ valid: false, error: 'Player is the creator' });
-          }
-
-          return reply.send({
-            valid: true,
-            displayName: userData.username,
-            userId: userData.id,
-          });
-        } catch (err) {
-          console.error('Failed to validate user:', err);
-          return reply.code(500).send({ 
-            valid: false, 
-            error: "Failed to validate credentials" 
-          });
+        // Check that creator is not the player to be added
+        const creatorId = request.user?.id;
+        if (userData && userData.id && creatorId && userData.id === creatorId) {
+          return reply.code(400).send({ valid: false, error: 'Player is the creator' });
         }
-      }
-      } catch (err) {
+
+        return reply.send({
+          valid: true,
+          displayName: userData.username,
+          userId: userData.id,
+        });
+      } 
+    } catch (err) {
         request.log.error(err);
         return reply.code(err.code || 500).send({
           error: err.message || "Failed to validate tournament player",
@@ -166,6 +169,7 @@ async function tournamentRoutes(app, options) {
       }
     }
   );
+
   // Get next match
   /*
 		- Check that request user is in the tournament

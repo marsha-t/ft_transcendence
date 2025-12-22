@@ -1,33 +1,3 @@
-// Update tournament status
-export const updateTournamentStatusSchema = {
-	tags: ['Tournament'],
-	summary: 'Update tournament status', 
-	headers: {
-    	type: 'object',
-		properties: {
-			'x-current-tournament-id': { type: 'string'}, 
-		},
-	    required: ['x-current-tournament-id'],
-  	},
-	body: {
-		type: 'object',
-		required: ['status'],
-		properties: {
-			status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] }
-		}
-	},
-	response: {
-		200: {
-			type: 'object',
-			properties: {
-				id: { type: 'integer' },
-				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
-				startedAt: { type: ['string', 'null'], format: 'date-time' },
-				endedAt: { type: ['string', 'null'], format: 'date-time' }
-			}
-		}
-	}
-}
 
 // Validate player
 export const validatePlayerSchema = {
@@ -38,20 +8,39 @@ export const validatePlayerSchema = {
 	},
 	body: {
 		type: 'object',
-		required: ['username', 'password'],
+		anyOf: [
+			{
+			  required: ['username', 'password'],
+			},
+			{
+			  required: ['guestName'],
+			},
+		],
 		properties: {
 			username: { type: 'string' },
 			password: { type: 'string' },
+			guestName: {
+				type: 'string',
+				minLength: 3,
+				maxLength: 20,
+				pattern: '^[a-zA-Z0-9_]+$',
+				errorMessage: {
+				  minLength: 'Guest name must be at least 3 characters',
+				  maxLength: 'Guest name must not exceed 20 characters',
+				  pattern: 'Guest name can only contain letters, numbers, and underscores',
+				},
+			},
 		},
 		additionalProperties: false,
 	},
 	response: {
 		200: {
 			type: 'object',
+			required: ['valid', 'type', 'displayName'],
 			properties: {
 				valid: { type: 'boolean' },
 				displayName: { type: 'string' },
-				userId: { type: 'integer' },
+				userId: { type: ['integer', 'null']},
 			},
 			required: ['valid', 'displayName', 'userId'],
 		},
@@ -173,3 +162,34 @@ export const getNextMatchSchema = {
 		500: { type: 'object', properties: { error: { type: 'string' }, }, },
 	},
 };
+
+// Update tournament status
+export const updateTournamentStatusSchema = {
+	tags: ['Tournament'],
+	summary: 'Update tournament status', 
+	headers: {
+    	type: 'object',
+		properties: {
+			'x-current-tournament-id': { type: 'string'}, 
+		},
+	    required: ['x-current-tournament-id'],
+  	},
+	body: {
+		type: 'object',
+		required: ['status'],
+		properties: {
+			status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] }
+		}
+	},
+	response: {
+		200: {
+			type: 'object',
+			properties: {
+				id: { type: 'integer' },
+				status: { type: 'string', enum: ['CREATED', 'STARTED', 'FINISHED', 'ABORTED'] },
+				startedAt: { type: ['string', 'null'], format: 'date-time' },
+				endedAt: { type: ['string', 'null'], format: 'date-time' }
+			}
+		}
+	}
+}

@@ -3,7 +3,10 @@ import prisma from "../prisma/prismaClient.js";
 import { createGameSession, isValidTransition, buildUpdateData, runChecks} from "../services/gameSessionService.js";
 
 async function gameSessionRoutes(app, options) {
-  // Create game session with first player
+  // Create game session 
+  /*
+    - Create game session entry with first player already in it 
+  */
   app.post('/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
     const { guestName, side } = request.body ?? {};
@@ -43,7 +46,6 @@ async function gameSessionRoutes(app, options) {
     - Update GameSession
     - Return updated session object 
   */
-  
   app.patch('/game-sessions/status', {schema: updateSessionStatusSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
     const sessionIdHeader = request.headers['x-current-session-id'];
