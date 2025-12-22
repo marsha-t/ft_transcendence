@@ -59,6 +59,7 @@ export class TournamentMatch implements IComponent {
       this.container.textContent = "Error loading match.";
     }
   }
+  
   private renderMatch(
     matchIndex: number,
     p1: any,
@@ -126,7 +127,6 @@ export class TournamentMatch implements IComponent {
     TournamentStore.onMatchEnd = async () => {
       await this.loadNextMatch(); 
     };
-    TournamentStore.tournamentId = this.tournamentId;
     
     this.container.innerHTML = "";
     this.container.className = "w-full flex justify-center";

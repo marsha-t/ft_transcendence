@@ -108,6 +108,12 @@ export class TournamentResults implements IComponent {
       });
   }
 
+// Build Mermaid graph string that can be rendered into SVG bracket
+/*
+  - Sanitize names 
+  - Map player names to Mermaid node (P1, P2, ...) in playerNodeMap
+  - 
+*/
 private buildMermaidBracket(rounds: any[][]): string {
   let diagram = `graph TB\n\n`;
 
