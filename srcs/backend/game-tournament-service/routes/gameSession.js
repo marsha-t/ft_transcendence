@@ -9,16 +9,11 @@ async function gameSessionRoutes(app, options) {
   */
   app.post('/game-sessions', {schema: createGameSessionSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
-    const { guestName, side } = request.body ?? {};
+    const { side } = request.body ?? {};
 
-      if (!userId && !guestName) {
-        return reply
-          .code(400)
-          .send({ error: "Either X-Current-User-Id or guestName is required" });
-      }
       try {
         const session = await createGameSession(prisma, {
-          players: [{ userId, guestName, side }],
+          players: [{ userId, side }],
           tournamentId: null,
           matchIndex: null,
         });
