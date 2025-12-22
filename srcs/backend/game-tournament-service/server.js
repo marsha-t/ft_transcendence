@@ -77,6 +77,37 @@ app.get('/health', async (request, reply) => {
   };
 });
 
+app.setErrorHandler((error, request, reply) => {
+  request.log.error(error);
+
+  // AJV validation error
+  if (error.validation?.length) {
+    return reply.code(400).send({
+      error: {
+        message: error.validation[0].message,
+        code: 'VALIDATION_ERROR',
+      },
+    });
+  }
+
+  // 2️Prisma unique constraint
+  if (error.code === 'P2002') {
+    return reply.code(409).send({
+      error: {
+        message: 'Resource already exists',
+        code: 'DUPLICATE_RESOURCE',
+      },
+    });
+  }
+
+  return reply.code(error.statusCode || 500).send({
+    error: {
+      message: error.message || 'Internal Server Error',
+      code: error.code || 'INTERNAL_ERROR',
+    },
+  });
+});
+
 
 // Start server
 const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5005;

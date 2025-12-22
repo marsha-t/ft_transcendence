@@ -24,66 +24,58 @@ async function tournamentRoutes(app, options) {
     
     const { username, password, guestName } = request.body ?? {};
 
-    try {
-      // 1) Guest name validation
-      if (guestName) {
-        return reply.send({
-          valid: true, 
-          displayName: guestName.trim(),
-          userId: null,
-        });
-      }
-      // 2) Registered user validation
-      if (username && password) {
-        const response = await fetch(
-          `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          }
-        );
-
-        if (response.status === 401) {
-          return reply.code(401).send({
-            valid: false,
-            error: 'Invalid username or password',
-          });
-        }
-
-          if (!response.ok) {
-            request.log.error(
-              { status: response.status },
-              'Auth service error during validate-player'
-            );
-            return reply.code(500).send({
-              valid: false,
-              error: 'Authentication service unavailable',
-            });
-          }
-
-        const userData = await response.json();
-
-        // Check that creator is not the player to be added
-        const creatorId = request.user?.id;
-        if (userData && userData.id && creatorId && userData.id === creatorId) {
-          return reply.code(400).send({ valid: false, error: 'Player is the creator' });
-        }
-
-        return reply.send({
-          valid: true,
-          displayName: userData.username,
-          userId: userData.id,
-        });
-      } 
-    } catch (err) {
-        request.log.error(err);
-        return reply.code(err.code || 500).send({
-          error: err.message || "Failed to validate tournament player",
-        });
-      }
+    // 1) Guest name validation
+    if (guestName) {
+      return reply.send({
+        valid: true, 
+        displayName: guestName.trim(),
+        userId: null,
+      });
     }
-  );
+    
+    // 2) Registered user validation
+    if (username && password) {
+      const response = await fetch(
+        `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        }
+      );
+
+      if (response.status === 401) {
+        const err = new Error('Invalid username or password');
+        err.statusCode = 401;
+        err.code = 'INVALID_CREDENTIALS';
+        throw err;
+      }
+
+      if (!response.ok) {
+        const err = new Error('Authentication service unavailable');
+        err.statusCode = 502;
+        err.code = 'AUTH_SERVICE_DOWN';
+        throw err;
+      }
+
+      const userData = await response.json();
+
+      // Check that creator is not the player to be added
+      const creatorId = request.user?.id;
+      if (userData && userData.id && creatorId && userData.id === creatorId) {
+        const err = new Error('Player is the creator');
+        err.statusCode = 400;
+        err.code = 'PLAYER_IS_CREATOR';
+        throw err;
+      }
+
+      return reply.send({
+        valid: true,
+        displayName: userData.username,
+        userId: userData.id,
+      });
+    } 
+  });
 
   // Finalise tournament details
   /*
