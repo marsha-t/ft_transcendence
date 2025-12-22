@@ -1,7 +1,6 @@
 import prisma from '../prisma/prismaClient.js';
-import { createGameSession } from '../services/gameSessionService.js';
 import { checkSession, checkPlayer } from '../services/gameSessionPlayersService.js';
-import { joinSessionSchema, listPlayersSessionSchema, updateScoreSchema, deletePlayerSchema } from '../schemas/gameSessionPlayers.js';
+import { joinSessionSchema, updateScoreSchema } from '../schemas/gameSessionPlayers.js';
 import { propagateWinner } from "../services/tournamentService.js";
 import { updateUserStats, getUserInfo } from '../services/authServiceClient.js';
 

@@ -243,7 +243,6 @@ export class TournamentSetup implements IComponent {
 
     toggleContainer.append(guestBtn, userBtn);
     
-
     form.appendChild(toggleContainer);
 
     // --- Guest form ---
@@ -253,28 +252,8 @@ export class TournamentSetup implements IComponent {
     <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
     <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
     <input id="guest-input" placeholder= "${t("tournament.guestName") as string}"
-      class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-[#0f2b66]"
-      maxlength="20" />
-
-    <p id="guest-warning" class="text-red-400 text-sm mt-1 hidden">
-      That's the limit! Try a shorter name.
-    </p>
-
+      class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-[#0f2b66]"/>
     `;
-    const guestInput = guestForm.querySelector(
-      "#guest-input"
-    ) as HTMLInputElement;
-    const warning = guestForm.querySelector(
-      "#guest-warning"
-    ) as HTMLParagraphElement;
-
-    guestInput.addEventListener("input", () => {
-      if (guestInput.value.length >= 20) {
-        warning.classList.remove("hidden");
-      } else {
-        warning.classList.add("hidden");
-      }
-    });
 
     // --- Registered form ---
     const userForm = document.createElement("div");
@@ -293,7 +272,6 @@ export class TournamentSetup implements IComponent {
       "hidden w-full bg-[#ff4d4d]/20 text-[#ffb3b3] border border-[#ff4d4d]/40 " +
       "rounded-md px-3 py-1 mb-2 font-['VT323'] text-[1rem] text-center leading-tight";
     errorBox.textContent = "";
-
 
     const addBtn = document.createElement("button");
     addBtn.textContent = t("tournament.addPlayerBtn") as string;
@@ -346,61 +324,49 @@ export class TournamentSetup implements IComponent {
     const pass = password.value.trim();
     const guest = guestName.value.trim();
 
-    if (user && pass && guest) {
+    if ((user || pass) && guest) {
       errorBox.textContent = "Please fill in either username/password or guest name";
       errorBox.classList.remove("hidden");
       return;
     }
 
-    let newPlayerDisplayName: string | undefined;
-    let newPlayer: {
-      displayName: string;
-      userId?: number;
-      isGuest: boolean;
-    } | null = null;
-
-    if (user && pass) {
-      const res = await apiServices.tournament.validatePlayer({
-        username: user,
-        password: pass,
-      });
-      if (!res.success || !res.data.valid) {
-        errorBox.textContent = "Invalid username or password";
-        errorBox.classList.remove("hidden");
-        return;
-      }
-      newPlayerDisplayName = res.data.displayName;
-      newPlayer = {
-        displayName: res.data.displayName,
-        userId: res.data.userId,
-        isGuest: false,
-      };
-    } else if (guest) {
-      if (!guest.trim()) {
-        errorBox.textContent = "Guest name cannot be empty";
-        errorBox.classList.remove("hidden");
-        return ;
-      }
-      newPlayerDisplayName = guest;
-      newPlayer = { displayName: guest, isGuest: true };
-    } else {
+    if ((!user || !pass) && !guest) {
       errorBox.textContent = "Enter username/password or guest name";
       errorBox.classList.remove("hidden");
       return;
     }
+
+    const res = await apiServices.tournament.validatePlayer(
+      guest
+        ? { guestName: guest }
+        : { username: user, password: pass }
+    );
+  
+    if (!res.success || !res.data?.valid) {
+      errorBox.textContent =
+        res.message || "Failed to validate player";
+      errorBox.classList.remove("hidden");
+      return;
+    }
+  
+    const { displayName, userId, type } = res.data;
 
     const existingNames = [
       this.creatorUsername.toLowerCase(), 
       ...TournamentDraftStore.players.map((p) => p.displayName.toLowerCase())
     ];
 
-    if (existingNames.includes(newPlayerDisplayName!.toLowerCase())) {
-      errorBox.textContent = `${newPlayerDisplayName} already added`;
+    if (existingNames.includes(displayName!.toLowerCase())) {
+      errorBox.textContent = `${displayName} already added`;
       errorBox.classList.remove("hidden");
       return;
     }
 
-    TournamentDraftStore.addPlayer(newPlayer!);
+    TournamentDraftStore.addPlayer({
+      displayName, 
+      userId: userId ?? undefined,
+      isGuest: type == "guest",
+    });
 
     // Check if full
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
