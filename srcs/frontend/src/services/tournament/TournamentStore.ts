@@ -2,8 +2,6 @@ import { CustomGameSettings } from "../../graphics/GameConfigManager";
 
 export interface TournamentStoreType {
   onMatchEnd: (() => Promise<void>) | null;
-  tournamentId: number | null;
-  
     /**
    * TRUE when navigation happens as part of the internal tournament flow
    * (e.g., Game, GameResults).  
@@ -23,7 +21,6 @@ export interface TournamentStoreType {
 
 export const TournamentStore: TournamentStoreType = {
   onMatchEnd: null,
-  tournamentId: null,
   isInternalTournamentNavigation: false,
   nextIsFinal: false,
   gameSettings: null,
@@ -31,7 +28,6 @@ export const TournamentStore: TournamentStoreType = {
 
 export function resetTournamentStore(): void {
   TournamentStore.onMatchEnd = null;
-  TournamentStore.tournamentId = null;
   TournamentStore.isInternalTournamentNavigation = false;
   TournamentStore.nextIsFinal = false;
   TournamentStore.gameSettings = null;

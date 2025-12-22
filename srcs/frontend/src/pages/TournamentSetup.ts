@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { navigate, createButtonStyle } from "../utils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
-import { TournamentStore } from "../services/tournament/TournamentStore.js";
+import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
@@ -17,10 +17,7 @@ export class TournamentSetup implements IComponent {
   private customizationSection!: HTMLElement;
 
   public render(): HTMLElement {
-    TournamentStore.tournamentId = null;
-    TournamentStore.onMatchEnd = null;
-    TournamentStore.isInternalTournamentNavigation = false;
-
+    resetTournamentStore();
     TournamentDraftStore.clear();
 
     const page = document.createElement("div");
