@@ -158,8 +158,6 @@ export const getNextMatchSchema = {
 			},
 			required: ['tournamentId', 'nextMatch'],
 		},
-		404: { type: 'object', properties: { error: { type: 'string' }, }, },
-		500: { type: 'object', properties: { error: { type: 'string' }, }, },
 	},
 };
 

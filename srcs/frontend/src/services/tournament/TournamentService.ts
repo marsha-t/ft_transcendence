@@ -20,12 +20,11 @@ export class TournamentService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status,
-					message: msg || "Failed to validate player",
-					errors: data.errors || []
+					message: data?.error?.message || "Failed to validate player",
+					errors: []
 				};
 			}
 			return { success: true, status: response.status, message: 'Valid player', data };
