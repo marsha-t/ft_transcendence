@@ -1,5 +1,4 @@
 import { IComponent } from "../components/IComponent.js";
-import { GameService } from "../services/game/GameService.js";
 import {GameSession, PlayerSide, GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
@@ -15,7 +14,6 @@ export class Game implements IComponent {
   private canvas: HTMLCanvasElement;
   private pongGame!: PongGame;
 
-  private gameService: GameService;
   private currentSession: GameSession | null = null;
   private opts?: GameOptions;
   private isScoring: boolean = false;
@@ -32,7 +30,6 @@ export class Game implements IComponent {
     this.canvas = document.createElement("canvas");
     this.canvas.width = 900;
     this.canvas.height = 500;
-    this.gameService = new GameService();
   }
 
   public render(): HTMLElement {
@@ -84,7 +81,7 @@ export class Game implements IComponent {
 
   private createCanvas(): void {
     const canvasContainer = document.createElement("div");
-    canvasContainer.className = "relative"; // Make container relative for positioning
+    canvasContainer.className = "relative";
 
     this.canvas.className =
       "max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
@@ -117,10 +114,6 @@ export class Game implements IComponent {
   private createPongGame(): void {
       if (this.customGameSettings) {
         gameConfigManager.applyCustomizations(this.customGameSettings);
-        console.log('[Game] Applied customizations BEFORE PongGame creation:', {
-            preset: this.customGameSettings.preset,
-            powerUps: gameConfigManager.current.powerUps
-        });
     }
 
     this.pongGame = new PongGame(
@@ -197,16 +190,9 @@ export class Game implements IComponent {
 
     this.cutomizationUI = openGameCustomization(document.body,
       (settings: CustomGameSettings) => {
-        console.log('[Game] Received settings:', settings);
 
         this.customGameSettings = settings;
         gameConfigManager.applyCustomizations(settings);
-        // console.log("Applied custom game settings:", settings);
-        console.log('[Game] After applying:', {
-          enabled: gameConfigManager.current.powerUps.enabled,
-          types: gameConfigManager.current.powerUps.types,
-          spawnInterval: gameConfigManager.current.powerUps.spawnInterval
-      });
         this.recreatePongGame();
         this.showCustomizationApplied(settings.preset);
       }, ()=> {
@@ -215,9 +201,7 @@ export class Game implements IComponent {
     );
   }
 
-  private recreatePongGame(): void {
-    console.log('[Game] Recreating PongGame with new config...');
-    
+  private recreatePongGame(): void {    
     // Dispose old game
     if (this.pongGame) {
         this.pongGame.dispose();
@@ -235,9 +219,6 @@ export class Game implements IComponent {
 
     // Create new PongGame with updated config
     this.createPongGame();
-
-    console.log('[Game] PongGame recreated successfully!');
-    console.log('[Game] Power-ups enabled:', gameConfigManager.current.powerUps.enabled);
   }
 
   private showCustomizationApplied(preset: string): void {
@@ -245,8 +226,7 @@ export class Game implements IComponent {
     const indicator = document.createElement("div");
     indicator.id = "custom-indicator";
     indicator.textContent = `${preset} Mode Active`;
-    indicator.className = 
-      "text-white bg-purple-600 px-4 py-2 rounded-lg " +
+    indicator.className = "text-white bg-purple-600 px-4 py-2 rounded-lg " +
       "font-semibold text-sm mt-2";
     
     const controls = this.container.querySelector(".flex.flex-row.gap-4");
@@ -263,12 +243,7 @@ export class Game implements IComponent {
 
   private async initializeStandalone(): Promise<void> {
     try {
-      this.currentSession = await this.gameService.createGameSession(
-        "RIGHT"
-      );
-
-      console.log(`Current Session:`, this.currentSession);
-
+      this.currentSession = await apiServices.game.createGameSession("RIGHT");
       // Show user on the right
       const rightPlayerElement = document.getElementById("right-player");
       if (rightPlayerElement && this.currentSession?.players[0]) {
@@ -276,7 +251,6 @@ export class Game implements IComponent {
           this.currentSession.players[0].displayName;
       }
     } catch (error) {
-      console.error("Failed to initialize game:", error);
       alert("Failed to initialize game");
     }
   }
@@ -311,7 +285,7 @@ export class Game implements IComponent {
     }
 
     try {
-      await this.gameService.addGuestPlayer(
+      await apiServices.game.addGuestPlayer(
         this.currentSession.sessionId,
         guestName,
         null,
@@ -335,7 +309,6 @@ export class Game implements IComponent {
 
       guestInput.value = "";
     } catch (error: any) {
-      console.error("Error adding guest player:", error);
       if (error.status === 409) {
         alert(error.message);
       } else {
@@ -364,12 +337,11 @@ export class Game implements IComponent {
 
     try {
       if (!this.isGameRunning) {
-        await this.gameService.startGame(this.currentSession.sessionId);
+        await apiServices.game.startGame(this.currentSession.sessionId);
         this.startGameLoop();
         this.updateGameButtons(true);
       }
     } catch (error) {
-      console.error("Failed to start game:", error);
       alert("Failed to start game. Please try again.");
     }
   }
@@ -379,11 +351,11 @@ export class Game implements IComponent {
 
     try {
       if (this.isGameRunning) {
-        await this.gameService.pauseGame(this.currentSession.sessionId);
+        await apiServices.game.pauseGame(this.currentSession.sessionId);
         this.stopGameLoop();
         this.updateGameButtons(false);
       } else {
-        await this.gameService.startGame(this.currentSession.sessionId);
+        await apiServices.game.startGame(this.currentSession.sessionId);
         this.startGameLoop();
         this.updateGameButtons(true);
       }
@@ -399,7 +371,7 @@ export class Game implements IComponent {
     if (!confirmed) return;
 
     try {
-      await this.gameService.abortGame(this.currentSession.sessionId);
+      await apiServices.game.abortGame(this.currentSession.sessionId);
       this.stopGameLoop();
       this.resetGame();
     } catch (error) {
@@ -440,7 +412,7 @@ export class Game implements IComponent {
 
     try {
       if (this.currentSession) {
-        this.currentSession = await this.gameService.updatePlayerScore(
+        this.currentSession = await apiServices.game.updatePlayerScore(
           this.currentSession.sessionId,
           scoringSide
         );
@@ -468,8 +440,6 @@ export class Game implements IComponent {
     const leftScore = leftPlayer?.score ?? 0;
     const rightScore = rightPlayer?.score ?? 0;
 
-    console.log(`Score - Left: ${leftScore}, Right: ${rightScore}`);
-
     const leftScoreEl = document.getElementById("left-score");
     const rightScoreEl = document.getElementById("right-score");
 
@@ -484,8 +454,9 @@ export class Game implements IComponent {
       this.stopGameLoop();
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
-      // alert(`Game Over! ${winnerName} wins!`);
-      const confirmed = await confirmationPopup(`${t("game-result.gameOver") as string}! ${winnerName} ${t("game-result.wins") as string}!`, `${t("game-result.gameOver") as string}`, true);
+      const confirmed = await confirmationPopup(`${t("game-result.gameOver") as string}! 
+              ${winnerName} ${t("game-result.wins") as string}!`,
+             `${t("game-result.gameOver") as string}`, true);
       if (!confirmed) return;
       if (this.opts?.isTournament) {
         TournamentStore.isInternalTournamentNavigation = true;
@@ -566,7 +537,6 @@ export class Game implements IComponent {
     }
 
     gameConfigManager.reset();
-    // this.pongGame = null as any;
     this.currentSession = null;
     this.customGameSettings = null;
   }
