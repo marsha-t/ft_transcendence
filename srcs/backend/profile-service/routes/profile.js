@@ -6,8 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema, getPlayCountsSchema } from '../schemas/profile.js';
 
-async function profileRoutes(app, options) {
-  // Get play counts for heatmap (top-level route inside profileRoutes)
+async function profileRoutes(app) {
 
   // 1- Get current user's profile by ID 
   app.get('/profile', { schema: getCurrentUserSchema, preHandler: [app.authenticate] }, async (request, reply) => {

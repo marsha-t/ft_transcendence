@@ -3,7 +3,7 @@
 import prisma from '../prisma/prismaClient.js';
 import { sendFriendRequestSchema, acceptFriendRequestSchema, rejectFriendRequestSchema, removeFriendSchema, getFriendsSchema, getIncomingRequestsSchema, searchFriendsSchema } from '../schemas/friends.js';
 
-async function friendsRoutes(app, options) {
+async function friendsRoutes(app) {
 
   // 1- Send a friend request by username
   app.post('/friends/send', { schema: sendFriendRequestSchema, preHandler: [app.authenticate] }, async (request, reply) => {
