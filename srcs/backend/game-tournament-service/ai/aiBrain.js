@@ -2,11 +2,22 @@ import predictBallIntercept from   "./predictBallIntercept.js"
 import decideMovement from "./decideMovement.js";
 
 export default class AIBrain {
+    /*
+        - lastUpdateTime: to enforce 'thinking' once per second
+        - lastUpdateTime: to cache predictions in between 'thoughts'
+    */
     constructor() {
         this.lastUpdateTime = 0;
         this.lastPrediction = null;
     }
 
+    // Orchestrate how AI decides
+    /*
+        - Check at least 1 second has passed since last prediction
+        - If so, 
+            - call predictBallIntercept (intersection between ball and AI paddle) and cache prediction in lastPrediction
+            - call decideMovement to generate AI's move
+    */
     decide(snapshot) {
         const now = Date.now();
 
@@ -21,31 +32,14 @@ export default class AIBrain {
                 oppPaddle: snapshot.oppPaddle,
                 constants: snapshot.constants,
             });
-
             this.lastUpdateTime = now;
         }
 
-        // If the ball won't reach → drift to center
-        if (!this.lastPrediction.willReach || 
-            this.lastPrediction.zIntercept === undefined) {
-
-            const z = snapshot.aiPaddle.z;
-
-            if (z > 0.2) return "UP";
-            if (z < -0.2) return "DOWN";
-            return "NONE";
-        }
-        // if (!this.lastPrediction.willReach || 
-        //     this.lastPrediction.zIntercept === undefined) {
-        //     return 0;
-        // }
-
-        // Normal predicted movement
         return decideMovement({
             aiPaddleZ: snapshot.aiPaddle.z,
             zIntercept: this.lastPrediction.zIntercept,
             arena: snapshot.arena,
+            hasIntercept: this.lastPrediction.willReach,
         });
-        // return this.lastPrediction.zIntercept;
     }
 }

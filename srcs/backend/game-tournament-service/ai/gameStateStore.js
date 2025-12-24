@@ -1,10 +1,9 @@
 
-/**
+/*
  * GameStateStore - Stores the current game state for each AI game session
  * Key = sessionId (example: 123)
  * Value = game state data
  */
-
 class GameStateStore {
     constructor (){
         this.sessions = new Map();
@@ -43,25 +42,16 @@ class GameStateStore {
         };
 
         this.sessions.set(sessionId, state);
-        console.log(`[GameState] Session ${sessionId} updated - Ball at (${state.ball.x}, ${state.ball.z})`);
-        
     }
 
+    // Map.get() returns a reference to the object
     getState(sessionId) {
-        return this.sessions.get(sessionId); // AI brain will call this to read the game state
+        return this.sessions.get(sessionId);
     }
 
+    // Remove game state (garbage collector will deallocate)
     removeState(sessionId) {
         this.sessions.delete(sessionId);
-        console.log(`[GameState] Session ${sessionId} removed (game ended)`);
-    }
-
-    getAllActiveSessions(){
-        return Array.from(this.sessions.keys());
-    }
-
-    hasSession(sessionId){
-        return this.sessions.has(sessionId);
     }
 }
 
