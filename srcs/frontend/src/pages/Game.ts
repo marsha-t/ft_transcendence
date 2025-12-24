@@ -495,6 +495,7 @@ export class Game implements IComponent {
     if (leftPlayerElement) leftPlayerElement.textContent = "Player 1";
     if (rightPlayerElement) rightPlayerElement.textContent = "Player 2";
 
+    this.recreatePongGame();
     this.initializeStandalone();
   }
 
