@@ -4,13 +4,14 @@ export const createGameSessionSchema = {
 	summary: 'Create game session with first player', 
 	headers: {
 		type: 'object',
-		},
+	},
 	body: {
 		type: 'object',
 		required: ['side'],
 		properties: {
 			side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
+		additionalProperties: false,
 	},
 	response: {
 		201: {
@@ -49,7 +50,7 @@ export const updateSessionStatusSchema = {
 	headers: {
 		type: 'object',
 		properties: {
-			'x-current-session-id': { type: 'string' },
+			'x-current-session-id': { type: 'string', pattern: '^[0-9]+$', },
 		  },	  
 		required: ['x-current-session-id'],
 	},
@@ -91,18 +92,6 @@ export const updateSessionStatusSchema = {
 			  },
 			},
 			required: ['id', 'status', 'players'],
-		},
-		400: {
-			type: 'object',
-			properties: {
-				error: { type: 'string' },
-			},
-		},
-		404: {
-			type: 'object',
-			properties: {
-				error: { type: 'string' },
-			},
 		},
 	},
 };
