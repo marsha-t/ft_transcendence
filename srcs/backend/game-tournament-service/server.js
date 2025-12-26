@@ -90,7 +90,7 @@ app.setErrorHandler((error, request, reply) => {
     });
   }
 
-  // 2️Prisma unique constraint
+  // 2 Prisma unique constraint
   if (error.code === 'P2002') {
     return reply.code(409).send({
       error: {
