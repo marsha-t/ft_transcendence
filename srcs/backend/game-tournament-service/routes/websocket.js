@@ -1,7 +1,7 @@
 import prisma from '../prisma/prismaClient.js';
 import aiWebSocketHandler from "../ai/aiWebSocket.js";
 
-export default async function websocketRoutes(app, options) {
+export default async function websocketRoutes(app) {
 	// Establish WebSocket connection for AI game
 	/*
 		- Authentication checks that token is present and valid 

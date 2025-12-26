@@ -2,7 +2,7 @@ import prisma from "../prisma/prismaClient.js";
 import { createGameSession } from "../services/gameSessionService.js";
 import { createAiGameSchema } from "../schemas/ai.js";
 
-async function aiRoutes(app, options){
+async function aiRoutes(app){
 	// Create game session with requester and AI opponent 
 	/*
 		- Create game session with requester and AI opponent

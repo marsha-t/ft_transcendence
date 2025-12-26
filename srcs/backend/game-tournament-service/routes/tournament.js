@@ -4,7 +4,7 @@ import { createGameSession } from "../services/gameSessionService.js";
 import { seedPlayersRandom, propagateWinner, } from "../services/tournamentService.js";
 import { getUserInfo, validateUserCredentials } from "../services/authServiceClient.js";
 
-async function tournamentRoutes(app, options) {
+async function tournamentRoutes(app) {
 
   // Validate player
   /* 
@@ -14,13 +14,16 @@ async function tournamentRoutes(app, options) {
     - Check that registered user is not the creator
 	*/
   app.post('/tournaments/validate-player', { schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-    const { username, password, guestName } = request.body ?? {};
-
+    const { username: usernameRaw, password: passwordRaw, guestName: guestNameRaw } = request.body ?? {};
+    const username = usernameRaw?.trim().toLowerCase();
+    const password = passwordRaw?.trim();
+    const guestName = guestNameRaw?.trim();
+    
     // Guest name validation
     if (guestName) {
       return reply.send({
         valid: true, 
-        displayName: guestName.trim(),
+        displayName: guestName,
         userId: null,
       });
     }
@@ -91,13 +94,13 @@ async function tournamentRoutes(app, options) {
     const tournamentPlayers = [
       {
         tournamentId: tournament.id,
-        displayName: creatorUsername,
+        displayName: creatorUsername.trim(),
         userId: creatorId,
         isGuest: false,
       },
       ...players.map((p) => ({
         tournamentId: tournament.id,
-        displayName: p.displayName,
+        displayName: p.displayName.trim(),
         userId: p.userId ?? null,
         isGuest: !p.userId,
       })),

@@ -1,7 +1,7 @@
 import {prismaUserData, prismaGameData} from "../prisma/prismaClient.js";
 import { playCountsSchema, matchHistorySchema, gameDashboardSchema, userDashboardSchema } from "../schemas/dashboard.js";
 
-async function dashboardRoutes(app, options) {
+async function dashboardRoutes(app) {
   // Generate play counts for heatmap
   /*
     - Check that start date is before end date

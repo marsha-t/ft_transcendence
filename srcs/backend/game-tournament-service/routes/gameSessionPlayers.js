@@ -4,7 +4,7 @@ import { checkSessionRequester } from '../services/gameSessionPlayersService.js'
 import { propagateWinner } from "../services/tournamentService.js";
 import { updateUserStats } from '../services/authServiceClient.js';
 
-async function gameSessionPlayersRoutes(app, options) {
+async function gameSessionPlayersRoutes(app) {
   // Add guest to game session
   /*
 		- Checks session exists and is of 'CREATED' status
