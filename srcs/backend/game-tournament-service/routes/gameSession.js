@@ -2,7 +2,7 @@ import prisma from "../prisma/prismaClient.js";
 import { createGameSessionSchema, updateSessionStatusSchema } from "../schemas/gameSession.js";
 import { createGameSession, isValidTransition, buildUpdateData, runChecks} from "../services/gameSessionService.js";
 
-async function gameSessionRoutes(app, options) {
+async function gameSessionRoutes(app) {
   // Create game session 
   /*
     - Create game session entry with first player (requester) in it 
