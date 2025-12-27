@@ -1,6 +1,7 @@
 // routes/auth.js
 
 import { googleLoginSchema, registerSchema, loginSchema, login2FASchema, resendOTPSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
+import { updateLanguageSchema } from '../schemas/user.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -484,14 +485,14 @@ async function authRoutes(app, options) {
     }
   })
   
-  // Get current user info (username + avatar)
+  // Get current user info (username + avatar + defaultLanguage)
   app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // extracted from JWT
 
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { username: true, avatar: true },
+        select: { username: true, avatar: true, defaultLanguage: true },
       });
 
       if (!user) {
@@ -501,10 +502,35 @@ async function authRoutes(app, options) {
       return reply.code(200).send({
         username: user.username,
         avatar: user.avatar || '../uploads/avatars/default.png',
+        defaultLanguage: user.defaultLanguage,
       });
     } catch (err) {
       request.log.error(err);
       return reply.code(500).send({ error: 'Failed to fetch user info' });
+    }
+  });
+
+  // Update default language endpoint
+  app.patch('/user/language', { schema: updateLanguageSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+    try {
+      const userId = request.user.id;
+      const { language } = request.body;
+
+      // Validate language
+      const allowedLanguages = ['en', 'sp', 'ru'];
+      if (!allowedLanguages.includes(language)) {
+        return reply.code(400).send({ message: 'Invalid language' });
+      }
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: { defaultLanguage: language },
+      });
+
+      return reply.send({ message: 'Default language updated' });
+    } catch (err) {
+      request.log.error(err);
+      return reply.code(500).send({ error: 'Failed to update language' });
     }
   });
 }
