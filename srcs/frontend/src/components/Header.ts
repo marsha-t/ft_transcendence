@@ -314,12 +314,7 @@ export class Header implements IComponent {
         a.dir = 'ltr'; // Force left-to-right text direction
         // Decide styling based on explicit `type`/`href`, not on localized text
         if (link.type === 'button') {
-            if (link.href === '/register') {
-            } else if (link.href === '/login') {
                 a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
-            } else {
-                a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
-            }
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
@@ -392,24 +387,14 @@ export class Header implements IComponent {
     }
 
     private getLoginButtonClasses(isActive: boolean): string {
-        const baseClasses = `
-            w-[138px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-white
-            border border-[1px] border-green
-            inline-flex justify-center items-center
-            no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
+        const baseClasses = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
         
         return isActive ? `${baseClasses} bg-green`
             : `${baseClasses} hover:bg-green hover:text-white`;
     }
 
     private getRegisterButtonClasses(isActive: boolean): string {
-        const baseClasses = `
-            w-[188px] h-[36px] px-4 rounded-[8px] tracking-[0.4em]
-            text-[16px] font-pixel text-white
-            border border-[1px] border-green
-            inline-flex justify-center items-center
-            no-underline cursor-pointer transition-colors duration-200 ease-in-out`;
+        const baseClasses = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
         
         return isActive ? `${baseClasses} bg-green`
         : `${baseClasses} hover:bg-green hover:text-white`;

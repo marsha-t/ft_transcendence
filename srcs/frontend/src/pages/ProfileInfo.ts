@@ -4,6 +4,7 @@ import { ProfileData, ApiResponse } from '../services/profile/types';
 import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
+import { changeLanguage } from "../services/i18n/i18nService.js";
 
 export class ProfileInfo implements IComponent {
     private messageContainer: HTMLDivElement | null = null;
@@ -445,9 +446,59 @@ export class ProfileInfo implements IComponent {
         passwordGroup.appendChild(oldPasswordInput);
         passwordGroup.appendChild(newPasswordInput);
 
+        // Language
+        const languageGroup = document.createElement("div");
+        languageGroup.className = `flex flex-col gap-1`;
+
+        const languageLabel = document.createElement("label");
+        languageLabel.className = `text-sm font-semibold`;
+        languageLabel.textContent = t("settings.language") as string;
+
+        const languageSelect = document.createElement("select");
+        languageSelect.className = `
+        w-full rounded-[8px] px-3 py-2
+        bg-[#183B76] border border-gray-500
+        text-white focus:outline-none
+        `;
+
+        const languages = [
+        { code: "en", label: "English" },
+        { code: "sp", label: "Spanish" },
+        { code: "ru", label: "Russian" },
+        ];
+
+        languages.forEach(lang => {
+        const option = document.createElement("option");
+        option.value = lang.code;
+        option.textContent = lang.label;
+        languageSelect.appendChild(option);
+        });
+
+        // Set current language (from backend)
+        languageSelect.value = localStorage.getItem("i18nextLng") || "en";
+        
+        // Add change handler to persist language to backend
+        languageSelect.addEventListener('change', async (e) => {
+            const selectedLanguage = (e.target as HTMLSelectElement).value;
+            try {
+                // Update language locally first for immediate UI response
+                await changeLanguage(selectedLanguage);
+                
+                // Show success message
+                this.showMessage("Language updated successfully!", 'success');
+            } catch (error) {
+                console.error('Failed to update language:', error);
+                this.showMessage("Failed to update language", 'error');
+            }
+        });
+
+        languageGroup.appendChild(languageLabel);
+        languageGroup.appendChild(languageSelect);
+
         form.appendChild(usernameGroup);
         form.appendChild(emailGroup);
         form.appendChild(passwordGroup);
+        // form.appendChild(languageGroup);
 
         return form;
     }
