@@ -144,13 +144,6 @@ async function authRoutes(app) {
     }
 
     const payload = await verifyGoogleToken(idToken);
-    if (!payload) {
-      const err = new Error('Invalid Google token');
-      err.statusCode = 401;
-      err.code = 'INVALID_GOOGLE_TOKEN';
-      throw err;
-    }
-
     const { sub: googleId, email, name, picture } = payload;
 
     // 1) Try to find if the user exists by googleId
