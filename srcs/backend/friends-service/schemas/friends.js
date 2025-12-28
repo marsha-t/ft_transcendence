@@ -27,11 +27,7 @@ export const sendFriendRequestSchema = {
           }
         }
       }
-    },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    409: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
 
@@ -60,10 +56,8 @@ export const acceptFriendRequestSchema = {
           }
         }
       }
-    },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    }
+  }
 };
 
 export const rejectFriendRequestSchema = {
@@ -78,10 +72,8 @@ export const rejectFriendRequestSchema = {
     properties: { username: { type: 'string', minLength: 3 } }
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
+  }
 };
 
 export const removeFriendSchema = {
@@ -96,10 +88,8 @@ export const removeFriendSchema = {
     properties: { username: { type: 'string', minLength: 3 } }
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
+  }
 };
 
 export const getFriendsSchema = {
@@ -119,8 +109,7 @@ export const getFriendsSchema = {
           status: { type: 'string' }
         }
       }
-    },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
 
@@ -148,8 +137,7 @@ export const getIncomingRequestsSchema = {
           status: { type: 'string' }
         }
       }
-    },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
 
@@ -177,9 +165,6 @@ export const searchFriendsSchema = {
           friendStatus: { type: 'string', enum: ['not_friend', 'pending_sent'] }
         } 
       }
-    },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };

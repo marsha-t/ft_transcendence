@@ -1,69 +1,5 @@
 // schemas/auth.js
 
-export const googleLoginSchema = {
-  tags: ['Authentication'],
-  summary: 'Log in or register a user via Google OAuth',
-  body: {
-    type: 'object',
-    required: ['idToken'],
-    properties: {
-      idToken: {
-        type: 'string',
-        minLength: 10, // rough check for token length
-        errorMessage: {
-          minLength: 'idToken is invalid or too short'
-        }
-      }
-    },
-    additionalProperties: false,
-    errorMessage: {
-      required: {
-        idToken: 'idToken is required'
-      },
-      additionalProperties: 'No extra fields are allowed'
-    }
-  },
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        twoFactorRequired: { type: 'boolean' },
-        }
-      }
-    },
-    400: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' },
-        validation: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              field: { type: 'string' },
-              message: { type: 'string' }
-            }
-          }
-        }
-      }
-    },
-    401: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' }
-      }
-    },
-    500: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    }
-};
-
 export const registerSchema = {
   tags: ['Authentication'],
   summary: 'Register a new user',
@@ -116,30 +52,7 @@ export const registerSchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        twoFactorRequired: { type: 'boolean' } // optional, only if 2FA is enabled
-      }
-    },
-    400: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' },
-        validation: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              field: { type: 'string' },
-              message: { type: 'string' }
-            }
-          }
-        }
-      }
-    },
-    409: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
+        twoFactorRequired: { type: 'boolean' }
       }
     }
   }
@@ -176,28 +89,39 @@ export const loginSchema = {
         username: { type: 'string'},
         twoFactorRequired: { type: 'boolean' }
       }
-    },
-    400: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' },
-        validation: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              field: { type: 'string' },
-              message: { type: 'string' }
-            }
-          }
+    }
+  }
+};
+
+export const googleLoginSchema = {
+  tags: ['Authentication'],
+  summary: 'Log in or register a user via Google OAuth',
+  body: {
+    type: 'object',
+    required: ['idToken'],
+    properties: {
+      idToken: {
+        type: 'string',
+        minLength: 10, // rough check for token length
+        errorMessage: {
+          minLength: 'idToken is invalid or too short'
         }
       }
     },
-    401: {
+    additionalProperties: false,
+    errorMessage: {
+      required: {
+        idToken: 'idToken is required'
+      },
+      additionalProperties: 'No extra fields are allowed'
+    }
+  },
+  response: {
+    200: {
       type: 'object',
       properties: {
-        error: { type: 'string' }
+        message: { type: 'string' },
+        twoFactorRequired: { type: 'boolean' },
       }
     }
   }
@@ -228,18 +152,6 @@ export const login2FASchema = {
       properties: {
         message: { type: 'string' }
       }
-    },
-    400: {
-      type: 'object',
-      properties: { message: { type: 'string' } }
-    },
-    401: {
-      type: 'object',
-      properties: { message: { type: 'string' } }
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } }
     }
   }
 };
@@ -260,18 +172,17 @@ export const resendOTPSchema = {
         message: { type: 'string' },
         twoFactorRequired: { type: 'boolean' }
       }
-    },
-    400: {
+    }
+  }
+};
+
+export const status2FASchema = {
+  response: {
+    200: {
       type: 'object',
-      properties: { message: { type: 'string' } }
-    },
-    404: {
-      type: 'object',
-      properties: { message: { type: 'string' } }
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } }
+      properties: {
+        enabled: { type: 'boolean' }
+      }
     }
   }
 };
@@ -284,21 +195,9 @@ export const enable2FASchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-      },
-    },
-    404: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-      },
-    },
-    500: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 export const verify2FASchema = {
@@ -331,41 +230,6 @@ export const verify2FASchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-      },
-    },
-    400: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-      },
-    },
-    401: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-      },
-    },
-    404: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-      },
-    },
-    500: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-      },
-    },
-  },
-};
-
-export const status2FASchema = {
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        enabled: { type: 'boolean' }
       }
     }
   }
@@ -379,21 +243,9 @@ export const disable2FASchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-      },
-    },
-    404: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-      },
-    },
-    500: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-      },
-    },
-  },
+      }
+    }
+  }
 };
 
 export const logoutSchema = {
@@ -408,25 +260,37 @@ export const logoutSchema = {
       properties: {
         message: { type: 'string' },
       }
-    },
-    400: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' }
-      }
-    },
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    },
-    500: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
     }
   }
 };  
+
+export const loginStatusSchema = {
+  tags: ['Authentication'],
+  summary: 'Check login status using JWT cookie',
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        loggedIn: { type: 'boolean' },
+      },
+      required: ['loggedIn'],
+      additionalProperties: false,
+    },
+  },
+};
+
+export const userInfoSchema = {
+  tags: ['User'],
+  summary: 'Get authenticated user basic info',
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        username: { type: 'string' },
+        avatar: { type: 'string' },
+      },
+      required: ['username', 'avatar'],
+      additionalProperties: false,
+    },
+  },
+};

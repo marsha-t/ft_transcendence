@@ -1,11 +1,11 @@
 // routes/auth.js
 
-import { googleLoginSchema, registerSchema, loginSchema, login2FASchema, resendOTPSchema, enable2FASchema, verify2FASchema, status2FASchema, disable2FASchema, logoutSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema, googleLoginSchema, login2FASchema, resendOTPSchema, status2FASchema, enable2FASchema, verify2FASchema, disable2FASchema, logoutSchema, loginStatusSchema, userInfoSchema } from '../schemas/auth.js';
+import { sendEmail } from '../services/emailService.js';
+import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { sendEmail } from '../services/emailService.js';
-import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
 
 async function authRoutes(app) {
   
@@ -475,7 +475,7 @@ async function authRoutes(app) {
   /*
     Route returns whether the client has a valid JWT token and is logged in.
   */
-  app.get("/loginStatus", async (request, reply) => {
+  app.get("/loginStatus", { schema: loginStatusSchema }, async (request, reply) => {
     try {
       const token = request.cookies.token;
       if (!token) {
@@ -500,7 +500,7 @@ async function authRoutes(app) {
   /*
     Route returns username and avatar of authenticated user.
   */
-  app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/userInfo', { schema: userInfoSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
 
