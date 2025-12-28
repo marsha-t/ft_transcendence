@@ -138,9 +138,11 @@ export const login2FASchema = {
         type: 'string',
         minLength: 6,
         maxLength: 6,
+        pattern: '^[0-9]{6}$',
         errorMessage: {
           minLength: 'Code must be 6 digits',
           maxLength: 'Code must be 6 digits',
+          pattern: 'Code must contain only digits',
         },
       },
     },
@@ -211,9 +213,11 @@ export const verify2FASchema = {
         type: 'string',
         minLength: 6,
         maxLength: 6,
+        pattern: '^[0-9]{6}$',
         errorMessage: {
           minLength: 'Code must be 6 digits',
           maxLength: 'Code must be 6 digits',
+          pattern: 'Code must contain only digits',
         },
       },
     },
@@ -275,8 +279,8 @@ export const loginStatusSchema = {
       },
       required: ['loggedIn'],
       additionalProperties: false,
-    },
-  },
+    }
+  }
 };
 
 export const userInfoSchema = {
@@ -291,6 +295,6 @@ export const userInfoSchema = {
       },
       required: ['username', 'avatar'],
       additionalProperties: false,
-    },
-  },
+    }
+  }
 };
