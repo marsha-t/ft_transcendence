@@ -26,9 +26,10 @@ export async function sendEmail(to, subject, text) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}`);
   } catch (err) {
-    console.error('Error sending email:', err);
-    throw err;
+    const error = new Error(`Failed to send email to ${to}`);
+    error.statusCode = 500;
+    error.code = 'EMAIL_SEND_FAILED';
+    throw error;
   }
 }
