@@ -1,10 +1,10 @@
 // routes/profile.js
 
+import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema } from '../schemas/profile.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import fs from 'fs';
 import path from 'path';
-import { getCurrentUserSchema, updateProfileSchema, avatarUploadSchema, removeAvatarSchema, getPlayCountsSchema } from '../schemas/profile.js';
 
 async function profileRoutes(app) {
 

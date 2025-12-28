@@ -142,6 +142,27 @@ app.get('/health', async (request, reply) => {
 await app.ready(); // wait until all routes are registered
 // fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
 
+// app.setErrorHandler((error, request, reply) => {
+//   request.log.error(error);
+
+//   // AJV validation error
+//   if (error.validation?.length) {
+//     return reply.code(400).send({
+//       error: {
+//         message: error.validation[0].message,
+//         code: 'VALIDATION_ERROR',
+//       },
+//     });
+//   }
+
+//   return reply.code(error.statusCode || 500).send({
+//     error: {
+//       message: error.message || 'Internal Server Error',
+//       code: error.code || 'INTERNAL_ERROR',
+//     },
+//   });
+// });
+
 const start = async () => {
   try {
     await app.listen({ port: 5001, host: '0.0.0.0' });
