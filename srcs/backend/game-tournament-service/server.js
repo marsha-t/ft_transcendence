@@ -69,13 +69,6 @@ app.register(aiRoutes, { prefix: '/api/ai' });
 //register websocket routes
 app.register(websocketRoutes, {prefix: '/ws'});
 
-// Health check endpoint
-app.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
-    service: 'auth-service'  // Change name for each service
-  };
-});
 
 
 // Start server

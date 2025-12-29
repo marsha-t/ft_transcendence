@@ -5,6 +5,7 @@ import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
 import { changeLanguage } from "../services/i18n/i18nService.js";
+import { showConfirmation } from "../utils/uiUtils";
 
 export class ProfileInfo implements IComponent {
     private messageContainer: HTMLDivElement | null = null;
@@ -82,21 +83,14 @@ export class ProfileInfo implements IComponent {
         }
     }
     private async fetchUsername(): Promise<string> {
-        // Simulating an async API call to fetch the username
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve("Alice");
-            }, 1000);  // Simulate a 1-second delay
-        });
+        // Return current username immediately (no artificial delay)
+        return Promise.resolve(this.username || "");
     }
     
     private async fetchAvatarUrl(): Promise<string | null> {
-        // Simulating an async API call to fetch the avatar URL
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve("https://example.com/avatar.jpg");
-            }, 1000);  // Simulate a 1-second delay
-        });
+        // Return avatar URL immediately (use profile utils for consistent URL)
+        if (this.avatar) return Promise.resolve(getAvatarUrl(this.avatar));
+        return Promise.resolve(null);
     }
     private async updateProfileUI(): Promise<void> {
         if (!this.container) return;
@@ -517,7 +511,7 @@ export class ProfileInfo implements IComponent {
         cancelBtn.textContent = t("common.cancel") as string;
 
         saveBtn.addEventListener("click", async () => {
-            if (await this.showConfirmation("Do you want to save changes?", "Update Profile", true) ===true)  
+            if (await showConfirmation(t("profile.saveChanges") as string, t("profile.updateProfile") as string, true) ===true)  
             {
                 const usernameInput = form.querySelector<HTMLInputElement>("input[type='text']");
                 const emailInput = form.querySelector<HTMLInputElement>("input[type='email']");
@@ -564,13 +558,15 @@ export class ProfileInfo implements IComponent {
     private async handleAvatarEdit(avPath: 'preset' | 'external', avatarPath : string): Promise<void> {
         try {
             if (avPath === 'preset') {
-                const confirmed = await this.showConfirmation("Set this image as your new avatar?", "Change Avatar", true);
+                const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
                 if (!confirmed) return;
                 const response = await apiServices.profile.uploadAvatarFromPreset(avatarPath);
                 if (response.success && response.data) {
                     this.avatar = response.data.avatar;
                     await this.updatePopupAvatar();
                     await this.updateProfileUI();
+                    // Notify other UI (header, profile page) about avatar change immediately
+                    window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
                     window.dispatchEvent(new CustomEvent('authChange'));
                     if (this.onProfileUpdate) this.onProfileUpdate();
                 } else {
@@ -586,7 +582,7 @@ export class ProfileInfo implements IComponent {
                 input.addEventListener("change", async (e: Event) => {
                     const file = (e.target as HTMLInputElement).files?.[0];
                     if (file) {
-                        const confirmed = await this.showConfirmation("Set this image as your new avatar?", "Change Avatar", true);
+                        const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
                         if (!confirmed) return;
 
                         const response = await apiServices.profile.uploadAvatar(file);
@@ -595,6 +591,8 @@ export class ProfileInfo implements IComponent {
                             this.avatar = response.data.avatar;
                             await this.updatePopupAvatar();
                             await this.updateProfileUI();
+                            // Notify other UI (header, profile page) about avatar change immediately
+                            window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
                             window.dispatchEvent(new CustomEvent('authChange'));
                             if (this.onProfileUpdate) this.onProfileUpdate();
                         } else {
@@ -612,7 +610,7 @@ export class ProfileInfo implements IComponent {
     }
 
     private async handleAvatarDelete(): Promise<void> {
-        const confirmed = await this.showConfirmation("Are you sure you want to remove your avatar?", "Remove Avatar", false);
+        const confirmed = await showConfirmation(t("profile.removeAvatarConfirmation") as string, t("profile.removeAvatarLabel") as string, false);
         if (!confirmed) return;
 
         try {
@@ -622,6 +620,8 @@ export class ProfileInfo implements IComponent {
             this.avatar = result.data?.avatar || "";
             await this.updatePopupAvatar();
             await this.updateProfileUI();
+            // Notify other UI about avatar deletion
+            window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
             window.dispatchEvent(new CustomEvent('authChange'));
             if (this.onProfileUpdate) this.onProfileUpdate();
         } catch (error) {
@@ -661,54 +661,6 @@ export class ProfileInfo implements IComponent {
                 }, 300);
             }
         }, 1000);
-    }
-
-    private async showConfirmation(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
-        return new Promise((resolve) => {
-            const overlay = document.createElement("div");
-            overlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000";
-
-            const modal = document.createElement("div");
-            modal.style.cssText = "background:var(--color-background-secondary,#fff);padding:1.5rem;border-radius:16px;width:320px;box-shadow:0 4px 12px rgba(0,0,0,0.15);text-align:center";
-
-            const titleEl = document.createElement("h3");
-            titleEl.textContent = title;
-            titleEl.style.cssText = "margin-top:0;margin-bottom:0.5rem;font-size:1.1rem";
-
-            const messageEl = document.createElement("p");
-            messageEl.textContent = message;
-            messageEl.style.cssText = "margin:1rem 0;font-size:0.95rem";
-
-            const buttons = document.createElement("div");
-            buttons.style.cssText = "display:flex;justify-content:center;gap:1rem";
-
-            const yesBtn = document.createElement("button");
-            yesBtn.textContent = "Yes";
-            yesBtn.style.cssText = `padding:0.5rem 1.2rem;border:none;border-radius:8px;background:${action ? '#4caf50' : 'red'};color:white;cursor:pointer;font-size:0.9rem`;
-
-            const noBtn = document.createElement("button");
-            noBtn.textContent = "Cancel";
-            noBtn.style.cssText = "padding:0.5rem 1.2rem;border:none;border-radius:8px;background:#ddd;cursor:pointer;font-size:0.9rem";
-
-            buttons.appendChild(yesBtn);
-            buttons.appendChild(noBtn);
-            modal.appendChild(titleEl);
-            modal.appendChild(messageEl);
-            modal.appendChild(buttons);
-            overlay.appendChild(modal);
-            document.body.appendChild(overlay);
-
-            const cleanup = (confirmed: boolean) => {
-                overlay.remove();
-                resolve(confirmed);
-            };
-
-            yesBtn.addEventListener("click", () => cleanup(true));
-            noBtn.addEventListener("click", () => cleanup(false));
-            overlay.addEventListener("click", (e) => {
-                if (e.target === overlay) cleanup(false);
-            });
-        });
     }
 
     public getUsername(): string {

@@ -25,7 +25,7 @@ async function tournamentRoutes(app, options) {
         // Call Auth Service to validate credentials
         try {
           const response = await fetch(
-            `${process.env.AUTH_SERVICE_URL || 'http://auth:5001'}/api/users/validate`,
+            `${process.env.PROFILE_SERVICE_URL || 'http://profile:5002'}/api/profileServ/users/validate`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

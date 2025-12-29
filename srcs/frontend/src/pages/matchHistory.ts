@@ -134,7 +134,6 @@ export class MatchHistory implements IComponent {
       tableBody.appendChild(emptyRow);
       return;
     }
-    console.log("Match history data:", this.matchHistoryData);
 
     this.matchHistoryData.forEach((match, index) => { 
       const formattedDate = new Date(match.date).toLocaleDateString();

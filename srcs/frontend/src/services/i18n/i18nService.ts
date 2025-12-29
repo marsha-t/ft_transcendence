@@ -1,5 +1,6 @@
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { AuthUtils } from '../../utils/authUtils.js';
 
 // Import translation files
 import enTranslation from '../../locales/en/translation.json';
@@ -51,10 +52,13 @@ export const changeLanguage = async (lang: string, persistToBackend: boolean = t
     // Trigger custom event for components to re-render
     window.dispatchEvent(new Event('languageChanged'));
     
-    // Persist to backend if requested
+    // Persist to backend if requested and user is logged in
     if (persistToBackend) {
       try {
-        await updateLanguageOnBackend(lang);
+        // Avoid calling backend for anonymous users (prevents 401 spam)
+        if (AuthUtils.isLoggedIn()) {
+          await updateLanguageOnBackend(lang);
+        }
       } catch (error) {
         console.error('Failed to update language on backend:', error);
         // Don't throw error to avoid breaking UI flow
@@ -66,7 +70,7 @@ export const changeLanguage = async (lang: string, persistToBackend: boolean = t
 // Function to update language on backend
 const updateLanguageOnBackend = async (language: string) => {
   try {
-    const response = await fetch('http://localhost:5001/api/auth/user/language', {
+    const response = await fetch('/api/profileServ/user/language', {
       method: 'PATCH',
       credentials: 'include',
       headers: {
@@ -90,7 +94,7 @@ const updateLanguageOnBackend = async (language: string) => {
 export const initializeLanguageFromBackend = async (): Promise<string> => {
   try {
     // First check if user is logged in
-    const loginStatusResponse = await fetch('http://localhost:5001/api/auth/loginStatus', {
+    const loginStatusResponse = await fetch('/api/auth/loginStatus', {
       credentials: 'include',
       method: 'GET'
     });
@@ -101,7 +105,7 @@ export const initializeLanguageFromBackend = async (): Promise<string> => {
       // If user is logged in, get their language preference from userInfo
       if (loginStatus.loggedIn) {
         try {
-          const userInfoResponse = await fetch('http://localhost:5001/api/auth/userInfo', {
+          const userInfoResponse = await fetch('/api/profileServ/userInfo', {
             credentials: 'include',
             method: 'GET'
           });
