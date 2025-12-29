@@ -21,12 +21,14 @@ export class TournamentService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
+				console.debug('TournamentService.updateTournamentStatus - server error response', { status: response.status, body: data });
+				let msg = data && (data.validation?.[0]?.message || data.error || data.message);
 				return {
 					success: false,
-					status: response.status, 
+					status: response.status,
 					message: msg || "Failed to update tournament status",
-					errors: data.errors || []
+					errors: data?.errors || [],
+					_raw: data,
 				};
 			}
 			return {
