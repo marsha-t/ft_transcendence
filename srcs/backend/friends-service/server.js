@@ -64,6 +64,27 @@ app.get('/health', async (request, reply) => {
   };
 });
 
+app.setErrorHandler((error, request, reply) => {
+  request.log.error(error);
+
+  // AJV validation error
+  if (error.validation?.length) {
+    return reply.code(400).send({
+      error: {
+        message: error.validation[0].message,
+        code: 'VALIDATION_ERROR',
+      },
+    });
+  }
+
+  return reply.code(error.statusCode || 500).send({
+    error: {
+      message: error.message || 'Internal Server Error',
+      code: error.code || 'INTERNAL_ERROR',
+    },
+  });
+});
+
 // Start server
 const PORT = process.env.FRIENDS_SERVICE_PORT || 5003;
 const start = async () => {
