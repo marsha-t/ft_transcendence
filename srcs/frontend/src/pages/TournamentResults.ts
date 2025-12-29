@@ -33,7 +33,7 @@ export class TournamentResults implements IComponent {
       "bg-[var(--color-background)] rounded-xl px-16 py-8 max-w-[900px] w-full flex flex-col items-center text-center";
 
     const h2 = document.createElement("h2");
-    h2.textContent = "Tournament Results";
+    h2.textContent = t("tournament.tournamentResults") as string;
     h2.className = "text-[1.5rem] text-[var(--color-text-white)] mb-10";
 
     this.container.appendChild(h2);
@@ -281,9 +281,9 @@ classDef winner fill:#059669,stroke:#34d399,stroke-width:3px,color:white;
     statsDiv.className = "text-[var(--color-text-white)] mb-10";
 
     statsDiv.innerHTML = `
-      <h3 class="text-[1rem] mb-4">Stats</h3>
-      <p>Total Matches: ${stats.totalMatches}</p>
-      <p>Played Matches: ${stats.playedMatches}</p>
+      <h3 class="text-[1rem] mb-4">${t("tournament.stats") as string}</h3>
+      <p>${t("tournament.totalMatches") as string}: ${stats.totalMatches}</p>
+      <p>${t("tournament.playedMatches") as string}: ${stats.playedMatches}</p>
     `;
 
     this.container.appendChild(statsDiv);

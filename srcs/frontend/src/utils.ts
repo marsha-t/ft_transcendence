@@ -23,7 +23,7 @@ export function navigate(path: string, state: any = {}) {
   window.dispatchEvent(event);
 }
 
-export async function confirmationPopup(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
+export async function confirmationPopup(message: string, title = t("common.pleaseConfirm") as string, action: boolean): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.style.position = "fixed";
@@ -200,6 +200,7 @@ export function createButtonStyle(customization: string = "", color: 'blue' | 'g
   if (color === 'blue') {
     return `${mainBlueStyle} ${greenHoverActive} ${customization}`;
   }
+  
 
   return `${mainGreenStyle} ${greenHoverActive} ${customization}`;
   

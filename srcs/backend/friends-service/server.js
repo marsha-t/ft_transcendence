@@ -56,13 +56,6 @@ app.decorate('authenticate', async (request, reply) => {
 // Register Auth Routes
 app.register(friendsRoutes, { prefix: '/api/friendsServ' });
 
-// Health check endpoint
-app.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
-    service: 'auth-service'  // Change name for each service
-  };
-});
 
 // Start server
 const PORT = process.env.FRIENDS_SERVICE_PORT || 5003;

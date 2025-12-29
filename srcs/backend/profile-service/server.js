@@ -9,6 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import profileRoutes from './routes/profile.js';
 import AjvErrors from 'ajv-errors';
+import userStatsRoutes from './routes/userStats.js';
 
 // Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -60,16 +61,10 @@ app.decorate('authenticate', async (request, reply) => {
   }
 });
 
-// Health check endpoint
-app.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
-    service: 'auth-service'  // Change name for each service
-  };
-});
-
 // Register Auth Routes
 app.register(profileRoutes, { prefix: '/api/profileServ' });
+app.register(userStatsRoutes, { prefix: '/api/profileServ' });
+
 
 // Start server
 const PORT = process.env.PROFILE_SERVICE_PORT || 5002;

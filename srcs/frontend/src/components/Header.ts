@@ -4,18 +4,42 @@ import { createButtonStyle } from "../utils";
 import { ProfileServices } from "../services/profile/ProfileServices.js";
 import { AuthServices } from "../services/auth/AuthServices.js";
 import { apiServices } from "../services/ApiServices";
+import { showConfirmation } from "../utils/uiUtils";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
 
 export class Header implements IComponent {
     private buttonsGroup!: HTMLElement;
     private linksGroup!: HTMLElement;
     private languageSwitcher!: HTMLElement;
+    private static languageDocClickAttached: boolean = false;
 
     constructor() {
         // Listen for language changes and re-render
-        window.addEventListener('languageChanged', () => {
-            this.updateContent();
+        window.addEventListener('languageChanged', async () => {
+            await this.updateContent();
         });
+        // Listen for avatar changes to update header immediately
+        window.addEventListener('avatarChanged', (e: any) => {
+            try {
+                const avatarPath = e?.detail?.avatar;
+                if (!avatarPath) {
+                    // set default
+                    this.setHeaderAvatar(AuthUtils.getAvUrl('/uploads/avatars/default.png'));
+                } else {
+                    this.setHeaderAvatar(AuthUtils.getAvUrl(avatarPath));
+                }
+            } catch (err) {
+                console.error('avatarChanged handler error', err);
+            }
+        });
+    }
+
+    private setHeaderAvatar(url: string): void {
+        if (!this.buttonsGroup) return;
+        const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
+        if (avatarDiv) {
+            avatarDiv.style.backgroundImage = `url('${url}')`;
+        }
     }
     public render(): HTMLElement {
         const header = document.createElement('header');
@@ -76,7 +100,6 @@ export class Header implements IComponent {
 
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
-
         this.buttonsGroup = document.createElement('div');
         this.buttonsGroup.className = 'flex items-center gap-[17px] w-[500px] h-[42px] text-[900] text-[18px]';
 
@@ -114,16 +137,21 @@ export class Header implements IComponent {
     private attachLanguageSwitcherListeners(container: HTMLElement): void {
         const button = container.querySelector('.lang-button') as HTMLButtonElement;
         const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
-    
+
+        // Toggle dropdown for this instance
         button.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdown.classList.toggle('hidden');
         });
-    
-        document.addEventListener('click', () => {
-            dropdown.classList.add('hidden');
-        });
-    
+
+        // Attach a single document-level click handler once to close any open dropdowns
+        if (!Header.languageDocClickAttached) {
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.lang-dropdown').forEach(el => el.classList.add('hidden'));
+            });
+            Header.languageDocClickAttached = true;
+        }
+
         container.querySelectorAll('.lang-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -135,7 +163,7 @@ export class Header implements IComponent {
     }
     
 
-    private updateContent(): void {
+    private async updateContent(): Promise<void> {
         // Update links text
         const links = this.linksGroup.querySelectorAll('a');
         const linkKeys = ['header.home', 'header.creators'];
@@ -143,18 +171,16 @@ export class Header implements IComponent {
             link.textContent = String(t(linkKeys[index]));
         });
 
-        // Update buttons
-        this.updateAuthButtons();
-
-        // Recreate language switcher with new translations
-        const newSwitcher = this.createLanguageSwitcher();
-        this.languageSwitcher.replaceWith(newSwitcher);
-        this.languageSwitcher = newSwitcher;
+        // Update buttons (wait for async update to finish to avoid race conditions)
+        await this.updateAuthButtons();
     }
 
     private async updateAuthButtons(): Promise<void> {
         this.buttonsGroup.innerHTML = '';
         const isLoggedIn = AuthUtils.isLoggedIn();
+
+        // Create a fresh language switcher instance for this render
+        this.languageSwitcher = this.createLanguageSwitcher();
     
         // Hide or show Profile link based on login status
         const profileLinkNav = this.linksGroup.querySelector('a[href="/profile"]') as HTMLElement;
@@ -168,7 +194,10 @@ export class Header implements IComponent {
             const registerLink = this.createLink({ text: t('header.register') as string, href: '/register', type: 'button' });
             this.buttonsGroup.appendChild(loginLink);
             this.buttonsGroup.appendChild(registerLink);
-            this.buttonsGroup.appendChild(this.languageSwitcher);
+                // Ensure we don't append duplicate language switcher
+                const existingLang = this.buttonsGroup.querySelector('.header-language-switcher');
+                if (existingLang) existingLang.remove();
+                this.buttonsGroup.appendChild(this.languageSwitcher);
             return;
         }
     
@@ -219,7 +248,7 @@ export class Header implements IComponent {
         });
 
         playBtnWrapper.appendChild(dropdown);
-
+        
         // Toggle dropdown on click
         playBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -250,7 +279,7 @@ export class Header implements IComponent {
         logoutBtn.href = '#';
         logoutBtn.className = createButtonStyle(` w-fit h-[42px]`, 'blue');
         logoutBtn.addEventListener("click", async () => {
-            const confirmed = await AuthUtils.showConfirmation("Are you sure you want to logout?", "LOGOUT?", true);
+            const confirmed = await showConfirmation(t("auth.logoutConfirm") as string, t("auth.logout") as string, true);
             if (!confirmed) return;
     
             const res = await apiServices.auth.logout();
@@ -266,17 +295,19 @@ export class Header implements IComponent {
     
         // Fetch user info and add avatar
         try {
-            const authService = new AuthServices();
-            const userInfo = await authService.getCurrentUser();
+            const userInfo = await apiServices.profile.getCurrentUser();
             
-            let avatarUrl = "/uploads/avatars/default.png";
+            let avatarUrl = AuthUtils.getAvUrl('/uploads/avatars/default.png');
             if (userInfo.success && userInfo.data?.avatar) {
                 avatarUrl = AuthUtils.getAvUrl(userInfo.data.avatar);
             }
             
+            const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
+            if (existingAvatar) existingAvatar.remove();
+
             const avatarLink = document.createElement("a");
             avatarLink.href = "/profile";
-            avatarLink.className = `
+            avatarLink.className = `header-avatar-link
                 w-[40px] h-[40px]
                 rounded-full overflow-hidden
                 border border-[3px] border-green
@@ -296,9 +327,7 @@ export class Header implements IComponent {
             });
             
             this.buttonsGroup.appendChild(avatarLink);
-            // Recreate language switcher to ensure it has the latest icon format
-            const newSwitcher = this.createLanguageSwitcher();
-            this.languageSwitcher = newSwitcher;
+            // Append language switcher once (created at start of this method)
             this.buttonsGroup.appendChild(this.languageSwitcher);
 
         } catch (error) {
@@ -402,7 +431,7 @@ export class Header implements IComponent {
     
     private createLanguageSwitcher(): HTMLElement {
         const container = document.createElement('div');
-        container.className = 'relative inline-block';
+        container.className = 'relative inline-block header-language-switcher';
 
         const currentLang = getCurrentLanguage();
 
@@ -413,8 +442,8 @@ export class Header implements IComponent {
 
         // Simplified multi-language symbol using letters
         const langSymbol = document.createElement('span');
-        langSymbol.textContent = 'Aあ'; // Letters representing multiple languages
-        langSymbol.className = 'text-[18px] font-bold'; // Adjust size and style as needed
+        langSymbol.textContent = 'Aあ';
+        langSymbol.className = 'text-[18px] font-bold';
 
         // Add to button
         button.appendChild(langSymbol);

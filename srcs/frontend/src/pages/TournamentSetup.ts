@@ -6,7 +6,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager";
-import {showConfirmation} from "../utils/profileUtils";
+import {showConfirmation} from "../utils/uiUtils";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
@@ -50,7 +50,7 @@ export class TournamentSetup implements IComponent {
       flex flex-col items-center gap-3
     `;
     const customizeBtn = document.createElement("button");
-    customizeBtn.textContent = t("tournament.customizeGame") as string;
+    customizeBtn.textContent = t("game.customizeGame") as string;
     customizeBtn.className = createButtonStyle(
       "w-[390px] h-[60px] text-[24px]",
       "blue"
@@ -202,7 +202,7 @@ export class TournamentSetup implements IComponent {
     const hasDraft = TournamentDraftStore.players.length > 0;
 
     if (hasDraft) {
-      const confirmClose = await showConfirmation("Closing this window will discard your current tournament setup. Continue?", "Please Confirm", true);
+      const confirmClose = await showConfirmation(t("tournament.closeTournamentAlert"), t("common.pleaseConfirm") as string, true);
       if (!confirmClose) return ;
     }
     
@@ -254,7 +254,7 @@ export class TournamentSetup implements IComponent {
     guestForm.className = "";
     guestForm.innerHTML = `
     <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
+    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("game.guestNameLabel") as string}</label>
     <input id="guest-input" placeholder= "${t("tournament.guestName") as string}"
       class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-[#0f2b66]"
       maxlength="20" />
@@ -570,7 +570,9 @@ export class TournamentSetup implements IComponent {
         "STARTED"
       );
       if (!start.success) {
-        alert(start.message || "Failed to start tournament");
+        console.error('Failed to start tournament:', start);
+        // Show more details to help debugging (backend validation/errors)
+        alert(start.message ? `${start.message}` : `Failed to start tournament (status ${start.status})`);
         return;
       }
       TournamentDraftStore.clear();

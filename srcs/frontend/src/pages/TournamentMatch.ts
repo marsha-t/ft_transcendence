@@ -2,7 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
-import {showConfirmation} from "../utils/profileUtils";
+import {showConfirmation} from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
 
@@ -156,7 +156,7 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = await showConfirmation("A tournament is in progress. Leaving will abort it.", "Please Confirm", true);
+     const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress"), t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     try {
       if (this.gameInstance) {

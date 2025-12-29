@@ -1,11 +1,11 @@
 // game-tournament-service/services/userServiceClient.js
 // API client to communicate with User-Social Service
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost:5002';
 
 export async function updateUserStats(userId, { won, score, opponentScore }) {
   try {
-    const response = await fetch(`${AUTH_SERVICE_URL}/api/users/${userId}/stats`, {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/stats`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ won, score, opponentScore })
@@ -26,7 +26,7 @@ export async function updateUserStats(userId, { won, score, opponentScore }) {
 
 export async function getUserInfo(userId) {
   try {
-    const response = await fetch(`${AUTH_SERVICE_URL}/api/users/${userId}/info`);
+    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -42,7 +42,7 @@ export async function getUserInfo(userId) {
 
 export async function getBatchUserInfo(userIds) {
   try {
-    const response = await fetch(`${AUTH_SERVICE_URL}/api/users/batch-info`, {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/batch-info`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userIds })
