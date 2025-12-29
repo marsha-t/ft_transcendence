@@ -1,5 +1,3 @@
-// InputHandler.ts
-// import { GameConfig } from "./GameConfig";
 import { Paddle } from "./Paddle";
 import { gameConfigManager } from "./GameConfigManager";
 
