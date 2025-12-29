@@ -9,25 +9,11 @@ export const sendFriendRequestSchema = {
   body: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } },
+    properties: { username: { type: 'string', minLength: 3, maxLength: 20 } },
     additionalProperties: false
   },
   response: {
-    201: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        request: {
-          type: 'object',
-          properties: {
-            id: { type: 'integer' },
-            senderId: { type: 'integer' },
-            receiverId: { type: 'integer' },
-            status: { type: 'string' }
-          }
-        }
-      }
-    }
+    200: { type: 'object', properties: { message: { type: 'string' } } }
   }
 };
 
@@ -40,23 +26,13 @@ export const acceptFriendRequestSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
-    200: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        request: {
-          type: 'object',
-          properties: {
-            senderId: { type: 'integer' },
-            receiverId: { type: 'integer' },
-            status: { type: 'string' },
-          }
-        }
-      }
-    }
+    200: { type: 'object', properties: { message: { type: 'string' } } }
   }
 };
 
@@ -69,7 +45,10 @@ export const rejectFriendRequestSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
     200: { type: 'object', properties: { message: { type: 'string' } } }
@@ -85,7 +64,10 @@ export const removeFriendSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
     200: { type: 'object', properties: { message: { type: 'string' } } }

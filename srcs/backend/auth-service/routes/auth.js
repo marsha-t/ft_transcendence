@@ -20,8 +20,8 @@ async function authRoutes(app) {
   app.post('/register', { schema: registerSchema }, async (request, reply) => {
     const { username, email, password } = request.body;
 
-    const trimmedUsername = username?.trim().toLowerCase();
-    const trimmedEmail = email?.trim();
+    const trimmedUsername = username.trim().toLowerCase();
+    const trimmedEmail = email.trim();
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -63,8 +63,8 @@ async function authRoutes(app) {
     - If no 2FA, sets status to ONLINE and issues JWT token in secure HttpOnly cookie
   */
   app.post('/login', { schema: loginSchema }, async (request, reply) => {
-    const username = request.body.username?.trim().toLowerCase();
-    const password = request.body.password?.trim();
+    const username = request.body.username.trim().toLowerCase();
+    const password = request.body.password.trim();
 
     const user = await prisma.user.findUnique({ where: { username } });
 
@@ -229,60 +229,69 @@ async function authRoutes(app) {
     - Clears temporary 2FA cookie
   */
   app.post('/login/2fa', { schema: login2FASchema }, async (request, reply) => {
-    try {
-      const code = request.body.code?.trim();
-      if (!code) return reply.code(400).send({ message: "OTP required" });
+    const code = request.body.code.trim();
 
-      const tempToken = request.cookies.pending_2fa;
-      if (!tempToken) return reply.code(401).send({ message: "2FA session expired" });
-
-      let payload;
-      try {
-        payload = app.jwt.verify(tempToken);
-      } catch (err) {
-        return reply.code(401).send({ message: "Invalid or expired session" });
-      }
-
-      const userId = payload.pendingUserId;
-      const user = await prisma.user.findUnique({ where: { id: userId } });
-      if (!user) return reply.code(404).send({ message: "User not found" });
-
-      if (user.twoFactorCode !== code) {
-        return reply.code(401).send({ message: "Invalid OTP" });
-      }
-
-      if (new Date() > user.twoFactorExpiry) {
-        return reply.code(401).send({ message: "OTP expired" });
-      }
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          twoFactorCode: null,
-          twoFactorExpiry: null,
-          status: "ONLINE"
-        }
-      });
-
-      // Clear the temp cookie
-      reply.clearCookie("pending_2fa");
-
-      // Issue the real session token
-      const sessionToken = app.jwt.sign({ id: user.id }, { expiresIn: "1h" });
-
-      reply.setCookie("token", sessionToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'Lax',
-        path: "/",
-        maxAge: 60 * 60
-      });
-
-      return reply.code(200).send({ message: "Login successful" });
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: "2FA verification failed" });
+    const tempToken = request.cookies.pending_2fa;
+    if (!tempToken) {
+      const err = new Error('2FA session expired');
+      err.statusCode = 401;
+      err.code = 'SESSION_EXPIRED';
+      throw err;
     }
+
+    let payload;
+    try {
+      payload = app.jwt.verify(tempToken);
+    } catch {
+      const err = new Error('Invalid or expired session');
+      err.statusCode = 401;
+      err.code = 'INVALID_SESSION';
+      throw err;
+    }
+
+    const userId = payload.pendingUserId;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      const err = new Error('User not found');
+      err.statusCode = 404;
+      err.code = 'USER_NOT_FOUND';
+      throw err;
+    }
+
+    if (user.twoFactorCode !== code) {
+      const err = new Error('Invalid OTP');
+      err.statusCode = 401;
+      err.code = 'INVALID_OTP';
+      throw err;
+    }
+
+    if (new Date() > user.twoFactorExpiry) {
+      const err = new Error('OTP expired');
+      err.statusCode = 401;
+      err.code = 'OTP_EXPIRED';
+      throw err;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { twoFactorCode: null, twoFactorExpiry: null, status: 'ONLINE' },
+    });
+
+    // Clear the temp cookie
+    reply.clearCookie('pending_2fa');
+
+    // Issue the real session token
+    const sessionToken = app.jwt.sign({ id: user.id }, { expiresIn: '1h' });
+    
+    reply.setCookie('token', sessionToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: 60 * 60,
+    });
+
+    return reply.code(200).send({ message: 'Login successful' });
   });
 
   // Resend OTP during 2FA login
@@ -387,14 +396,7 @@ async function authRoutes(app) {
   */
   app.post('/2fa/verify', { schema: verify2FASchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
-    const code = request.body.code?.trim();
-
-    if (!code) {
-      const err = new Error('Code is required');
-      err.statusCode = 400;
-      err.code = 'CODE_REQUIRED';
-      throw err;
-    }
+    const code = request.body.code.trim();
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
 

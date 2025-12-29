@@ -165,9 +165,10 @@ async function profileRoutes(app) {
         throw err;
       }
 
-      // Copy preset to uploads/avatars/{userId}.{ext}
+      // Setup the destination path for the preset avatar
       const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
       await fs.promises.mkdir(uploadDir, { recursive: true });
+      const ext = path.extname(presetFilename).toLowerCase();
       const fileName = `${userId}${ext}`;
       const filePath = path.join(uploadDir, fileName);
 
@@ -241,6 +242,7 @@ async function profileRoutes(app) {
       throw err;
     }
 
+    // Setup the destination path for the uploaded avatar
     const uploadDir = path.join(process.cwd(), 'uploads', 'avatars');
     await fs.promises.mkdir(uploadDir, { recursive: true });
     const fileName = `${userId}${ext}`;

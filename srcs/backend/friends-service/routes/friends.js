@@ -18,13 +18,7 @@ async function friendsRoutes(app) {
     const currentUserId = request.user.id;
   
     const rawUsername = request.body.username;
-    const username = rawUsername?.trim().toLowerCase();
-    if (!username) {
-      const err = new Error('Username is required');
-      err.statusCode = 400;
-      err.code = 'USERNAME_REQUIRED';
-      throw err;
-    }
+    const username = rawUsername.trim().toLowerCase();
 
     const targetUser = await prisma.user.findUnique({ where: { username } });
     if (!targetUser) {
@@ -65,15 +59,7 @@ async function friendsRoutes(app) {
       }
     });
 
-    return reply.code(201).send({
-      message: 'Friend request sent',
-      request: {
-        id: requestRecord.id,
-        senderId: requestRecord.senderId,
-        receiverId: requestRecord.receiverId,
-        status: requestRecord.status
-      }
-    });
+    return reply.code(201).send({ message: 'Friend request sent' });
   });
 
   // Accept a pending friend request by username.
@@ -91,13 +77,7 @@ async function friendsRoutes(app) {
 
     // Find the sender
     const rawUsername = request.params.username;
-    const username = rawUsername?.trim().toLowerCase();
-    if (!username) {
-      const err = new Error('Username is required');
-      err.statusCode = 400;
-      err.code = 'USERNAME_REQUIRED';
-      throw err;
-    }
+    const username = rawUsername.trim().toLowerCase();
 
     const sender = await prisma.user.findUnique({ where: { username } });
     if (!sender) {
@@ -132,14 +112,7 @@ async function friendsRoutes(app) {
       data: { status: 'ACCEPTED' },
     });
 
-    return reply.code(200).send({
-      message: 'Friend request accepted',
-      request: {
-        senderId: updated.senderId,
-        receiverId: updated.receiverId,
-        status: updated.status,
-      },
-    });
+    return reply.code(200).send({ message: 'Friend request accepted' });
   });
 
   // Reject a pending friend request by username.
@@ -158,13 +131,7 @@ async function friendsRoutes(app) {
 
     // Find the sender
     const rawUsername = request.params.username;
-    const username = rawUsername?.trim().toLowerCase();
-    if (!username) {
-      const err = new Error('Username is required');
-      err.statusCode = 400;
-      err.code = 'USERNAME_REQUIRED';
-      throw err;
-    }
+    const username = rawUsername.trim().toLowerCase();
 
     const sender = await prisma.user.findUnique({ where: { username } });
     if (!sender) {
@@ -213,13 +180,7 @@ async function friendsRoutes(app) {
 
     // Find the friend
     const rawUsername = request.params.username;
-    const username = rawUsername?.trim().toLowerCase();
-    if (!username) {
-      const err = new Error('Username is required');
-      err.statusCode = 400;
-      err.code = 'USERNAME_REQUIRED';
-      throw err;
-    }
+    const username = rawUsername.trim().toLowerCase();
 
     const friend = await prisma.user.findUnique({ where: { username } });
     if (!friend) {
