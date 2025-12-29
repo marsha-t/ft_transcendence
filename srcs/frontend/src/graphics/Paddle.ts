@@ -1,7 +1,5 @@
 import * as BABYLON from "babylonjs";
-// import { GameConfig } from "./GameConfig";
 import { gameConfigManager } from "./GameConfigManager";
-import { GameConfig } from "./GameConfig";
 
 
 export class Paddle {
@@ -42,15 +40,9 @@ export class Paddle {
     }
 
 
-    public getActualDepth(): number {
-        return this.currentMeshDepth;
-    }
-
-    public updateScale(): void {
-
-        console.log('[Paddle] updateScale() called but not needed - mesh already has correct size');
-
-    }
+    // public getActualDepth(): number {
+    //     return this.currentMeshDepth;
+    // }
 
     public move(dt: number): void {
         const dz = this.velocity * dt;

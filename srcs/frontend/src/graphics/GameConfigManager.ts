@@ -98,36 +98,18 @@ class GameConfigManager{
 
 
     public applyCustomizations(settings: CustomGameSettings): void {
-      console.log('🔧 [ConfigManager] BEFORE apply:', {
-        oldPreset: this.activePreset,
-        oldCustomConfigKeys: Object.keys(this.customConfig),
-        oldCustomConfig: JSON.stringify(this.customConfig)  // ✅ Show actual values
-    });
         this.activePreset = settings.preset;
 
         if(settings.config){
             this.customConfig = settings.config;
-            console.log('[ConfigManager] Using provided config:', this.customConfig);
-
         }else {
             this.customConfig = {};
-            console.log('[ConfigManager] No config provided, reset to empty');
-
         }
-
       const finalConfig = this.current;
-      console.log('🔧 [ConfigManager] AFTER apply - Final values:', {
-          preset: this.activePreset,
-          customConfigKeys: Object.keys(this.customConfig),
-          ballSpeed: finalConfig.ball.speed.x,
-          paddleSpeed: finalConfig.paddle.speed,
-          paddleDepth: finalConfig.paddle.depth,
-          powerUpsEnabled: finalConfig.powerUps.enabled,
-          powerUpTypes: finalConfig.powerUps.types
-      });
+
     }
 
-    reset(): void {
+    public reset(): void {
         this.activePreset = 'CLASSIC';
         this.customConfig = {};
         console.log('Reset to default configuration');
@@ -200,7 +182,7 @@ class GameConfigManager{
 
 
   //debug
-  validateConfig(config: DeepPartial<typeof GameConfig>): boolean {
+  public validateConfig(config: DeepPartial<typeof GameConfig>): boolean {
     try {
       // Check for negative values that don't make sense
       if (config.ball?.speed?.x !== undefined && config.ball.speed.x <= 0) {
@@ -223,13 +205,6 @@ class GameConfigManager{
       console.error('Config validation error:', error);
       return false;
     }
-  }
-  public debugCurrentConfig(): void {
-    console.log(' Current GameConfig:', {
-        preset: this.activePreset,
-        powerUps: this.current.powerUps,
-        ballSpeed: this.current.ball.speed.x
-    });
   }
 }
 export const gameConfigManager = new GameConfigManager();

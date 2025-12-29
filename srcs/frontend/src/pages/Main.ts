@@ -3,6 +3,8 @@ import { AuthUtils } from "../utils/authUtils.js";
 import { createButtonStyle } from "../utils";
 import { makeCircular3DButton } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
+import {navigate} from '../utils.js';
+
 
 export class Main implements IComponent {
 
@@ -51,6 +53,20 @@ export class Main implements IComponent {
         const aiButton = makeCircular3DButton(t("main.play-AI") as string, "ai-btn", "/ai", "🤖");
         const playButton = makeCircular3DButton(t("main.play-friend") as string, "play-btn", "/game", "👥");
       
+
+        tournamentBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/tournament");
+        });
+
+        aiButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/ai");
+        });
+        playButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/game");
+        });
 
         const buttonGrid = document.createElement('div');
         buttonGrid.className = "flex flex-col items-center relative -space-y-4";

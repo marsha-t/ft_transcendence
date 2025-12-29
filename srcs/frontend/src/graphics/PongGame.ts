@@ -60,24 +60,7 @@ export class PongGame {
             this.powerUpManager = new PowerUpManager(this.scene);
             console.log('Power-ups enabled!');
         }
-        // Render loop
-        // this.engine.runRenderLoop(() => {
-        //     const dt = this.engine.getDeltaTime() / 1000;
-        //     if (!this.isPaused){
-        //         this.input.update(dt);
-        //         this.ball.update(dt);
-        //         this.checkCollisions();
-        //         //powerup
-        //         this.updatePowerUps();
-
-        //         this.checkScoring();
-
-        //         if(this.isAIGame)
-        //             this.streamGameStateToAI();
-        //         this.scene.render();
-        //     }
-        //     this.scene.render();
-        // });
+        
         this.engine.runRenderLoop(() => {
             if (this.isPaused) {
                 this.scene.render();
@@ -382,9 +365,9 @@ export class PongGame {
         this.isPaused = false;
     }
 
-    public isRunning(): boolean {
-        return !this.isPaused;
-    }
+    // public isRunning(): boolean {
+    //     return !this.isPaused;
+    // }
 
     private checkScoring(): void {
         const t = gameConfigManager.current.table;

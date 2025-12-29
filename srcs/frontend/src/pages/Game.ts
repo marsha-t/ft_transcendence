@@ -221,6 +221,11 @@ export class Game implements IComponent {
     this.createPongGame();
   }
 
+
+  /*- creates indicator div (id: "custom-indicator")
+    - removes old indicator if exists
+    - inserts after controls container
+  */
   private showCustomizationApplied(preset: string): void {
 
     const indicator = document.createElement("div");

@@ -54,11 +54,11 @@ export const GameConfig =  {
         duration: 3000, // Effect lasts 3 seconds
         types: [] as string[] // Empty array by default
     },
-    theme: {
-        name: 'CLASSIC' as 'CLASSIC' | 'NEON' | 'SPACE' | 'RETRO',
-        tableColor: { r: 0, g: 0.4, b: 0 },
-        ballColor: { r: 0.95, g: 0.6, b: 0.2 }
-    }
+    // theme: {
+    //     name: 'CLASSIC' as 'CLASSIC' | 'NEON' | 'SPACE' | 'RETRO',
+    //     tableColor: { r: 0, g: 0.4, b: 0 },
+    //     ballColor: { r: 0.95, g: 0.6, b: 0.2 }
+    // }
 
 
 }

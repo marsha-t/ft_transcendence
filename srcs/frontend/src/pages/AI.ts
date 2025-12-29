@@ -11,10 +11,6 @@ import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigMan
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { t } from "../services/i18n/i18nService.js";
 
-
-
-
-
 export class AI implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;

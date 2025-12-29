@@ -1,5 +1,4 @@
 import * as BABYLON from "babylonjs";
-// import { GameConfig } from "./GameConfig";
 import { gameConfigManager } from "./GameConfigManager";
 
 export class Ball {
@@ -44,7 +43,6 @@ export class Ball {
 
     public applySpeedIncrement(): void {
         const increment = gameConfigManager.current.ball.speedIncrement;
-        const currentMag = this.speed.length();
         this.speed.scaleInPlace(increment);
     }
 
