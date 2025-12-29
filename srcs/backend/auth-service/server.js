@@ -14,7 +14,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.js';
-import userStatsRoutes from './routes/userStats.js';
 // Resolve the parent directory (one level up from backend/)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +48,7 @@ const allowedOrigins = (process.env.CORS_ORIGINS || 'https://localhost,https://l
 await app.register(cors, {
   origin: allowedOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 });
 
 // Swagger ------------------------------------------
@@ -126,15 +126,9 @@ app.decorate('authenticate', async function (request, reply) {
   }
 });
 app.register(authRoutes, { prefix: '/api/auth' });
-app.register(userStatsRoutes, { prefix: '/api' });
+// app.register(userStatsRoutes, { prefix: '/api' });
 
-// Health check endpoint
-app.get('/health', async (request, reply) => {
-  return {
-    status: 'ok',
-    service: 'auth-service'  // Change name for each service
-  };
-});
+
 // ----------------------------------
 
 // To save openapi.json file (needs to be after registering routes and before app.listen)

@@ -456,7 +456,7 @@ async function authRoutes(app, options) {
     }
   });
 
-  app.get("/loginStatus", async (request, reply) => {
+      app.get("/loginStatus", async (request, reply) => {
     try {
       const token = request.cookies.token;
       if (!token) {
@@ -484,29 +484,6 @@ async function authRoutes(app, options) {
     }
   })
   
-  // Get current user info (username + avatar)
-  app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
-    try {
-      const userId = request.user.id; // extracted from JWT
-
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { username: true, avatar: true },
-      });
-
-      if (!user) {
-        return reply.code(404).send({ message: 'User not found' });
-      }
-
-      return reply.code(200).send({
-        username: user.username,
-        avatar: user.avatar || '../uploads/avatars/default.png',
-      });
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to fetch user info' });
-    }
-  });
 }
 
 export default authRoutes;

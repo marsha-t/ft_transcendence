@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/auth/AuthServices.js";
 import { LoginData, Login2FAData } from "../services/auth/types";
-import { navigate } from "../utils.js";
+import { createButtonStyle, navigate } from "../utils.js";
 import { AuthUtils } from "../utils/authUtils.js";
 import { t } from "../services/i18n/i18nService.js";
 
@@ -64,56 +64,6 @@ export class Login implements IComponent {
         this.form.className =
             'flex flex-col gap-[26px] items-center w-full leading-normal';
     
-        // === Username group ===
-        // const usernameGroup = document.createElement('div');
-        // usernameGroup.className = 'flex flex-col gap-2';
-    
-        // const usernameLabel = document.createElement('label');
-        // usernameLabel.className = 'text-lg font-mono text-color_white';
-        // usernameLabel.textContent = t('auth.username') as string;
-        // usernameLabel.htmlFor = 'username';
-    
-        // const usernameInput = document.createElement('input');
-        // usernameInput.className = `
-        //     w-[360px] h-[54px] px-4 rounded-[16px]
-        //     bg-color_white text-background text-opacity-60 font-mono
-        //     focus:text-opacity-100
-        //     box-border placeholder:text-color-secondary 
-        //     placeholder:font-mono placeholder:text-mono
-        //     focus:outline-none focus:border-border-green 
-        //     transition-colors`;
-      
-        // usernameInput.type = 'text';
-        // usernameInput.id = 'username';
-        // usernameInput.name = 'username';
-        // usernameInput.placeholder = t('auth.yourUsername') as string;
-    
-        // usernameGroup.appendChild(usernameLabel);
-        // usernameGroup.appendChild(usernameInput);
-    
-        // === Password group ===
-        // const passwordGroup = document.createElement('div');
-        // passwordGroup.className = 'flex flex-col gap-2';
-    
-        // const passwordLabel = document.createElement('label');
-        // passwordLabel.className = 'text-lg font-mono text-color_white';
-        // passwordLabel.textContent = t('auth.password') as string;
-        // passwordLabel.htmlFor = 'password';
-    
-        // const passwordInput = document.createElement('input');
-        // passwordInput.className = `
-        //     w-[360px] h-[54px] px-4 rounded-[16px]
-        //     bg-color_white text-background text-opacity-60 font-mono
-        //     focus:text-opacity-100
-        //     box-border placeholder:text-color-secondary 
-        //     placeholder:font-mono placeholder:text-mono
-        //     focus:outline-none focus:border-border-green 
-        //     transition-colors`;
-        // passwordInput.type = 'password';
-        // passwordInput.id = 'password';
-        // passwordInput.name = 'password';
-        // passwordInput.placeholder = '••••••••';
-    
         // Username & Password inputs
         const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
         const passwordGroup = this.createInput('password', 'Password', 'password', '••••••••');
@@ -122,23 +72,7 @@ export class Login implements IComponent {
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
         this.submitButton.textContent = t('auth.login-btn') as string;
-        this.submitButton.className = `
-            w-[360px] h-[54px]
-            inline-flex items-center justify-center
-            px-8 py-3
-            bg-[var(--color-button-active)]
-            text-[var(--color-button-text)]
-            font-bold tracking-widest
-            rounded-lg
-            no-underline text-center
-            shadow-[0_5px_0_var(--color-button-shadow)]
-            hover:shadow-[0_2px_0_var(--color-button-shadow)]
-            active:shadow-none
-            hover:translate-y-1
-            active:translate-y-2
-            transition-all duration-150
-            mb-4 mt-5
-        `;
+        this.submitButton.className = createButtonStyle("w-[360px] h-[54px] mb-4 mt-5", 'green');
     
         // === Build the form ===
         this.form.appendChild(usernameGroup);
