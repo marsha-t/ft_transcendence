@@ -1,21 +1,23 @@
 import nodemailer from 'nodemailer';
 
-// Configure the email account to be used
-// For testing, you can use Gmail, Outlook, or a test SMTP service
+// Configure the email account to be used for sending the OTP
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // e.g., 'gmail'
+  service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // email
-    pass: process.env.EMAIL_PASS  // email app password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS 
   }
 });
 
-/**
- * Send an email
- * @param {string} to - recipient email
- * @param {string} subject - email subject
- * @param {string} text - email body
- */
+// sendEmail Service
+/*
+ Service to send an email using a preconfigured SMTP transporter.
+ - Accepts:
+     - to: recipient email address
+     - subject: email subject line
+     - text: email body content
+ - Uses the configured transporter to send the email via the Gmail service
+*/
 export async function sendEmail(to, subject, text) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
