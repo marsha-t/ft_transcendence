@@ -10,6 +10,44 @@ export class ProfileServices {
         this.baseUrl = '/api';
     }
     
+    // Get current user (username + avatar)
+    async getCurrentUser(): Promise<ApiResponse<any>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/profileServ/userInfo`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.message || 'Failed to get user info',
+                    data: null,
+                    errors: [],
+                };
+            }
+            
+            return {
+                success: true,
+                status: response.status,
+                data: data, // This will be { username: "...", avatar: "..." }
+                message: 'User info fetched successfully',
+                errors: [],
+            };
+        } catch (error) {
+            console.error('Get current user API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                data: null,
+                errors: [],
+            };
+        }
+    } 
     // Method to get the top part of the profile page
     async getProfile(): Promise<ApiResponse<ProfileData>> {
         try {
@@ -82,43 +120,7 @@ export class ProfileServices {
       };
     }
   }
-    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Method to log out the current user
-    // async logout(): Promise<ApiResponse<null>> {
-    //   try {
-    //       const response = await fetch(`${this.baseUrl}/auth/logout`, {
-    //           method: 'POST',
-		// 		      credentials: 'include',
-    //       });
-    //       const data = await response.json();
-
-    //       if (!response.ok) {
-    //           const msg = data.error || 'Logout failed';
-    //           return {
-    //               success: false,
-    //               status: response.status,
-    //               message: msg,
-    //               errors: data.errors || []
-    //           };
-    //       }
-
-    //       return {
-    //           success: true,
-    //           status: response.status,
-    //           data: null,
-    //           message: 'Logout successful'
-    //       };
-    //   } catch (error) {
-    //       console.error('Logout API error', error);
-    //       return {
-    //           success: false,
-    //           status: 0,
-    //           message: 'Network error',
-    //           errors: []
-    //       };
-    //   }
-    // }
-    // logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  
 
     // Method to the current user's friends part of the profile page
     async getFriends(): Promise<ApiResponse<FriendsData>> {

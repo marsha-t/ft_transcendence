@@ -48,11 +48,6 @@ services:
     depends_on:
       - auth
     restart: always
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   friends:
     build:
@@ -74,12 +69,6 @@ services:
     depends_on:
       - auth
     restart: always
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   # ===================================
   # ANALYTICS SERVICE
   # Reads from both databases
@@ -108,11 +97,6 @@ services:
       - auth
       - game-tournament
     restart: always
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # ===================================
   # GAME-TOURNAMENT SERVICE
@@ -142,11 +126,6 @@ services:
       - auth
       - profile
     restart: always
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5005/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
   # ===================================
   # FRONTEND
@@ -157,7 +136,6 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      # - 3000:3000
       - 8080:443
     depends_on:
       - auth

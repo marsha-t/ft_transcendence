@@ -70,14 +70,22 @@
     "newPassword": "New Password",
     "enter2FA": "Enter 2FA Code",
     "verify": "Verify",
-    "resendOTP": "Resend OTP"
+    "resendOTP": "Resend OTP",
+    "logout": "LOGOUT",
+    "logoutConfirm": "Are you sure you want to logout?"
   },
   "profile": {
     "editProfile": "Edit",
     "avatarUpload": "Upload",
     "avatarRemove": "Remove",
+    "changeAvatarConfirmation": "Set this image as your new avatar?",
+    "changeAvatarLabel": "Change Avatar",
+    "removeAvatarConfirmation": "Are you sure you want to remove your avatar?",
+    "removeAvatarLabel": "Remove Avatar",
     "twoFactorAuth": "Two-Factor Authentication",
     "twoFactorAuthDesc": "Add an extra layer of security to your account",
+    "saveChanges": "Do you want to save changes?",
+    "updateProfile": "Update Profile",
     "friends": "Friends",
     "requests": "Friend Requests",
     "addFriends": "Add Friends",
@@ -98,6 +106,7 @@
     "startGame": "Start Game",
     "quitGame": "Quit Game",
     "addGuestPlayer": "Add Guest Player",
+    "guestNameLabel": "Guest Name",
     "enterGuestName": "Enter Guest Name",
     "VS": "VS",
     "player1": "Player 1",
@@ -131,6 +140,7 @@
     "fast": "Fast",
     "chaos": "Chaos",
     "custom": "Custom",
+    "types": "Types",
     "advancedSettings": "Advanced Settings",
     "ballSettings": "Ball Settings",
     "paddleSettings": "Paddle Settings",
@@ -199,8 +209,13 @@
     "joinTournament": "Join Tournament",
     "tournamentName": "Tournament Name",
     "results": "Results",
+    "tournamentResults": "Tournament Results",
+    "stats": "Stats",
+    "totalMatches": "Total Matches",
+    "playedMatches": "Played Matches",
     "startNewTournamentBtn": "Start New Tournament",
-    "tournamentInProgress": "A tournament is in progress. Leaving will abort it."
+    "tournamentInProgress": "A tournament is in progress. Leaving will abort it.",
+    "closeTournamentAlert": "Closing this window will discard your current tournament setup. Continue?"
   },
   "dashboard": {
     "title": "YOUR PERFORMANCE DASHBOARD",
@@ -222,13 +237,5 @@
     "player": "Player",
     "matches": "Matches",
     "leaderboardScore": "Leaderboard Score"
-  },
-  "settings": {
-    "title": "Settings",
-    "language": "Language",
-    "selectLanguage": "Select Language",
-    "theme": "Theme",
-    "notifications": "Notifications",
-    "privacy": "Privacy"
   }
 }

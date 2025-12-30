@@ -492,24 +492,6 @@ async function authRoutes(app) {
 
     return reply.code(200).send({ loggedIn: true });
   });
-  
-  // Get authenticated user info
-  /*
-    Route returns username and avatar of authenticated user.
-  */
-  app.get('/userInfo', { schema: userInfoSchema, preHandler: [app.authenticate] }, async (request, reply) => {
-    const userId = request.user.id;
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { username: true, avatar: true },
-    });
-
-    return reply.code(200).send({
-      username: user.username,
-      avatar: user.avatar,
-    });
-  });
 }
 
 export default authRoutes;
