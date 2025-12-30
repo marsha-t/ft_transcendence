@@ -3,7 +3,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
 import { navigate, createButtonStyle } from "../utils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
-import { showConfirmation } from "../utils/profileUtils.js";
+import { showConfirmation } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
 
 declare const Plotly: any;
@@ -252,8 +252,8 @@ export class GameResults implements IComponent {
     }
 
     const confirmLeave = await showConfirmation(
-      "A tournament is in progress. Leaving will abort it.",
-      "Please Confirm",
+      t("tournament.tournamentInProgress") as string,
+      t("common.pleaseConfirm") as string,
       true
     );
 

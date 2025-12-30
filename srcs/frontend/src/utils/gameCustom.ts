@@ -225,7 +225,7 @@ export class GameCustomizationUI {
         section.className = `mb-6 font-nunito ${this.currentPreset === 'CUSTOM' ? 'block' : 'hidden'}`;
 
         const label = document.createElement('h3');
-        label.textContent = 'Advanced Settings';
+        label.textContent = t("gameCustomization.advancedSettings") as string;
         label.className = 'text-white text-lg font-semibold mb-4';
         section.appendChild(label);
 
@@ -236,7 +236,7 @@ export class GameCustomizationUI {
         const ballSection = document.createElement('div');
         ballSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4 text-white';
 
-        ballSection.appendChild(this.createSettingsGroup('Ball Settings', [
+        ballSection.appendChild(this.createSettingsGroup(t("gameCustomization.ballSettings" as string), [
             { key: 'ball.speed.x', label: t("gameCustomization.ballSpeed") as string, min: 5, max: 30, step: 1, default: GameConfig.ball.speed.x },
             { key: 'ball.maxSpeed', label: t("gameCustomization.maxSpeed") as string, min: 10, max: 40, step: 1, default: GameConfig.ball.maxSpeed },
             { key: 'ball.speedIncrement', label: t("gameCustomization.speedIncrement") as string, min: 0.5, max: 3, step: 0.1, default: GameConfig.ball.speedIncrement }
@@ -376,7 +376,7 @@ private createSliderControl(config: {
         group.className = `mb-5`;
 
         const groupTitle = document.createElement('h4');
-        groupTitle.textContent = 'Power-Ups';
+        groupTitle.textContent = t("gameCustomization.powerUps") as string;
         groupTitle.className = 'mb-4 text-white uppercase';
 
         group.appendChild(groupTitle);
@@ -396,7 +396,7 @@ private createSliderControl(config: {
         toggleContainer.className = `flex justify-between items-center mb-3`;
 
         const toggleLabel = document.createElement('label');
-        toggleLabel.textContent = 'Enable Power-Ups';
+        toggleLabel.textContent = t("gameCustomization.enablePowerUps") as string;
         toggleLabel.className = 'text-white text-sm';
 
         const toggle = document.createElement('input');
@@ -430,9 +430,9 @@ private createSliderControl(config: {
 
         // Power-up types
         const types: Array<{ key: string; label: string }> = [
-            { key: 'SPEED_BOOST', label: 'Speed Boost' },
-            { key: 'ENLARGE_PADDLE', label: 'Enlarge Paddle' },
-            { key: 'SLOW_MOTION', label: 'Slow Motion' }
+            { key: 'SPEED_BOOST', label: t("gameCustomization.speedBoost") as string },
+            { key: 'ENLARGE_PADDLE', label: t("gameCustomization.enlargePaddle") as string },
+            { key: 'SLOW_MOTION', label: t("gameCustomization.slowMotion") as string }
         ];
         
         const typesContainer = document.createElement('div');
@@ -499,7 +499,7 @@ private createSliderControl(config: {
         section.className = `bg-black/30 rounded-xl p-5 border border-white/10 mb-2`;
 
         const title = document.createElement('h3');
-        title.textContent = 'Current Configuration';
+        title.textContent = t("gameCustomization.currentConfiguration") as string;
         title.className = 'text-white text-sm font-semibold mb-3 uppercase tracking-wide drop-shadow-[0_0_10px_rgba(102,126,234,0.8)]';
 
         const previewContent = document.createElement('div');
@@ -539,18 +539,18 @@ private createSliderControl(config: {
                 t.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
             ).join(', ');
             powerUpInfo = `
-                <strong>Power-Ups:</strong> Enabled ✓<br>
-                <strong>Types:</strong> ${typeNames || 'None selected'}<br>
+                <strong>${t("gameCustomization.powerUps") as string}:</strong> Enabled ✓<br>
+                <strong>${t("gameCustomization.types") as string}:</strong> ${typeNames || 'None selected'}<br>
             `;
         }
 
         previewContent.innerHTML = `
-            <strong>Preset:</strong> ${this.currentPreset}<br>
-            <strong>Ball Speed:</strong> ${config.ball.speed.x} <br>
-            <strong>Max Speed:</strong> ${config.ball.maxSpeed} <br>
-            <strong>Speed Increment:</strong> ${config.ball.speedIncrement} %<br>
-            <strong>Paddle Speed:</strong> ${config.paddle.speed} <br>
-            <strong>Paddle Size:</strong> ${config.paddle.depth}<br>
+            <strong>${t("gameCustomization.preset") as string}:</strong> ${this.currentPreset}<br>
+            <strong>${t("gameCustomization.ballSpeed") as string}:</strong> ${config.ball.speed.x} <br>
+            <strong>${t("gameCustomization.maxSpeed") as string}:</strong> ${config.ball.maxSpeed} <br>
+            <strong>${t("gameCustomization.speedIncrement") as string}:</strong> ${config.ball.speedIncrement} %<br>
+            <strong>${t("gameCustomization.paddleSpeed") as string}:</strong> ${config.paddle.speed} <br>
+            <strong>${t("gameCustomization.paddleSize") as string}:</strong> ${config.paddle.depth}<br>
             ${powerUpInfo}
         `;
     }
