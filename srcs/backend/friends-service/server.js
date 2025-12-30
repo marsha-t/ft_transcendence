@@ -66,6 +66,15 @@ app.decorate('authenticate', async (request) => {
     }
 
     request.user = await app.jwt.verify(token);
+
+    const userExists = await prisma.user.findUnique({ where: { id: request.user.id } });
+    if (!userExists) {
+      const err = new Error('User not found');
+      err.statusCode = 401;
+      err.code = 'USER_NOT_FOUND';
+      throw err;
+    }
+    
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       const e = new Error('Token expired');
