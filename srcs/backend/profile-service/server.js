@@ -66,6 +66,27 @@ app.register(profileRoutes, { prefix: '/api/profileServ' });
 app.register(userStatsRoutes, { prefix: '/api/profileServ' });
 
 
+app.setErrorHandler((error, request, reply) => {
+  request.log.error(error);
+
+  // AJV validation error
+  if (error.validation?.length) {
+    return reply.code(400).send({
+      error: {
+        message: error.validation[0].message,
+        code: 'VALIDATION_ERROR',
+      },
+    });
+  }
+
+  return reply.code(error.statusCode || 500).send({
+    error: {
+      message: error.message || 'Internal Server Error',
+      code: error.code || 'INTERNAL_ERROR',
+    },
+  });
+});
+
 // Start server
 const PORT = process.env.PROFILE_SERVICE_PORT || 5002;
 const start = async () => {
