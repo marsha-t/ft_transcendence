@@ -17,62 +17,10 @@ export const getCurrentUserSchema = {
         isGoogleUser: { type: 'boolean' },
       },
       required: ['username', 'avatar', 'email', 'hasPassword', 'isGoogleUser'],
-    },
-    400: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    401: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    404: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-  },
+    }
+  }
 };
 
-  export const getPlayCountsSchema = {
-    tags: ['Profile'],
-    summary: 'Get user play counts within a date range',
-    headers: {
-      type: 'object',
-    },
-    querystring: {
-      type: 'object',
-      properties: {
-        start: { type: 'string', format: 'date' },
-        end: { type: 'string', format: 'date' }
-      },
-      required: ['start', 'end']
-    },
-    response: {
-      200: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            date: { type: 'string', format: 'date' },
-            count: { type: 'integer' }
-          },
-          required: ['date', 'count']
-        }
-      },
-      400: {
-        type: 'object',
-        properties: { error: { type: 'string' } },
-      },
-      401: {
-        type: 'object',
-        properties: { error: { type: 'string' } },
-      }
-    }
-  };
 export const updateProfileSchema = {
   tags: ['Profile'],
   summary: 'Update username, password, or email of the current user',
@@ -118,29 +66,8 @@ export const updateProfileSchema = {
     additionalProperties: false,
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' }, data: { type: 'object' } } },
-    400: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' },
-        message: { type: 'string' },
-        validation: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              field: { type: 'string' },
-              message: { type: 'string' }
-            }
-          }
-        }
-      }
-    },
-    401: { type: 'object', properties: { message: { type: 'string' } } },
-    404: { type: 'object', properties: { message: { type: 'string' } } },
-    409: { type: 'object', properties: { message: { type: 'string' } } },
-    500: { type: 'object', properties: { message: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' }, data: { type: 'object' } } }
+  }
 };
 
 export const avatarUploadSchema = {
@@ -156,17 +83,9 @@ export const avatarUploadSchema = {
       properties: {
         message: { type: 'string' },
         avatar: { type: 'string' },
-      },
-    },
-    400: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-  },
+      }
+    }
+  }
 };
 
 export const removeAvatarSchema = {
@@ -180,20 +99,10 @@ export const removeAvatarSchema = {
       type: 'object',
       properties: {
         message: { type: 'string' },
-        avatar: { type: 'string' } // path to default avatar
+        avatar: { type: 'string' }
       }
-    },
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    },
-    500: {
-      type: 'object',
-      properties: { error: { type: 'string' } },
-    },
-  },
+    }
+  }
 };
 
 export const updateLanguageSchema = {
@@ -212,12 +121,6 @@ export const updateLanguageSchema = {
   },
   response: {
     200: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' }
-      }
-    },
-    400: {
       type: 'object',
       properties: {
         message: { type: 'string' }
