@@ -353,7 +353,39 @@ export class PongGame {
             this.powerUpManager.cleanPowerUp();
             this.powerUpManager = null;
         }
-        this.engine.dispose();
+
+        this.activePowerUps.forEach((_, type) => {
+            this.deactivatePowerUp(type);
+        });
+        this.activePowerUps.clear();
+        this.engine.stopRenderLoop();
+        if(this.scene){
+            this.scene.mesh.forEach((mesh: BABYLON.AbstractMesh) => {
+                if(mesh.geometry)
+                    mesh.geometry.dispose();
+                mesh.dispose();
+            });
+
+            this.scene.materials.forEach((material: BABYLON.Material) => {
+                material.dispose();
+            });
+
+            this.scene.texture.forEach((texture: BABYLON.BaseTexture) => {
+                texture.dispose();
+            });
+
+            this.scene.dispose();
+        }
+        if(this.engine)
+            this.engine.dispose();
+
+
+        this.scene = null as any;
+        this.engine = null as any;
+        this.leftPaddle = null as any;
+        this.rightPaddle = null as any;
+        this.ball = null as any;
+        this.input = null as any;
     }
 
 
