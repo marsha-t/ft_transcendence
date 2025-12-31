@@ -15,11 +15,25 @@ export class TournamentSetup implements IComponent {
   private creatorUsername: string = "Creator";
   private creatorId: number | null = null;
   private customizationSection!: HTMLElement;
+  private destroyed = false;
 
-  public render(): HTMLElement {
+  /*
+    - Reset any existing tournament store so that TournamentSetup starts from clean baseline
+    - Clears TournamentDraftStore for fresh draft
+      - Initialized to number of players = 2
+  */
+  constructor() {
     resetTournamentStore();
     TournamentDraftStore.clear();
+    TournamentDraftStore.setNumberOfPlayers(2);
+  }
 
+  /*
+    - Render:
+      - Game customisation entry point to modal
+      - Number of players input (min = 2, max = 16, default to 2)
+  */
+  public render(): HTMLElement {
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)] flex justify-center items-center
       flex-col min-h-[80vh] py-5 text-[var(--color-text-white)]
@@ -34,14 +48,13 @@ export class TournamentSetup implements IComponent {
     title.textContent = t("tournament.tournamentSetup") as string;
     this.container.appendChild(title);
 
-    // --- Input section ---
+    // Input Container
     const counterContainer = document.createElement("div");
     counterContainer.className = `flex items-center justify-center flex-col gap-6
       border-2 border-[var(--color-border-green)] p-[10px] rounded-[16px] w-[500px] min-h-[320px]
       bg-transparent box-border`;
 
-    // Game customisation
-    // --- Game customisation section ---
+    // Input: Game customisation 
     this.customizationSection = document.createElement("div");
     this.customizationSection.className = `
       flex flex-col items-center gap-3
@@ -58,16 +71,15 @@ export class TournamentSetup implements IComponent {
         (settings: CustomGameSettings) => {
           TournamentStore.gameSettings = settings;
           gameConfigManager.applyCustomizations(settings);
-          this.updateCustomizationIndicator();
+          this.updateCustomizationIndicator(); // Update UI after custom game is set
         },
         () => {}
       );
     });
-
     this.customizationSection.appendChild(customizeBtn);
     counterContainer.appendChild(this.customizationSection);
 
-    // Number of players
+    // Input: Number of players
     const counter = document.createElement("div");
     counter.className = "flex items-center justify-center gap-4 w-full";
 
@@ -87,7 +99,6 @@ export class TournamentSetup implements IComponent {
     input.max = "16";
     input.value = "2";
     
-    TournamentDraftStore.setNumberOfPlayers(2);
     input.addEventListener("change", () => {
       const newNum = parseInt(input.value, 10);
 
@@ -104,32 +115,29 @@ export class TournamentSetup implements IComponent {
       }
       TournamentDraftStore.setNumberOfPlayers(newNum);
     });
-
     counter.appendChild(input);
-
     counterContainer.appendChild(counter);
-    // --- Buttons actions ---
+
+    // Buttons 
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
     nextBtn.textContent = t("common.next") as string;
     nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]", 'green');
     nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
-
     actions.appendChild(nextBtn);
     counterContainer.appendChild(actions);
     
     this.container.appendChild(counterContainer);
     page.appendChild(this.container);
 
-    if (TournamentStore.gameSettings) {
-      this.updateCustomizationIndicator();
-    }
-
     return page;
   }
 
+  /*
+    - Display indicator when custom game is active
+    - Remove old indicator if it exists - ensure only one indicator exists at any time
+  */
   private updateCustomizationIndicator(): void {
-    // Remove old indicator if it exists
     const oldIndicator = document.getElementById("tournament-custom-indicator");
     if (oldIndicator) oldIndicator.remove();
 
@@ -145,24 +153,26 @@ export class TournamentSetup implements IComponent {
     `;
 
     indicator.textContent = `${settings.preset} Mode Active`;
-
-    // Insert BELOW the customize button
     this.customizationSection.appendChild(indicator);
   }
 
-  //----------------------------------------
-  // Pop up window functions
-  //----------------------------------------
+  // Pop up window to add players
+  /*
+    - Prevent multiple modal instances via isModalOpen guard
+    - Modal has:
+      - close button (calls closeModal())
+      - Left side: Add player form
+      - Right side: Lineup preview
+    - destroyed guard used here to prevent async DOM attachment if page is already 'destroyed'
+  */
   private async openAddPlayersPopup() {
-
-    // overlay
     if (this.isModalOpen) return;
     this.isModalOpen = true;
+    
     this.modal = document.createElement("div");
     this.modal.className = `fixed top-0 left-0 w-full h-full bg-black/50 flex
       justify-center items-center backdrop-blur-sm`;
 
-    // overlay header
     const modalContent = document.createElement("div");
     modalContent.className = `bg-[var(--color-background)] rounded-xl w-4/5 max-w-[1100px]
       relative p-[30px_40px] shadow-[0_6px_20px_rgba(0,0,0,0.5)]`;
@@ -181,36 +191,34 @@ export class TournamentSetup implements IComponent {
     closeBtn.addEventListener("click", () => this.closeModal());
     header.append(h2, closeBtn);
 
-    // overlay body split
+    // overlay body split: Left to add player; Right to show lineup
     const body = document.createElement("div");
     body.className = "grid grid-cols-2 gap-[30px]";
 
     const left = this.createAddPlayerForm();
     const right = await this.createLineupSection();
 
+    if (this.destroyed) {
+      this.isModalOpen = false;
+      return 
+    };
+
     body.append(left, right);
     modalContent.append(header, body);
     this.modal.appendChild(modalContent);
-    console.log("Modal appended: ", this.modal);
     document.body.appendChild(this.modal);
   }
 
-  private async closeModal() {
-    const hasDraft = TournamentDraftStore.players.length > 0;
-
-    if (hasDraft) {
-      const confirmClose = await showConfirmation("Closing this window will discard your current tournament setup. Continue?", "Please Confirm", true);
-      if (!confirmClose) return ;
-    }
-    
-    TournamentDraftStore.clearPlayers();
-
-    if (this.modal && document.body.contains(this.modal)) {
-      document.body.removeChild(this.modal);
-    }
-    this.isModalOpen = false;
-  }
-
+  // Build left-side modal UI for adding players
+  /*
+    - UI
+      - Toggle buttons to allow guest player and registered user
+      - Input form for guestName or username/password
+      - Error box for error messages from backend
+      - Add button
+    - Add button event listener calls handleAddPlayer() and then updateLineup()
+      - updateLineup called regardless of success (harmless if nothing changed)
+  */
   private createAddPlayerForm(): HTMLElement {
     const form = document.createElement("div");
     form.className = `flex-1 border border-white/30 rounded-xl p-[30px]
@@ -242,59 +250,28 @@ export class TournamentSetup implements IComponent {
     userBtn.dataset.active = "false";
 
     toggleContainer.append(guestBtn, userBtn);
-    
     form.appendChild(toggleContainer);
 
-    // --- Guest form ---
+    // Guest form 
     const guestForm = document.createElement("div");
     guestForm.className = "";
     guestForm.innerHTML = `
-    <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
-    <input id="guest-input" placeholder= "${t("tournament.guestName") as string}"
+      <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
+      <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">GUEST NAME</label>
+      <input id="guest-input" placeholder= "${t("tournament.guestName") as string}"
       class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-[#0f2b66]"/>
     `;
 
-    // --- Registered form ---
+    // Registered form 
     const userForm = document.createElement("div");
     userForm.className = "hidden";
     userForm.innerHTML = `
-    <p class="text-[var(--color-text-white)]">${t("tournament.registeredInstruction") as string}</p>
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.username") as string}</label>
-    <input placeholder= "${t("auth.username") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
-    <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.password") as string}</label>
-    <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+      <p class="text-[var(--color-text-white)]">${t("tournament.registeredInstruction") as string}</p>
+      <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.username") as string}</label>
+      <input placeholder= "${t("auth.username") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+      <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.password") as string}</label>
+      <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
-
-    const errorBox = document.createElement("div");
-    errorBox.id = "add-player-error";
-    errorBox.className =
-      "hidden w-full bg-[#ff4d4d]/20 text-[#ffb3b3] border border-[#ff4d4d]/40 " +
-      "rounded-md px-3 py-1 mb-2 font-['VT323'] text-[1rem] text-center leading-tight";
-    errorBox.textContent = "";
-
-    const addBtn = document.createElement("button");
-    addBtn.textContent = t("tournament.addPlayerBtn") as string;
-    addBtn.id = "add-player-btn";
-    addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
-      py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
-      shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8`;
-    addBtn.addEventListener("click", async () => {
-      const isGuest = guestBtn.dataset.active === "true";
-      const guestName = guestForm.querySelector("input") as HTMLInputElement;
-      const username = userForm.querySelectorAll(
-        "input"
-      )[0] as HTMLInputElement;
-      const password = userForm.querySelectorAll(
-        "input"
-      )[1] as HTMLInputElement;
-      await this.handleAddPlayer(username, password, guestName, errorBox);
-      username.value = password.value = guestName.value = "";
-
-      const warning = guestForm.querySelector("#guest-warning") as HTMLElement;
-      if (warning) warning.classList.add("hidden");
-      this.updateLineup();
-    });
 
     const toggleForm = (type: "guest" | "user") => {
       guestBtn.dataset.active = (type === "guest").toString();
@@ -308,11 +285,43 @@ export class TournamentSetup implements IComponent {
     guestBtn.addEventListener("click", () => toggleForm("guest"));
     userBtn.addEventListener("click", () => toggleForm("user"));
 
-    form.append(guestForm, userForm, errorBox, addBtn);
+    // Error box
+    const errorBox = document.createElement("div");
+    errorBox.id = "add-player-error";
+    errorBox.className =
+      "hidden w-full bg-[#ff4d4d]/20 text-[#ffb3b3] border border-[#ff4d4d]/40 " +
+      "rounded-md px-3 py-1 mb-2 font-['VT323'] text-[1rem] text-center leading-tight";
+    errorBox.textContent = "";
 
+    // Add player button
+    const addBtn = document.createElement("button");
+    addBtn.textContent = t("tournament.addPlayerBtn") as string;
+    addBtn.id = "add-player-btn";
+    addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
+      py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
+      shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8]`;
+    addBtn.addEventListener("click", async () => {
+      const guestName = guestForm.querySelector("input") as HTMLInputElement;
+      const username = userForm.querySelectorAll("input")[0] as HTMLInputElement;
+      const password = userForm.querySelectorAll("input")[1] as HTMLInputElement;
+      await this.handleAddPlayer(username, password, guestName, errorBox);
+      username.value = password.value = guestName.value = "";
+      const warning = guestForm.querySelector("#guest-warning") as HTMLElement;
+      if (warning) warning.classList.add("hidden");
+      this.updateLineup();
+    });
+
+    form.append(guestForm, userForm, errorBox, addBtn);
     return form;
   }
 
+  // Handler when add button is clicked
+  /*
+    - Validate input completeness 
+    - Validate player credentials or guest alias via backend
+    - Check for uniqueness
+    - Add player
+  */
   private async handleAddPlayer(
     username: HTMLInputElement,
     password: HTMLInputElement,
@@ -323,13 +332,11 @@ export class TournamentSetup implements IComponent {
     const user = username.value.trim();
     const pass = password.value.trim();
     const guest = guestName.value.trim();
-
     if ((user || pass) && guest) {
       errorBox.textContent = "Please fill in either username/password or guest name";
       errorBox.classList.remove("hidden");
       return;
     }
-
     if ((!user || !pass) && !guest) {
       errorBox.textContent = "Enter username/password or guest name";
       errorBox.classList.remove("hidden");
@@ -341,7 +348,6 @@ export class TournamentSetup implements IComponent {
         ? { guestName: guest }
         : { username: user, password: pass }
     );
-  
     if (!res.success || !res.data?.valid) {
       errorBox.textContent =
         res.message || "Failed to validate player";
@@ -355,7 +361,6 @@ export class TournamentSetup implements IComponent {
       this.creatorUsername.toLowerCase(), 
       ...TournamentDraftStore.players.map((p) => p.displayName.toLowerCase())
     ];
-
     if (existingNames.includes(displayName!.toLowerCase())) {
       errorBox.textContent = `${displayName} already added`;
       errorBox.classList.remove("hidden");
@@ -367,66 +372,15 @@ export class TournamentSetup implements IComponent {
       userId: userId ?? undefined,
       isGuest: type == "guest",
     });
-
-    // Check if full
-    const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
-    const added = TournamentDraftStore.players.length;
-    const remaining = totalNeeded - added - 1;
-    if (remaining <= 0) this.showConfirmButton();
   }
-
-  private showAddPlayerButton() {
-    const btn = document.getElementById("add-player-btn") as HTMLButtonElement;
-    if (btn) btn.style.display = "block";
-  }
-
-  private hideAddPlayerButton() {
-    const btn = document.getElementById("add-player-btn") as HTMLButtonElement;
-    if (btn) btn.style.display = "none";
-  }
-
-  private async createLineupSection(): Promise<HTMLElement> {
-    const section = document.createElement("div");
-    section.className = `border border-white/30 rounded-xl p-[30px] 
-      bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)] 
-      min-h-[480px] max-h-[480px] flex flex-col box-border`;
-
-    const h3 = document.createElement("h3");
-    h3.className = `text-center font-['Press_Start_2P',monospace] text-xs mb-5 
-      text-[var(--color-text-white)] uppercase`;
-    h3.textContent = t("tournament.currentLineup") as string;
-    section.appendChild(h3);
-
-    const ul = document.createElement("ul");
-    ul.id = "lineup-list";
-    ul.className = `list-none p-0 m-0 mb-5 flex-1 overflow-y-auto 
-      [scrollbar-width:thin] [scrollbar-color:#3b5f9c_#1e3263]`;
-
-    const li = document.createElement("li");
-    li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
-      font-['VT323'] text-[1.6rem] flex justify-between items-center`;
-    await this.fetchCreatorUsername();
-    li.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
-    ul.appendChild(li);
-
-    section.appendChild(ul);
-
-    const confirmBtn = document.createElement("button");
-    confirmBtn.id = "confirm-btn";
-    confirmBtn.className = `w-full bg-[#3b5f9c] text-white border-none rounded-[10px] 
-      py-4 px-0 font-['VT323'] text-[1.6rem] font-bold tracking-wider cursor-pointer 
-      shadow-[0_3px_0_#1e3263] uppercase mt-2.5 hover:bg-[#4c73b8] transition-colors`;
-    confirmBtn.textContent = t("tournament.confirmStart") as string;
-    confirmBtn.style.display = "none";
-    confirmBtn.addEventListener(
-      "click",
-      async () => await this.finalizeTournament()
-    );
-    section.appendChild(confirmBtn);
-
-    return section;
-  }
-
+  
+  // Re-render function for adjusting lineup (right-side modal UI) adding and deleting players
+  /*
+    - Ensures that creator is included (and cannot be deleted)
+    - Adds each player in draft to lineup 
+      - These players can be deleted via 'X' button
+        - If deleted, the draft is updated and updateLineup called to trigger re-render
+  */
   private updateLineup() {
     const ul = document.getElementById("lineup-list");
     if (!ul) return;
@@ -477,15 +431,58 @@ export class TournamentSetup implements IComponent {
     });
 
     const totalNeeded = TournamentDraftStore.numberOfPlayers ?? 2;
-    if (TournamentDraftStore.players.length >= totalNeeded - 1) {
-      this.hideAddPlayerButton();
-      this.showConfirmButton();
-    } else {
-      this.showAddPlayerButton();
-      this.hideConfirmButton();
-    }
+    const isComplete = TournamentDraftStore.players.length >= totalNeeded - 1;
+    this.updateButtons(isComplete);
   }
 
+  // Build right-side modal UI for showing player lineup
+  /*
+  - This does the initial lineup; updateLineup does the updating thereafter
+    - UI rendered
+      - Always include tournament creator as player 1 (fetch username from BE) - cannot be removed
+      - Confirm button (which calls finalizeTournament())
+  */
+  private async createLineupSection(): Promise<HTMLElement> {
+    const section = document.createElement("div");
+    section.className = `border border-white/30 rounded-xl p-[30px] 
+      bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)] 
+      min-h-[480px] max-h-[480px] flex flex-col box-border`;
+
+    const h3 = document.createElement("h3");
+    h3.className = `text-center font-['Press_Start_2P',monospace] text-xs mb-5 
+      text-[var(--color-text-white)] uppercase`;
+    h3.textContent = t("tournament.currentLineup") as string;
+    section.appendChild(h3);
+
+    const ul = document.createElement("ul");
+    ul.id = "lineup-list";
+    ul.className = `list-none p-0 m-0 mb-5 flex-1 overflow-y-auto 
+      [scrollbar-width:thin] [scrollbar-color:#3b5f9c_#1e3263]`;
+    const li = document.createElement("li");
+    li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+      font-['VT323'] text-[1.6rem] flex justify-between items-center`;
+    await this.fetchCreatorUsername();
+    li.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
+    ul.appendChild(li);
+    section.appendChild(ul);
+
+    const confirmBtn = document.createElement("button");
+    confirmBtn.id = "confirm-btn";
+    confirmBtn.className = `w-full bg-[#3b5f9c] text-white border-none rounded-[10px] 
+      py-4 px-0 font-['VT323'] text-[1.6rem] font-bold tracking-wider cursor-pointer 
+      shadow-[0_3px_0_#1e3263] uppercase mt-2.5 hover:bg-[#4c73b8] transition-colors`;
+    confirmBtn.textContent = t("tournament.confirmStart") as string;
+    confirmBtn.style.display = "none";
+    confirmBtn.addEventListener(
+      "click",
+      async () => await this.finalizeTournament()
+    );
+    section.appendChild(confirmBtn);
+
+    return section;
+  }
+
+  // Fetch current logged in user's username for lineup section
   private async fetchCreatorUsername() {
     try {
       const response = await apiServices.profile.getProfile();
@@ -500,16 +497,29 @@ export class TournamentSetup implements IComponent {
     }
   }
 
-  private showConfirmButton() {
+  // Toggle visibility of 'add player' and 'confirm' button depending on whether draft is complete
+  /*
+    - draft complete based on whether number of players added is correct (number of draft players + creator = total players)
+  */
+  private updateButtons(isDraftComplete: boolean) {
+    const addBtn = document.getElementById("add-player-btn");
     const confirmBtn = document.getElementById("confirm-btn");
-    if (confirmBtn) confirmBtn.style.display = "block";
+
+    if (isDraftComplete) {
+      addBtn && (addBtn.style.display = "none");
+      confirmBtn && (confirmBtn.style.display = "block");
+    } else {
+      addBtn && (addBtn.style.display = "block");
+      confirmBtn && (confirmBtn.style.display = "none");
+    }
   }
 
-  private hideConfirmButton() {
-    const confirmBtn = document.getElementById("confirm-btn");
-    if (confirmBtn) confirmBtn.style.display = "none";
-  }
-
+  // Event handler when confirm button is clicked
+  /* 
+    - Sends finalized data in draft to backend (finalize tournament)
+    - Change tournament status from CREATED to STARTED in backend (updateTournamentStatus)
+    - Clears draft and closes modal before navigating to tournament match
+  */
   private async finalizeTournament() {
     const numPlayers = TournamentDraftStore.numberOfPlayers!;
     const playerData = TournamentDraftStore.players.map((p) => ({
@@ -541,6 +551,34 @@ export class TournamentSetup implements IComponent {
       navigate("/tournament/match", { tournamentId });
     } catch (err) {
       console.error("Error finalizing tournament:", err);
+    }
+  }
+  
+  // Handle closing of modal
+  /*
+    - Prompt for confirmation if draft lineup already exists 
+    - If confirmed, clear draft players and remove modal
+  */
+  private async closeModal() {
+    if (!this.isModalOpen) return ;
+    const hasDraft = TournamentDraftStore.players.length > 0;
+    if (hasDraft) {
+      const confirmClose = await showConfirmation("Closing this window will discard your current tournament setup. Continue?", "Please Confirm", true);
+      if (!confirmClose) return ;
+    }
+    this.isModalOpen = false;
+    TournamentDraftStore.clearPlayers();
+    if (this.modal && document.body.contains(this.modal)) {
+      document.body.removeChild(this.modal);
+    }
+  }
+
+  public cleanup() {
+    this.destroyed = true;
+    if (this.isModalOpen) {
+      TournamentDraftStore.clearPlayers();
+      this.modal?.remove();
+      this.isModalOpen = false;
     }
   }
 }
