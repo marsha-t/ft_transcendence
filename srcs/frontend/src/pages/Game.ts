@@ -9,6 +9,18 @@ import { openGameCustomization } from "../utils/gameCustom.js";
 import { makeButton } from "../utils/uiUtils.js"
 import { t } from "../services/i18n/i18nService.js";
 
+/**
+ * - Render and manage the Pong game UI
+ * - Control game lifecycle (start, pause, score, end)
+ * - Synchronize game state with backend services
+ * - Handle SPA navigation safety (canDeactivate)
+ * - Ensure full cleanup on route change
+ *
+ * Lifecycle:
+ * Router -> render()
+ * Router -> canDeactivate() -> cleanup()
+ */
+
 export class Game implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;
@@ -19,10 +31,11 @@ export class Game implements IComponent {
   private isScoring: boolean = false;
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
-
-  //game custom
   private customGameSettings: CustomGameSettings | null = null;
   private cutomizationUI: any = null;
+  private abortController: AbortController = new AbortController();
+  private timeoutIds: number[] = [];
+  private buttonCleanups: Array<{element: HTMLElement; event: string; handler: EventListener}> = [];
 
   constructor(opts?: GameOptions) {
     this.opts = opts;
@@ -32,6 +45,10 @@ export class Game implements IComponent {
     this.canvas.height = 500;
   }
 
+
+  // - Called once by Router when route becomes active
+  // - Builds DOM
+  // - Initializes game session
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
@@ -41,19 +58,20 @@ export class Game implements IComponent {
     this.createCanvas();
     this.createControlsContainer();
 
-    // Initialize
     if (this.opts?.isTournament && this.opts.sessionId) {
       this.initializeTournament();
     } else {
       this.initializeStandalone();
     }
-    // After controls are created
     if (this.opts?.isTournament && this.customGameSettings) {
       this.showCustomizationApplied(this.customGameSettings.preset);
     }
     return this.container;
   }
 
+  // ===============
+  // UI CONSTRUCTION
+  // ===============
   private createTitleContainer(): void {
     const titleContainer = document.createElement("div");
     titleContainer.className =
@@ -87,7 +105,6 @@ export class Game implements IComponent {
       "max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
     canvasContainer.appendChild(this.canvas);
 
-    //SCORE DISPLAY
     const scoreContainer = document.createElement("div");
     scoreContainer.className =
       "absolute top-8 left-0 right-0 flex justify-around text-6xl font-bold text-white pointer-events-none";
@@ -111,44 +128,21 @@ export class Game implements IComponent {
     this.createPongGame();
   }
 
-  private createPongGame(): void {
-      if (this.customGameSettings) {
-        gameConfigManager.applyCustomizations(this.customGameSettings);
-    }
-
-    this.pongGame = new PongGame(
-        this.canvas,
-        (side: "LEFT" | "RIGHT") => {
-            if (!this.isScoring) {
-                this.isScoring = true;
-                this.scorePoint(side).then(() => {
-                    setTimeout(() => (this.isScoring = false), 1000);
-                });
-            }
-        },
-        {
-            aiEnabled: false,
-            aiSide: 'LEFT'
-        }
-    );
-  }
-
-  private createControlsContainer(): void {
+    private createControlsContainer(): void {
     const controlsContainer = document.createElement("div");
     controlsContainer.className =
       "flex flex-row gap-4 items-center justify-between pt-10";
 
-    const customizeBtn = makeButton(t("game.customizeGame") as string, "customize-btn", "block", () => 
-      this.openCustomizationPopUp()
-    );
+    const customizeBtn = this.createTrackedButton(t("game.customizeGame") as string, "customize-btn", "block", () => 
+      this.openCustomizationPopUp());
 
-    const startBtn = makeButton(t("game.startGame") as string, "start-btn", "none", () =>
+    const startBtn = this.createTrackedButton(t("game.startGame") as string, "start-btn", "none", () =>
       this.toggleGame()
     );
-    const pauseBtn = makeButton(t("game.pause") as string, "pause-btn", "none", () =>
+    const pauseBtn = this.createTrackedButton(t("game.pause") as string, "pause-btn", "none", () =>
       this.pauseGame()
     );
-    const quitBtn = makeButton(t("game.quitGame") as string, "quit-btn", "none",() =>
+    const quitBtn = this.createTrackedButton(t("game.quitGame") as string, "quit-btn", "none",() =>
       this.quitGame()
     );
 
@@ -162,7 +156,6 @@ export class Game implements IComponent {
       controlsContainer.appendChild(pauseBtn);
       controlsContainer.appendChild(quitBtn);
 
-      // Add guest player setup
       const setupSection = document.createElement("div");
       setupSection.className = "flex flex-row items-center gap-2";
       setupSection.id = "setup-section";
@@ -173,7 +166,7 @@ export class Game implements IComponent {
       guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
-      const addGuestBtn = makeButton(t("game.addGuestPlayer"), "add-guest-btn", "block",
+      const addGuestBtn = this.createTrackedButton(t("game.addGuestPlayer"), "add-guest-btn", "block",
         () => this.addGuestPlayer()
       );
       addGuestBtn.style.display = "block";
@@ -186,18 +179,54 @@ export class Game implements IComponent {
     this.container.appendChild(controlsContainer);
   }
 
-  private openCustomizationPopUp(): void {
+  private createTrackedButton(label: string, id: string, display: string, handler: ()=> void ): HTMLButtonElement{
 
-    this.cutomizationUI = openGameCustomization(document.body,
-      (settings: CustomGameSettings) => {
+    const btn = makeButton(label, id, display, handler);
 
-        this.customGameSettings = settings;
-        gameConfigManager.applyCustomizations(settings);
-        this.recreatePongGame();
-        this.showCustomizationApplied(settings.preset);
-      }, ()=> {
-        console.log("Customization cancelled.");
-      }
+    this.buttonCleanups.push({ element: btn, event: 'click', handler: handler as EventListener });
+   
+    return btn;
+  }
+
+  private showCustomizationApplied(preset: string): void {
+
+    const indicator = document.createElement("div");
+    indicator.id = "custom-indicator";
+    indicator.textContent = `${preset} Mode Active`;
+    indicator.className = "text-white bg-purple-600 px-4 py-2 rounded-lg " +
+      "font-semibold text-sm mt-2";
+    
+    const controls = this.container.querySelector(".flex.flex-row.gap-4");
+    if (controls) {
+      const oldIndicator = document.getElementById("custom-indicator");
+      if (oldIndicator) oldIndicator.remove();
+      
+      controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+    }
+  }
+
+  // ===========
+  // GAME ENGINE
+  // ===========
+  private createPongGame(): void {
+      if (this.customGameSettings)
+        gameConfigManager.applyCustomizations(this.customGameSettings);
+
+    this.pongGame = new PongGame(
+        this.canvas,
+        (side: "LEFT" | "RIGHT") => {
+            if (!this.isScoring) {
+                this.isScoring = true;
+                this.scorePoint(side).then(() => {
+                    const timeoutId = window.setTimeout(() => (this.isScoring = false), 1000);
+                    this.timeoutIds.push(timeoutId);
+                });
+            }
+        },
+        {
+            aiEnabled: false,
+            aiSide: 'LEFT'
+        }
     );
   }
 
@@ -221,41 +250,47 @@ export class Game implements IComponent {
     this.createPongGame();
   }
 
-
-  /*- creates indicator div (id: "custom-indicator")
-    - removes old indicator if exists
-    - inserts after controls container
-  */
-  private showCustomizationApplied(preset: string): void {
-
-    const indicator = document.createElement("div");
-    indicator.id = "custom-indicator";
-    indicator.textContent = `${preset} Mode Active`;
-    indicator.className = "text-white bg-purple-600 px-4 py-2 rounded-lg " +
-      "font-semibold text-sm mt-2";
-    
-    const controls = this.container.querySelector(".flex.flex-row.gap-4");
-    if (controls) {
-      // Remove old indicator if exists
-      const oldIndicator = document.getElementById("custom-indicator");
-      if (oldIndicator) oldIndicator.remove();
-      
-      controls.parentElement?.insertBefore(indicator, controls.nextSibling);
-    }
+  private startGameLoop(): void {
+    this.isGameRunning = true;
+    this.pongGame.resume();
   }
 
-  // INITIALIZATION
+  private stopGameLoop(): void {
+    this.isGameRunning = false;
+    this.pongGame.pause();
+  }
 
+  private openCustomizationPopUp(): void {
+
+    this.cutomizationUI = openGameCustomization(document.body,
+      (settings: CustomGameSettings) => {
+
+        this.customGameSettings = settings;
+        gameConfigManager.applyCustomizations(settings);
+        this.recreatePongGame();
+        this.showCustomizationApplied(settings.preset);
+      }, ()=> {
+        console.log("Customization cancelled.");
+      }
+    );
+  }
+
+  // =============================
+  // BACKEND & SERVICE COMMUNICATION
+  // ===============================
   private async initializeStandalone(): Promise<void> {
     try {
       this.currentSession = await apiServices.game.createGameSession("RIGHT");
-      // Show user on the right
       const rightPlayerElement = document.getElementById("right-player");
       if (rightPlayerElement && this.currentSession?.players[0]) {
         rightPlayerElement.textContent =
           this.currentSession.players[0].displayName;
       }
     } catch (error) {
+      //Check for abort error
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       alert("Failed to initialize game");
     }
   }
@@ -297,7 +332,6 @@ export class Game implements IComponent {
         "LEFT"
       );
 
-      // Update UI
       const leftPlayerElement = document.getElementById("left-player");
       if (leftPlayerElement) {
         leftPlayerElement.textContent = guestName;
@@ -314,24 +348,15 @@ export class Game implements IComponent {
 
       guestInput.value = "";
     } catch (error: any) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       if (error.status === 409) {
         alert(error.message);
       } else {
         alert("Error adding guest player");
       }
     }
-  }
-
-  // GAME LOOP CONTROLS
-
-  private startGameLoop(): void {
-    this.isGameRunning = true;
-    this.pongGame.resume();
-  }
-
-  private stopGameLoop(): void {
-    this.isGameRunning = false;
-    this.pongGame.pause();
   }
 
   private async toggleGame(): Promise<void> {
@@ -365,12 +390,17 @@ export class Game implements IComponent {
         this.updateGameButtons(true);
       }
     } catch (error) {
+      //Check for abort error
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       console.error("Failed to pause/resume game:", error);
     }
   }
 
   private async quitGame(): Promise<void> {
-    if (!this.currentSession) return;
+    if (!this.currentSession) 
+      return;
 
     const confirmed = confirm("Are you sure you want to quit the game?");
     if (!confirmed) return;
@@ -382,6 +412,52 @@ export class Game implements IComponent {
     } catch (error) {
       console.error("Failed to quit game:", error);
     }
+  }
+
+  private async scorePoint(scoringSide: PlayerSide): Promise<void> {
+    if (!this.isGameRunning) {
+      return;
+    }
+
+    try {
+      if (this.currentSession) {
+        this.currentSession = await apiServices.game.updatePlayerScore(
+          this.currentSession.sessionId,
+          scoringSide
+        );
+        this.updateScoreDisplay();
+
+        if (this.currentSession.status === "FINISHED") {
+          const timeoutId = window.setTimeout(() => this.endGame(), 500);
+          this.timeoutIds.push(timeoutId);
+        } else if (this.currentSession.status === "ABORTED") {
+          this.stopGameLoop();
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update score:", error);
+    }
+  }
+
+  // ==============================
+  // GAME STATE → UI SYNCHRONIZATION
+  // ===============================
+  private updateScoreDisplay(): void {
+    const leftPlayer = this.currentSession?.players.find(
+      (p) => p.side === "LEFT"
+    );
+    const rightPlayer = this.currentSession?.players.find(
+      (p) => p.side === "RIGHT"
+    );
+
+    const leftScore = leftPlayer?.score ?? 0;
+    const rightScore = rightPlayer?.score ?? 0;
+
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+
+    if (leftScoreEl) leftScoreEl.textContent = leftScore.toString();
+    if (rightScoreEl) rightScoreEl.textContent = rightScore.toString();
   }
 
   private updateGameButtons(isPlaying: boolean): void {
@@ -407,70 +483,6 @@ export class Game implements IComponent {
       }
       if (quitBtn) quitBtn.style.display = "block";
       if(customizeBtn) customizeBtn.style.display = "none";
-    }
-  }
-
-  private async scorePoint(scoringSide: PlayerSide): Promise<void> {
-    if (!this.isGameRunning) {
-      return;
-    }
-
-    try {
-      if (this.currentSession) {
-        this.currentSession = await apiServices.game.updatePlayerScore(
-          this.currentSession.sessionId,
-          scoringSide
-        );
-        this.updateScoreDisplay();
-
-        if (this.currentSession.status === "FINISHED") {
-          setTimeout(() => this.endGame(), 500);
-        } else if (this.currentSession.status === "ABORTED") {
-          this.stopGameLoop();
-        }
-      }
-    } catch (error) {
-      console.error("Failed to update score:", error);
-    }
-  }
-
-  private updateScoreDisplay(): void {
-    const leftPlayer = this.currentSession?.players.find(
-      (p) => p.side === "LEFT"
-    );
-    const rightPlayer = this.currentSession?.players.find(
-      (p) => p.side === "RIGHT"
-    );
-
-    const leftScore = leftPlayer?.score ?? 0;
-    const rightScore = rightPlayer?.score ?? 0;
-
-    const leftScoreEl = document.getElementById("left-score");
-    const rightScoreEl = document.getElementById("right-score");
-
-    if (leftScoreEl) leftScoreEl.textContent = leftScore.toString();
-    if (rightScoreEl) rightScoreEl.textContent = rightScore.toString();
-  }
-
-  private async endGame(): Promise<void> {
-    this.hasEndedNaturally = true;
-
-    if (this.currentSession) {
-      this.stopGameLoop();
-
-      const winnerName = this.currentSession.winnerName ?? "Unknown";
-      const confirmed = await confirmationPopup(`${t("game-result.gameOver") as string}! 
-              ${winnerName} ${t("game-result.wins") as string}!`,
-             `${t("game-result.gameOver") as string}`, true);
-      if (!confirmed) return;
-      if (this.opts?.isTournament) {
-        TournamentStore.isInternalTournamentNavigation = true;
-      }
-      navigate("/game/results", {
-        sessionId: this.currentSession.sessionId,
-        isTournament: this.opts?.isTournament,
-        tournamentId: this.opts?.tournamentId,
-      });
     }
   }
 
@@ -504,7 +516,34 @@ export class Game implements IComponent {
     this.initializeStandalone();
   }
 
-  // CLEANUP
+  // =============================
+  // GAME TERMINATION & NAVIGATION
+  // =============================
+  private async endGame(): Promise<void> {
+    this.hasEndedNaturally = true;
+
+    if (this.currentSession) {
+      this.stopGameLoop();
+
+      const winnerName = this.currentSession.winnerName ?? "Unknown";
+      const confirmed = await confirmationPopup(`${t("game-result.gameOver") as string}! 
+              ${winnerName} ${t("game-result.wins") as string}!`,
+             `${t("game-result.gameOver") as string}`, true);
+      if (!confirmed) return;
+      if (this.opts?.isTournament) {
+        TournamentStore.isInternalTournamentNavigation = true;
+      }
+      navigate("/game/results", {
+        sessionId: this.currentSession.sessionId,
+        isTournament: this.opts?.isTournament,
+        tournamentId: this.opts?.tournamentId,
+      });
+    }
+  }
+
+  // ====================
+  // SPA SAFETY & CLEANUP
+  // =====================
   public async canDeactivate(): Promise<boolean> {
     if (this.hasEndedNaturally) {
       this.stopGameLoop();
@@ -525,11 +564,21 @@ export class Game implements IComponent {
     return confirmLeave;
   }
 
-  public terminate(): void {
-    this.cleanup();
-  }
-
   public cleanup(): void {
+    //clean all API requests
+    this.abortController.abort();
+
+    //clean all timeouts
+    this.timeoutIds.forEach(id => clearTimeout(id));
+    this.timeoutIds = [];
+
+    //Remove all event listeners
+    this.buttonCleanups.forEach(({element, event, handler}) => {
+      element.removeEventListener(event, handler);
+    });
+    this.buttonCleanups = [];
+
+
     this.stopGameLoop();
 
     if(this.cutomizationUI){
@@ -545,5 +594,11 @@ export class Game implements IComponent {
     gameConfigManager.reset();
     this.currentSession = null;
     this.customGameSettings = null;
+    this.abortController = new AbortController();
+  }
+
+
+  public terminate(): void {
+    this.cleanup();
   }
 }
