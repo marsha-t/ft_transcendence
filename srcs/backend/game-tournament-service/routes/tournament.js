@@ -11,7 +11,7 @@ import {
   seedPlayersRandom,
   propagateWinner,
 } from "../services/tournamentService.js";
-import { getUserInfo } from "../services/authServiceClient.js";
+import { getUserInfo, validateUserCredentials } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app, options) {
   // Validate player
@@ -20,65 +20,35 @@ async function tournamentRoutes(app, options) {
 	*/
   app.post('/tournaments/validate-player', {schema: validatePlayerSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const { username, password } = request.body;
-    try {
-      if (username && password) {
-        // Call Auth Service to validate credentials
         try {
-          const response = await fetch(
-            `${process.env.PROFILE_SERVICE_URL || 'http://profile:5002'}/api/profileServ/users/validate`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            }
-          );
-
-          if (!response.ok) {
-            // Try to parse response body to forward error details for debugging
-            let body = null;
+          if (username && password) {
+            // Call Auth Service to validate credentials via service client
             try {
-              body = await response.json();
-            } catch (e) {
-              try {
-                body = await response.text();
-              } catch (e2) {
-                body = null;
+              const userData = await validateUserCredentials(username, password);
+
+              // Prevent validating the creator as a player (UX/server-side guard)
+              const creatorId = request.user?.id;
+              if (userData && userData.id && creatorId && userData.id === creatorId) {
+                return reply.code(400).send({ valid: false, error: 'Player is the creator' });
               }
+
+              return reply.send({
+                valid: true,
+                displayName: userData.username,
+                userId: userData.id,
+              });
+            } catch (err) {
+              request.log.warn({ err }, 'Auth validate failed');
+              const status = (err && err.status) || 500;
+              return reply.code(status === 401 ? 401 : 500).send({ valid: false, error: err.message || 'Failed to validate credentials' });
             }
-            request.log.warn({ status: response.status, body }, 'Auth validate failed');
-            return reply.code(response.status === 401 ? 401 : 500).send({ 
-              valid: false, 
-              error: body?.error || body?.message || "Invalid username or password"
-            });
           }
-
-          const userData = await response.json();
-
-          // Prevent validating the creator as a player (UX/server-side guard)
-          const creatorId = request.user?.id;
-          if (userData && userData.id && creatorId && userData.id === creatorId) {
-            return reply.code(400).send({ valid: false, error: 'Player is the creator' });
-          }
-
-          return reply.send({
-            valid: true,
-            displayName: userData.username,
-            userId: userData.id,
-          });
         } catch (err) {
-          console.error('Failed to validate user:', err);
-          return reply.code(500).send({ 
-            valid: false, 
-            error: "Failed to validate credentials" 
+          request.log.error(err);
+          return reply.code(err.code || 500).send({
+            error: err.message || "Failed to validate tournament player",
           });
         }
-      }
-      } catch (err) {
-        request.log.error(err);
-        return reply.code(err.code || 500).send({
-          error: err.message || "Failed to validate tournament player",
-        });
-      }
     }
   );
 
