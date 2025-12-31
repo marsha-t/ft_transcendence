@@ -9,29 +9,11 @@ export const sendFriendRequestSchema = {
   body: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } },
+    properties: { username: { type: 'string', minLength: 3, maxLength: 20 } },
     additionalProperties: false
   },
   response: {
-    201: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        request: {
-          type: 'object',
-          properties: {
-            id: { type: 'integer' },
-            senderId: { type: 'integer' },
-            receiverId: { type: 'integer' },
-            status: { type: 'string' }
-          }
-        }
-      }
-    },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    409: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
   }
 };
 
@@ -44,26 +26,14 @@ export const acceptFriendRequestSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
-    200: {
-      type: 'object',
-      properties: {
-        message: { type: 'string' },
-        request: {
-          type: 'object',
-          properties: {
-            senderId: { type: 'integer' },
-            receiverId: { type: 'integer' },
-            status: { type: 'string' },
-          }
-        }
-      }
-    },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
+  }
 };
 
 export const rejectFriendRequestSchema = {
@@ -75,13 +45,14 @@ export const rejectFriendRequestSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
+  }
 };
 
 export const removeFriendSchema = {
@@ -93,13 +64,14 @@ export const removeFriendSchema = {
   params: {
     type: 'object',
     required: ['username'],
-    properties: { username: { type: 'string', minLength: 3 } }
+    properties: {
+      username: { type: 'string', minLength: 3, maxLength: 20 }
+    },
+    additionalProperties: false
   },
   response: {
-    200: { type: 'object', properties: { message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
-  },
+    200: { type: 'object', properties: { message: { type: 'string' } } }
+  }
 };
 
 export const getFriendsSchema = {
@@ -119,8 +91,7 @@ export const getFriendsSchema = {
           status: { type: 'string' }
         }
       }
-    },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
 
@@ -148,8 +119,7 @@ export const getIncomingRequestsSchema = {
           status: { type: 'string' }
         }
       }
-    },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
 
@@ -177,9 +147,6 @@ export const searchFriendsSchema = {
           friendStatus: { type: 'string', enum: ['not_friend', 'pending_sent'] }
         } 
       }
-    },
-    400: { type: 'object', properties: { error: { type: 'string' }, message: { type: 'string' } } },
-    404: { type: 'object', properties: { error: { type: 'string' } } },
-    500: { type: 'object', properties: { error: { type: 'string' } } },
+    }
   }
 };
