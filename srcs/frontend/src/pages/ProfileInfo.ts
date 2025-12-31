@@ -256,9 +256,10 @@ export class ProfileInfo implements IComponent {
                 emailInput.value = "";
             }
         
-            // Fix for label selection (select by text content)
+            // Fix for label selection (select by localized text content)
+            // Use the i18n key(t) to find the email label so it works for all languages
             const emailLabel = Array.from(form.querySelectorAll("label"))
-                .find(label => label.textContent === "Email");
+                .find(label => label.textContent === (t("auth.email") as string));
             if (emailLabel) {
                 emailLabel.style.display = "none";
             }

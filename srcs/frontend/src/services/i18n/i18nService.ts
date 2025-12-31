@@ -1,6 +1,7 @@
 import i18next from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { AuthUtils } from '../../utils/authUtils.js';
+import { apiServices } from '../ApiServices.js';
 
 // Import translation files
 import enTranslation from '../../locales/en/translation.json';
@@ -105,15 +106,11 @@ export const initializeLanguageFromBackend = async (): Promise<string> => {
       // If user is logged in, get their language preference from userInfo
       if (loginStatus.loggedIn) {
         try {
-          const userInfoResponse = await fetch('/api/profileServ/userInfo', {
-            credentials: 'include',
-            method: 'GET'
-          });
-          
-          if (userInfoResponse.ok) {
-            const userData = await userInfoResponse.json();
-            const backendLanguage = userData.defaultLanguage;
-            
+          const userInfoRes = await apiServices.profile.getCurrentUser();
+
+          if (userInfoRes.success && userInfoRes.data) {
+            const backendLanguage = userInfoRes.data.defaultLanguage || userInfoRes.data.language;
+
             // Validate language is supported
             if (SUPPORTED_LANGUAGES[backendLanguage as keyof typeof SUPPORTED_LANGUAGES]) {
               await changeLanguage(backendLanguage, false); // Don't persist to backend during initialization

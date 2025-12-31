@@ -1,5 +1,5 @@
-// game-tournament-service/services/userServiceClient.js
-// API client to communicate with User-Social Service
+
+// API client to communicate with auth-profile Services to update and fetch user info from user table
 
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost:5002';
 
@@ -40,22 +40,27 @@ export async function getUserInfo(userId) {
   }
 }
 
-export async function getBatchUserInfo(userIds) {
+export async function validateUserCredentials(username, password) {
   try {
-    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/batch-info`, {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userIds })
+      body: JSON.stringify({ username, password })
     });
 
+    const data = await response.json().catch(() => null);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to fetch users info');
+      const errMsg = data?.error || data?.message || 'Invalid credentials';
+      const err = new Error(errMsg);
+      // Attach status for callers who may want it
+      err.status = response.status;
+      throw err;
     }
 
-    return await response.json();
+    return data;
   } catch (err) {
-    console.error('Failed to fetch batch user info:', err.message);
-    return [];
+    console.error(`Failed to validate credentials for ${username}:`, err.message);
+    throw err;
   }
 }

@@ -4,7 +4,7 @@ import { updateLanguageSchema } from '../schemas/profile.js';
 
 async function userStatsRoutes(app, options) {
   
-  // Get current user info (username + avatar + defaultLanguage)
+  // Get current user info (username + avatar + defaultLanguage) [direct call from Frontend]
   app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id; // extracted from JWT
@@ -29,7 +29,7 @@ async function userStatsRoutes(app, options) {
     }
   });
 
-  // Update default language endpoint
+  // Update default language endpoint [direct call from Frontend]
   app.patch('/user/language', { schema: updateLanguageSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     try {
       const userId = request.user.id;
@@ -52,7 +52,7 @@ async function userStatsRoutes(app, options) {
       return reply.code(500).send({ error: 'Failed to update language' });
     }
   });
-  // Update user stats after game completion (called by Game Service)
+  // Update user stats after game completion (called by Game Service) [internal call from gmae-tournament-service]
   app.post('/users/:userId/stats', async (request, reply) => {
     try {
       const { userId } = request.params;
@@ -112,7 +112,7 @@ async function userStatsRoutes(app, options) {
     }
   });
 
-  // Get user display info (called by Game Service when creating players)
+  // Get user display info (called by Game Service when creating players) [internal call from game-tournament-service]
   app.get('/users/:userId/info', async (request, reply) => {
     try {
       const { userId } = request.params;
@@ -139,37 +139,7 @@ async function userStatsRoutes(app, options) {
     }
   });
 
-  // Batch get user info (for dashboard/leaderboards)
-  app.post('/users/batch-info', async (request, reply) => {
-    try {
-      const { userIds } = request.body;
-
-      if (!Array.isArray(userIds) || userIds.length === 0) {
-        return reply.code(400).send({ error: 'userIds must be a non-empty array' });
-      }
-
-      const users = await prisma.user.findMany({
-        where: { id: { in: userIds.map(Number) } },
-        select: {
-          id: true,
-          username: true,
-          avatar: true,
-          totalMatches: true,
-          totalWins: true,
-          winRate: true,
-          avgScore: true
-        }
-      });
-
-      return reply.code(200).send(users);
-
-    } catch (err) {
-      request.log.error(err);
-      return reply.code(500).send({ error: 'Failed to fetch users' });
-    }
-  });
-
-  // Validate user credentials (for tournament registration)
+  // Validate user credentials (for tournament registration) [internal call from game-tournament-service]
   app.post('/users/validate', async (request, reply) => {
     try {
       const { username, password } = request.body;

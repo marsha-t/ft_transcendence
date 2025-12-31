@@ -30,7 +30,7 @@ async function dashboardRoutes(app, options) {
         });
       }
 
-      // ✅ Query game database (prismaGame) instead of user database
+      // ✅ Query game database (prismaGame)
       const sessions = await prismaGameData.gameSessionPlayer.findMany({
         where: {
           userId: userId,
