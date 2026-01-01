@@ -12,7 +12,6 @@ import { t } from "../services/i18n/i18nService";
  * - Allows fine-tuning of game parameters
  * - Consistent interface across AI, P2P, and Tournament modes
  */
-
 export interface CustomizationUIConfig {
     applyUserSettings: (settings: CustomGameSettings) => void;
     onCancel?: () => void;
@@ -44,9 +43,7 @@ export class GameCustomizationUI {
         this.updatePreview();
     }
 
-    /**
-     * Closes and cleans up the modal
-     */
+    //Closes and cleans up the modal
     public close(): void {
         if (this.overlay) {
             this.overlay.remove();
@@ -55,24 +52,19 @@ export class GameCustomizationUI {
         }
     }
 
-    /**
-     * Creates the main modal structure
-     */
+    // Creates the main modal structure
     private createModal(): void {
         // Overlay
         this.overlay = document.createElement('div');
         this.overlay.className =   `fixed top-0 left-0 w-full h-full bg-modal-background/20 
          flex items-center justify-center z-[1000] backdrop-blur-sm`;
 
-
         // Modal
         this.modal = document.createElement('div');
         this.modal.className = `
             rounded-2xl p-8 max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto
             shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10
-            bg-[var(--color-modal-background)]
-        `;
-
+            bg-[var(--color-modal-background)]`;
 
         // Header
         const header = this.createHeader();
@@ -107,9 +99,7 @@ export class GameCustomizationUI {
         });
     }
 
-    /**
-     * Creates the modal header
-     */
+    //Creates the modal header
     private createHeader(): HTMLElement {
         const header = document.createElement('div');
         header.className = `mb-6 border-b-2 border-white/10 pb-4 `;
@@ -160,9 +150,7 @@ export class GameCustomizationUI {
         return section;
     }
 
-    /**
-     * Creates a preset card button
-     */
+    //Creates a preset card button
     private createPresetCard(preset: { value: GamePreset; label: string; icon: string; description: string }): HTMLElement {
         const card = document.createElement('button');
         card.type = 'button';
@@ -178,18 +166,9 @@ export class GameCustomizationUI {
             text-white border-2 h-[120px]`;
 
         if(isActive) {
-            card.classList.add(
-            'bg-gradient-to-br',
-            'from-[#4fc3f7]',
-            'to-[#00b0ff]',
-            'border-[#4fc3f7]',
-            );
+            card.classList.add('bg-gradient-to-br', 'from-[#4fc3f7]', 'to-[#00b0ff]','border-[#4fc3f7]',);
         }else {
-            card.classList.add(
-            'bg-white/5',
-            'border-white/10',
-            'hover:border-white/30'
-            );
+            card.classList.add('bg-white/5', 'border-white/10', 'hover:border-white/30');
         }
 
         const icon = document.createElement('div');
@@ -217,9 +196,7 @@ export class GameCustomizationUI {
         return card;
     }
 
-    /**
-     * Creates the advanced settings section
-     */
+    // Creates the advanced settings section
     private createAdvancedSection(): HTMLElement {
         const section = document.createElement('div');
         section.className = `mb-6 font-nunito ${this.currentPreset === 'CUSTOM' ? 'block' : 'hidden'}`;
@@ -264,10 +241,8 @@ export class GameCustomizationUI {
         return section;
     }
 
-    /**
-     * Creates a settings group with sliders
-     */
-private createSettingsGroup(title: string, settings: Array<{
+    //Creates a settings group with sliders
+    private createSettingsGroup(title: string, settings: Array<{
         key: string;
         label: string;
         min: number;
@@ -275,29 +250,26 @@ private createSettingsGroup(title: string, settings: Array<{
         step: number;
         default: number;
     }>): HTMLElement {
-    const group = document.createElement('div');
-    group.className = `mb-5`;
+        const group = document.createElement('div');
+        group.className = `mb-5`;
 
-    const groupTitle = document.createElement('h4');
-    groupTitle.textContent = title;
-    groupTitle.className = 'text-white text-sm font-semibold mb-3 uppercase tracking-wide drop-shadow-[0_0_10px_rgba(102,126,234,0.8)]';
+        const groupTitle = document.createElement('h4');
+        groupTitle.textContent = title;
+        groupTitle.className = 'text-white text-sm font-semibold mb-3 uppercase tracking-wide drop-shadow-[0_0_10px_rgba(102,126,234,0.8)]';
 
-    group.appendChild(groupTitle);
+        group.appendChild(groupTitle);
 
-    settings.forEach(setting => {
-        const control = this.createSliderControl(setting);
-        group.appendChild(control);
-    });
+        settings.forEach(setting => {
+            const control = this.createSliderControl(setting);
+            group.appendChild(control);
+        });
 
-    return group;
+        return group;
     }
 
-    /**
-     * Creates a slider control with label and value display
-     */
-    // 
+    // Creates a slider control with label and value display
     
-private createSliderControl(config: {
+    private createSliderControl(config: {
         key: string;
         label: string;
         min: number;
@@ -305,72 +277,61 @@ private createSliderControl(config: {
         step: number;
         default: number;
     }): HTMLElement {
-    const container = document.createElement('div');
-    container.className = 'mb-4';
+        const container = document.createElement('div');
+        container.className = 'mb-4';
 
-    const labelRow = document.createElement('div');
-    labelRow.className = 'flex justify-between items-center mb-2';
+        const labelRow = document.createElement('div');
+        labelRow.className = 'flex justify-between items-center mb-2';
 
-    const label = document.createElement('label');
-    label.textContent = config.label;
-    label.className = 'text-white/90 text-sm';
+        const label = document.createElement('label');
+        label.textContent = config.label;
+        label.className = 'text-white/90 text-sm';
 
-    const value = document.createElement('span');
-    value.id = `value-${config.key}`;
-    const currentValue = this.getNestedValue(config.key) ?? config.default;
-    value.textContent = currentValue.toFixed(1);
-    value.className = 'text-white font-semibold text-sm';
+        const value = document.createElement('span');
+        value.id = `value-${config.key}`;
+        const currentValue = this.getNestedValue(config.key) ?? config.default;
+        value.textContent = currentValue.toFixed(1);
+        value.className = 'text-white font-semibold text-sm';
 
-    labelRow.appendChild(label);
-    labelRow.appendChild(value);
+        labelRow.appendChild(label);
+        labelRow.appendChild(value);
 
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.min = config.min.toString();
-    slider.max = config.max.toString();
-    slider.step = config.step.toString();
-    slider.value = currentValue.toString();
-    slider.className = `
-        w-full h-1.5 rounded-lg bg-white/10 appearance-none cursor-pointer
-        [&::-webkit-slider-thumb]:appearance-none
-        [&::-webkit-slider-thumb]:w-[18px]
-        [&::-webkit-slider-thumb]:h-[18px]
-        [&::-webkit-slider-thumb]:rounded-full
-        [&::-webkit-slider-thumb]:bg-[#04b143ff]
-        [&::-webkit-slider-thumb]:cursor-pointer
-        [&::-webkit-slider-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]
-        [&::-moz-range-thumb]:w-[18px]
-        [&::-moz-range-thumb]:h-[18px]
-        [&::-moz-range-thumb]:rounded-full
-        [&::-moz-range-thumb]:bg-[#04b143ff]
-        [&::-moz-range-thumb]:cursor-pointer
-        [&::-moz-range-thumb]:border-0
-        [&::-moz-range-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]
-    `;
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = config.min.toString();
+        slider.max = config.max.toString();
+        slider.step = config.step.toString();
+        slider.value = currentValue.toString();
+        slider.className = `
+            w-full h-1.5 rounded-lg bg-white/10 appearance-none cursor-pointer
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-[18px]
+            [&::-webkit-slider-thumb]:h-[18px]
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-[#04b143ff]
+            [&::-webkit-slider-thumb]:cursor-pointer
+            [&::-webkit-slider-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]
+            [&::-moz-range-thumb]:w-[18px]
+            [&::-moz-range-thumb]:h-[18px]
+            [&::-moz-range-thumb]:rounded-full
+            [&::-moz-range-thumb]:bg-[#04b143ff]
+            [&::-moz-range-thumb]:cursor-pointer
+            [&::-moz-range-thumb]:border-0
+            [&::-moz-range-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]`;
 
-    slider.addEventListener('input', (e) => {
-        const val = parseFloat((e.target as HTMLInputElement).value);
-        value.textContent = val.toFixed(1);
-        this.setNestedValue(config.key, val);
-        
-        console.log('[UI] Slider changed:', {
-            key: config.key,
-            value: val,
-            customSettings: this.customSettings
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat((e.target as HTMLInputElement).value);
+            value.textContent = val.toFixed(1);
+            this.setNestedValue(config.key, val);
+            this.updatePreview();
         });
-        this.updatePreview();
-    });
 
-    container.appendChild(labelRow);
-    container.appendChild(slider);
-    return container;
-}
+        container.appendChild(labelRow);
+        container.appendChild(slider);
+        return container;
+    }
 
-    /**
-     * Creates power-up settings section
-     */
-    // In your createPowerUpSettings() method, update the toggle section:
-
+    //Creates power-up settings section
     private createPowerUpSettings(): HTMLElement {
         const group = document.createElement('div');
         group.className = `mb-5`;
@@ -381,10 +342,9 @@ private createSliderControl(config: {
 
         group.appendChild(groupTitle);
 
-        //  Initialize powerUps object if not exists
         if (!this.customSettings.powerUps) {
             this.customSettings.powerUps = {
-                enabled: this.currentPreset === 'CHAOS',  // Default based on preset
+                enabled: this.currentPreset === 'CHAOS',
                 types: this.currentPreset === 'CHAOS' 
                     ? ['SPEED_BOOST', 'ENLARGE_PADDLE', 'SLOW_MOTION']
                     : []
@@ -401,7 +361,6 @@ private createSliderControl(config: {
 
         const toggle = document.createElement('input');
         toggle.type = 'checkbox';
-        //  Read from customSettings (which was just initialized above)
         toggle.checked = this.customSettings.powerUps.enabled ?? false;
         toggle.className = 'w-5 h-5 cursor-pointer accent-[#04b143ff]';
 
@@ -415,12 +374,6 @@ private createSliderControl(config: {
             
             // Set enabled property directly on the object
             this.customSettings.powerUps.enabled = enabled;
-            
-            console.log('[UI] Power-ups enabled changed:', {
-                enabled,
-                fullPowerUps: this.customSettings.powerUps
-            });
-            
             this.updatePreview();
         });
 
@@ -466,13 +419,6 @@ private createSliderControl(config: {
                         (t: string) => t !== type.key
                     );
                 }
-
-                console.log('[UI] Power-up types updated:', {
-                    type: type.key,
-                    checked,
-                    allTypes: this.customSettings.powerUps.types,
-                    enabled: this.customSettings.powerUps.enabled  // ✅ Show enabled state
-                });
                 
                 this.updatePreview();
             });
@@ -483,11 +429,6 @@ private createSliderControl(config: {
         });
 
         group.appendChild(typesContainer);
-        
-        console.log('[UI] Power-up settings created:', {
-            enabled: this.customSettings.powerUps.enabled,  // Should show true/false
-            types: this.customSettings.powerUps.types
-        });
         
         return group;
     }
@@ -591,13 +532,6 @@ private createSliderControl(config: {
             preset: this.currentPreset,
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
-        console.log(' [handleApply] Applying settings:', {
-            preset: settings.preset,
-            hasConfig: !!settings.config,
-            customSettings: JSON.stringify(this.customSettings, null, 2),
-            powerUpsEnabled: this.customSettings.powerUps?.enabled,  // Show this explicitly
-            powerUpTypes: this.customSettings.powerUps?.types        //
-        });
 
         this.applyUserSettings(settings);
         this.close();
@@ -611,26 +545,14 @@ private createSliderControl(config: {
         this.close();
     }
 
-    //Gets current merged configuration
-    // private getCurrentConfig(): typeof GameConfig {
-    //     const settings: CustomGameSettings = {
-    //         preset: this.currentPreset,
-    //         config: this.customSettings
-    //     };
-        
-    //     gameConfigManager.applyCustomizations(settings);
-    //     return gameConfigManager.current;
-    // }
     private getCurrentConfig(): typeof GameConfig {
         const settings: CustomGameSettings = {
             preset: this.currentPreset,
             config: this.currentPreset === 'CUSTOM' ? this.customSettings : undefined
         };
         
-        // ✅ Get the preset config
         const presetConfig = gameConfigManager.getPresetConfig(this.currentPreset);
         
-        // ✅ If CUSTOM, merge with customSettings locally
         if (this.currentPreset === 'CUSTOM' && this.customSettings) {
             return this.mergeConfigLocally(presetConfig, this.customSettings);
         }
@@ -657,9 +579,7 @@ private createSliderControl(config: {
         return result;
     }
 
-    /**
-     * Helper: Get nested object value by dot notation key
-     */
+    // Helper: Get nested object value by dot notation key
     private getNestedValue(key: string): number | undefined {
         const keys = key.split('.');
         let value: any = this.customSettings;
@@ -675,9 +595,7 @@ private createSliderControl(config: {
         return typeof value === 'number' ? value : undefined;
     }
 
-    /**
-     * Helper: Set nested object value by dot notation key
-     */
+    // Helper: Set nested object value by dot notation key
     private setNestedValue(key: string, value: number | boolean): void {
         const keys = key.split('.');
         let obj: any = this.customSettings;
@@ -691,18 +609,10 @@ private createSliderControl(config: {
         }
         
         obj[keys[keys.length - 1]] = value;
-
-        console.log('[UI] Set nested value:', {
-            key,
-            value,
-            fullSettings: JSON.stringify(this.customSettings, null, 2)
-        });
     }
 }
 
-/**
- * Utility function to create and open customization UI
- */
+ // Utility function to create and open customization UI
 export function openGameCustomization(container: HTMLElement, applyUserSettings: (settings: CustomGameSettings) => void, onCancel?: () => void): 
     GameCustomizationUI {
     
