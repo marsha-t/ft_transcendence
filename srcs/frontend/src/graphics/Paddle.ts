@@ -2,6 +2,23 @@ import * as BABYLON from "babylonjs";
 import { gameConfigManager } from "./GameConfigManager";
 
 
+/**
+ * Paddle - Player-controlled paddle for Pong game
+ * 
+ * Responsibilities:
+ * - Rendering paddle mesh in Babylon.js scene
+ * - Handling paddle movement with wall collision
+ * - Tracking current depth (can change with power-ups)
+ * 
+ * Ownership:
+ * - Mesh is owned by Babylon.js scene
+ * - Parent PongGame class handles disposal
+ * 
+ * Lifecycle:
+ * - Created by PongGame constructor
+ * - Updated every physics step via move()
+ * - Disposed automatically when PongGame.dispose() is called
+ */
 export class Paddle {
     public mesh: BABYLON.Mesh;
     private scene: BABYLON.Scene;
@@ -14,7 +31,6 @@ export class Paddle {
 
         const config = gameConfigManager.current.paddle;
 
-
         this.mesh = BABYLON.MeshBuilder.CreateBox(
             name, 
             { 
@@ -24,8 +40,6 @@ export class Paddle {
             }, this.scene);
         this.mesh.position = position;
 
-        // this.mesh.position = position;
-
         this.currentMeshDepth = config.depth;
         
         const mat = new BABYLON.StandardMaterial(name + "Mat", this.scene);
@@ -33,17 +47,15 @@ export class Paddle {
         this.mesh.material = mat;
     }
 
+    //- Updates internal depth tracking when paddle is enlarged/restored
+    // - Called by PongGame during power-up activation/deactivation
     public updateMeshDepth(newDepth: number): void {
         this.currentMeshDepth = newDepth;
-        console.log(`[Paddle] Mesh depth updated to: ${newDepth}`);
-
     }
 
-
-    // public getActualDepth(): number {
-    //     return this.currentMeshDepth;
-    // }
-
+    // - Updates paddle position based on velocity
+    // - Prevents paddle from going through walls
+    // - Called every physics frame by InputHandler
     public move(dt: number): void {
         const dz = this.velocity * dt;
         this.mesh.position.z += dz;

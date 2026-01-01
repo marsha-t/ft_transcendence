@@ -12,6 +12,7 @@ interface AIConfig {
     aiSide: 'LEFT' | 'RIGHT';
 }
 
+
 /**
  * - Initializing BabylonJS engine and scene
  * - Running the fixed-step physics loop
@@ -72,7 +73,7 @@ export class PongGame {
         this.createBall();
         this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
-        //Initial power Ups
+        //Initialize power-ups if enabled
         if(gameConfigManager.current.powerUps.enabled){
             this.powerUpManager = new PowerUpManager(this.scene);
         }
@@ -140,9 +141,9 @@ export class PongGame {
         this.updateActivePowerUpEffects(currentTime);
     }
 
-    // ================
-    // POWER-UP EFFECTS
-    // ================
+    // ============================================
+    // POWER-UP SYSTEM - Activation & Deactivation
+    // ============================================
     private activePowerUp(type: PowerUpTypes): void {
         const config = gameConfigManager.current.powerUps;
         const endTime = Date.now() + config.duration;
@@ -365,49 +366,43 @@ export class PongGame {
     }
 
     // ===========================
-    // RESOURCE CLEANUP (CRITICAL)
+    // RESOURCE CLEANUP
     // ===========================
     public dispose(): void {
         if (this.isAIGame) {
             aiWebSocketService.disconnect();
         }
+        
+        this.activePowerUps?.forEach((_, type) => {
+            this.deactivatePowerUp(type);
+        });
+        this.activePowerUps?.clear();
 
         if(this.powerUpManager){
             this.powerUpManager.cleanPowerUp();
             this.powerUpManager = null;
         }
 
-        this.activePowerUps.forEach((_, type) => {
-            this.deactivatePowerUp(type);
-        });
-        this.activePowerUps.clear();
         this.engine.stopRenderLoop();
-        if(this.scene){
-            this.scene.mesh.forEach((mesh: BABYLON.AbstractMesh) => {
-                if(mesh.geometry)
-                    mesh.geometry.dispose();
-                mesh.dispose();
-            });
-
-            this.scene.materials.forEach((material: BABYLON.Material) => {
-                material.dispose();
-            });
-
-            this.scene.texture.forEach((texture: BABYLON.BaseTexture) => {
-                texture.dispose();
-            });
-
-            this.scene.dispose();
+        
+        if(this.input){
+            this.input.disposeInputHandler();
+            this.input = null as any;
         }
-        if(this.engine)
-            this.engine.dispose();
 
-        this.scene = null as any;
-        this.engine = null as any;
+        if(this.scene){
+            this.scene.dispose();
+            this.scene = null as any;
+        }
+        // if(this.engine)
+        //     this.engine.dispose();
+
+        // this.scene = null as any;
+        // this.engine = null as any;
         this.leftPaddle = null as any;
         this.rightPaddle = null as any;
         this.ball = null as any;
-        this.input = null as any;
+        this.onScoreCallback = undefined;
     }
 
     public pause(): void {
