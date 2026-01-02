@@ -613,8 +613,9 @@ export class GameCustomizationUI {
 }
 
  // Utility function to create and open customization UI
-export function openGameCustomization(container: HTMLElement, applyUserSettings: (settings: CustomGameSettings) => void, onCancel?: () => void): 
-    GameCustomizationUI {
+export function openGameCustomization(container: HTMLElement, 
+        applyUserSettings: (settings: CustomGameSettings) => void, 
+        onCancel?: () => void): GameCustomizationUI {
     
     const ui = new GameCustomizationUI({container, applyUserSettings, onCancel, showAdvanced: true});
     
