@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/profile/types'; 
+import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/friends/types'; 
 import { getAvatarUrl, showMessage } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils.js";
 import { t } from "../services/i18n/i18nService.js";
@@ -108,12 +108,12 @@ export class friendsAndUsers implements IComponent {
 
   private async fetchProfileData(): Promise<void> {
     try {
-      const friendsResponse: ApiResponse<FriendsData> = await apiServices.profile.getFriends();
+      const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
       if (friendsResponse.success) {
         this.friendsListData = friendsResponse.data?.friends || [];
       }
 
-      const requestsResponse = await apiServices.profile.getIncomingRequests();
+      const requestsResponse = await apiServices.friends.getIncomingRequests();
       if (requestsResponse.success && requestsResponse.data) {
         this.requestsListData = requestsResponse.data;
       }
@@ -193,7 +193,7 @@ export class friendsAndUsers implements IComponent {
   removeBtn.innerHTML = "&times;";
 
   removeBtn.addEventListener("click", async () => {
-    const response = await apiServices.profile.removeFriend(name);
+    const response = await apiServices.friends.removeFriend(name);
     console.log("API response:", response);
     if (response.success) {
       item.remove(); // Remove from UI
@@ -272,11 +272,11 @@ export class friendsAndUsers implements IComponent {
     acceptBtn.addEventListener("click", async () => {
       // console.log(`Accepted friend request from ${name}`);
       // handle accept logic !!!
-      const res = await apiServices.profile.respondToRequest(name, "accept");
+      const res = await apiServices.friends.respondToRequest(name, "accept");
       if (res.success) {
         console.log(`✅ Accepted friend request from ${name}`);
         item.remove(); // Remove from UI
-        const friendsResponse: ApiResponse<FriendsData> = await apiServices.profile.getFriends();
+        const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
         if (friendsResponse.success) {
             this.friendsListData = friendsResponse.data?.friends || [];
             await this.fetchProfileData();
@@ -300,7 +300,7 @@ export class friendsAndUsers implements IComponent {
   `;
     declineBtn.textContent = t("profile.declineRequest") as string;
     declineBtn.addEventListener("click", async () => {
-    const res = await apiServices.profile.respondToRequest(name, "reject");
+    const res = await apiServices.friends.respondToRequest(name, "reject");
     if (res.success) {
         console.log(`❌ Declined friend request from ${name}`);
         item.remove(); // Remove from UI
@@ -524,7 +524,7 @@ private openAddFriendPopup(): void {
           `;
 
         addBtn.addEventListener("click", async () => {
-          const res = await apiServices.profile.sendFriendRequest(user.username);
+          const res = await apiServices.friends.sendFriendRequest(user.username);
           if (res.success) {
             localPending.add(user.username);
             // Swap the button for a non-interactive Pending label immediately
@@ -568,7 +568,7 @@ private openAddFriendPopup(): void {
     resultsContainer.innerHTML = `<p class='loading-text'>${text}</p>`;
 
     typingTimer = setTimeout(async () => {
-      const response = await apiServices.profile.searchUsers(query);
+      const response = await apiServices.friends.searchUsers(query);
       if (response.success && response.data) renderResults(response.data);
       else resultsContainer.innerHTML = "<p class='no-results'>No users found</p>";
     }, debounceDelay);

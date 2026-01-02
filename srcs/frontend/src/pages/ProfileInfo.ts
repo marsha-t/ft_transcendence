@@ -315,7 +315,7 @@ export class ProfileInfo implements IComponent {
             const code = otpInput.value.trim();
             if (!code) return alert("Enter OTP");
 
-            const verifyRes = await apiServices.profile.verify2FA(code);
+            const verifyRes = await apiServices.auth.verify2FA(code);
             if (verifyRes.success) {
             alert("2FA enabled successfully!");
             otpContainer.classList.add("hidden");
@@ -329,7 +329,7 @@ export class ProfileInfo implements IComponent {
 
         // Initialize toggle based on backend status
         const init2FAStatus = async () => {
-            const res = await apiServices.profile.get2FAStatus();
+            const res = await apiServices.auth.get2FAStatus();
             if (res.success && res.enabled) {
             toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
             toggleCircle.style.transform = "translate(100%, -50%)";
@@ -351,7 +351,7 @@ export class ProfileInfo implements IComponent {
             const isEnabled = toggleSwitch.classList.contains("enabled");
 
             if (isEnabled) {
-            const res = await apiServices.profile.disable2FA();
+            const res = await apiServices.auth.disable2FA();
             if (res.success) {
                 toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
                 toggleCircle.style.transform = "translate(-0%, -50%)";
@@ -365,7 +365,7 @@ export class ProfileInfo implements IComponent {
             otpContainer.classList.remove("hidden");
 
             // Send OTP email asynchronously
-            apiServices.profile.enable2FA().then(res => {
+            apiServices.auth.enable2FA().then(res => {
                 if (res.success) alert(res.message);
                 else alert(res.message);
             }).catch(err => {
@@ -442,53 +442,53 @@ export class ProfileInfo implements IComponent {
         passwordGroup.appendChild(newPasswordInput);
 
         // Language
-        const languageGroup = document.createElement("div");
-        languageGroup.className = `flex flex-col gap-1`;
+        // const languageGroup = document.createElement("div");
+        // languageGroup.className = `flex flex-col gap-1`;
 
-        const languageLabel = document.createElement("label");
-        languageLabel.className = `text-sm font-semibold`;
-        languageLabel.textContent = t("settings.language") as string;
+        // const languageLabel = document.createElement("label");
+        // languageLabel.className = `text-sm font-semibold`;
+        // languageLabel.textContent = t("settings.language") as string;
 
-        const languageSelect = document.createElement("select");
-        languageSelect.className = `
-        w-full rounded-[8px] px-3 py-2
-        bg-[#183B76] border border-gray-500
-        text-white focus:outline-none
-        `;
+        // const languageSelect = document.createElement("select");
+        // languageSelect.className = `
+        // w-full rounded-[8px] px-3 py-2
+        // bg-[#183B76] border border-gray-500
+        // text-white focus:outline-none
+        // `;
 
-        const languages = [
-        { code: "en", label: "English" },
-        { code: "sp", label: "Spanish" },
-        { code: "ru", label: "Russian" },
-        ];
+        // const languages = [
+        // { code: "en", label: "English" },
+        // { code: "sp", label: "Spanish" },
+        // { code: "ru", label: "Russian" },
+        // ];
 
-        languages.forEach(lang => {
-        const option = document.createElement("option");
-        option.value = lang.code;
-        option.textContent = lang.label;
-        languageSelect.appendChild(option);
-        });
+        // languages.forEach(lang => {
+        // const option = document.createElement("option");
+        // option.value = lang.code;
+        // option.textContent = lang.label;
+        // languageSelect.appendChild(option);
+        // });
 
-        // Set current language (from backend)
-        languageSelect.value = localStorage.getItem("i18nextLng") || "en";
+        // // Set current language (from backend)
+        // languageSelect.value = localStorage.getItem("i18nextLng") || "en";
         
-        // Add change handler to persist language to backend
-        languageSelect.addEventListener('change', async (e) => {
-            const selectedLanguage = (e.target as HTMLSelectElement).value;
-            try {
-                // Update language locally first for immediate UI response
-                await changeLanguage(selectedLanguage);
+        // // Add change handler to persist language to backend
+        // languageSelect.addEventListener('change', async (e) => {
+        //     const selectedLanguage = (e.target as HTMLSelectElement).value;
+        //     try {
+        //         // Update language locally first for immediate UI response
+        //         await changeLanguage(selectedLanguage);
                 
-                // Show success message
-                this.showMessage("Language updated successfully!", 'success');
-            } catch (error) {
-                console.error('Failed to update language:', error);
-                this.showMessage("Failed to update language", 'error');
-            }
-        });
+        //         // Show success message
+        //         this.showMessage("Language updated successfully!", 'success');
+        //     } catch (error) {
+        //         console.error('Failed to update language:', error);
+        //         this.showMessage("Failed to update language", 'error');
+        //     }
+        // });
 
-        languageGroup.appendChild(languageLabel);
-        languageGroup.appendChild(languageSelect);
+        // languageGroup.appendChild(languageLabel);
+        // languageGroup.appendChild(languageSelect);
 
         form.appendChild(usernameGroup);
         form.appendChild(emailGroup);

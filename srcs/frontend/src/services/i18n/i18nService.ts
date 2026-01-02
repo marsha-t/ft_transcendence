@@ -3,7 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { AuthUtils } from '../../utils/authUtils.js';
 import { apiServices } from '../ApiServices.js';
 
-// Import translation files
+//translation files
 import enTranslation from '../../locales/en/translation.json';
 import arTranslation from '../../locales/sp/translation.json';
 import ruTranslation from '../../locales/ru/translation.json';
@@ -15,19 +15,23 @@ export const SUPPORTED_LANGUAGES = {
   ru: { name: 'Russian', nativeName: 'Русский', dir: 'ltr' }
 };
 
-export const DEFAULT_LANGUAGE = 'en';
+/* 
+  en >> English
+  sp >> Spanish
+  ru >> Russian 
+*/
 
-// Create initialization promise
-export const i18nReady = i18next
-  .use(LanguageDetector)
-  .init({
-    resources: {
+export const DEFAULT_LANGUAGE = 'en'; //Used as a fallback when no valid language is detected or available.
+
+// i18next Initialization
+export const i18nReady = i18next.use(LanguageDetector).init({
+    resources: { //Loaded translation JSON files
       en: { translation: enTranslation },
-      sp: { translation: arTranslation }, // Using Spanish translation for Spanish
-      ru: { translation: ruTranslation }  // Russian translation
+      sp: { translation: arTranslation },
+      ru: { translation: ruTranslation }
     },
-    fallbackLng: DEFAULT_LANGUAGE,
-    supportedLngs: Object.keys(SUPPORTED_LANGUAGES),
+    fallbackLng: DEFAULT_LANGUAGE, //Language used if a translation is missing
+    supportedLngs: Object.keys(SUPPORTED_LANGUAGES), //Restricts available languages
     debug: false,
     interpolation: {
       escapeValue: false // React already escapes values

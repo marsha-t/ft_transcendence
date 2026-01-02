@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { MatchHistory as MatchHistoryType, ApiResponse } from '../services/profile/types'; 
+import { MatchHistory as MatchHistoryType } from '../services/dashboard/types'; 
 import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
@@ -61,7 +61,7 @@ export class MatchHistory implements IComponent {
 
   public async fetchData(): Promise<void> {
     try {
-      const matchHistoryResponse = await apiServices.profile.getMatchHistory(1);
+      const matchHistoryResponse = await apiServices.dashboard.getMatchHistory(1);
       if (matchHistoryResponse.success && matchHistoryResponse.data) {
         this.matchHistoryData = matchHistoryResponse.data;
       }
