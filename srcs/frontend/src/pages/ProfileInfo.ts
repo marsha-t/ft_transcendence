@@ -7,6 +7,16 @@ import { t } from "../services/i18n/i18nService.js";
 import { changeLanguage } from "../services/i18n/i18nService.js";
 import { showConfirmation } from "../utils/uiUtils";
 
+/**
+ * This class implements the profile information card for the user.
+ * Responsibilities:
+ *  - Fetch and display user profile data (username, email, avatar)
+ *  - Provide an editable popup modal for updating profile info
+ *  - Handle avatar changes (preset, upload, delete)
+ *  - Manage 2FA toggle and related UI
+ *  - Notify parent components of profile changes via callback
+ *  - Provide public getters for username and avatar
+ */
 export class ProfileInfo implements IComponent {
     private messageContainer: HTMLDivElement | null = null;
     private popupAvatarEl: HTMLElement | null = null;
@@ -18,21 +28,26 @@ export class ProfileInfo implements IComponent {
     private container: HTMLElement | null = null;
     private onProfileUpdate?: () => void;
 
+     // ---- Constructor ----
+    // Stores optional callback for parent notification (mainly for profile updates)
     constructor(onProfileUpdate?: () => void) {
         this.onProfileUpdate = onProfileUpdate;
     }
 
+     // ---- Render the profile card ----
     render(): HTMLElement {
         const profileInfo = document.createElement("div");
         profileInfo.className = `profile-card rounded-2xl bg-[#21447E] opacity-100 text-color_white
             p-4 relative flex flex-col items-center`;
 
+        // Edit button
         const editProfileBtn = document.createElement("div");
         editProfileBtn.textContent = t("profile.editProfile") as string;
         editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-fit h-[32px] font-pixel", 'green');
   
         editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
         
+        // Avatar
         const avatar = document.createElement("div");
         avatar.className = `profile-avatar w-[132px] h-[132px]
             rounded-full border-[7px] border-white
@@ -48,6 +63,7 @@ export class ProfileInfo implements IComponent {
             avatar.textContent = (this.username ? this.username.charAt(0).toUpperCase() : "");
         }
 
+        // Username
         const name = document.createElement("h2");
         name.className = `profile-name text-[20px] leading-[24px] tracking-[-0.01em]
             font-pixel font-[500]
@@ -65,6 +81,8 @@ export class ProfileInfo implements IComponent {
         return profileInfo;
     }
 
+
+    // ---- Fetch profile data from backend ----
     public async fetchProfileData(): Promise<void> {
         try {
             const profileResponse: ApiResponse<ProfileData> = await apiServices.profile.getProfile();
@@ -82,6 +100,8 @@ export class ProfileInfo implements IComponent {
             console.error('Error fetching profile data:', error);
         }
     }
+
+    // ---- Update profile UI elements (username, avatar) ----
     private async fetchUsername(): Promise<string> {
         // Return current username immediately (no artificial delay)
         return Promise.resolve(this.username || "");
@@ -118,6 +138,7 @@ export class ProfileInfo implements IComponent {
         }
     }
 
+    // ---- update avatar in popup modal ----
     private async updatePopupAvatar(): Promise<void> {
         if (!this.popupAvatarEl) return;
 
@@ -131,6 +152,8 @@ export class ProfileInfo implements IComponent {
             this.popupAvatarEl.textContent = this.username.charAt(0).toUpperCase() || "";
         }
     }
+
+    // ---- profile settings popup modal ----
 
     private openSettingsPopup(): void {
         const overlay = document.createElement("div");
@@ -664,11 +687,11 @@ export class ProfileInfo implements IComponent {
         }, 1000);
     }
 
-    public getUsername(): string {
-        return this.username;
-    }
+    // public getUsername(): string {
+    //     return this.username;
+    // }
 
-    public getAvatar(): string {
-        return this.avatar;
-    }
+    // public getAvatar(): string {
+    //     return this.avatar;
+    // }
 }

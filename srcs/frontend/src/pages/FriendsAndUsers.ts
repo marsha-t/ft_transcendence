@@ -194,10 +194,8 @@ export class friendsAndUsers implements IComponent {
 
   removeBtn.addEventListener("click", async () => {
     const response = await apiServices.friends.removeFriend(name);
-    console.log("API response:", response);
     if (response.success) {
       item.remove(); // Remove from UI
-      console.log(`${name} removed successfully`);
       await this.fetchProfileData();
       this.switchToFriends(); // ✅ use captured instance
       if (this.onProfileUpdate) {
@@ -270,11 +268,9 @@ export class friendsAndUsers implements IComponent {
   `;
     acceptBtn.textContent = t("profile.acceptRequest") as string;
     acceptBtn.addEventListener("click", async () => {
-      // console.log(`Accepted friend request from ${name}`);
       // handle accept logic !!!
       const res = await apiServices.friends.respondToRequest(name, "accept");
       if (res.success) {
-        console.log(`✅ Accepted friend request from ${name}`);
         item.remove(); // Remove from UI
         const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
         if (friendsResponse.success) {
@@ -302,7 +298,6 @@ export class friendsAndUsers implements IComponent {
     declineBtn.addEventListener("click", async () => {
     const res = await apiServices.friends.respondToRequest(name, "reject");
     if (res.success) {
-        console.log(`❌ Declined friend request from ${name}`);
         item.remove(); // Remove from UI
         await this.fetchProfileData();
         this.switchToRequests();
@@ -339,13 +334,11 @@ export class friendsAndUsers implements IComponent {
 private updateFriendsList(): void {
     // Check if container exists first
     if (!this.container) {
-        console.log('Container not found');
         return;
     }
 
     const friendsList = this.container.querySelector(".friends-list");
     if (!friendsList) {
-        console.log('Friends list not found');
         return;
     }
 
@@ -469,7 +462,6 @@ private openAddFriendPopup(): void {
     }
 
     data.forEach((user, index) => {
-      console.log(`${user.username}: ${user.friendStatus}`);
       const userDiv = document.createElement("div");
       userDiv.className = `
         flex items-center justify-between  h-[55px]
