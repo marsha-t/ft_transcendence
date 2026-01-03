@@ -26,57 +26,30 @@ export function navigate(path: string, state: any = {}) {
 export async function confirmationPopup(message: string, title = t("common.pleaseConfirm") as string, action: boolean): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "2000";
+    overlay.className = `fixed inset-0 w-screen h-screen bg-black/50
+      flex items-center justify-center z-[2000]
+    `;
 
     const modal = document.createElement("div");
-    modal.style.background = "var(--color-background-secondary, #fff)";
-    modal.style.padding = "1.5rem";
-    modal.style.borderRadius = "16px";
-    modal.style.width = "320px";
-    modal.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-    modal.style.textAlign = "center";
-    modal.style.transition = "transform 0.2s ease, opacity 0.2s ease";
-    modal.style.transform = "scale(1)";
-    modal.style.opacity = "1";
+    modal.className = ` bg-[var(--color-background-secondary,#fff)] p-6 rounded-2xl w-[320px]
+      shadow-[0_4px_12px_rgba(0,0,0,0.15)] text-center transition-[transform,opacity]
+      duration-200 ease-in-out scale-100 opacity-100`;
 
     const titleEl = document.createElement("h3");
     titleEl.textContent = title;
-    titleEl.style.marginTop = "0";
-    titleEl.style.marginBottom = "0.5rem";
-    titleEl.style.fontSize = "1.1rem";
+    titleEl.className = `mt-0 mb-2 text-[24px] font-bold`;
+    titleEl.style.color = "#dc2626";
 
     const messageEl = document.createElement("p");
     messageEl.textContent = message;
-    messageEl.style.margin = "1rem 0";
-    messageEl.style.fontSize = "0.95rem";
+    messageEl.className = `my-4 text-[18px] font-medium`;
 
     const buttons = document.createElement("div");
-    buttons.style.display = "flex";
-    buttons.style.justifyContent = "center";
-    buttons.style.gap = "1rem";
+    buttons.className = `flex justify-center gap-4`;
 
     const yesBtn = document.createElement("button");
     yesBtn.textContent = t("game-result.checkResults") as string;
-    yesBtn.style.padding = "0.5rem 1.2rem";
-    yesBtn.style.border = "none";
-    yesBtn.style.borderRadius = "8px";
-    if (action)
-      yesBtn.style.backgroundColor = "#4caf50";
-    else
-      yesBtn.style.backgroundColor = "red";
-
-    yesBtn.style.color = "white";
-    yesBtn.style.cursor = "pointer";
-    yesBtn.style.fontSize = "0.9rem";
+    yesBtn.className = createButtonStyle("w-fit h-[42px]", "green");
 
     buttons.appendChild(yesBtn);
     modal.appendChild(titleEl);
@@ -105,54 +78,31 @@ export async function confirmationPopup(message: string, title = t("common.pleas
 
 export async function alertPopup(message: string, title = "Alert"): Promise<void> {
   return new Promise((resolve) => {
-    const overlay = document.createElement("div");
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-    overlay.style.display = "flex";
-    overlay.style.alignItems = "center";
-    overlay.style.justifyContent = "center";
-    overlay.style.zIndex = "2000";
+   const overlay = document.createElement("div");
+    overlay.className = `fixed inset-0 w-screen h-screen bg-black/50
+      flex items-center justify-center z-[2000]
+    `;
 
     const modal = document.createElement("div");
-    modal.style.background = "var(--color-background-secondary, #fff)";
-    modal.style.padding = "1.5rem";
-    modal.style.borderRadius = "16px";
-    modal.style.width = "320px";
-    modal.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-    modal.style.textAlign = "center";
-    modal.style.transition = "transform 0.2s ease, opacity 0.2s ease";
-    modal.style.transform = "scale(1)";
-    modal.style.opacity = "1";
+    modal.className = ` bg-[var(--color-background-secondary,#fff)] p-6 rounded-2xl w-[320px]
+      shadow-[0_4px_12px_rgba(0,0,0,0.15)] text-center transition-[transform,opacity]
+      duration-200 ease-in-out scale-100 opacity-100`;
 
     const titleEl = document.createElement("h3");
     titleEl.textContent = title;
-    titleEl.style.marginTop = "0";
-    titleEl.style.marginBottom = "0.5rem";
-    titleEl.style.fontSize = "1.1rem";
+    titleEl.className = `mt-0 mb-2 text-[24px] font-bold`;
+    titleEl.style.color = "#dc2626";
 
     const messageEl = document.createElement("p");
     messageEl.textContent = message;
-    messageEl.style.margin = "1rem 0";
-    messageEl.style.fontSize = "0.95rem";
+    messageEl.className = `my-4 text-[18px] font-medium`;
 
     const buttons = document.createElement("div");
-    buttons.style.display = "flex";
-    buttons.style.justifyContent = "center";
-    buttons.style.gap = "1rem";
+    buttons.className = `flex justify-center gap-4`;
 
     const okBtn = document.createElement("button");
     okBtn.textContent = "OK";
-    okBtn.style.padding = "0.5rem 1.2rem";
-    okBtn.style.border = "none";
-    okBtn.style.borderRadius = "8px";
-    okBtn.style.backgroundColor = "#4caf50";
-    okBtn.style.color = "white";
-    okBtn.style.cursor = "pointer";
-    okBtn.style.fontSize = "0.9rem";
+    okBtn.className = createButtonStyle("w-fit h-[42px]", "green");
 
     buttons.appendChild(okBtn);
     modal.appendChild(titleEl);
