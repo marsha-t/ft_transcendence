@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import jwt from 'jsonwebtoken';
 import fastifyMultipart from '@fastify/multipart';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -31,6 +32,7 @@ const checkEnv = (name, value) => {
 
 // Check critical env vars
 checkEnv('JWT_SECRET', process.env.JWT_SECRET);
+checkEnv('JWT_SERVICE_SECRET', process.env.JWT_SERVICE_SECRET);
 checkEnv('DATABASE_URL', process.env.DATABASE_URL);
 
 // Initialize Fastify
@@ -69,15 +71,46 @@ app.decorate('authenticate', async (request) => {
     }
 
     request.user = await app.jwt.verify(token);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      const e = new Error('Token expired');
+      e.statusCode = 401;
+      e.code = 'TOKEN_EXPIRED';
+      throw e;
+    } else if (err.name === 'JsonWebTokenError') {
+      const e = new Error('Invalid token');
+      e.statusCode = 401;
+      e.code = 'INVALID_TOKEN';
+      throw e;
+    } else {
+      const e = new Error('Unauthorized');
+      e.statusCode = 401;
+      e.code = 'UNAUTHORIZED';
+      throw e;
+    }
+  }
+});
 
-    const userExists = await prisma.user.findUnique({ where: { id: request.user.id } });
-    if (!userExists) {
-      const err = new Error('User not found');
+// Inter-services authentication
+app.decorate('authenticateService', async (request) => {
+  try {
+    const authHeader = request.headers['authorization'];
+    if (!authHeader) {
+      const err = new Error('Missing Authorization header');
       err.statusCode = 401;
-      err.code = 'USER_NOT_FOUND';
+      err.code = 'MISSING_AUTH_HEADER';
       throw err;
     }
-    
+
+    const token = authHeader.split(' ')[1]; // Bearer <token>
+    if (!token) {
+      const err = new Error('Missing token');
+      err.statusCode = 401;
+      err.code = 'MISSING_TOKEN';
+      throw err;
+    }
+
+    jwt.verify(token, process.env.JWT_SERVICE_SECRET);
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       const e = new Error('Token expired');

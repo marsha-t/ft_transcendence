@@ -1,6 +1,6 @@
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
-import { updateLanguageSchema } from '../schemas/userStats.js';
+import { getUserInfoSchema, updateLanguageSchema, updateUserStatsSchema, getUserDisplayInfoSchema, batchUserInfoSchema, validateUserSchema } from '../schemas/userStats.js';
 
 async function userStatsRoutes(app) {
   
@@ -10,7 +10,7 @@ async function userStatsRoutes(app) {
     - Extracts user from the token
     - Returns username, avatar, and default language
   */  
-  app.get('/userInfo', { preHandler: [app.authenticate] }, async (request, reply) => {
+  app.get('/userInfo', { schema: getUserInfoSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
 
     const user = await prisma.user.findUnique({
@@ -18,11 +18,7 @@ async function userStatsRoutes(app) {
       select: { username: true, avatar: true, defaultLanguage: true },
     });
 
-    return reply.send({
-      username: user.username,
-      avatar: user.avatar || '../uploads/avatars/default.png',
-      defaultLanguage: user.defaultLanguage,
-    });
+    return reply.code(200).send(user);
   });
 
   // Update default language
@@ -49,7 +45,7 @@ async function userStatsRoutes(app) {
       data: { defaultLanguage: language },
     });
 
-    return reply.send({ message: 'Default language updated' });
+    return reply.code(200).send({ message: 'Default language updated' });
   });
 
   // Update user stats after game completion
@@ -58,9 +54,9 @@ async function userStatsRoutes(app) {
     - Calculates win rate, total matches, average score, etc.
     - Responds with updated user stats
   */
-  app.post('/users/:userId/stats', async (request, reply) => {
+  app.post('/users/:userId/stats', { schema: updateUserStatsSchema, preHandler: [app.authenticateService] }, async (request, reply) => {
     const { userId } = request.params;
-    const { won, score, opponentScore } = request.body;
+    const { won, score } = request.body;
 
     if (typeof won !== 'boolean' || typeof score !== 'number') {
       return reply.code(400).send({ error: 'Invalid request body' });
@@ -69,13 +65,6 @@ async function userStatsRoutes(app) {
     const user = await prisma.user.findUnique({
       where: { id: Number(userId) }
     });
-
-    if (!user) {
-      const err = new Error('User not found');
-      err.statusCode = 404;
-      err.code = 'USER_NOT_FOUND';
-      throw err;
-    }
 
     // Calculate new stats
     const totalMatches = user.totalMatches + 1;
@@ -108,7 +97,7 @@ async function userStatsRoutes(app) {
       }
     });
 
-    return reply.send({
+    return reply.code(200).send({
       message: 'Stats updated successfully',
       stats: updated
     });
@@ -119,7 +108,7 @@ async function userStatsRoutes(app) {
     Fetches user's display information for game purposes
     - Returns username, avatar, status
   */
-  app.get('/users/:userId/info', async (request, reply) => {
+  app.get('/users/:userId/info', { schema: getUserDisplayInfoSchema, preHandler: [app.authenticateService] }, async (request, reply) => {
     const { userId } = request.params;
 
     const user = await prisma.user.findUnique({
@@ -127,14 +116,7 @@ async function userStatsRoutes(app) {
       select: { id: true, username: true, avatar: true, status: true }
     });
 
-    if (!user) {
-      const err = new Error('User not found');
-      err.statusCode = 404;
-      err.code = 'USER_NOT_FOUND';
-      throw err;
-    }
-
-    return reply.send(user);
+    return reply.code(200).send(user);
   });
 
   // Batch get user info (for dashboard/leaderboards)
@@ -142,7 +124,7 @@ async function userStatsRoutes(app) {
     Fetches info for multiple users at once
     - Accepts an array of userIds and returns their details
   */
-  app.post('/users/batch-info', async (request, reply) => {
+  app.post('/users/batch-info', { schema: batchUserInfoSchema, preHandler: [app.authenticateService] }, async (request, reply) => {
     const { userIds } = request.body;
 
     if (!Array.isArray(userIds) || userIds.length === 0) {
@@ -165,7 +147,7 @@ async function userStatsRoutes(app) {
       }
     });
 
-    return reply.send(users);
+    return reply.code(200).send(users);
   });
 
   // Validate user credentials (for tournament registration)
@@ -173,7 +155,7 @@ async function userStatsRoutes(app) {
     Validates user's credentials for tournament registration
     - Checks username and password
   */
-  app.post('/users/validate', async (request, reply) => {
+  app.post('/users/validate', { schema: validateUserSchema, preHandler: [app.authenticateService] }, async (request, reply) => {
     const { username, password } = request.body;
 
     if (!username || !password) {
@@ -203,7 +185,7 @@ async function userStatsRoutes(app) {
       throw err;
     }
 
-    return reply.send({
+    return reply.code(200).send({
       id: user.id,
       username: user.username
     });

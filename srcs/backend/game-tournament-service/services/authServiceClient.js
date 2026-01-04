@@ -1,14 +1,28 @@
 // game-tournament-service/services/userServiceClient.js
 // API client to communicate with User-Social Service
 
+import jwt from 'jsonwebtoken';
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost:5002';
 
-export async function updateUserStats(userId, { won, score, opponentScore }) {
+export function generateServiceToken() {
+  const token = jwt.sign(
+    { service: 'services-communication' },
+    process.env.JWT_SERVICE_SECRET,
+    { expiresIn: '5m' }
+  );
+
+  return token;
+}
+
+export async function updateUserStats(userId, { won, score }) {
   try {
     const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/stats`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ won, score, opponentScore })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      },
+      body: JSON.stringify({ won, score })
     });
 
     if (!response.ok) {
@@ -26,7 +40,13 @@ export async function updateUserStats(userId, { won, score, opponentScore }) {
 
 export async function getUserInfo(userId) {
   try {
-    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`);
+    const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      }
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -44,7 +64,10 @@ export async function getBatchUserInfo(userIds) {
   try {
     const response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/batch-info`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      },
       body: JSON.stringify({ userIds })
     });
 

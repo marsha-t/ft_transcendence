@@ -11,7 +11,7 @@ import {
   seedPlayersRandom,
   propagateWinner,
 } from "../services/tournamentService.js";
-import { getUserInfo } from "../services/authServiceClient.js";
+import { getUserInfo, generateServiceToken } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app, options) {
   // Validate player
@@ -28,7 +28,10 @@ async function tournamentRoutes(app, options) {
             `${process.env.PROFILE_SERVICE_URL || 'http://profile:5002'}/api/profileServ/users/validate`,
             {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${generateServiceToken()}`
+              },
               body: JSON.stringify({ username, password })
             }
           );
