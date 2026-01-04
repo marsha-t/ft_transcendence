@@ -11,6 +11,7 @@ import { GameResults } from './pages/GameResults.js';
 import { ProfileDashboard } from './pages/UserDashboard.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { AI } from './pages/AI.js';
+import { closeAnyOpenCustomizationUI } from './utils/gameCustom.js';
 
 export class Router {
   private currentPage: any = null;
@@ -51,6 +52,9 @@ export class Router {
           return;
         }
       }
+
+      //cleanup gameCustomUI
+      closeAnyOpenCustomizationUI();
 
       // Clean up previous page
       if (this.currentPage && typeof this.currentPage.cleanup === "function") {
