@@ -3,6 +3,13 @@ import { GameConfig } from '../graphics/GameConfig';
 import { makeButton } from './uiUtils';
 import { t } from "../services/i18n/i18nService";
 
+export interface CustomizationUIConfig {
+    applyUserSettings: (settings: CustomGameSettings) => void;
+    onCancel?: () => void;
+    container: HTMLElement;
+    showAdvanced?: boolean;
+}
+
 /**
  * GameCustomizationUI
  * 
@@ -12,13 +19,6 @@ import { t } from "../services/i18n/i18nService";
  * - Allows fine-tuning of game parameters
  * - Consistent interface across AI, P2P, and Tournament modes
  */
-export interface CustomizationUIConfig {
-    applyUserSettings: (settings: CustomGameSettings) => void;
-    onCancel?: () => void;
-    container: HTMLElement;
-    showAdvanced?: boolean;
-}
-
 export class GameCustomizationUI {
     private container: HTMLElement;
     private overlay: HTMLDivElement | null = null;
@@ -26,15 +26,29 @@ export class GameCustomizationUI {
     private applyUserSettings: (settings: CustomGameSettings) => void;
     private onCancel?: () => void;
     private showAdvanced: boolean;
-    
     private currentPreset: GamePreset = 'CLASSIC';
     private customSettings: any = {};
+    private eventListeners: Array<{
+        element: HTMLElement | Window;
+        event: string;
+        handler: EventListener;
+    }> = [];
 
     constructor(config: CustomizationUIConfig) {
         this.container = config.container;
         this.applyUserSettings = config.applyUserSettings;
         this.onCancel = config.onCancel;
         this.showAdvanced = config.showAdvanced ?? true;
+    }
+
+    // Helper to track event listeners
+    private addMyEventListener(
+        element: HTMLElement | Window,
+        event: string,
+        handler: EventListener
+    ): void {
+        element.addEventListener(event, handler);
+        this.eventListeners.push({element, event, handler});
     }
 
     //Opens the customization modal
@@ -45,11 +59,18 @@ export class GameCustomizationUI {
 
     //Closes and cleans up the modal
     public close(): void {
+      // Remove all tracked event listeners
+        this.eventListeners.forEach(({element, event, handler}) => {
+            element.removeEventListener(event, handler);
+        });
+        this.eventListeners = [];
+
         if (this.overlay) {
             this.overlay.remove();
             this.overlay = null;
             this.modal = null;
         }
+        this.customSettings = {};
     }
 
     // Creates the main modal structure
@@ -91,12 +112,13 @@ export class GameCustomizationUI {
         this.overlay.appendChild(this.modal);
         this.container.appendChild(this.overlay);
 
-        // Close on overlay click
-        this.overlay.addEventListener('click', (e) => {
+        // Close on overlay click- using tracked addEventListener
+        const overlayClickHandler = (e: Event) => {
             if (e.target === this.overlay) {
                 this.handleCancel();
             }
-        });
+        };
+        this.addMyEventListener(this.overlay, 'click', overlayClickHandler);
     }
 
     //Creates the modal header
@@ -187,11 +209,13 @@ export class GameCustomizationUI {
         card.appendChild(title);
         card.appendChild(desc);
 
-        card.addEventListener('click', () => {
+        // Use tracked addEventListener
+        const clickHandler = () => {
             this.currentPreset = preset.value;
             this.customSettings = {};
             this.refreshModal();
-        });
+        };
+        this.addMyEventListener(card, 'click', clickHandler);
 
         return card;
     }
@@ -231,7 +255,6 @@ export class GameCustomizationUI {
 
         // Power-ups (only for CHAOS or CUSTOM) section
         if (this.currentPreset === 'CHAOS' || this.currentPreset === 'CUSTOM') {
-            // settingsContainer.appendChild(this.createPowerUpSettings());
             const powerUpSection = document.createElement('div');
             powerUpSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4';
             powerUpSection.appendChild(this.createPowerUpSettings());
@@ -268,7 +291,6 @@ export class GameCustomizationUI {
     }
 
     // Creates a slider control with label and value display
-    
     private createSliderControl(config: {
         key: string;
         label: string;
@@ -319,12 +341,13 @@ export class GameCustomizationUI {
             [&::-moz-range-thumb]:border-0
             [&::-moz-range-thumb]:shadow-[0_2px_4px_rgba(0,0,0,0.3)]`;
 
-        slider.addEventListener('input', (e) => {
+        const inputHandler = (e: Event) => {
             const val = parseFloat((e.target as HTMLInputElement).value);
             value.textContent = val.toFixed(1);
             this.setNestedValue(config.key, val);
             this.updatePreview();
-        });
+        };
+        this.addMyEventListener(slider, 'input', inputHandler);
 
         container.appendChild(labelRow);
         container.appendChild(slider);
@@ -364,7 +387,7 @@ export class GameCustomizationUI {
         toggle.checked = this.customSettings.powerUps.enabled ?? false;
         toggle.className = 'w-5 h-5 cursor-pointer accent-[#04b143ff]';
 
-        toggle.addEventListener('change', (e) => {
+        const toggleHandler = (e: Event) => {
             const enabled = (e.target as HTMLInputElement).checked;
             
             //  Make sure powerUps object exists
@@ -375,7 +398,8 @@ export class GameCustomizationUI {
             // Set enabled property directly on the object
             this.customSettings.powerUps.enabled = enabled;
             this.updatePreview();
-        });
+        };
+        this.addMyEventListener(toggle, 'change', toggleHandler);
 
         toggleContainer.appendChild(toggleLabel);
         toggleContainer.appendChild(toggle);
@@ -403,7 +427,8 @@ export class GameCustomizationUI {
             const label = document.createElement('span');
             label.textContent = type.label;
 
-            input.addEventListener('change', (e) => {
+            // Use tracked addEventListener
+            const checkboxHandler = (e: Event) => {
                 const checked = (e.target as HTMLInputElement).checked;
                 
                 if (!this.customSettings.powerUps.types) {
@@ -421,7 +446,8 @@ export class GameCustomizationUI {
                 }
                 
                 this.updatePreview();
-            });
+            };
+            this.addMyEventListener(input, 'change', checkboxHandler);
 
             checkbox.appendChild(input);
             checkbox.appendChild(label);
@@ -500,6 +526,18 @@ export class GameCustomizationUI {
     private refreshModal(): void {
         if (!this.modal) return;
         
+        // Clear existing event listeners before innerHTML wipe
+        // (new ones will be added when recreating)
+        this.eventListeners.forEach(({element, event, handler}) => {
+            if(this.modal?.contains(element as Node)){
+                element.removeEventListener(event, handler);
+            }
+        });
+        // Keep overlay listener, remove modal content listeners
+        this.eventListeners = this.eventListeners.filter(
+            ({element}) => element === this.overlay
+        );
+
         // Only reset if switching AWAY from CUSTOM
         if (this.currentPreset !== 'CUSTOM') {
             this.customSettings = {};
@@ -612,14 +650,33 @@ export class GameCustomizationUI {
     }
 }
 
- // Utility function to create and open customization UI
+// Singleton instance tracking
+let currentCustomizationUI: GameCustomizationUI | null = null;
+
+ // Utility function to create and open customization UI. Ensures only one instance exists at a time
 export function openGameCustomization(container: HTMLElement, 
-        applyUserSettings: (settings: CustomGameSettings) => void, 
-        onCancel?: () => void): GameCustomizationUI {
-    
-    const ui = new GameCustomizationUI({container, applyUserSettings, onCancel, showAdvanced: true});
-    
-    ui.open();
-    
+    applyUserSettings: (settings: CustomGameSettings) => void, onCancel?: () => void): GameCustomizationUI {
+
+        if(currentCustomizationUI){
+            currentCustomizationUI.close();
+            currentCustomizationUI = null;
+        }
+        const ui = new GameCustomizationUI({container, applyUserSettings, 
+            onCancel: () => {
+                if(onCancel)
+                    onCancel();
+                currentCustomizationUI = null;
+            }, 
+            showAdvanced: true
+        });
+        currentCustomizationUI = ui;
+        ui.open();
     return (ui);
+}
+
+export function closeAnyOpenCustomizationUI(): void {
+    if(currentCustomizationUI){
+        currentCustomizationUI.close();
+        currentCustomizationUI = null;
+    }
 }
