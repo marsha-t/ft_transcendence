@@ -1,4 +1,18 @@
-const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost:5002';
+// game-tournament-service/services/userServiceClient.js
+// API client to communicate with User-Social Service
+
+import jwt from 'jsonwebtoken';
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;
+
+function generateServiceToken() {
+  const token = jwt.sign(
+    { service: 'services-communication' },
+    process.env.JWT_SERVICE_SECRET,
+    { expiresIn: '5m' }
+  );
+
+  return token;
+}
 
 // Update User Stats
 /*
@@ -7,14 +21,17 @@ const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost
     - This is regardless of error type: transport errors, can't find user, etc - all errors will be swallowed here
   - Instead, rely on console.warn to issue the warning
 */
-export async function updateUserStats(userId, { won, score, opponentScore }) {
+export async function updateUserStats(userId, { won, score }) {
   let response;
   
   try {
     response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/stats`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ won, score, opponentScore })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      },
+      body: JSON.stringify({ won, score })
     });
   } catch (err) {
     // Handle transport-level failures (where response is not even returned)
@@ -42,7 +59,13 @@ export async function getUserInfo(userId) {
   let response;
 
   try {
-    response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`);
+    response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      }
+    });
   } catch {
     // Handle transport-level failures (where response is not even returned)
      const e = new Error('Auth service unavailable');
@@ -82,8 +105,11 @@ export async function validateUserCredentials(username, password) {
   try {
     response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/validate`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${generateServiceToken()}`
+      },
+      body: JSON.stringify({ username, password })
     });
   } catch {
     // Handle transport-level failures (where response is not even returned)
