@@ -1,15 +1,14 @@
-// authservice/server.js
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import dotenv from 'dotenv';
 import path from 'path';
+import AjvErrors from 'ajv-errors';
 import { fileURLToPath } from 'url';
 import gameSessionRoutes from './routes/gameSession.js'; 
 import gameSessionPlayersRoutes from './routes/gameSessionPlayers.js'; 
 import tournamentRoutes from './routes/tournament.js';
-import AjvErrors from 'ajv-errors';
 import aiRoutes from './routes/ai.js';
 import fastifyWebsocket from '@fastify/websocket';
 import websocketRoutes from './routes/websocket.js';
@@ -21,55 +20,91 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+
+// Critical Environment Checks
+const checkEnv = (name, value) => {
+  if (!value) {
+    const err = new Error(`Missing environment variable: ${name}`);
+    err.statusCode = 500;
+    err.code = 'ENV_MISSING';
+    throw err;
+  }
+};
+
+// Check critical env vars
+checkEnv('JWT_SECRET', process.env.JWT_SECRET);
+checkEnv('GAME_DB_URL', process.env.GAME_DB_URL);
+
+// Initialize Fastify
 const app = Fastify({
   logger: true,
   ajv: {
-    customOptions: {
-      allErrors: true,
-      strict: false,
-    },
+    customOptions: { allErrors: true, strict: false, },
     plugins: [AjvErrors],
   },
 });
 
-// CORS setup (adjust origin for your frontend)
-const allowedOrigins = (process.env.CORS_ORIGINS || 'https://localhost,https://localhost:443,http://localhost:3000').split(',')
-  .map((origin) => origin.trim())
+// CORS
+const allowedOrigins = ('https://localhost,https://localhost:443,https://localhost:8080')
+  .split(',')
+  .map(o => o.trim())
   .filter(Boolean);
 
 await app.register(cors, {
   origin: allowedOrigins,
   credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
 });
 
-
-// JWT setup
-if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
+// JWT Authentication
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
 
-await app.register(fastifyWebsocket); //Websocket
 
-// JWT authentication decorator
-app.decorate('authenticate', async (request, reply) => {
+app.decorate('authenticate', async (request) => {
   try {
     const token = request.cookies.token;
-    if (!token) return reply.code(401).send({ error: 'Missing token' });
+    if (!token) {
+      const err = new Error('Missing token');
+      err.statusCode = 401;
+      err.code = 'MISSING_TOKEN';
+      throw err;
+    }
+
     request.user = await app.jwt.verify(token);
   } catch (err) {
-    return reply.code(401).send({ error: 'Unauthorized' });
+    if (err.name === 'TokenExpiredError') {
+      const e = new Error('Token expired');
+      e.statusCode = 401;
+      e.code = 'TOKEN_EXPIRED';
+      throw e;
+    } else if (err.name === 'JsonWebTokenError') {
+      const e = new Error('Invalid token');
+      e.statusCode = 401;
+      e.code = 'INVALID_TOKEN';
+      throw e;
+    } else {
+      const e = new Error('Unauthorized');
+      e.statusCode = 401;
+      e.code = 'UNAUTHORIZED';
+      throw e;
+    }
   }
 });
 
-// Register Auth Routes
+// Register websocket support
+await app.register(fastifyWebsocket);
+
+// Register Routes (HTTP)
 app.register(gameSessionRoutes, { prefix: '/api/gameSessionServ' });
 app.register(gameSessionPlayersRoutes, { prefix: '/api/gameSessionPlayersServ' });
 app.register(tournamentRoutes, { prefix: '/api/tournamentServ' });
 app.register(aiRoutes, { prefix: '/api/ai' });
-//register websocket routes
+
+// Register Routes (WebSocket)
 app.register(websocketRoutes, {prefix: '/ws'});
 
-
+// Error Handler
 app.setErrorHandler((error, request, reply) => {
   request.log.error(error);
 
@@ -103,11 +138,11 @@ app.setErrorHandler((error, request, reply) => {
 
 
 // Start server
-const PORT = process.env.GAME_SESSION_SERVICE_PORT || 5005;
+const PORT = 5005;
 const start = async () => {
   try {
     await app.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`Game Session Service running at http://localhost:${PORT}`);
+    console.log(`Service running at http://localhost:${PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);
