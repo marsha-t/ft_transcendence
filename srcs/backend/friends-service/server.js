@@ -56,12 +56,26 @@ app.decorate('authenticate', async (request, reply) => {
 // Register Auth Routes
 app.register(friendsRoutes, { prefix: '/api/friendsServ' });
 
-// Health check endpoint
-app.get('/health', async (request, reply) => {
-  return { 
-    status: 'ok', 
-    service: 'auth-service'  // Change name for each service
-  };
+
+app.setErrorHandler((error, request, reply) => {
+  request.log.error(error);
+
+  // AJV validation error
+  if (error.validation?.length) {
+    return reply.code(400).send({
+      error: {
+        message: error.validation[0].message,
+        code: 'VALIDATION_ERROR',
+      },
+    });
+  }
+
+  return reply.code(error.statusCode || 500).send({
+    error: {
+      message: error.message || 'Internal Server Error',
+      code: error.code || 'INTERNAL_ERROR',
+    },
+  });
 });
 
 // Start server

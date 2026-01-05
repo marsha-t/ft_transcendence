@@ -51,7 +51,7 @@ export class TournamentResults implements IComponent {
 
     // Header
     const h2 = document.createElement("h2");
-    h2.textContent = "Tournament Results";
+    h2.textContent = t("tournament.tournamentResults") as string;
     h2.className = "text-[1.5rem] text-[var(--color-text-white)] mb-10";
     this.container.appendChild(h2);
 
@@ -304,9 +304,9 @@ export class TournamentResults implements IComponent {
     statsDiv.className = "text-[var(--color-text-white)] mb-10";
 
     statsDiv.innerHTML = `
-      <h3 class="text-[1rem] mb-4">Stats</h3>
-      <p>Total Matches: ${stats.totalMatches}</p>
-      <p>Played Matches: ${stats.playedMatches}</p>
+      <h3 class="text-[1rem] mb-4">${t("tournament.stats") as string}</h3>
+      <p>${t("tournament.totalMatches") as string}: ${stats.totalMatches}</p>
+      <p>${t("tournament.playedMatches") as string}: ${stats.playedMatches}</p>
     `;
     this.container.appendChild(statsDiv);
   }

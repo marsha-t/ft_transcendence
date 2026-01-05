@@ -29,10 +29,13 @@ export class Profile implements IComponent {
   }
 
   private onProfileUpdate(): void {
-    // Refresh all components when profile updates
-    this.fetchProfileData();
-    this.friendsAndUsers.fetchData();
-    this.heatMap.refreshHeatmap();
+    // Refresh components when profile updates.
+    // Delay slightly to give backend time to persist avatar change.
+    setTimeout(() => {
+      this.fetchProfileData();
+      this.friendsAndUsers.fetchData();
+      this.heatMap.refreshHeatmap();
+    }, 100);
   }
 
   public render(): HTMLElement {

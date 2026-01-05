@@ -16,6 +16,8 @@ model User {
   avatar   String   @default("/uploads/avatars/default.png")
   status   String   @default("OFFLINE")
 
+  defaultLanguage String   @default("en")
+
   twoFactorEnabled   Boolean  @default(false)
   twoFactorCode      String?  
   twoFactorExpiry    DateTime?

@@ -1,4 +1,4 @@
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5001';
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || 'http://localhost:5002';
 
 // Update User Stats
 /*
@@ -11,7 +11,7 @@ export async function updateUserStats(userId, { won, score, opponentScore }) {
   let response;
   
   try {
-    response = await fetch(`${AUTH_SERVICE_URL}/api/users/${userId}/stats`, {
+    response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/stats`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ won, score, opponentScore })
@@ -42,8 +42,7 @@ export async function getUserInfo(userId) {
   let response;
 
   try {
-    response = await fetch(`${AUTH_SERVICE_URL}/api/users/${userId}/info`);
-  
+    response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/${userId}/info`);
   } catch {
     // Handle transport-level failures (where response is not even returned)
      const e = new Error('Auth service unavailable');
@@ -81,7 +80,7 @@ export async function validateUserCredentials(username, password) {
   let response;
 
   try {
-    response = await fetch(`${AUTH_SERVICE_URL}/api/users/validate`, {
+    response = await fetch(`${PROFILE_SERVICE_URL}/api/profileServ/users/validate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
