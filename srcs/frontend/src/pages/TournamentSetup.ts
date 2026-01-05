@@ -16,6 +16,7 @@ export class TournamentSetup implements IComponent {
   private creatorId: number | null = null;
   private customizationSection!: HTMLElement;
   private destroyed = false;
+  private activeMode: "guest" | "user" = "guest";
 
   /*
     - Reset any existing tournament store so that TournamentSetup starts from clean baseline
@@ -213,6 +214,7 @@ export class TournamentSetup implements IComponent {
   /*
     - UI
       - Toggle buttons to allow guest player and registered user
+        - Toggling between the two modes resets input for the 'hidden' mode
       - Input form for guestName or username/password
       - Error box for error messages from backend
       - Add button
@@ -273,7 +275,14 @@ export class TournamentSetup implements IComponent {
       <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
     `;
 
+    const guestNameInput = guestForm.querySelector("input") as HTMLInputElement;
+    const userInputs = userForm.querySelectorAll("input");
+    const usernameInput = userInputs[0] as HTMLInputElement;
+    const passwordInput = userInputs[1] as HTMLInputElement;
+
     const toggleForm = (type: "guest" | "user") => {
+      this.activeMode = type;
+
       guestBtn.dataset.active = (type === "guest").toString();
       userBtn.dataset.active = (type === "user").toString();
 
@@ -281,6 +290,13 @@ export class TournamentSetup implements IComponent {
       userForm.classList.toggle("hidden", type !== "user");
 
       errorBox.classList.add("hidden");
+
+      if (type === "guest") {
+        usernameInput.value = "";
+        passwordInput.value = "";
+      } else {
+        guestNameInput.value = "";
+      }
     };
     guestBtn.addEventListener("click", () => toggleForm("guest"));
     userBtn.addEventListener("click", () => toggleForm("user"));
@@ -301,11 +317,8 @@ export class TournamentSetup implements IComponent {
       py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
       shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8]`;
     addBtn.addEventListener("click", async () => {
-      const guestName = guestForm.querySelector("input") as HTMLInputElement;
-      const username = userForm.querySelectorAll("input")[0] as HTMLInputElement;
-      const password = userForm.querySelectorAll("input")[1] as HTMLInputElement;
-      await this.handleAddPlayer(username, password, guestName, errorBox);
-      username.value = password.value = guestName.value = "";
+      await this.handleAddPlayer(usernameInput, passwordInput, guestNameInput, errorBox);
+      usernameInput.value = passwordInput.value = guestNameInput.value = "";
       const warning = guestForm.querySelector("#guest-warning") as HTMLElement;
       if (warning) warning.classList.add("hidden");
       this.updateLineup();
@@ -332,15 +345,20 @@ export class TournamentSetup implements IComponent {
     const user = username.value.trim();
     const pass = password.value.trim();
     const guest = guestName.value.trim();
-    if ((user || pass) && guest) {
-      errorBox.textContent = "Please fill in either username/password or guest name";
-      errorBox.classList.remove("hidden");
-      return;
+    if (this.activeMode === "guest")
+    {
+      if (!guest) {
+        errorBox.textContent = "Please enter a guest name";
+        errorBox.classList.remove("hidden");
+        return ;
+      }
     }
-    if ((!user || !pass) && !guest) {
-      errorBox.textContent = "Enter username/password or guest name";
-      errorBox.classList.remove("hidden");
-      return;
+    if (this.activeMode === "user") {
+      if (!user || !pass) {
+        errorBox.textContent = "Please enter username and password";
+        errorBox.classList.remove("hidden");
+        return ;
+      }
     }
 
     const res = await apiServices.tournament.validatePlayer(
