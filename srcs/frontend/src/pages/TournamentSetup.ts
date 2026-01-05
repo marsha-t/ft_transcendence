@@ -60,7 +60,7 @@ export class TournamentSetup implements IComponent {
       flex flex-col items-center gap-3
     `;
     const customizeBtn = document.createElement("button");
-    customizeBtn.textContent = t("tournament.customizeGame") as string;
+    customizeBtn.textContent = t("game.customizeGame") as string;
     customizeBtn.className = createButtonStyle(
       "w-[390px] h-[60px] text-[24px]",
       "blue"
