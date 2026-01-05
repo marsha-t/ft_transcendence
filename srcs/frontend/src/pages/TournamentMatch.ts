@@ -1,5 +1,4 @@
 import { IComponent } from "../components/IComponent";
-import { navigate } from "../utils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
 import {showConfirmation} from "../utils/uiUtils.js";
@@ -16,8 +15,11 @@ export class TournamentMatch implements IComponent {
     this.tournamentId = tournamentId;
   }
 
+  /*
+    - Creates page wrapper and main container
+    - Trigger asynchronous loading of next match
+  */
   public render(): HTMLElement {
-
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)]
       min-h-[80vh] flex justify-center items-center
@@ -28,12 +30,18 @@ export class TournamentMatch implements IComponent {
     this.container.className = `bg-transparent rounded-xl px-16 py-8
         text-center relative w-4/5 max-w-[900px] box-border`;
 
-
     this.loadNextMatch();
     page.appendChild(this.container);
     return page;
   }
 
+  /*
+    - Fetch next match from backend
+      - 1) If API failure, display error message
+      - 2) No next match, tournament has ended
+        - Mark hasEnded, clean up running game instance, update TournamentStore
+      - 3) Valid nextMatch, render match UI
+  */
   private async loadNextMatch() {
     try {
       this.container.innerHTML = `<div class="text-[var(--color-text-white)]">Loading next match...</div>`;
@@ -59,6 +67,10 @@ export class TournamentMatch implements IComponent {
       this.container.textContent = "Error loading match.";
     }
   }
+  /*
+    - Clear container
+    - Render match UI: match number, player names and "Start Match" button
+  */
   private renderMatch(
     matchIndex: number,
     p1: any,
@@ -69,7 +81,6 @@ export class TournamentMatch implements IComponent {
 
     const matchInfo = document.createElement("div");
     matchInfo.className = "flex flex-col items-center justify-center";
-
 
     const h3 = document.createElement("h3");
     h3.textContent = `${t("tournament.match") as string} ${matchIndex}`;
@@ -105,7 +116,6 @@ export class TournamentMatch implements IComponent {
 
     playerContainer.append(p1Box, vs, p2Box);
     matchInfo.appendChild(playerContainer);
-
     this.container.appendChild(matchInfo);
 
     const readyContainer = document.createElement("div");
@@ -120,13 +130,17 @@ export class TournamentMatch implements IComponent {
     readyContainer.appendChild(startBtn);
     this.container.appendChild(readyContainer);
   }
-
+  /*
+    - Clear container and nests Game page on TournamentMatch
+      - Clearing of container removes Start Match button which also removes its event listener
+    - Instantiate the Game engine for the current match
+    - Register TournamentStore.onMatchEnd callback which will be called by Game engine when a match finishes
+      - onMatchEnd triggers loading of next match
+  */
   private startGame(gameSessionId: number, p1: any, p2: any) {
-    
     TournamentStore.onMatchEnd = async () => {
       await this.loadNextMatch(); 
     };
-    TournamentStore.tournamentId = this.tournamentId;
     
     this.container.innerHTML = "";
     this.container.className = "w-full flex justify-center";
@@ -143,13 +157,12 @@ export class TournamentMatch implements IComponent {
     });
     this.container.appendChild(this.gameInstance.render());
   }
-
-  public cleanup() {
-    if (this.gameInstance) {
-      this.gameInstance.terminate?.();
-      this.gameInstance = null;
-    }
-  }
+  
+  /*
+    - Prompt user for confirmation when navigating away 
+    - Abort tournament on backend if user confirms
+    - Allow navigation if internalTournamentNavigation is true
+  */
   public async canDeactivate(): Promise<boolean> {
      if (TournamentStore.isInternalTournamentNavigation) {
         TournamentStore.isInternalTournamentNavigation = false;
@@ -159,9 +172,7 @@ export class TournamentMatch implements IComponent {
      const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress"), t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     try {
-      if (this.gameInstance) {
-        this.gameInstance.terminate?.();
-      }
+      this.cleanup();
 
       await apiServices.tournament.updateTournamentStatus(
         this.tournamentId,
@@ -171,5 +182,16 @@ export class TournamentMatch implements IComponent {
       console.error("Failed to abort tournament:", err);
     }
     return true;
+  }
+
+  /*
+    - Terminate active Game instance if one exists
+    - Used when tournament ends (no more next match) and inside cleanup()
+  */
+  public cleanup() {
+      if (this.gameInstance) {
+        this.gameInstance.terminate?.();
+        this.gameInstance = null;
+      }
   }
 }

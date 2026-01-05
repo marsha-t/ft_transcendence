@@ -1,9 +1,37 @@
+export const playCountsSchema = {
+  tags: ['Dashboard'],
+	summary: 'Return play counts for given user within certain period',
+  querystring: {
+    type: "object",
+    required: ["start", "end"],
+    properties: {
+      start: {
+        type: "string",
+        format: "date",
+      },
+      end: {
+        type: "string",
+        format: "date",
+      }
+    }
+  },
+  response: {
+    200: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          date: { type: "string" },
+          count: { type: "number" }
+        }
+      }
+    }
+  }
+};
+
 export const matchHistorySchema = {
 	tags: ['Dashboard'],
 	summary: 'Return match history for given user',
-	headers: {
-		type: 'object',
-	},
 	response: {
 		200: {
 		type: 'array',
@@ -21,8 +49,6 @@ export const matchHistorySchema = {
 			required: ['date', 'opponent', 'opponentAvatar','userScore', 'opponentScore', 'result', 'isTournament']
 		}
 		},
-		404: { type: 'object', properties: { error: { type: 'string' }, }, },
-		500: { type: 'object', properties: { error: { type: 'string' }, }, },
 	}
 }; 
 
@@ -32,7 +58,7 @@ export const gameDashboardSchema = {
   headers: {
     type: "object",
     properties: {
-      "x-current-session-id": { type: "integer" },
+			'x-current-session-id': { type: 'string', pattern: '^[0-9]+$', },
     },
     required: [ "x-current-session-id" ],
   },
@@ -125,18 +151,12 @@ export const gameDashboardSchema = {
       },
       required: ["summary", "players", "timeline"],
     },
-    400: { type: "object", properties: { error: { type: "string" } } },
-    404: { type: "object", properties: { error: { type: "string" } } },
-    500: { type: "object", properties: { error: { type: "string" } } },
   },
 };
 
 export const userDashboardSchema = {
   tags: ["Dashboard"],
   summary: "Return overall user dashboard stats",
-  headers: {
-    type: "object",
-  },
   response: {
     200: {
       type: "object",
@@ -189,7 +209,6 @@ export const userDashboardSchema = {
             required: ["opponent", "winRate", "total"],
           },
         },
-
         leaderboard: {
           type: "array",
           items: {
@@ -223,7 +242,5 @@ export const userDashboardSchema = {
         "leaderboard",
       ],
     },
-    404: { type: "object", properties: { error: { type: "string" } } },
-    500: { type: "object", properties: { error: { type: "string" } } },
   },
 };
