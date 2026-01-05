@@ -1,0 +1,45 @@
+{
+  "name": "transcendence-frontend",
+  "version": "1.0.0",
+  "description": "A Single Page Application (SPA) frontend for the Transcendence project.",
+  "main": "src/main.ts",
+  "type": "module",
+  "scripts": {
+    "setup": "npm install && npx tailwindcss init -p && npm run build:css",
+    "build:css": "npx tailwindcss -i ./src/input.css -o ./public/styles/tailwind.css --minify",
+    "watch:css": "npx tailwindcss -i ./src/input.css -o ./public/styles/tailwind.css --watch",
+    "build": "npm run build:css && vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "pong",
+    "game",
+    "spa",
+    "typescript",
+    "tailwindcss"
+  ],
+  "author": "bmakhama",
+  "license": "ISC",
+  "dependencies": {
+    "@babylonjs/core": "^6.49.0",
+    "@babylonjs/materials": "^6.49.0",
+    "babylonjs": "^6.49.0",
+    "mermaid": "^11.12.1",
+    "i18next": "^25.6.3",
+    "i18next-browser-languagedetector": "^8.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "postcss-cli": "^10.1.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5.4.5",
+    "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
