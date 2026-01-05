@@ -1,17 +1,25 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { createButtonStyle } from "../utils";
-import { ProfileServices } from "../services/profile/ProfileServices.js";
-import { AuthServices } from "../services/auth/AuthServices.js";
 import { apiServices } from "../services/ApiServices";
 import { showConfirmation } from "../utils/uiUtils";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
 
+/*
+    * - Display navigation links (Home, Creators)
+    * - Show different buttons based on authentication state
+         (Login/Register OR Play/Logout/Avatar)
+    * - Handle SPA navigation using history.pushState
+    * - React to global app events:
+    *   - languageChanged → re-translate UI
+    *   - authChange → update buttons
+    *   - avatarChanged → update avatar immediately
+*/ 
 export class Header implements IComponent {
-    private buttonsGroup!: HTMLElement;
-    private linksGroup!: HTMLElement;
-    private languageSwitcher!: HTMLElement;
-    private static languageDocClickAttached: boolean = false;
+    private buttonsGroup!: HTMLElement; // Container for login/register OR play/logout/avatar
+    private linksGroup!: HTMLElement; // Container for navigation links (home, creators)
+    private languageSwitcher!: HTMLElement; // Language switcher UI element
+    private static languageDocClickAttached: boolean = false;  // Static flag to avoid attaching multiple document click listeners
 
     constructor() {
         // Listen for language changes and re-render
@@ -22,8 +30,7 @@ export class Header implements IComponent {
         window.addEventListener('avatarChanged', (e: any) => {
             try {
                 const avatarPath = e?.detail?.avatar;
-                if (!avatarPath) {
-                    // set default
+                if (!avatarPath) { // set default
                     this.setHeaderAvatar(AuthUtils.getAvUrl('/uploads/avatars/default.png'));
                 } else {
                     this.setHeaderAvatar(AuthUtils.getAvUrl(avatarPath));
@@ -34,6 +41,7 @@ export class Header implements IComponent {
         });
     }
 
+    //* Updates the avatar image in the header only.
     private setHeaderAvatar(url: string): void {
         if (!this.buttonsGroup) return;
         const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
@@ -41,6 +49,8 @@ export class Header implements IComponent {
             avatarDiv.style.backgroundImage = `url('${url}')`;
         }
     }
+
+    // * Main render method required by IComponent.
     public render(): HTMLElement {
         const header = document.createElement('header');
         header.className = `bg-yellow pb-3`;
@@ -48,27 +58,22 @@ export class Header implements IComponent {
         const subHeader = document.createElement('div');
         subHeader.className = `bg-background-primary py-6 rounded-[16px]
             shadow-[0_4px_4px_rgba(0,0,0,0.50)]`;
+        // Navigation bar
+        const nav = document.createElement('nav');
+        nav.className = `flex justify-between items-center px-[20px] ml-0`;
+        // Left (logo) and right (links + buttons)
+        const logo = this.createLogo();
+        const rightNav = this.createRightNav();
 
-        const nav = this.createNav();
+        nav.appendChild(logo);
+        nav.appendChild(rightNav);
         subHeader.appendChild(nav);
         header.appendChild(subHeader);
 
         return header;
     }
 
-    private createNav(): HTMLElement {
-        const nav = document.createElement('nav');
-        nav.className = `flex justify-between items-center px-[20px] ml-0`;
-
-        const logo = this.createLogo();
-        const rightNav = this.createRightNav();
-
-        nav.appendChild(logo);
-        nav.appendChild(rightNav);
-
-        return nav;
-    }
-
+    // * Creates the clickable logo.
     private createLogo(): HTMLElement {
         const logo = document.createElement('a');
         logo.href = '/main';
@@ -94,10 +99,17 @@ export class Header implements IComponent {
         return logo;
     }
 
+     /**
+     * Creates the right side of the header:
+     * - Navigation links
+     * - Buttons (auth dependent)
+     * - Language switcher
+     */
     private createRightNav(): HTMLElement {
         const rightNav = document.createElement('div');
         rightNav.className = 'flex items-center h-[45px]';
 
+        // links and buttons containers
         this.linksGroup = document.createElement('div');
         this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
         this.buttonsGroup = document.createElement('div');
@@ -106,6 +118,7 @@ export class Header implements IComponent {
         // Create language switcher
         this.languageSwitcher = this.createLanguageSwitcher();
 
+        // Populate navigation links
         const links = [
             {text: t('header.home'), href: '/main', type: 'link'},
             {text: t('header.creators'), href: '/creators', type: 'link'},
@@ -119,6 +132,8 @@ export class Header implements IComponent {
         rightNav.appendChild(this.linksGroup);
         rightNav.appendChild(this.buttonsGroup);
         // Setup event listener BEFORE initial update
+         // * Listen for authentication changes
+         // * (login/logout from anywhere in the app).
         window.addEventListener('authChange', async () => {
             await this.updateAuthButtons();
         });
@@ -134,6 +149,7 @@ export class Header implements IComponent {
         return rightNav;
     }
 
+    //  * Attaches click handlers to the language switcher.
     private attachLanguageSwitcherListeners(container: HTMLElement): void {
         const button = container.querySelector('.lang-button') as HTMLButtonElement;
         const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
@@ -152,6 +168,7 @@ export class Header implements IComponent {
             Header.languageDocClickAttached = true;
         }
 
+        // Language option selection
         container.querySelectorAll('.lang-option').forEach(option => {
             option.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -161,8 +178,8 @@ export class Header implements IComponent {
             });
         });
     }
-    
 
+    //  * Updates translated content when language changes.
     private async updateContent(): Promise<void> {
         // Update links text
         const links = this.linksGroup.querySelectorAll('a');
@@ -175,6 +192,7 @@ export class Header implements IComponent {
         await this.updateAuthButtons();
     }
 
+    //  * Updates the authentication-related buttons based on login state.
     private async updateAuthButtons(): Promise<void> {
         this.buttonsGroup.innerHTML = '';
         const isLoggedIn = AuthUtils.isLoggedIn();
@@ -188,37 +206,33 @@ export class Header implements IComponent {
             profileLinkNav.style.display = isLoggedIn ? "inline-flex" : "none";
         }
     
-        if (!isLoggedIn) {
-            // Show Login & Register buttons
+        if (!isLoggedIn) { // Show Login & Register buttons
             const loginLink = this.createLink({ text: t('header.login') as string, href: '/login', type: 'button' });
             const registerLink = this.createLink({ text: t('header.register') as string, href: '/register', type: 'button' });
             this.buttonsGroup.appendChild(loginLink);
             this.buttonsGroup.appendChild(registerLink);
-                // Ensure we don't append duplicate language switcher
-                const existingLang = this.buttonsGroup.querySelector('.header-language-switcher');
-                if (existingLang) existingLang.remove();
-                this.buttonsGroup.appendChild(this.languageSwitcher);
+
+            const existingLang = this.buttonsGroup.querySelector('.header-language-switcher');
+            if (existingLang) existingLang.remove(); // avoid rerendering issues
+            this.buttonsGroup.appendChild(this.languageSwitcher);
             return;
         }
     
-       // Logged in → Play button
+        // Logged in → Play button + logout + avatar
+        // Play button with dropdown
         const playBtnWrapper = document.createElement('div');
         playBtnWrapper.className = 'relative inline-block';
 
-        const playBtn = document.createElement('a');
+        const playBtn = document.createElement('div');
         playBtn.textContent = t('header.play') as string;
-        playBtn.href = '#';
         playBtn.className = createButtonStyle(` w-[110px] h-[42px]`, 'blue');
-
 
         playBtnWrapper.appendChild(playBtn);
 
-        // Dropdown menu
+        // play Dropdown menu
         const dropdown: HTMLDivElement = document.createElement('div');
-        dropdown.className = `
-            absolute left-0 mt-[5px] w-[180px] rounded-lg bg-[none]
-             shadow-lg z-50 hidden flex flex-col space-y-[10px]
-        `;
+        dropdown.className = `absolute left-0 mt-[5px] w-[180px] rounded-lg bg-[none]
+             shadow-lg z-50 hidden flex flex-col space-y-[10px]`;
 
         // Define dropdown items (with text + href)
         interface DropdownItem {
@@ -269,14 +283,10 @@ export class Header implements IComponent {
         });
 
         this.buttonsGroup.appendChild(playBtnWrapper);
-
-    
-        const profileService = new ProfileServices();
     
         // Logout button
-        const logoutBtn = document.createElement('a');
+        const logoutBtn = document.createElement('div');
         logoutBtn.textContent = t('header.logout') as string;
-        logoutBtn.href = '#';
         logoutBtn.className = createButtonStyle(` w-fit h-[42px]`, 'blue');
         logoutBtn.addEventListener("click", async () => {
             const confirmed = await showConfirmation(t("auth.logoutConfirm") as string, t("auth.logout") as string, true);
@@ -317,7 +327,7 @@ export class Header implements IComponent {
             const avatarDiv = document.createElement("div");
             avatarDiv.className = "w-full h-full rounded-full bg-center bg-cover";
             avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
-            
+           
             avatarLink.appendChild(avatarDiv);
             
             avatarLink.addEventListener('click', (e) => {
@@ -335,12 +345,11 @@ export class Header implements IComponent {
         }
     }
     
-
+    // * Creates a link or button element based on type.
     private createLink(link: {text: string, href: string, type: string}): HTMLElement {
         const a = document.createElement('a');
         a.href = link.href;
         a.textContent = link.text;
-        a.dir = 'ltr'; // Force left-to-right text direction
         // Decide styling based on explicit `type`/`href`, not on localized text
         if (link.type === 'button') {
                 a.className = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
@@ -357,6 +366,7 @@ export class Header implements IComponent {
         return a;
     }
 
+    // * Determines the CSS classes for navigation links based on active state.
     private getNavLinkClasses(href: string): string {
         const currentPath = window.location.pathname;
         const baseClass = `
@@ -370,6 +380,7 @@ export class Header implements IComponent {
         }
     }
 
+    // * Sets up active link highlighting for navigation links and buttons.
     private setupActiveLinks(linksGroup: HTMLElement, buttonsGroup: HTMLElement): void {
         const updateActiveLink = () => {
             const currentPath = window.location.pathname;
@@ -444,14 +455,13 @@ export class Header implements IComponent {
         const langSymbol = document.createElement('span');
         langSymbol.textContent = 'Aあ';
         langSymbol.className = 'text-[18px] font-bold';
-
         // Add to button
         button.appendChild(langSymbol);
 
         /* ---------- DROPDOWN ---------- */
         const dropdown = document.createElement('div');
         dropdown.className =
-            'lang-dropdown hidden absolute right-0 mt-0 w-30 bg-background rounded-lg shadow-xl z-50'; // Adjusted margin-top to `mt-0`
+            'lang-dropdown hidden absolute right-0 mt-0 w-30 bg-background rounded-lg shadow-xl z-50'; 
 
         Object.entries(SUPPORTED_LANGUAGES).forEach(([code, info]) => {
             const option = document.createElement('button');

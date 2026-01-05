@@ -117,7 +117,7 @@ export class DashboardService {
 		}
 	}
 
-	async getMatchHistory(userId: number): Promise<ApiResponse<MatchHistory[]>> {
+	async getMatchHistory(): Promise<ApiResponse<MatchHistory[]>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/dashboardServ/stats/users/match-history`, {
 				method: "GET",
