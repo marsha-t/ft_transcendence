@@ -1,5 +1,19 @@
+// Predict ball intercept with AI paddle
+/*
+	- Early exit 
+		- If ball is not moving horizontally (e.g., ball is reset to middle)
+		- If ball is moving away from AI paddle
+	- Simulate ball movement for next 10 seconds at 120 frames per second. Stop early if intercept found
+		- Predict next position
+		- Check whether next position will cross AI & human opp paddle line
+		- If no intercept, apply wall bounce and continue simulation
+		- If both paddles are crossed (unlikely), choose closer event to focus on
+		- If intersection is AI, return intersection
+		- If intersection is human, check if opponent will hit ball
+			- If not, end prediction 
+			- If yes, calculate reverse horizontal speed and vertical speed based on same formulas as frontend
+*/
 export default function predictBallIntercept(state) {
-	
 	const { ball, arena, aiPaddle, oppPaddle, constants } = state;
 	let { x, z, vx, vz } = ball;
 	let { zMin, zMax }  = arena;
@@ -10,24 +24,17 @@ export default function predictBallIntercept(state) {
 	const oppPaddleX = oppPaddle.x;
 
 	// If ball is not moving horizontally - will never reach paddle
-	// - Add eps in case ball speed is very small due to floating point drift
-	// - Handles case where ball is reset to middle 
 	const eps = 0.0001;
-
 	if (Math.abs(vx) < eps) {
 		return { zIntercept: z, time: Infinity, willReach: false };
 	}
 
+	// If ball is moving away from AI paddle
 	const movingRight = vx > 0;
-	// If ball moving right but AI is on left
-	if (movingRight && aiPaddleX < x) return { willReach: false};
-	// If ball moving left but AI is on right
-	if (!movingRight && aiPaddleX > x) return { willReach: false};
+	if (movingRight && aiPaddleX < x) return { willReach: false}; // If ball moving right but AI is on left
+	if (!movingRight && aiPaddleX > x) return { willReach: false}; // If ball moving left but AI is on right
 
-	// Simulate ball movement for set time
-	// - Stop simulation if intercept found
-	// - Simulation caters for wall bounce
-	// - Simulate at 120 frames per second and cap to 10 seconds (of game time) to avoid infinite loops 
+	// Simulate ball movement for set time 
 	const dt = 1/120;
 	const maxTime = 10; 
 	const maxSteps = Math.floor(maxTime / dt);
@@ -62,11 +69,8 @@ export default function predictBallIntercept(state) {
 			continue;
 		}
 
-		// At least one of them is crossed
-		// - In unlikely case that both are crossed (rare given small dt), choose closer one
-
+		// In unlikely case that both are crossed (rare given small dt), choose closer one
 		let firstEvent = null;
-
 		if (crossesAI) {
 			const ratioAI = (aiPaddleX - x) / (nextX - x); // Distance from current ball to paddle / distance traveled in this frame
 			const zAtAI = z + vz * dt * ratioAI; // Height where ball intersects paddle
@@ -100,7 +104,6 @@ export default function predictBallIntercept(state) {
 		}
 
 		// If event is opponent, predict whether it will hit paddle and behaviour after
-
 		const distanceZ = Math.abs(eventZ - oppPaddle.z);
 		const collisionRange = halfDepth + ballRadius;
 
@@ -110,8 +113,6 @@ export default function predictBallIntercept(state) {
 		}
 
 		// If opp hits ball, predict return trajectory from collision point
-		// - Reverse horizontal speed
-		// - Calculate vertical speed based on same formula as frontend
 		x = eventX;
 		z = eventZ;
 		t = eventTime;
