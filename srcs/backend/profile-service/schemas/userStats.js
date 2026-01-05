@@ -102,38 +102,6 @@ export const getUserDisplayInfoSchema = {
   }
 };
 
-export const batchUserInfoSchema = {
-  tags: ['UserStats'],
-  summary: 'Fetch info for multiple users at once (for dashboard/leaderboards)',
-  body: {
-    type: 'object',
-    required: ['userIds'],
-    properties: {
-      userIds: {
-        type: 'array',
-        items: { type: 'integer' },
-      }
-    }
-  },
-  response: {
-    200: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          id: { type: 'integer' },
-          username: { type: 'string' },
-          avatar: { type: 'string' },
-          totalMatches: { type: 'integer' },
-          totalWins: { type: 'integer' },
-          winRate: { type: 'number' },
-          avgScore: { type: 'number' }
-        }
-      }
-    }
-  }
-};
-
 export const validateUserSchema = {
   tags: ['UserStats'],
   summary: 'Validate user credentials (username + password) for tournament registration',
