@@ -20,6 +20,3 @@ const prismaGameData = new PrismaClient({
 
 // Export both clients
 export { prismaUserData, prismaGameData };
-
-// For backward compatibility, default export is user-social
-export default prismaUserData;
