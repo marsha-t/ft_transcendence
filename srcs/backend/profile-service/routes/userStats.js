@@ -1,6 +1,6 @@
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
-import { getUserInfoSchema, updateLanguageSchema, updateUserStatsSchema, getUserDisplayInfoSchema, batchUserInfoSchema, validateUserSchema } from '../schemas/userStats.js';
+import { getUserInfoSchema, updateLanguageSchema, updateUserStatsSchema, getUserDisplayInfoSchema, validateUserSchema } from '../schemas/userStats.js';
 
 async function userStatsRoutes(app) {
   
@@ -117,37 +117,6 @@ async function userStatsRoutes(app) {
     });
 
     return reply.code(200).send(user);
-  });
-
-  // Batch get user info (for dashboard/leaderboards)
-  /*
-    Fetches info for multiple users at once
-    - Accepts an array of userIds and returns their details
-  */
-  app.post('/users/batch-info', { schema: batchUserInfoSchema, preHandler: [app.authenticateService] }, async (request, reply) => {
-    const { userIds } = request.body;
-
-    if (!Array.isArray(userIds) || userIds.length === 0) {
-      const err = new Error('userIds must be a non-empty array');
-      err.statusCode = 400;
-      err.code = 'INVALID_USER_IDS';
-      throw err;
-    }
-
-    const users = await prisma.user.findMany({
-      where: { id: { in: userIds.map(Number) } },
-      select: {
-        id: true,
-        username: true,
-        avatar: true,
-        totalMatches: true,
-        totalWins: true,
-        winRate: true,
-        avgScore: true
-      }
-    });
-
-    return reply.code(200).send(users);
   });
 
   // Validate user credentials (for tournament registration)
