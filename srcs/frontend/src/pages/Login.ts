@@ -340,7 +340,7 @@ export class Login implements IComponent {
         if (!(window as any).google?.accounts?.id) return;
 
         (window as any).google.accounts.id.initialize({
-            client_id: '664010514832-jrr53943l8tvr54pths5ugpnkfs9aim5.apps.googleusercontent.com',
+            client_id: '664010514832-jrr53943l8tvr54pths5ugpnkfs9aim5.apps.googleusercontent.com', // chnage to ENV GOOGLE_CLIENT_ID
             callback: (response: any) => {
                 const idToken = response.credential;
                 if (!idToken) return this.showMessage('Google login failed', 'error');

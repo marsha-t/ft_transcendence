@@ -4,7 +4,6 @@ import { ProfileData, ApiResponse } from '../services/profile/types';
 import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
-import { changeLanguage } from "../services/i18n/i18nService.js";
 import { showConfirmation } from "../utils/uiUtils";
 
 /**
@@ -27,6 +26,31 @@ export class ProfileInfo implements IComponent {
     private isGoogleUser: boolean = false;
     private container: HTMLElement | null = null;
     private onProfileUpdate?: () => void;
+    // DOM refs + handlers we need for cleanup
+    private editProfileBtn: HTMLElement | null = null;
+    private editProfileHandler: (() => void) | null = null;
+    private modalOverlay: HTMLElement | null = null;
+    // more modal internals for explicit cleanup
+    private closeBtnEl: HTMLElement | null = null;
+    private closeBtnHandler: (() => void) | null = null;
+    private smallPresetButtons: HTMLElement[] = [];
+    private smallPresetHandlers: Array<(() => void)> = [];
+    private changeBtnEl: HTMLElement | null = null;
+    private changeBtnHandler: (() => void) | null = null;
+    private removeBtnEl: HTMLElement | null = null;
+    private removeBtnHandler: (() => void) | null = null;
+    private otpButtonEl: HTMLElement | null = null;
+    private otpButtonHandler: (() => void) | null = null;
+    private toggleSwitchEl: HTMLElement | null = null;
+    private toggleSwitchHandler: (() => void) | null = null;
+    private saveBtnEl: HTMLElement | null = null;
+    private saveBtnHandler: (() => void) | null = null;
+    private cancelBtnEl: HTMLElement | null = null;
+    private cancelBtnHandler: (() => void) | null = null;
+    private fileInputEl: HTMLInputElement | null = null;
+    private fileInputHandler: ((e: Event) => void) | null = null;
+    private _messageTimeoutId: number | null = null;
+    private _isDestroyed: boolean = false;
 
      // ---- Constructor ----
     // Stores optional callback for parent notification (mainly for profile updates)
@@ -44,8 +68,11 @@ export class ProfileInfo implements IComponent {
         const editProfileBtn = document.createElement("div");
         editProfileBtn.textContent = t("profile.editProfile") as string;
         editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-fit h-[32px] font-pixel", 'green');
-  
-        editProfileBtn.addEventListener("click", () => this.openSettingsPopup());
+
+        // store handler so it can be removed during cleanup
+        this.editProfileHandler = () => this.openSettingsPopup();
+        editProfileBtn.addEventListener("click", this.editProfileHandler);
+        this.editProfileBtn = editProfileBtn;
         
         // Avatar
         const avatar = document.createElement("div");
@@ -71,7 +98,7 @@ export class ProfileInfo implements IComponent {
             flex justify-center items-center
             rounded-md mt-3`;
         name.style.color = "white"; // Explicitly set the text color to white
-        name.textContent = this.username || "username";
+        name.textContent = this.username || "";
 
         profileInfo.appendChild(editProfileBtn);
         profileInfo.appendChild(avatar);
@@ -168,7 +195,15 @@ export class ProfileInfo implements IComponent {
         const closeBtn = document.createElement("button");
         closeBtn.className = `absolute top-3 right-3 w-[48px] h-[48px] flex items-center justify-center text-white bg-transparent hover:brightness-90 font-pixel text-[36px]`;
         closeBtn.innerHTML = "&times;";
-        closeBtn.addEventListener("click", () => overlay.remove());
+        // store close handler for cleanup
+        this.closeBtnHandler = () => {
+            if (this.modalOverlay) {
+                this.modalOverlay.remove();
+                this.modalOverlay = null;
+            }
+        };
+        closeBtn.addEventListener("click", this.closeBtnHandler);
+        this.closeBtnEl = closeBtn;
         
         this.messageContainer = document.createElement('div');
         this.messageContainer.className = 'message_container w-full p-3 rounded-md mb-3 text-sm';
@@ -215,12 +250,16 @@ export class ProfileInfo implements IComponent {
             small.style.backgroundPosition = 'center';
             small.title = `Select avatar ${i+1}`;
             
-            small.addEventListener('click', async () => {
+            // store handler so we can remove it later
+            const smallHandler = async () => {
                 const presetFilename = avatarPaths[i].split('/').pop() || '';
                 if (presetFilename) {
-                    this.handleAvatarEdit('preset', presetFilename);
+                    await this.handleAvatarEdit('preset', presetFilename);
                 }
-            });
+            };
+            small.addEventListener('click', smallHandler);
+            this.smallPresetButtons.push(small);
+            this.smallPresetHandlers.push(smallHandler);
             smallRow.appendChild(small);
         }
 
@@ -232,13 +271,19 @@ export class ProfileInfo implements IComponent {
         changeBtn.textContent = t("profile.avatarUpload") as string;
         changeBtn.className =  createButtonStyle("w-[100px] h-[36px] font-pixel",  'green');
         changeBtn.classList.remove("mt-5");
-        changeBtn.addEventListener('click', () => this.handleAvatarEdit('external', ""));
+        // store change handler
+        this.changeBtnHandler = () => this.handleAvatarEdit('external', "");
+        changeBtn.addEventListener('click', this.changeBtnHandler);
+        this.changeBtnEl = changeBtn;
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.textContent = t("profile.avatarRemove") as string;
         removeBtn.className = createButtonStyle("w-[100px] h-[36px] font-pixel",  'blue');
-        removeBtn.addEventListener('click', () => this.handleAvatarDelete());
+        // store remove handler
+        this.removeBtnHandler = () => this.handleAvatarDelete();
+        removeBtn.addEventListener('click', this.removeBtnHandler);
+        this.removeBtnEl = removeBtn;
 
         btnRow.appendChild(changeBtn);
         btnRow.appendChild(removeBtn);
@@ -334,18 +379,21 @@ export class ProfileInfo implements IComponent {
         otpButton.textContent = t("common.confirm") as string;
         otpButton.className = `px-4 py-2 rounded-[8px] bg-[#77AB55] text-white font-semibold hover:bg-green-500 transition-colors`;
 
-        otpButton.addEventListener("click", async () => {
+        this.otpButtonHandler = async () => {
             const code = otpInput.value.trim();
             if (!code) return alert("Enter OTP");
-
+            if (this._isDestroyed) return;
             const verifyRes = await apiServices.auth.verify2FA(code);
+            if (this._isDestroyed) return;
             if (verifyRes.success) {
-            alert("2FA enabled successfully!");
-            otpContainer.classList.add("hidden");
+                alert("2FA enabled successfully!");
+                otpContainer.classList.add("hidden");
             } else {
-            alert(`Error: ${verifyRes.message}`);
+                alert(`Error: ${verifyRes.message}`);
             }
-        });
+        };
+        otpButton.addEventListener("click", this.otpButtonHandler);
+        this.otpButtonEl = otpButton;
 
         otpContainer.appendChild(otpInput);
         otpContainer.appendChild(otpButton);
@@ -353,16 +401,17 @@ export class ProfileInfo implements IComponent {
         // Initialize toggle based on backend status
         const init2FAStatus = async () => {
             const res = await apiServices.auth.get2FAStatus();
+            if (this._isDestroyed) return;
             if (res.success && res.enabled) {
-            toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
-            toggleCircle.style.transform = "translate(100%, -50%)";
-            toggleCircle.style.left = "16px";
-            otpContainer.classList.add("hidden"); // OTP only shows when enabling
+                toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+                toggleCircle.style.transform = "translate(100%, -50%)";
+                toggleCircle.style.left = "16px";
+                otpContainer.classList.add("hidden"); // OTP only shows when enabling
             } else {
-            toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
-            toggleCircle.style.transform = "translate(-0%, -50%)";
-            toggleCircle.style.left = "4px";
-            otpContainer.classList.add("hidden");
+                toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+                toggleCircle.style.transform = "translate(-0%, -50%)";
+                toggleCircle.style.left = "4px";
+                otpContainer.classList.add("hidden");
             }
         };
 
@@ -370,37 +419,41 @@ export class ProfileInfo implements IComponent {
         init2FAStatus();
 
         // Toggle click logic
-        toggleSwitch.addEventListener("click", async () => {
+        this.toggleSwitchHandler = async () => {
             const isEnabled = toggleSwitch.classList.contains("enabled");
-
+            if (this._isDestroyed) return;
             if (isEnabled) {
-            const res = await apiServices.auth.disable2FA();
-            if (res.success) {
-                toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(-0%, -50%)";
-                toggleCircle.style.left = "4px";
-                alert(res.message);
+                const res = await apiServices.auth.disable2FA();
+                if (this._isDestroyed) return;
+                if (res.success) {
+                    toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+                    toggleCircle.style.transform = "translate(-0%, -50%)";
+                    toggleCircle.style.left = "4px";
+                    alert(res.message);
+                } else {
+                    alert(res.message);
+                }
             } else {
-                alert(res.message);
-            }
-            } else {
-            // Show OTP input immediately
-            otpContainer.classList.remove("hidden");
+                // Show OTP input immediately
+                otpContainer.classList.remove("hidden");
 
-            // Send OTP email asynchronously
-            apiServices.auth.enable2FA().then(res => {
-                if (res.success) alert(res.message);
-                else alert(res.message);
-            }).catch(err => {
-                console.error(err);
-                alert("Failed to send OTP email");
-            });
+                // Send OTP email asynchronously
+                apiServices.auth.enable2FA().then(res => {
+                    if (this._isDestroyed) return;
+                    if (res.success) alert(res.message);
+                    else alert(res.message);
+                }).catch(err => {
+                    console.error(err);
+                    if (!this._isDestroyed) alert("Failed to send OTP email");
+                });
 
-            toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
-            toggleCircle.style.transform = "translate(100%, -50%)";
-            toggleCircle.style.left = "16px";
+                toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+                toggleCircle.style.transform = "translate(100%, -50%)";
+                toggleCircle.style.left = "16px";
             }
-        });
+        };
+        toggleSwitch.addEventListener("click", this.toggleSwitchHandler);
+        this.toggleSwitchEl = toggleSwitch;
 
         twoFactorGroup.appendChild(twoFactorLabel);
         twoFactorGroup.appendChild(toggleSwitch);
@@ -413,6 +466,93 @@ export class ProfileInfo implements IComponent {
 
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
+
+        // Keep a reference to the modal overlay so Router/page cleanup can remove it.
+        this.modalOverlay = overlay;
+    }
+
+    // Called by Router before the page is discarded. Remove persistent listeners/resources.
+    public cleanup(): void {
+        // Mark destroyed so any pending async callbacks bail out
+        this._isDestroyed = true;
+
+        // Remove the edit button listener
+        try {
+            if (this.editProfileBtn && this.editProfileHandler) {
+                this.editProfileBtn.removeEventListener("click", this.editProfileHandler as EventListener);
+            }
+        } catch (err) {
+            console.warn("Error removing editProfileBtn listener:", err);
+        }
+        this.editProfileBtn = null;
+        this.editProfileHandler = null;
+
+        // If a modal overlay is still present, remove it from DOM to tear down modal listeners
+        try {
+            if (this.modalOverlay && this.modalOverlay.parentNode) {
+                this.modalOverlay.remove();
+            }
+        } catch (err) {
+            console.warn("Error removing modal overlay:", err);
+        }
+        this.modalOverlay = null;
+
+        // Explicitly remove modal-internal listeners if present
+        try {
+            if (this.closeBtnEl && this.closeBtnHandler) this.closeBtnEl.removeEventListener('click', this.closeBtnHandler as EventListener);
+            this.closeBtnEl = null; this.closeBtnHandler = null;
+
+            this.smallPresetButtons.forEach((btn, idx) => {
+                const h = this.smallPresetHandlers[idx];
+                if (h) btn.removeEventListener('click', h as EventListener);
+            });
+            this.smallPresetButtons = [];
+            this.smallPresetHandlers = [];
+
+            if (this.changeBtnEl && this.changeBtnHandler) this.changeBtnEl.removeEventListener('click', this.changeBtnHandler as EventListener);
+            this.changeBtnEl = null; this.changeBtnHandler = null;
+
+            if (this.removeBtnEl && this.removeBtnHandler) this.removeBtnEl.removeEventListener('click', this.removeBtnHandler as EventListener);
+            this.removeBtnEl = null; this.removeBtnHandler = null;
+
+            if (this.otpButtonEl && this.otpButtonHandler) this.otpButtonEl.removeEventListener('click', this.otpButtonHandler as EventListener);
+            this.otpButtonEl = null; this.otpButtonHandler = null;
+
+            if (this.toggleSwitchEl && this.toggleSwitchHandler) this.toggleSwitchEl.removeEventListener('click', this.toggleSwitchHandler as EventListener);
+            this.toggleSwitchEl = null; this.toggleSwitchHandler = null;
+
+            if (this.saveBtnEl && this.saveBtnHandler) this.saveBtnEl.removeEventListener('click', this.saveBtnHandler as EventListener);
+            this.saveBtnEl = null; this.saveBtnHandler = null;
+
+            if (this.cancelBtnEl && this.cancelBtnHandler) this.cancelBtnEl.removeEventListener('click', this.cancelBtnHandler as EventListener);
+            this.cancelBtnEl = null; this.cancelBtnHandler = null;
+        } catch (err) {
+            console.warn('Error removing modal internal listeners:', err);
+        }
+
+        // Clear file input listener if one was created
+        try {
+            if (this.fileInputEl && this.fileInputHandler) {
+                this.fileInputEl.removeEventListener('change', this.fileInputHandler as EventListener);
+            }
+        } catch (err) {
+            // ignore
+        }
+        this.fileInputEl = null;
+        this.fileInputHandler = null;
+
+        // Clear message timeout
+        try {
+            if (this._messageTimeoutId) {
+                clearTimeout(this._messageTimeoutId);
+                this._messageTimeoutId = null;
+            }
+        } catch (err) { /* ignore */ }
+
+        // Clear cached DOM refs so GC can reclaim them
+        this.container = null;
+        this.popupAvatarEl = null;
+        this.messageContainer = null;
     }
 
     private createSettingsForm(): HTMLElement {
@@ -463,55 +603,6 @@ export class ProfileInfo implements IComponent {
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(oldPasswordInput);
         passwordGroup.appendChild(newPasswordInput);
-
-        // Language
-        // const languageGroup = document.createElement("div");
-        // languageGroup.className = `flex flex-col gap-1`;
-
-        // const languageLabel = document.createElement("label");
-        // languageLabel.className = `text-sm font-semibold`;
-        // languageLabel.textContent = t("settings.language") as string;
-
-        // const languageSelect = document.createElement("select");
-        // languageSelect.className = `
-        // w-full rounded-[8px] px-3 py-2
-        // bg-[#183B76] border border-gray-500
-        // text-white focus:outline-none
-        // `;
-
-        // const languages = [
-        // { code: "en", label: "English" },
-        // { code: "sp", label: "Spanish" },
-        // { code: "ru", label: "Russian" },
-        // ];
-
-        // languages.forEach(lang => {
-        // const option = document.createElement("option");
-        // option.value = lang.code;
-        // option.textContent = lang.label;
-        // languageSelect.appendChild(option);
-        // });
-
-        // // Set current language (from backend)
-        // languageSelect.value = localStorage.getItem("i18nextLng") || "en";
-        
-        // // Add change handler to persist language to backend
-        // languageSelect.addEventListener('change', async (e) => {
-        //     const selectedLanguage = (e.target as HTMLSelectElement).value;
-        //     try {
-        //         // Update language locally first for immediate UI response
-        //         await changeLanguage(selectedLanguage);
-                
-        //         // Show success message
-        //         this.showMessage("Language updated successfully!", 'success');
-        //     } catch (error) {
-        //         console.error('Failed to update language:', error);
-        //         this.showMessage("Failed to update language", 'error');
-        //     }
-        // });
-
-        // languageGroup.appendChild(languageLabel);
-        // languageGroup.appendChild(languageSelect);
 
         form.appendChild(usernameGroup);
         form.appendChild(emailGroup);

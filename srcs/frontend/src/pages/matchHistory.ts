@@ -5,13 +5,23 @@ import { getAvatarUrl } from "../utils/profileUtils.js";
 import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
 
+/**
+ * MatchHistory Component
+ * ----------------------
+ * Displays a table showing the user's recent matches,
+ * including opponent, result, score, and date.
+ */
+
 export class MatchHistory implements IComponent {
   private container!: HTMLElement;
   private matchHistoryData: MatchHistoryType[] = [];
+  private dashboardBtnEl: HTMLElement | null = null;
+  private dashboardBtnHandler: (() => void) | null = null;
 
   constructor() {
   }
 
+  // Renders the MatchHistory component
   render(): HTMLElement {
     const matchHistory = document.createElement("div");
     matchHistory.className = `match-history-table rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-y-auto`;
@@ -59,9 +69,10 @@ export class MatchHistory implements IComponent {
     return matchHistory;
   }
 
+  // Fetches match history data from backend
   public async fetchData(): Promise<void> {
     try {
-      const matchHistoryResponse = await apiServices.dashboard.getMatchHistory(1);
+      const matchHistoryResponse = await apiServices.dashboard.getMatchHistory();
       if (matchHistoryResponse.success && matchHistoryResponse.data) {
         this.matchHistoryData = matchHistoryResponse.data;
       }
@@ -70,6 +81,7 @@ export class MatchHistory implements IComponent {
     }
   }
 
+  // Creates a table row for a single match
   private createMatch(opponent: string, opponentAvatar: string, result: "WIN" | "LOSS", score: string, date: string, index: number): HTMLElement {
     const localizedResult = result === "WIN" ? t("match-history.win") : t("match-history.loss");
     const row = document.createElement("tr");
@@ -117,6 +129,7 @@ export class MatchHistory implements IComponent {
     return row;
   }
 
+  // Updates the match history table with fetched data
   private updateMatchHistory(): void {
     const tableBody = this.container?.querySelector<HTMLTableSectionElement>("#match-history-body");
     if (!tableBody) {
@@ -144,8 +157,17 @@ export class MatchHistory implements IComponent {
   }
 }
 
+/**
+ * HeatMap Component
+ * ----------------
+ * Displays a calendar-style heatmap showing play frequency
+ * for the last N months.
+ */
+
 export class HeatMap implements IComponent {
   private container!: HTMLElement;
+  private dashboardBtnEl: HTMLElement | null = null;
+  private dashboardBtnHandler: (() => void) | null = null;
 
   constructor() {
   }
@@ -161,119 +183,136 @@ export class HeatMap implements IComponent {
     return heatmap;
   }
 
+  // Refreshes the heatmap data and UI 
   public async refreshHeatmap(): Promise<void> {
     if (this.container) {
       await this.createHeatmap(this.container, 4);
     }
   }
 
-  // Update your heatmap component to use dashboard service instead of profile
+  // service method to build the heatmap UI
+  private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): Promise<void> {
+    container.innerHTML = "";
+    container.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white flex flex-col justify-between `;
 
-private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): Promise<void> {
-  container.innerHTML = "";
-  container.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white flex flex-col justify-between `;
+    // Grid container
+    const monthsGrid = document.createElement("div");
+    monthsGrid.className = "grid grid-cols-4 gap-4";
+    container.appendChild(monthsGrid);
 
-  // Grid container
-  const monthsGrid = document.createElement("div");
-  monthsGrid.className = "grid grid-cols-4 gap-4";
-  container.appendChild(monthsGrid);
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    // Compute date range: last `monthsToShow` months ending this month
+    const now = new Date();
+    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - (monthsToShow - 1), 1);
 
-  // Compute date range: last `monthsToShow` months ending this month
-  const now = new Date();
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const startDate = new Date(endDate.getFullYear(), endDate.getMonth() - (monthsToShow - 1), 1);
-
-  // Fetch play counts for the visible range
-  const startISO = startDate.toISOString().slice(0,10);
-  const endISO = endDate.toISOString().slice(0,10);
-  let dayCounts: Record<string, number> = {};
-  try {
-    // ✅ CHANGED: Use dashboard service instead of profile service
-    const res = await apiServices.dashboard.getPlayCounts(startISO, endISO);
-    if (res.success && res.data) {
-      res.data.forEach((item: {date: string, count: number}) => { 
-        dayCounts[item.date] = item.count; 
-      });
-    } else {
-      console.warn('Failed to fetch play counts', res.message);
+    // Fetch play counts for the visible range
+    const startISO = startDate.toISOString().slice(0,10);
+    const endISO = endDate.toISOString().slice(0,10);
+    let dayCounts: Record<string, number> = {};
+    try {
+      // ✅ CHANGED: Use dashboard service instead of profile service
+      const res = await apiServices.dashboard.getPlayCounts(startISO, endISO);
+      if (res.success && res.data) {
+        res.data.forEach((item: {date: string, count: number}) => { 
+          dayCounts[item.date] = item.count; 
+        });
+      } else {
+        console.warn('Failed to fetch play counts', res.message);
+      }
+    } catch (e) {
+      console.warn('Error fetching play counts', e);
     }
-  } catch (e) {
-    console.warn('Error fetching play counts', e);
+
+    // Build month start dates
+    const months: Date[] = [];
+    for (let i = 0; i < monthsToShow; i++) {
+      months.push(new Date(startDate.getFullYear(), startDate.getMonth() + i, 1));
+    }
+
+    // Render each month
+    months.forEach((mDate) => {
+      const monthIndex = mDate.getMonth();
+      const year = mDate.getFullYear();
+
+      const monthContainer = document.createElement("div");
+      monthContainer.className = "flex flex-col gap-1";
+
+      const monthTitle = document.createElement("span");
+      monthTitle.className = "font-semibold text-center";
+      monthTitle.textContent = `${monthNames[monthIndex]} ${year}`;
+      monthContainer.appendChild(monthTitle);
+
+      const grid = document.createElement("div");
+      grid.className = "grid grid-cols-7 gap-[2px] justify-center";
+
+      const start = new Date(year, monthIndex, 1);
+      const end = new Date(year, monthIndex + 1, 0);
+      const firstDayOfWeek = start.getDay();
+
+      // Empty cells to align first day
+      for (let i = 0; i < firstDayOfWeek; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "w-3 h-3 sm:w-4 sm:h-4";
+        grid.appendChild(emptyCell);
+      }
+
+      for (let d = 1; d <= end.getDate(); d++) {
+        const cell = document.createElement("div");
+        const cellDate = new Date(year, monthIndex, d);
+        const y = cellDate.getFullYear();
+        const mm = String(cellDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(cellDate.getDate()).padStart(2, '0');
+        const key = `${y}-${mm}-${dd}`;
+        const count = (dayCounts && dayCounts[key]) ? dayCounts[key] : 0;
+
+        const getColor = (c: number) => {
+          if (c <= 0) return "bg-[#183B76]";
+          if (c === 1) return "bg-[#1F4D9A]";
+          if (c === 2) return "bg-[#99B5E5]";
+          return "bg-white";
+        };
+
+        cell.className = `w-5 h-5 sm:w-6 sm:h-6 rounded ${getColor(count)} transition hover:scale-110 flex items-center justify-center`;
+        cell.title = `${monthNames[monthIndex]} ${d}, ${year} — ${count} plays`;
+        const dateText = document.createElement("span");
+        dateText.textContent = String(d);
+        dateText.className = "text-[0.5rem] sm:text-[0.6rem] opacity-60";
+        cell.appendChild(dateText);
+        grid.appendChild(cell);
+      }
+
+      monthContainer.appendChild(grid);
+      monthsGrid.appendChild(monthContainer);
+    });
+
+    // "Learn More" button — navigate to dashboard page
+    const button = document.createElement("button");
+    button.textContent = t("profile.dashboardBtn") as string;
+    button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-pixel", 'green');
+    // store handler for cleanup
+    this.dashboardBtnHandler = () => {
+      history.pushState(null, '', '/dashboard');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    };
+    button.addEventListener("click", this.dashboardBtnHandler);
+    this.dashboardBtnEl = button;
+    container.style.position = "relative";
+    container.appendChild(button);
   }
 
-  // Build month start dates
-  const months: Date[] = [];
-  for (let i = 0; i < monthsToShow; i++) {
-    months.push(new Date(startDate.getFullYear(), startDate.getMonth() + i, 1));
+  // Remove any listeners and DOM refs when the page is torn down
+  public cleanup(): void {
+    try {
+      if (this.dashboardBtnEl && this.dashboardBtnHandler) {
+        this.dashboardBtnEl.removeEventListener('click', this.dashboardBtnHandler as EventListener);
+      }
+    } catch (err) {
+      console.warn('Error removing MatchHistory listeners:', err);
+    }
+    this.dashboardBtnEl = null;
+    this.dashboardBtnHandler = null;
+    this.container = null as any;
   }
-
-  // Render each month
-  months.forEach((mDate) => {
-    const monthIndex = mDate.getMonth();
-    const year = mDate.getFullYear();
-
-    const monthContainer = document.createElement("div");
-    monthContainer.className = "flex flex-col gap-1";
-
-    const monthTitle = document.createElement("span");
-    monthTitle.className = "font-semibold text-center";
-    monthTitle.textContent = `${monthNames[monthIndex]} ${year}`;
-    monthContainer.appendChild(monthTitle);
-
-    const grid = document.createElement("div");
-    grid.className = "grid grid-cols-7 gap-[2px] justify-center";
-
-    const start = new Date(year, monthIndex, 1);
-    const end = new Date(year, monthIndex + 1, 0);
-    const firstDayOfWeek = start.getDay();
-
-    // Empty cells to align first day
-    for (let i = 0; i < firstDayOfWeek; i++) {
-      const emptyCell = document.createElement("div");
-      emptyCell.className = "w-3 h-3 sm:w-4 sm:h-4";
-      grid.appendChild(emptyCell);
-    }
-
-    for (let d = 1; d <= end.getDate(); d++) {
-      const cell = document.createElement("div");
-      const cellDate = new Date(year, monthIndex, d);
-      const y = cellDate.getFullYear();
-      const mm = String(cellDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(cellDate.getDate()).padStart(2, '0');
-      const key = `${y}-${mm}-${dd}`;
-      const count = (dayCounts && dayCounts[key]) ? dayCounts[key] : 0;
-
-      const getColor = (c: number) => {
-        if (c <= 0) return "bg-[#183B76]";
-        if (c === 1) return "bg-[#1F4D9A]";
-        if (c === 2) return "bg-[#99B5E5]";
-        return "bg-white";
-      };
-
-      cell.className = `w-5 h-5 sm:w-6 sm:h-6 rounded ${getColor(count)} transition hover:scale-110 flex items-center justify-center`;
-      cell.title = `${monthNames[monthIndex]} ${d}, ${year} — ${count} plays`;
-      const dateText = document.createElement("span");
-      dateText.textContent = String(d);
-      dateText.className = "text-[0.5rem] sm:text-[0.6rem] opacity-60";
-      cell.appendChild(dateText);
-      grid.appendChild(cell);
-    }
-
-    monthContainer.appendChild(grid);
-    monthsGrid.appendChild(monthContainer);
-  });
-
-  // "Learn More" button — navigate to dashboard page
-  const button = document.createElement("button");
-  button.textContent = t("profile.dashboardBtn") as string;
-  button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-pixel", 'green');
-  button.addEventListener("click", () => {
-    history.pushState(null, '', '/dashboard');
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  });
-  container.style.position = "relative";
-  container.appendChild(button);
-}
 }

@@ -27,6 +27,7 @@ export class Profile implements IComponent {
   private friendsAndUsers: friendsAndUsers;
   private heatMap: HeatMap;
   private matchHistory: MatchHistory;
+  private _observer?: MutationObserver;
 
 /**
  ** Initialize all profile-related components (ProfileInfo, FriendsAndUsers, HeatMap, MatchHistory) **
@@ -101,14 +102,36 @@ export class Profile implements IComponent {
     this.container.appendChild(subContainer);
 
     // Observe DOM attachment to trigger data refresh once mounted
-    const observer = new MutationObserver(() => {
+    this._observer = new MutationObserver(() => {
       if (this.container.parentElement) {
         this.fetchProfileData();
-        observer.disconnect();
+        this._observer?.disconnect();
       }
     });
-    observer.observe(document.body, { childList: true, subtree: true });
+    this._observer.observe(document.body, { childList: true, subtree: true });
 
     return this.container;
+  }
+
+  // Call cleanup on child components and disconnect observers
+  public cleanup(): void {
+    console.log('Cleaning up Profile component');
+    try {
+      try { this.profileInfo?.cleanup?.(); } catch (e) { console.warn('Error cleaning ProfileInfo', e); }
+      try { this.friendsAndUsers?.cleanup?.(); } catch (e) { console.warn('Error cleaning FriendsAndUsers', e); }
+      try { this.heatMap?.cleanup?.(); } catch (e) { console.warn('Error cleaning HeatMap', e); }
+      // HeatMap may not implement cleanup; call if present
+      try { (this.heatMap as any)?.cleanup?.(); } catch (e) { console.warn('Error cleaning HeatMap', e); }
+    } catch (err) {
+      console.warn('Error during Profile cleanup:', err);
+    }
+
+    try {
+      this._observer?.disconnect();
+    } catch (err) {
+      console.warn('Error disconnecting Profile observer:', err);
+    }
+
+    this.container = null as any;
   }
 }
