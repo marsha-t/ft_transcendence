@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("GAME_DB_URL")
+}
+
+// Enums (keep as-is)
+enum GameStatus {
+  CREATED
+  PLAYING
+  PAUSED
+  FINISHED
+  ABORTED
+}
+
+enum PlayerSide {
+  LEFT
+  RIGHT
+}
+
+enum EventType {
+  START
+  POINT
+  PAUSE
+  RESUME
+  FINISH
+}
+
+enum TournamentStatus {
+  CREATED
+  STARTED
+  FINISHED
+  ABORTED
+}
+
+// Game models (keep all, remove User relations)
+model GameSession {
+  id             Int              @id @default(autoincrement())
+  status         GameStatus       @default(CREATED)
+  createdAt      DateTime         @default(now())
+  startedAt      DateTime?
+  endedAt        DateTime?
+  winnerUserId   Int?
+  winnerPlayerId Int?             @unique
+  isAi            Boolean         @default(false) 
+
+  winnerPlayer   GameSessionPlayer?  @relation("GamePlayerWinner", fields: [winnerPlayerId], references: [id])
+  players        GameSessionPlayer[]
+  tournamentMatch TournamentMatch?
+  events          GameEvent[]
+}
+
+model GameEvent {
+  id        Int       @id @default(autoincrement())
+  sessionId Int
+  playerId  Int?
+  type      EventType
+  timestamp DateTime  @default(now())
+  scoreLeft Int?
+  scoreRight Int?
+
+  session GameSession       @relation(fields: [sessionId], references: [id])
+  player  GameSessionPlayer? @relation(fields: [playerId], references: [id])
+}
+
+model GameSessionPlayer {
+  id                 Int         @id @default(autoincrement())
+  sessionId          Int
+  userId             Int?        // Reference only, no FK constraint
+  tournamentPlayerId Int?
+  isGuest            Boolean     @default(false)
+  displayName        String
+  side               PlayerSide
+  score              Int         @default(0)
+
+  session          GameSession       @relation(fields: [sessionId], references: [id])
+  winnerOfGame     GameSession?      @relation("GamePlayerWinner")
+  tournamentPlayer TournamentPlayer? @relation(fields: [tournamentPlayerId], references: [id])
+  events           GameEvent[]
+
+  @@unique([sessionId, side])
+  @@unique([sessionId, displayName])
+}
+
+model Tournament {
+  id              Int               @id @default(autoincrement())
+  status          TournamentStatus  @default(CREATED)
+  createdAt       DateTime          @default(now())
+  startedAt       DateTime?
+  endedAt         DateTime?
+  numberOfPlayers Int
+  bracketSize     Int
+
+  players TournamentPlayer[]
+  matches TournamentMatch[]
+}
+
+model TournamentPlayer {
+  id           Int          @id @default(autoincrement())
+  tournamentId Int
+  userId       Int?         // Reference only, no FK constraint
+  isGuest      Boolean      @default(false)
+  displayName  String
+
+  tournament          Tournament        @relation(fields: [tournamentId], references: [id])
+  gameSessionPlayers  GameSessionPlayer[]
+  matchesWon          TournamentMatch[] @relation("MatchWinner")
+  matchesAsPlayer1    TournamentMatch[] @relation("MatchPlayer1")
+  matchesAsPlayer2    TournamentMatch[] @relation("MatchPlayer2")
+
+  @@unique([tournamentId, displayName])
+}
+
+model TournamentMatch {
+  id             Int          @id @default(autoincrement())
+  tournamentId   Int
+  matchIndex     Int
+  gameSessionId  Int?         @unique
+  winnerUserId   Int?         // Reference only, no FK constraint
+  winnerPlayerId Int?
+  player1Id      Int?
+  player2Id      Int?
+
+  tournament   Tournament        @relation(fields: [tournamentId], references: [id])
+  gameSession  GameSession?      @relation(fields: [gameSessionId], references: [id])
+  winnerPlayer TournamentPlayer? @relation("MatchWinner", fields: [winnerPlayerId], references: [id])
+  player1      TournamentPlayer? @relation("MatchPlayer1", fields: [player1Id], references: [id])
+  player2      TournamentPlayer? @relation("MatchPlayer2", fields: [player2Id], references: [id])
+
+  @@unique([tournamentId, matchIndex])
+}

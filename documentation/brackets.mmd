@@ -1,0 +1,39 @@
+graph TD
+
+  %% Round 1
+  P1["P1"] --> M1["Match 1"]
+  P2["P2"] --> M1
+
+  P3["P3"] --> M2["Match 2"]
+  P4["P4"] --> M2
+
+  P5["P5"] --> M3["Match 3"]
+  BYE1["BYE"] --> M3
+
+  BYE2["BYE"] --> M4["Match 4"]
+  BYE3["BYE"] --> M4
+
+  %% Round 2
+  M1 --> M5["Match 5"]
+  M2 --> M5
+
+  M3 --> M6["Match 6"]
+  M4 --> M6
+
+  %% Final
+  M5 --> F["Match 7"]
+  M6 --> F
+
+  %% Champion
+  F --> C["Winner"]
+
+
+%% For bracketSize = 8, round1Matches = 4.
+%% parentIndex = round1Matches + Math.floor((matchIndex - 1) / 2) + 1
+%% Match 1 → 4 + floor((1-1)/2) + 1 = 5 (Parent is M5)
+%% Match 2 → 4 + floor((2-1)/2) + 1 = 5 (Parent is M5)
+%% Match 3 → 4 + floor((3-1)/2) + 1 = 6 (Parent is M6)
+%% Match 4 → 4 + floor((4-1)/2) + 1 = 6 (Parent is M6)
+%% Match 5 → 4 + floor((5-1)/2) + 1 = 7 (Parent is Final)
+%% Match 6 → 4 + floor((6-1)/2) + 1 = 7 (Parent is Final)
+

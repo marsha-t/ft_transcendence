@@ -1,0 +1,613 @@
+import { IComponent } from "../components/IComponent.js";
+import { PongGame } from "../graphics/PongGame.js";
+import { PlayerSide } from "../services/game/types.js";
+import { navigate, confirmationPopup } from "../utils";
+import {GameSession} from "../services/game/types.js";
+import { GameService } from "../services/game/GameService.js";
+import { apiServices } from "../services/ApiServices.js";
+import {makeButton} from "../utils/uiUtils.js";
+import { aiWebSocketService } from "../services/websocket/WebsocketServices.js";
+import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
+import { openGameCustomization } from "../utils/gameCustom.js";
+import { t } from "../services/i18n/i18nService.js";
+
+
+
+
+
+export class AI implements IComponent {
+  private container!: HTMLElement;
+  private canvas: HTMLCanvasElement;
+  private pongGame!: PongGame;
+  private isScoring: boolean = false;
+  private isGameRunning: boolean = false;
+  private hasEndedNaturally: boolean = false;
+  private currentSession: GameSession | null = null;
+  private gameService: GameService;
+  private username: string = 'Loading ...';
+  private wsConnected: boolean = false;
+
+  private customGameSettings: CustomGameSettings | null = null;
+  private customizationUI: any = null;
+
+  constructor() {
+    this.canvas = document.createElement("canvas");
+    this.canvas.width = 900;
+    this.canvas.height = 500;
+    this.gameService = new GameService();
+    this.username = "Getting username...";
+  }
+
+  public render(): HTMLElement {
+    this.container = document.createElement("div");
+    this.container.className =
+      "flex flex-col items-center min-h-[80vh] p-20 bg-background-primary rounded-[30px] ml-6 mr-6";
+
+    this.loadUserAndUpdateName().then(() => {
+      this.createTitleContainer();
+      this.createCanvas();
+      this.createControlsContainer();
+      this.initializeAIGame();
+    });
+
+    return this.container;
+  }
+
+  private createTitleContainer(): void {
+    const titleContainer = document.createElement("div");
+    titleContainer.className =
+      "flex flex-row items-center justify-between w-[800px] text-3xl font-bold text-white pointer-events-none mb-6";
+
+    // AI on LEFT
+    const aiName = document.createElement("h2");
+    aiName.textContent = "🤖 AI";
+    aiName.className = "user";
+    aiName.id = "left-player";
+
+    const VS = document.createElement("h1");
+    VS.textContent = t("game.VS") as string;
+    VS.className = "VS";
+
+    // User on RIGHT
+    const userName = document.createElement("h2");
+    userName.textContent = this.username;
+    userName.className = "user";
+    userName.id = "right-player";
+
+    titleContainer.appendChild(aiName);
+    titleContainer.appendChild(VS);
+    titleContainer.appendChild(userName);
+    this.container.appendChild(titleContainer);
+  }
+
+
+  private createCanvas(): void {
+    const canvasContainer = document.createElement("div");
+    canvasContainer.className = "relative";
+
+    this.canvas.className =
+      "max-w-full h-auto rounded-[30px] max-[800px]:w-full max-[800px]:aspect-[8/5]";
+    canvasContainer.appendChild(this.canvas);
+
+    // SCORE DISPLAY
+    const scoreContainer = document.createElement("div");
+    scoreContainer.className =
+      "absolute top-8 left-0 right-0 flex justify-around text-6xl font-bold text-white pointer-events-none";
+    scoreContainer.style.textShadow = "2px 2px 4px rgba(0,0,0,0.5)";
+
+    const leftScore = document.createElement("div");
+    leftScore.id = "left-score";
+    leftScore.textContent = "0";
+    leftScore.className = "ml-32";
+
+    const rightScore = document.createElement("div");
+    rightScore.id = "right-score";
+    rightScore.textContent = "0";
+    rightScore.className = "mr-32";
+
+    scoreContainer.appendChild(leftScore);
+    scoreContainer.appendChild(rightScore);
+    canvasContainer.appendChild(scoreContainer);
+
+    this.container.appendChild(canvasContainer);
+    this.createPongGame();
+  }
+
+  private createPongGame(): void{
+    //create custom before the graphics
+    if(this.customGameSettings){
+      gameConfigManager.applyCustomizations(this.customGameSettings);
+      console.log('[AI] Applied customizations BEFORE PongGame creation:', {
+        preset: this.customGameSettings.preset,
+        powerUps: gameConfigManager.current.powerUps
+      });
+    }
+
+
+    this.pongGame = new PongGame(
+      this.canvas,
+      (side: "LEFT" | "RIGHT") => {
+        if (!this.isScoring) {
+          this.isScoring = true;
+          this.scorePoint(side).then(() => {
+            setTimeout(() => (this.isScoring = false), 1000);
+          });
+        }
+      },
+      {
+        aiEnabled: true,
+        aiSide: "LEFT",
+      }
+    );
+
+  }
+
+  private createControlsContainer(): void {
+    const controlsContainer = document.createElement("div");
+    controlsContainer.className =
+      "flex flex-row gap-4 items-center justify-between pt-10";
+
+    const startBtn = makeButton(t("game.startGame") as string, "start-btn", "block", () =>
+      this.toggleGame()
+    );
+    const pauseBtn = makeButton(t("game.pause") as string, "pause-btn", "none", () =>
+      this.pauseGame()
+    );
+    const quitBtn = makeButton(t("game.quitGame") as string, "quit-btn", "none", () =>
+      this.quitGame()
+    );
+
+    const customizeBtn = makeButton(t("game.customizeGame") as string, "customize-btn", "block", () =>
+      this.openCustomizationPopUp()
+    );
+
+    controlsContainer.appendChild(startBtn);
+    controlsContainer.appendChild(pauseBtn);
+    controlsContainer.appendChild(quitBtn);
+    controlsContainer.appendChild(customizeBtn);
+
+    this.container.appendChild(controlsContainer);
+  }
+
+  private openCustomizationPopUp(): void {
+    this.customizationUI = openGameCustomization(
+      document.body, (settings: CustomGameSettings) => {
+
+        console.log('[AI] Received settings:', settings);
+
+        this.customGameSettings = settings;
+        gameConfigManager.applyCustomizations(settings);
+
+        console.log('[AI] After applying:', {
+          enabled: gameConfigManager.current.powerUps.enabled,
+          types: gameConfigManager.current.powerUps.types,
+          spawnInterval: gameConfigManager.current.powerUps.spawnInterval
+        });
+
+        this.recreatePongGame();
+        this.showCustomizationApplied(settings.preset);
+      },
+      () => {
+        console.log("Customization cancelled.");
+      }
+    );
+  }
+
+  private recreatePongGame(): void{
+    console.log('[AI] Recreating PongGame with new config...');
+
+    //store websocket state
+    const wsConnected = this.wsConnected;
+
+    //disconnect ws tempr
+    if(this.wsConnected){
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+
+    //dispose old game
+    if(this.pongGame)
+      this.pongGame.dispose();
+
+    //reset game state
+    this.isGameRunning = false;
+    this.isScoring = false;
+
+    //reset score display
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+    if(leftScoreEl)
+      leftScoreEl.textContent = "0";
+    if(rightScoreEl)
+      rightScoreEl.textContent = "0";
+
+    //create new POngGame with updated config
+    this.createPongGame();
+
+    //reconnect ws
+    if(wsConnected && this.currentSession){
+      this.connectWebSocket().then(() => {
+        console.log('[AI] WebSocket reconnected after recreation');
+      });
+    }
+
+    console.log('[AI] PongGame recreated successfully!');
+    console.log('[AI] Power-ups enabled:', gameConfigManager.current.powerUps.enabled);
+  }
+
+  private showCustomizationApplied(preset: string): void {
+    const indicator = document.createElement("div");
+    indicator.id = "custom-indicator";
+    indicator.textContent = `${preset} Mode Active`;
+    indicator.className = "text-white bg-yellow-200 px-4 py-2 rounded-lg " +
+      "font-semibold text-sm mt-2";
+
+    const controls = this.container.querySelector(".flex.flex-row.gap-4");
+    if (controls) {
+      // Remove old indicator if exists
+      const oldIndicator = document.getElementById("custom-indicator");
+      if (oldIndicator) oldIndicator.remove();
+      
+      controls.parentElement?.insertBefore(indicator, controls.nextSibling);
+    }
+  }
+
+
+  private async loadUserAndUpdateName(): Promise<void> {
+    await this.loadUser();
+  
+    const rightPlayerEl = document.getElementById("right-player");
+    if (rightPlayerEl) {
+      rightPlayerEl.textContent = this.username;
+    }
+  }
+
+  async loadUser() {
+    try {
+      const response = await apiServices.profile.getProfile();
+      const username = response.data?.username;
+      if (response.success && username) {
+        this.username = username;
+      }
+    } catch (err) {
+      console.log("Failed to fetch username: ", err);
+    }
+  }
+  
+  private async initializeAIGame(): Promise<void> {
+    try {
+      const response = await fetch("/api/ai/create-game", {
+        method: "POST",
+        credentials: "include",
+      });
+  
+      if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Failed: ${response.status} ${err}`);
+      }
+  
+      const data = await response.json();
+      
+      console.log('Raw data from API:', data);
+  
+      this.currentSession = {
+        sessionId: data.sessionId,
+        status: data.status,
+        players: data.players.map((p: any) => ({
+          side: p.side,
+          displayName: p.displayName || p.user?.username || "Player",
+          score: p.score || 0,
+        })),
+        winnerName: data.winnerName,
+      } as GameSession;
+  
+      console.log("AI Game Ready!", this.currentSession);
+      console.log('Session ID:', this.currentSession.sessionId);
+      console.log('Session is truthy?', !!this.currentSession);
+  
+      //connect websocket
+      await this.connectWebSocket();
+  
+    } catch (err: any) {
+      console.error("Failed to start AI game:", err);
+      alert("Could not connect to game service.");
+    }
+  }
+  
+  private async connectWebSocket(): Promise<void> {
+    if (!this.currentSession) {
+      console.error('NO SESSION - RETURNING');
+      return;
+    }
+    
+    
+    try {
+      await aiWebSocketService.connect(this.currentSession.sessionId);
+      
+      this.wsConnected = true;
+  
+      aiWebSocketService.on('ai_move', (data: any) => {
+        if (data && typeof data.action === 'string') {
+          this.pongGame.applyAIDirection(data.action as "UP" | "DOWN" | "NONE" );
+        }
+      });
+  
+      aiWebSocketService.on('ai_ready', () => {
+        this.pongGame.sendGameConstants();
+      });
+  
+    } catch (error) {
+      console.error('CONNECTION ERROR:', error);
+      alert('Failed to connect to AI opponent. Please try again.');
+    }
+  }
+
+
+  private async scorePoint(scoringSide: PlayerSide): Promise<void> {
+    if (!this.isGameRunning) {
+      return;
+    }
+
+    try {
+      if (this.currentSession) {
+        this.currentSession = await this.gameService.updatePlayerScore(
+          this.currentSession.sessionId,
+          scoringSide
+        );
+        this.updateScoreDisplay();
+
+        if (this.currentSession.status === "FINISHED") {
+          setTimeout(() => this.endGame(), 500);
+        } else if (this.currentSession.status === "ABORTED") {
+          this.stopGameLoop();
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update score:", error);
+    }
+  }
+
+  private updateScoreDisplay(): void {
+    const leftPlayer = this.currentSession?.players.find(
+      (p) => p.side === "LEFT"
+    );
+    const rightPlayer = this.currentSession?.players.find(
+      (p) => p.side === "RIGHT"
+    );
+
+    const leftScore = leftPlayer?.score ?? 0;
+    const rightScore = rightPlayer?.score ?? 0;
+
+
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+
+    if (leftScoreEl) leftScoreEl.textContent = leftScore.toString();
+    if (rightScoreEl) rightScoreEl.textContent = rightScore.toString();
+  }
+
+  private async endGame(): Promise<void> {
+    this.hasEndedNaturally = true;
+
+    if (this.currentSession) {
+      this.stopGameLoop();
+
+      const winnerName = this.currentSession.winnerName ?? "Unknown";
+      const confirmed = await confirmationPopup(
+        `${t("game-result.gameOver") as string}! ${winnerName} ${t("game-result.wins") as string}!`,
+        `${t("game-result.gameOver") as string}`,
+        true
+      );
+      
+      if (!confirmed) return;
+
+      navigate("/game/results", {
+        sessionId: this.currentSession.sessionId,
+        isTournament: false,
+      });
+    }
+  }
+
+  // CLEANUP
+
+  public async canDeactivate(): Promise<boolean> {
+    if (this.hasEndedNaturally) {
+      this.stopGameLoop();
+      return true;
+    }
+
+    const confirmLeave = confirm("Leaving will stop the current AI match.");
+    if (confirmLeave) {
+      if (this.currentSession?.sessionId) {
+        try {
+          await apiServices.game.updateGameStatus(
+            this.currentSession.sessionId,
+            "ABORTED"
+          );
+        } catch (err) {
+          console.error("Error aborting AI game:", err);
+        }
+      }
+      this.stopGameLoop();
+    }
+    return confirmLeave;
+  }
+
+  public terminate(): void {
+    this.cleanup();
+  }
+
+  public cleanup(): void {
+    this.stopGameLoop();
+
+    // Close customization UI if open
+    if (this.customizationUI) {
+      this.customizationUI.close();
+      this.customizationUI = null;
+    }
+
+    // Disconnect WebSocket
+    if(this.wsConnected)
+    {
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+
+    // Dispose PongGame
+    if(this.pongGame){
+      this.pongGame.dispose();
+      this.pongGame = null as any;
+    }
+    
+    // Reset configuration
+    gameConfigManager.reset();
+    
+    this.currentSession = null;
+    this.customGameSettings = null;
+  }
+
+
+  private startGameLoop(): void {
+    this.isGameRunning = true;
+    this.pongGame.resume();
+  }
+
+  private stopGameLoop(): void {
+    this.isGameRunning = false;
+    this.pongGame.pause();
+  }
+
+  private async toggleGame(): Promise<void> {
+    if (!this.currentSession) {
+      alert("Game session not initialized");
+      return;
+    }
+
+    try {
+      if (!this.isGameRunning) {
+        await this.gameService.startGame(this.currentSession.sessionId);
+        this.startGameLoop();
+        this.updateGameButtons(true);
+      }
+    } catch (error) {
+      console.error("Failed to start game:", error);
+      alert("Failed to start game. Please try again.");
+    }
+  }
+
+  private async pauseGame(): Promise<void> {
+    if (!this.currentSession) return;
+
+    try {
+      if (this.isGameRunning) {
+        await this.gameService.pauseGame(this.currentSession.sessionId);
+        this.stopGameLoop();
+        this.updateGameButtons(false);
+      } else {
+        await this.gameService.startGame(this.currentSession.sessionId);
+        this.startGameLoop();
+        this.updateGameButtons(true);
+      }
+    } catch (error) {
+      console.error("Failed to pause/resume game:", error);
+    }
+  }
+
+  private async quitGame(): Promise<void> {
+    if (!this.currentSession) return;
+
+    const confirmed = confirm("Are you sure you want to quit the AI game?");
+    if (!confirmed) return;
+
+    try {
+      await this.gameService.abortGame(this.currentSession.sessionId);
+      this.stopGameLoop();
+      // navigate("/");
+      this.resetGame();
+    } catch (error) {
+      console.error("Failed to quit game:", error);
+    }
+  }
+  
+  private async resetGame(): Promise<void> {
+
+    this.stopGameLoop();
+    if(this.wsConnected){
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+
+    if(this.pongGame){
+      this.pongGame.dispose();
+    }
+
+    this.currentSession = null;
+    this.customGameSettings = null;
+    this.isGameRunning = false;
+    this.isScoring = false;
+    this.hasEndedNaturally = false;
+
+    gameConfigManager.reset();
+
+
+    const indicator = document.getElementById("custom-indicator");
+    if(indicator)
+      indicator.remove();
+
+
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const quitBtn = document.getElementById("quit-btn");
+    const customizeBtn = document.getElementById("customize-btn");
+
+    if(startBtn)
+      startBtn.style.display = "block";
+    if(pauseBtn)
+      pauseBtn.style.display = "none";
+    if(quitBtn)
+      quitBtn.style.display = "none";
+    if(customizeBtn)
+      customizeBtn.style.display = "block";
+
+    const leftScoreEl = document.getElementById("left-score");
+    const rightScoreEl = document.getElementById("right-score");
+    if (leftScoreEl) leftScoreEl.textContent = "0";
+    if (rightScoreEl) rightScoreEl.textContent = "0";
+
+    const leftPlayerElement = document.getElementById("left-player");
+    const rightPlayerElement = document.getElementById("right-player");
+    if(leftPlayerElement)
+      leftPlayerElement.textContent = "🤖 AI";
+    if(rightPlayerElement)
+        rightPlayerElement.textContent = this.username || "Player";
+    
+    this.createPongGame();
+    await this.initializeAIGame();
+  }
+
+  private updateGameButtons(isPlaying: boolean): void {
+    const startBtn = document.getElementById("start-btn") as HTMLButtonElement;
+    const pauseBtn = document.getElementById("pause-btn") as HTMLButtonElement;
+    const quitBtn = document.getElementById("quit-btn") as HTMLButtonElement;
+    const customizeBtn = document.getElementById("customize-btn") as HTMLElement;
+
+    if (isPlaying) {
+      if (startBtn) startBtn.style.display = "none";
+      if (pauseBtn) {
+        pauseBtn.style.display = "block";
+        pauseBtn.textContent = "Pause";
+      }
+      if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
+    } else {
+      if (startBtn) startBtn.style.display = "none";
+      if (pauseBtn) {
+        pauseBtn.style.display = "block";
+        pauseBtn.textContent = "Resume";
+      }
+      if (quitBtn) quitBtn.style.display = "block";
+      if(customizeBtn) customizeBtn.style.display = "none";
+    }
+  }
+
+}
