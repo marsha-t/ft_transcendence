@@ -8,9 +8,6 @@ import {navigate} from '../utils.js';
 
 export class Main implements IComponent {
 
-  private preloginButton: HTMLButtonElement | null = null; 
-  private preLoginHandler: ((e: Event) => void) | null = null;
-
   public render(): HTMLElement {
     const container = document.createElement('div');
     container.className = `flex justify-center bg-background-secondary
@@ -53,7 +50,6 @@ export class Main implements IComponent {
         const aiButton = makeCircular3DButton(t("main.play-AI") as string, "ai-btn", "/ai", "🤖");
         const playButton = makeCircular3DButton(t("main.play-friend") as string, "play-btn", "/game", "👥");
       
-
         tournamentBtn.addEventListener("click", (e) => {
           e.preventDefault();
           navigate("/tournament");
@@ -86,17 +82,18 @@ export class Main implements IComponent {
       gif.className = "w-[600px] h-[350px] mb-6";
       rightSection.appendChild(gif);
 
-      this.preloginButton = document.createElement('button');
-      this.preloginButton.textContent = t("main.loginToUnlock") as string;
-      this.preloginButton.className = createButtonStyle("animate-bounce", 'green');
+      const preloginButton = document.createElement('button');
+      preloginButton.type = 'button';
+      preloginButton.textContent = t("main.loginToUnlock") as string;
+      preloginButton.className = createButtonStyle("animate-bounce", 'green');
       
-      this.preLoginHandler = (e: Event) => {
+      preloginButton.addEventListener("click", (e: Event) => {
         e.preventDefault();
-        window.location.href = "/login";
-      };
+        e.stopPropagation();
+        navigate("/login");
+      })
 
-      this.preloginButton.addEventListener("click", this.preLoginHandler);
-      rightSection.appendChild(this.preloginButton);
+      rightSection.appendChild(preloginButton);
     }
 
     // Add to subcontainer
@@ -107,15 +104,5 @@ export class Main implements IComponent {
     container.appendChild(subContainer);
 
     return container;
-  }
-
-  //implementing cleanup method to remove eventListeners
-  public cleanup(): void {
-    if(this.preLoginHandler && this.preloginButton)
-      this.preloginButton.removeEventListener("click", this.preLoginHandler);
-
-    this.preloginButton = null;
-    this.preLoginHandler = null;
-  }
-
+  } 
 }
