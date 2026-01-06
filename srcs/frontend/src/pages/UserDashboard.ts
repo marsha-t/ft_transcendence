@@ -19,8 +19,7 @@ export class ProfileDashboard implements IComponent {
     page.style.backgroundColor = 'var(--color-background-primary)';
 
     this.container = document.createElement("div");
-    this.container.className = "p-8 flex flex-col items-center gap-8 h-auto w-full font-pixel text-yellow-300";
-    this.container.dir = "ltr"; // Ensure left-to-right text direction
+    this.container.className = "p-8 flex flex-col items-center gap-8 h-fit w-full font-pixel text-yellow-300";
 
     // Title
     const title = document.createElement("h1");
@@ -40,26 +39,26 @@ export class ProfileDashboard implements IComponent {
     // Overview container
     const overviewDiv = document.createElement("div");
     overviewDiv.id = "overviewCard";
-    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     const winRateChartDiv = document.createElement("div");
     winRateChartDiv.id = "winRateChart";
-    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     const scoreHistogramDiv = document.createElement("div");
     scoreHistogramDiv.id = "scoreHistogram";
-    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-[360px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     topRow.appendChild(overviewDiv);
     topRow.appendChild(winRateChartDiv);
     topRow.appendChild(scoreHistogramDiv);
     
     const bottomRow = document.createElement("div");
-    bottomRow.className = "grid grid-cols-[0.33fr_0.67fr]  gap-8 w-full h-[400px]"; 
+    bottomRow.className = "grid grid-cols-[0.33fr_0.67fr]  gap-8 w-full h-fit"; 
     // Wins per Opponent
     const winsPerOpponentDiv = document.createElement("div");
     winsPerOpponentDiv.id = "winsPerOpponent";
-    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-[400px] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     
     // Leaderboard
     const leaderboardDiv = document.createElement("div");

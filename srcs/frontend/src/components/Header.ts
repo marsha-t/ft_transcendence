@@ -151,7 +151,7 @@ export class Header implements IComponent {
         }, 0);
         
         // Setup active link updating
-        this.setupActiveLinks(this.linksGroup, this.buttonsGroup);
+        // this.setupActiveLinks(this.linksGroup, this.buttonsGroup);
 
         return rightNav;
     }
@@ -369,13 +369,13 @@ export class Header implements IComponent {
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
-        if (link.type === 'link') {
+        // if (link.type === 'link') {
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 history.pushState(null, '', link.href);
                 window.dispatchEvent(new PopStateEvent('popstate'));
             });
-        }
+        // }
         return a;
     }
 
@@ -514,39 +514,40 @@ export class Header implements IComponent {
 
     // Called by Router or page cleanup to remove persistent listeners/resources
     public cleanup(): void {
+        console
         try {
             if (this.languageChangedHandler) {
                 window.removeEventListener('languageChanged', this.languageChangedHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.languageChangedHandler = null;
 
         try {
             if (this.avatarChangedHandler) {
                 window.removeEventListener('avatarChanged', this.avatarChangedHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.avatarChangedHandler = null;
 
         try {
             if (this.authChangeHandler) {
                 window.removeEventListener('authChange', this.authChangeHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.authChangeHandler = null;
 
         try {
             if (this.popstateHandler) {
                 window.removeEventListener('popstate', this.popstateHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.popstateHandler = null;
 
         try {
             if (this.documentLangClickHandler) {
                 document.removeEventListener('click', this.documentLangClickHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.documentLangClickHandler = null;
         Header.languageDocClickAttached = false;
 
@@ -554,7 +555,7 @@ export class Header implements IComponent {
             if (this.documentPlayClickHandler) {
                 document.removeEventListener('click', this.documentPlayClickHandler);
             }
-        } catch (err) { /* ignore */ }
+        } catch (err) {}
         this.documentPlayClickHandler = null;
 
         // Clear DOM refs so GC can reclaim them
