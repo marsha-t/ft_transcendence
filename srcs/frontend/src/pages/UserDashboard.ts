@@ -19,7 +19,7 @@ export class ProfileDashboard implements IComponent {
     page.style.backgroundColor = 'var(--color-background-primary)';
 
     this.container = document.createElement("div");
-    this.container.className = "p-8 flex flex-col items-center gap-8 h-fit w-full font-pixel text-yellow-300";
+    this.container.className = "p-8 flex flex-col items-center gap-4 h-full w-full font-pixel text-yellow-300 overflow-y-auto";
 
     // Title
     const title = document.createElement("h1");
@@ -30,40 +30,39 @@ export class ProfileDashboard implements IComponent {
 
     // Grid
     const grid = document.createElement("div");
-    grid.className = "grid grid-rows-2  gap-2 w-[90%] max-w-[1400px] place-items-stretch";
+    grid.className = "grid grid-rows-2  gap-4 w-[90%] max-w-[1400px] place-items-stretch";
     this.container.appendChild(grid);
 
     const topRow = document.createElement("div");
-    topRow.className = "grid grid-cols-3 gap-8 w-full";
+    topRow.className = "grid grid-cols-3 gap-4 w-full";
   
     // Overview container
     const overviewDiv = document.createElement("div");
     overviewDiv.id = "overviewCard";
-    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     const winRateChartDiv = document.createElement("div");
     winRateChartDiv.id = "winRateChart";
-    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     const scoreHistogramDiv = document.createElement("div");
     scoreHistogramDiv.id = "scoreHistogram";
-    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
-
+    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     topRow.appendChild(overviewDiv);
     topRow.appendChild(winRateChartDiv);
     topRow.appendChild(scoreHistogramDiv);
     
     const bottomRow = document.createElement("div");
-    bottomRow.className = "grid grid-cols-[0.33fr_0.67fr]  gap-8 w-full h-fit"; 
+    bottomRow.className = "grid grid-cols-[0.33fr_0.67fr]  gap-4 w-full h-full"; 
     // Wins per Opponent
     const winsPerOpponentDiv = document.createElement("div");
     winsPerOpponentDiv.id = "winsPerOpponent";
-    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-fit transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     
     // Leaderboard
     const leaderboardDiv = document.createElement("div");
     leaderboardDiv.id = "leaderboard";
-    leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-fulltransition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     bottomRow.appendChild(winsPerOpponentDiv);
     bottomRow.appendChild(leaderboardDiv);
 
