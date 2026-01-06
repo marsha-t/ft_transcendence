@@ -221,7 +221,6 @@ export class friendsAndUsers implements IComponent {
   avatar.className = `w-[45px] h-[45px] rounded-full border-2 border-white shadow-md`;
 
   // Use background-image for the avatar
-  const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
   avatar.style.backgroundImage = `url(${getAvatarUrl(avatarURL)})`;
   avatar.style.backgroundSize = "cover";
   avatar.style.backgroundPosition = "center";

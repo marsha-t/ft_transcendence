@@ -25,8 +25,7 @@ export class AIWebSocketService {
         this.sessionId = sessionId;
 
         return new Promise((resolve, reject)=> {
-          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-          const wsUrl = `${protocol}//${window.location.host}/ws/ai/${sessionId}`;
+          const wsUrl = `wss://${window.location.host}/ws/ai/${sessionId}`;
 
             try{
                 this.socket = new WebSocket(wsUrl);
