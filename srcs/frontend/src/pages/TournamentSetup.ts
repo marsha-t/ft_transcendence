@@ -10,7 +10,7 @@ import { showConfirmation } from "../utils/uiUtils";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
-  private modal!: HTMLElement;
+  private modal: HTMLElement | null = null;
   private isModalOpen = false;
   private creatorUsername: string = "Creator";
   private creatorId: number | null = null;
@@ -37,12 +37,12 @@ export class TournamentSetup implements IComponent {
   public render(): HTMLElement {
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)] flex justify-center items-center
-      flex-col min-h-[80vh] py-5 text-[var(--color-text-white)]
+      flex-col h-full py-5 text-[var(--color-text-white)]
       font-pixel text-center`;
 
     this.container = document.createElement("div");
     this.container.className =
-      "flex flex-col items-center min-h-[80vh] p-20 bg-background rounded-[30px] ml-6 mr-6 ";
+      "flex flex-col items-center p-20 bg-background rounded-[30px] ml-6 mr-6 ";
 
     const title = document.createElement("h2");
     title.className = "text-[1.8rem] font-pixel font-normal mb-10";
@@ -201,6 +201,8 @@ export class TournamentSetup implements IComponent {
 
     if (this.destroyed) {
       this.isModalOpen = false;
+      this.modal?.remove();
+      this.modal = null;
       return 
     };
 
@@ -503,12 +505,12 @@ export class TournamentSetup implements IComponent {
   // Fetch current logged in user's username for lineup section
   private async fetchCreatorUsername() {
     try {
-      const response = await apiServices.profile.getProfile();
-      const username = response.data?.username;
-      const id = response.data?.id ?? null;
-      if (response.success && username) {
+      const response = await apiServices.profile.getCurrentUser();
+      if (!response.success || !response.data) return;
+      const { username, id } = response.data;
+      if (username) {
         this.creatorUsername = username;
-        this.creatorId = id;
+        this.creatorId = id ?? null;
       }
     } catch (err) {
       console.log("Failed to fetch creator username: ", err);
@@ -584,19 +586,17 @@ export class TournamentSetup implements IComponent {
       const confirmClose = await showConfirmation(t("tournament.closeTournamentAlert"), t("common.pleaseConfirm") as string, true);
       if (!confirmClose) return ;
     }
-    this.isModalOpen = false;
     TournamentDraftStore.clearPlayers();
-    if (this.modal && document.body.contains(this.modal)) {
-      document.body.removeChild(this.modal);
-    }
+    this.modal?.remove();
+    this.modal = null;
+    this.isModalOpen = false;
   }
 
   public cleanup() {
     this.destroyed = true;
-    if (this.isModalOpen) {
-      TournamentDraftStore.clearPlayers();
-      this.modal?.remove();
-      this.isModalOpen = false;
-    }
+    TournamentDraftStore.clearPlayers();
+    this.modal?.remove();
+    this.modal = null;
+    this.isModalOpen = false;
   }
 }

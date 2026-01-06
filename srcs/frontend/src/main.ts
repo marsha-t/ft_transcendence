@@ -12,6 +12,7 @@ import { i18nReady, initializeLanguageFromBackend } from './services/i18n/i18nSe
     - Mount header and footer
     - Create Router instance (once)
     - Trigger first render by dispatching popstate event
+    - No cleanup needed: listener fires once and browser discards it 
 */
 window.addEventListener('DOMContentLoaded', async () => {
     const headerContainer = document.getElementById('header-container');
@@ -32,6 +33,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     await AuthUtils.initialize();
     
     // Listen for auth state changes to update language from backend
+    // App-level auth state listener - lives for lifetime of document to sync auth to language
+    // No manual cleanup needed: listener removed when browser unloads window
     window.addEventListener('authChange', async (event: any) => {
         if (event.detail?.isLoggedIn) {
             // User logged in, update language from their backend preference
