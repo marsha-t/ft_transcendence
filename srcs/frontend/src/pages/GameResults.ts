@@ -233,14 +233,17 @@ export class GameResults implements IComponent {
   }
 
   private getAvatarUrl(path?: string): string {
-    if (!path) return "";
-    const backendUrl = "http://localhost:5001";
+    const defaultAvatar = "/uploads/avatars/default.png";
 
-    const full = path.startsWith("http://") || path.startsWith("https://");
-    const base = full ? path : `${backendUrl}${path}`;
+    if (!path) path = defaultAvatar;
 
-    const sep = base.includes("?") ? "&" : "?";
-    return `${base}${sep}t=${Date.now()}`;
+    // If path is already a full URL, use it as-is
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+    }
+
+    // Otherwise, use relative path
+    return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
   }
 
   public async canDeactivate(): Promise<boolean> {

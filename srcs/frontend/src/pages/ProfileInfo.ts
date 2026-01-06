@@ -177,10 +177,10 @@ export class ProfileInfo implements IComponent {
         smallRow.className = 'flex items-center gap-2';
         
         const avatarPaths = [
-            'http://localhost:5001/uploads/avatars/user_avatar-1.jpg',
-            'http://localhost:5001/uploads/avatars/user_avatar-2.jpg',
-            'http://localhost:5001/uploads/avatars/user_avatar-3.png',
-            'http://localhost:5001/uploads/avatars/user_avatar-4.jpg'
+            '/uploads/avatars/user_avatar-1.jpg',
+            '/uploads/avatars/user_avatar-2.jpg',
+            '/uploads/avatars/user_avatar-3.png',
+            '/uploads/avatars/user_avatar-4.jpg'
         ];
         
         for (let i = 0; i < 4; i++) {
