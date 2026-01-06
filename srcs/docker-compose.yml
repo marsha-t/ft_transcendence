@@ -12,8 +12,8 @@ services:
       context: ./backend/auth-service
       dockerfile: Dockerfile
     container_name: auth-service
-    ports:
-      - 5001:5001
+    expose:
+      - "5001"
     env_file:
       - ./.env
     environment:
@@ -33,8 +33,8 @@ services:
       context: ./backend/profile-service
       dockerfile: Dockerfile
     container_name: profile-service
-    ports:
-      - 5002:5002
+    expose:
+      - "5002"
     env_file:
       - ./.env
     environment:
@@ -54,8 +54,8 @@ services:
       context: ./backend/friends-service
       dockerfile: Dockerfile
     container_name: friends-service
-    ports:
-      - 5003:5003
+    expose:
+      - "5003"
     env_file:
       - ./.env
     environment:
@@ -79,8 +79,8 @@ services:
       context: ./backend/dashboard-service
       dockerfile: Dockerfile
     container_name: dashboard-service
-    ports:
-      - 5004:5004
+    expose:
+      - "5004"
     env_file:
       - ./.env
     environment:
@@ -108,8 +108,8 @@ services:
       context: ./backend/game-tournament-service
       dockerfile: Dockerfile
     container_name: game-tournament-service
-    ports:
-      - 5005:5005
+    expose:
+      - "5005"
     env_file:
       - ./.env
     environment:

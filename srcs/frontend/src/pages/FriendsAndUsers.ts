@@ -156,7 +156,6 @@ export class friendsAndUsers implements IComponent {
   `;
 
   // Use background-image for the avatar
-  const backendUrl = "http://localhost:5001"; // same as how the profile picture is being shown
   avatar.style.backgroundImage = `url(${getAvatarUrl(avatarURL)})`;
   avatar.style.backgroundSize = "cover";
   avatar.style.backgroundPosition = "center";
@@ -453,7 +452,6 @@ private openAddFriendPopup(): void {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
 
-  const backendUrl = "http://localhost:5001";
   const debounceDelay = 400;
   let typingTimer: any;
   // Track requests sent during this modal session

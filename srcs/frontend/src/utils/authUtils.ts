@@ -89,11 +89,16 @@ export class AuthUtils {
 
 
     static getAvUrl(path?: string): string {
-        if (!path) return "";
-        const backendUrl = "http://localhost:5001";
-        const full = path.startsWith("http://") || path.startsWith("https://");
-        const base = full ? path : `${backendUrl}${path}`;
-        const sep = base.includes("?") ? "&" : "?";
-        return `${base}${sep}t=${Date.now()}`;
+        const defaultAvatar = "/uploads/avatars/default.png";
+
+        if (!path) path = defaultAvatar;
+        
+        // If path is already a full URL, use it directly
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
+        }
+
+        // Use relative URL for frontend (avoids exposing backend)
+        return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
     }
 }
