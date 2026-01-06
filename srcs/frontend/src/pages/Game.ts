@@ -328,7 +328,6 @@ export class Game implements IComponent {
       await apiServices.game.addGuestPlayer(
         this.currentSession.sessionId,
         guestName,
-        null,
         "LEFT"
       );
 
