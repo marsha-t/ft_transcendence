@@ -26,17 +26,33 @@ export default function predictBallIntercept(state) {
 	// If ball is not moving horizontally - will never reach paddle
 	const eps = 0.0001;
 	if (Math.abs(vx) < eps) {
-		return { zIntercept: z, time: Infinity, willReach: false };
+		return {
+			zIntercept: z,
+			time: Infinity,
+			willReach: false,
+		};
 	}
 
 	// If ball is moving away from AI paddle
 	const movingRight = vx > 0;
-	if (movingRight && aiPaddleX < x) return { willReach: false}; // If ball moving right but AI is on left
-	if (!movingRight && aiPaddleX > x) return { willReach: false}; // If ball moving left but AI is on right
+	if (movingRight && aiPaddleX < x) {
+		return {
+			zIntercept: z,
+			time: Infinity,
+			willReach: false,
+		};
+	}
+	if (!movingRight && aiPaddleX > x) {
+		return {
+			zIntercept: z,
+			time: Infinity,
+			willReach: false,
+		};
+	}
 
-	// Simulate ball movement for set time 
-	const dt = 1/120;
-	const maxTime = 10; 
+	// Simulate ball movement for set time
+	const dt = 1 / 120;
+	const maxTime = 10;
 	const maxSteps = Math.floor(maxTime / dt);
 	let t = 0;
 
@@ -45,19 +61,19 @@ export default function predictBallIntercept(state) {
 		const nextZ = z + vz * dt;
 
 		const crossesAIRight = vx > 0 && x <= aiPaddleX && nextX >= aiPaddleX;
-		const crossesAILeft = vx < 0 && x >= aiPaddleX && nextX <= aiPaddleX;
-		const crossesAI = (crossesAIRight || crossesAILeft);
+		const crossesAILeft  = vx < 0 && x >= aiPaddleX && nextX <= aiPaddleX;
+		const crossesAI = crossesAIRight || crossesAILeft;
 
 		const crossesOppRight = vx > 0 && x <= oppPaddleX && nextX >= oppPaddleX;
-		const crossesOppLeft = vx < 0 && x >= oppPaddleX && nextX <= oppPaddleX;
-		const crossesOpp = (crossesOppRight || crossesOppLeft);
-
+		const crossesOppLeft  = vx < 0 && x >= oppPaddleX && nextX <= oppPaddleX;
+		const crossesOpp = crossesOppRight || crossesOppLeft;
+		
 		// If no intercept - continue simulation
 		if (!crossesAI && !crossesOpp) {
 			x = nextX;
 			z = nextZ;
 			t += dt;
-	
+
 			// Apply wall bounce
 			if (z <= zMin) {
 				z = zMin + (zMin - z);
@@ -87,7 +103,7 @@ export default function predictBallIntercept(state) {
 			if (!firstEvent || ratioOpp < firstEvent.ratio) {
 				firstEvent = {
 					type: 'OPPONENT',
-					ratio: ratioOpp, 
+					ratio: ratioOpp,
 					xAt: oppPaddleX,
 					zAt: zAtOpp,
 				};
@@ -100,7 +116,11 @@ export default function predictBallIntercept(state) {
 		const eventZ = firstEvent.zAt;
 
 		if (firstEvent.type === 'AI') {
-			return { zIntercept: eventZ, time: eventTime, willReach: true };
+			return {
+				zIntercept: eventZ,
+				time: eventTime,
+				willReach: true,
+			};
 		}
 
 		// If event is opponent, predict whether it will hit paddle and behaviour after
@@ -109,7 +129,11 @@ export default function predictBallIntercept(state) {
 
 		// If opp paddle misses ball, ball won't reach AI paddle
 		if (distanceZ > collisionRange) {
-			return { zIntercept: eventZ, time: eventTime, willReach: false};
+			return {
+				zIntercept: eventZ,
+				time: eventTime,
+				willReach: false,
+			};
 		}
 
 		// If opp hits ball, predict return trajectory from collision point
@@ -134,5 +158,9 @@ export default function predictBallIntercept(state) {
 		}
 	}
 
-	return { zIntercept: z, time: t, willReach: false};
+	return {
+		zIntercept: z,
+		time: t,
+		willReach: false,
+	};
 }

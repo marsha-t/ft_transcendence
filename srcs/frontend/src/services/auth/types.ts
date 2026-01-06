@@ -19,6 +19,7 @@ export interface ApiResponse<T> {
     status?: number;      // HTTP status code
     message: string;     // friendly message
     errors?: string[];    // validation errors
+    code?: string;
     data?: T;             // any data returned
 }
 

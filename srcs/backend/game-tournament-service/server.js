@@ -45,13 +45,8 @@ const app = Fastify({
 });
 
 // CORS
-const allowedOrigins = ('https://localhost,https://localhost:443,https://localhost:8080')
-  .split(',')
-  .map(o => o.trim())
-  .filter(Boolean);
-
 await app.register(cors, {
-  origin: allowedOrigins,
+  origin: 'https://localhost:8080',
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
 });
@@ -59,7 +54,6 @@ await app.register(cors, {
 // JWT Authentication
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
-
 
 app.decorate('authenticate', async (request) => {
   try {
