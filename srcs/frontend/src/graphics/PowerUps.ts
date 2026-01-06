@@ -3,7 +3,7 @@ import { gameConfigManager } from "./GameConfigManager";
 
 export type PowerUpTypes =  'SPEED_BOOST' | 'ENLARGE_PADDLE' | 'SLOW_MOTION';
 
-
+//PowerUp - Internal representation of an active power-up on the table
 interface PowerUp {
     mesh: BABYLON.Mesh;
     type: PowerUpTypes;
@@ -11,6 +11,27 @@ interface PowerUp {
     glowLayer?: BABYLON.GlowLayer;
 }
 
+/**
+ * PowerUpManager - Manages spawning, visuals, collision, and cleanup of power-ups
+ *
+ * Responsibilities:
+ * - Spawns power-ups at regular intervals when enabled
+ * - Animates active power-ups (rotation + pulsing scale)
+ * - Detects ball collision and triggers collection effect
+ * - Applies visual feedback on collection (expanding colored ring)
+ * - Provides full cleanup for PongGame.dispose()
+ *
+ * Ownership:
+ * - Owns: All power-up meshes, materials, and glow layer
+ * - Owns: Temporary collection effect meshes and intervals
+ * - Does NOT own: Scene (reference only)
+ *
+ * Lifecycle:
+ * - Created once per PongGame instance (only if powerUps.enabled = true)
+ * - updatePowerUp() called every frame from PongGame
+ * - checkCollisionPowerUp() called every physics step
+ * - cleanPowerUp() called during PongGame.dispose()
+ */
 export class PowerUpManager{
     private powerUps: PowerUp[]= [];
     private scene: BABYLON.Scene;
@@ -158,8 +179,29 @@ export class PowerUpManager{
             }
         }, 50);
     }
+    
     public cleanPowerUp(): void {
-        this.powerUps.forEach(p => p.mesh.dispose());
+        // Dispose all active power-ups
+        this.powerUps.forEach(p => {
+            if (this.glowLayer) {
+                this.glowLayer.removeIncludedOnlyMesh(p.mesh);
+            }
+            p.mesh.dispose();
+        });
         this.powerUps = [];
+
+        // Clear all collection effect intervals
+        // this.collectionIntervals.forEach(clearInterval);
+        // this.collectionIntervals = [];
+
+        // Dispose shared glow layer
+        if (this.glowLayer) {
+            this.glowLayer.dispose();
+            this.glowLayer = null;
+        }
+
+        // console.log("PowerUpManager fully cleaned");
     }
+    
+
 }

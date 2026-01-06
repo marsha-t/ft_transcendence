@@ -11,10 +11,6 @@ import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigMan
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { t } from "../services/i18n/i18nService.js";
 
-
-
-
-
 export class AI implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;
@@ -117,10 +113,6 @@ export class AI implements IComponent {
     //create custom before the graphics
     if(this.customGameSettings){
       gameConfigManager.applyCustomizations(this.customGameSettings);
-      console.log('[AI] Applied customizations BEFORE PongGame creation:', {
-        preset: this.customGameSettings.preset,
-        powerUps: gameConfigManager.current.powerUps
-      });
     }
 
 
@@ -173,16 +165,8 @@ export class AI implements IComponent {
     this.customizationUI = openGameCustomization(
       document.body, (settings: CustomGameSettings) => {
 
-        console.log('[AI] Received settings:', settings);
-
         this.customGameSettings = settings;
         gameConfigManager.applyCustomizations(settings);
-
-        console.log('[AI] After applying:', {
-          enabled: gameConfigManager.current.powerUps.enabled,
-          types: gameConfigManager.current.powerUps.types,
-          spawnInterval: gameConfigManager.current.powerUps.spawnInterval
-        });
 
         this.recreatePongGame();
         this.showCustomizationApplied(settings.preset);
@@ -194,8 +178,6 @@ export class AI implements IComponent {
   }
 
   private recreatePongGame(): void{
-    console.log('[AI] Recreating PongGame with new config...');
-
     //store websocket state
     const wsConnected = this.wsConnected;
 
@@ -231,8 +213,6 @@ export class AI implements IComponent {
       });
     }
 
-    console.log('[AI] PongGame recreated successfully!');
-    console.log('[AI] Power-ups enabled:', gameConfigManager.current.powerUps.enabled);
   }
 
   private showCustomizationApplied(preset: string): void {
@@ -287,9 +267,7 @@ export class AI implements IComponent {
       }
   
       const data = await response.json();
-      
-      console.log('Raw data from API:', data);
-  
+        
       this.currentSession = {
         sessionId: data.sessionId,
         status: data.status,
@@ -300,10 +278,6 @@ export class AI implements IComponent {
         })),
         winnerName: data.winnerName,
       } as GameSession;
-  
-      console.log("AI Game Ready!", this.currentSession);
-      console.log('Session ID:', this.currentSession.sessionId);
-      console.log('Session is truthy?', !!this.currentSession);
   
       //connect websocket
       await this.connectWebSocket();
