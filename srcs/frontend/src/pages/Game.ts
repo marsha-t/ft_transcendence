@@ -166,7 +166,7 @@ export class Game implements IComponent {
       guestInput.className = "w-48 h-12 rounded-lg mt-6 pl-4";
       guestInput.id = "guest-input";
 
-      const addGuestBtn = this.createTrackedButton(t("game.addGuestPlayer"), "add-guest-btn", "block",
+      const addGuestBtn = this.createTrackedButton(t("game.addGuestPlayer") as string, "add-guest-btn", "block",
         () => this.addGuestPlayer()
       );
       addGuestBtn.style.display = "block";
