@@ -1,167 +1,126 @@
-// server.js
+// auth-service/server.js
 
 import Fastify from 'fastify';
-import swagger from '@fastify/swagger';
-import swaggerUi from '@fastify/swagger-ui';
 import cors from '@fastify/cors';
-import AjvErrors from 'ajv-errors';
-
-// ------- JWT ---------------------
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import fastifyStatic from '@fastify/static';
 import dotenv from 'dotenv';
 import path from 'path';
+import AjvErrors from 'ajv-errors';
 import { fileURLToPath } from 'url';
-
 import authRoutes from './routes/auth.js';
-// Resolve the parent directory (one level up from backend/)
+
+// Resolve __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from the parent folder
+// Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-// --------------------------------
 
-// needed imports for the avatar
-import fastifyStatic from '@fastify/static';
-import fastifyMultipart from '@fastify/multipart';
-
-
-// import to download openapi.json
-import fs from 'fs';
-
-
-const app = Fastify({ logger: true, 
-  ajv: {
-    customOptions: {
-      allErrors: true
-    },
-    plugins: [AjvErrors] 
+// Critical Environment Checks
+const checkEnv = (name, value) => {
+  if (!value) {
+    const err = new Error(`Missing environment variable: ${name}`);
+    err.statusCode = 500;
+    err.code = 'ENV_MISSING';
+    throw err;
   }
+};
+
+// Check critical env vars
+checkEnv('JWT_SECRET', process.env.JWT_SECRET);
+checkEnv('DATABASE_URL', process.env.DATABASE_URL);
+checkEnv('EMAIL_USER', process.env.EMAIL_USER);
+checkEnv('EMAIL_PASS', process.env.EMAIL_PASS);
+
+// Initialize Fastify
+const app = Fastify({
+  logger: true,
+  ajv: {
+    customOptions: { allErrors: true, strict: false },
+    plugins: [AjvErrors],
+  },
 });
 
-// CORS setup (adjust origin for your frontend)
-const allowedOrigins = (process.env.CORS_ORIGINS || 'https://localhost,https://localhost:443,http://localhost:3000').split(',')
-  .map((origin) => origin.trim())
+// CORS
+const allowedOrigins = ('https://localhost,https://localhost:443,https://localhost:8080')
+  .split(',')
+  .map(o => o.trim())
   .filter(Boolean);
 
 await app.register(cors, {
   origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 });
 
-// Swagger ------------------------------------------
-await app.register(swagger, {
-    openapi: {
-      openapi: '3.0.3',
-      info: {
-        title: 'Authentication Service Backend',
-        description: 'API docs for our authentication routes',
-        version: '1.0.0',
-      },
-      servers: [
-        { url: 'http://127.0.0.1:5002/' }, // Use this when working on codespaces!
-        { url: 'http://localhost:5002/' }, // Use this when working locally!
-      ],
-      
-    },
-  });
-
-  await app.register(swaggerUi, {
-    routePrefix: '/docs',
-    uiConfig: {
-      docExpansion: 'full',
-      deepLinking: false,
-    },
-    uiHooks: {
-      onComplete: () => {
-        // 👇 Make Swagger send cookies automatically with every request
-        window.ui.getConfigs().requestInterceptor = (req) => {
-          req.withCredentials = true;
-          return req;
-        };
-      },
-    },
-  });
-// ------------------------------------------------------
-
-// Register fastifyStatic and fastifyMultipart -> needed for saving and serving the uploaded avatars to the frontend
+// Static file handling for avatars in the `auth` service
+const avatarsPath = path.join(__dirname, 'uploads', 'avatars');
 app.register(fastifyStatic, {
-  root: path.join(process.cwd(), 'uploads'),
-  prefix: '/uploads/',
+  root: avatarsPath,
+  prefix: '/uploads/avatars/', // URL prefix to serve avatars
 });
 
-app.register(fastifyMultipart);
-
-// ------------ JWT ------------------
-if (!process.env.JWT_SECRET) {
-  throw new Error("❌ Missing JWT_SECRET in environment variables!");
-}
-
-app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET,
-});
-
+// JWT Authentication
+app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
 app.register(fastifyCookie);
 
-app.decorate('authenticate', async function (request, reply) {
+app.decorate('authenticate', async (request) => {
   try {
     const token = request.cookies.token;
     if (!token) {
-      return reply.code(401).send({ error: 'Missing token' });
+      const err = new Error('Missing token');
+      err.statusCode = 401;
+      err.code = 'MISSING_TOKEN';
+      throw err;
     }
 
-    const decoded = await app.jwt.verify(token);
-    request.user = decoded;
+    request.user = await app.jwt.verify(token);
   } catch (err) {
-    // err.name can help differentiate
     if (err.name === 'TokenExpiredError') {
-      return reply.code(401).send({ error: 'Token expired' });
+      const e = new Error('Token expired');
+      e.statusCode = 401;
+      e.code = 'TOKEN_EXPIRED';
+      throw e;
     } else if (err.name === 'JsonWebTokenError') {
-      return reply.code(401).send({ error: 'Invalid token' });
+      const e = new Error('Invalid token');
+      e.statusCode = 401;
+      e.code = 'INVALID_TOKEN';
+      throw e;
     } else {
-      return reply.code(401).send({ error: 'Unauthorized' });
+      const e = new Error('Unauthorized');
+      e.statusCode = 401;
+      e.code = 'UNAUTHORIZED';
+      throw e;
     }
   }
 });
+
+// Register Routes
 app.register(authRoutes, { prefix: '/api/auth' });
-// app.register(userStatsRoutes, { prefix: '/api' });
 
-
-// ----------------------------------
-
+// Error Handler
 app.setErrorHandler((error, request, reply) => {
   request.log.error(error);
 
-  // AJV validation error
   if (error.validation?.length) {
     return reply.code(400).send({
-      error: {
-        message: error.validation[0].message,
-        code: 'VALIDATION_ERROR',
-      },
+      error: { message: error.validation[0].message, code: 'VALIDATION_ERROR' },
     });
   }
 
   return reply.code(error.statusCode || 500).send({
-    error: {
-      message: error.message || 'Internal Server Error',
-      code: error.code || 'INTERNAL_ERROR',
-    },
+    error: { message: error.message || 'Internal Server Error', code: error.code || 'INTERNAL_ERROR' },
   });
 });
 
-// To save openapi.json file (needs to be after registering routes and before app.listen)
-// To save, uncomment the code
-await app.ready(); // wait until all routes are registered
-// fs.writeFileSync('/app/openapi.json', JSON.stringify(app.swagger(), null, 2));
-
-
+// Start Server
+const PORT = 5001;
 const start = async () => {
   try {
-    await app.listen({ port: 5001, host: '0.0.0.0' });
-    console.log(`Auth service running on port 5001`);
+    await app.listen({ port: PORT, host: '0.0.0.0' });
+    console.log(`Service running at http://localhost:${PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

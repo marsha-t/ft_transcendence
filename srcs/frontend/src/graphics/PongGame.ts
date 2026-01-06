@@ -12,6 +12,27 @@ interface AIConfig {
     aiSide: 'LEFT' | 'RIGHT';
 }
 
+
+/**
+ * - Initializing BabylonJS engine and scene
+ * - Running the fixed-step physics loop
+ * - Managing paddles, ball, collisions, and scoring
+ * - Handling power-ups and temporary gameplay effects
+ * - Streaming real-time game state to AI via WebSocket
+ *
+ * Ownership:
+ * - Owns BabylonJS Engine & Scene
+ * - Owns all meshes, materials, textures
+ * - Owns render loop lifecycle
+ *
+ * Lifecycle:
+ * new PongGame() -> resume() / pause() -> dispose()
+ *
+ * IMPORTANT:
+ * - This class has NO DOM knowledge
+ * - This class does NOT perform navigation
+ * - Cleanup MUST be done via dispose()
+ */
 export class PongGame {
     private canvas: HTMLCanvasElement;
     private engine!: BABYLON.Engine;
@@ -23,17 +44,16 @@ export class PongGame {
     private input!: InputHandler;
     private onScoreCallback?: (scoringSide: 'LEFT' | 'RIGHT') => void;
     private isPaused: boolean = true;
-
     private aiConfig: AIConfig;
     private isAIGame: boolean = false;
-
     private enlargedPaddle: 'LEFT' | 'RIGHT' | null = null;
     private enlargedPaddleSize: number = 2.0; // Multiplier
-
-    //powerup
     private powerUpManager: PowerUpManager | null = null;
     private activePowerUps: Map<PowerUpTypes, number> = new Map();
 
+    // ============================================================
+    // INITIALIZATION & GAME LOOP
+    // ============================================================
     constructor(canvas: HTMLCanvasElement, 
                 onScore?: (side: 'LEFT' | 'RIGHT') => void,
                 aiConfig: AIConfig = { aiEnabled: false, aiSide: 'LEFT'}) {
@@ -42,8 +62,6 @@ export class PongGame {
 
         this.engine = new BABYLON.Engine(this.canvas, true);
         this.scene = new BABYLON.Scene(this.engine);
-
-
         this.aiConfig = aiConfig;
         this.isAIGame = aiConfig.aiEnabled;
 
@@ -55,29 +73,11 @@ export class PongGame {
         this.createBall();
         this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
-        //Initial power Ups
+        //Initialize power-ups if enabled
         if(gameConfigManager.current.powerUps.enabled){
             this.powerUpManager = new PowerUpManager(this.scene);
-            console.log('Power-ups enabled!');
         }
-        // Render loop
-        // this.engine.runRenderLoop(() => {
-        //     const dt = this.engine.getDeltaTime() / 1000;
-        //     if (!this.isPaused){
-        //         this.input.update(dt);
-        //         this.ball.update(dt);
-        //         this.checkCollisions();
-        //         //powerup
-        //         this.updatePowerUps();
-
-        //         this.checkScoring();
-
-        //         if(this.isAIGame)
-        //             this.streamGameStateToAI();
-        //         this.scene.render();
-        //     }
-        //     this.scene.render();
-        // });
+        
         this.engine.runRenderLoop(() => {
             if (this.isPaused) {
                 this.scene.render();
@@ -116,7 +116,6 @@ export class PongGame {
                 accumulator -= subDt;
             }
 
-            // Visuals & things that only need to run once per frame
             this.updatePowerUpVisuals();
 
             if (this.isAIGame) {
@@ -127,6 +126,9 @@ export class PongGame {
         });
     }
 
+    // ===================
+    // FRAME-LEVEL UPDATES
+    // ===================
     private updatePowerUpVisuals(): void {
         if (!this.powerUpManager) return;
     
@@ -139,6 +141,9 @@ export class PongGame {
         this.updateActivePowerUpEffects(currentTime);
     }
 
+    // ============================================
+    // POWER-UP SYSTEM - Activation & Deactivation
+    // ============================================
     private activePowerUp(type: PowerUpTypes): void {
         const config = gameConfigManager.current.powerUps;
         const endTime = Date.now() + config.duration;
@@ -156,7 +161,6 @@ export class PongGame {
                 if (ballMat) {
                     ballMat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Red
                 }
-                console.log('SPEED BOOST activated!');
                 break;
 
             case 'ENLARGE_PADDLE':
@@ -173,7 +177,6 @@ export class PongGame {
                 if (ballMatSlow) {
                     ballMatSlow.emissiveColor = new BABYLON.Color3(0, 0.5, 1); // Blue
                 }
-                console.log('SLOW MOTION activated!');
                 break;
         }
     }
@@ -216,7 +219,6 @@ export class PongGame {
         paddleMat.emissiveColor = new BABYLON.Color3(0, 1, 0); // Green
         paddleToEnlarge.mesh.material = paddleMat;
         
-        console.log(`ENLARGE PADDLE activated for ${this.enlargedPaddle} paddle!`);
     }
 
     private updateActivePowerUpEffects(currentTime: number): void {
@@ -239,7 +241,6 @@ export class PongGame {
                 if (ballMat) {
                     ballMat.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
                 }
-                console.log('Speed boost ended');
                 break;
 
             case 'ENLARGE_PADDLE':
@@ -255,7 +256,6 @@ export class PongGame {
                 if (ballMatSlow) {
                     ballMatSlow.emissiveColor = new BABYLON.Color3(0.95, 0.6, 0.2); // Original orange
                 }
-                console.log('Slow motion ended');
                 break;
         }
     }
@@ -292,9 +292,11 @@ export class PongGame {
             paddleMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
             paddle.mesh.material = paddleMat;
         });
-        console.log('Paddle size restored');
     }
 
+    // ========================
+    // AI GAME STATE STREAMING
+    // ========================
     private streamGameStateToAI(): void {
         const gameState: GameState = {
             ball: {
@@ -329,6 +331,9 @@ export class PongGame {
         aiWebSocketService.sendGameState(gameState);
     }
 
+    // ==================
+    // PUBLIC CONTROL API
+    // ==================
     public sendGameConstants(): void {
         if (!this.isAIGame) return;
 
@@ -353,7 +358,6 @@ export class PongGame {
         aiWebSocketService.sendGameStart(constants);
     }
 
-
     public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
 
         if (!this.input) return;
@@ -361,18 +365,45 @@ export class PongGame {
         this.input.applyAIDirection(direction);
     }
 
+    // ===========================
+    // RESOURCE CLEANUP
+    // ===========================
     public dispose(): void {
         if (this.isAIGame) {
             aiWebSocketService.disconnect();
         }
+        
+        this.activePowerUps?.forEach((_, type) => {
+            this.deactivatePowerUp(type);
+        });
+        this.activePowerUps?.clear();
 
         if(this.powerUpManager){
             this.powerUpManager.cleanPowerUp();
             this.powerUpManager = null;
         }
-        this.engine.dispose();
-    }
 
+        this.engine.stopRenderLoop();
+        
+        if(this.input){
+            this.input.disposeInputHandler();
+            this.input = null as any;
+        }
+
+        if(this.scene){
+            this.scene.dispose();
+            this.scene = null as any;
+        }
+        // if(this.engine)
+        //     this.engine.dispose();
+
+        // this.scene = null as any;
+        // this.engine = null as any;
+        this.leftPaddle = null as any;
+        this.rightPaddle = null as any;
+        this.ball = null as any;
+        this.onScoreCallback = undefined;
+    }
 
     public pause(): void {
         this.isPaused = true;
@@ -382,10 +413,9 @@ export class PongGame {
         this.isPaused = false;
     }
 
-    public isRunning(): boolean {
-        return !this.isPaused;
-    }
-
+    // ====================
+    // SCORING & BALL RESET
+    // ====================
     private checkScoring(): void {
         const t = gameConfigManager.current.table;
         const ball = this.ball.mesh;
@@ -438,6 +468,9 @@ export class PongGame {
         }
     }
 
+    // ==============================
+    // SCENE CONSTRUCTION (BABYLONJS)
+    // ==============================
     private createCamera(): void {
         const c = gameConfigManager.current.camera;
         const camera = new BABYLON.ArcRotateCamera( "Camera", c.alpha, c.beta, c.radius,
@@ -447,7 +480,6 @@ export class PongGame {
         camera.attachControl(this.canvas, true);
         camera.inputs.removeByType("ArcRotateCameraKeyboardMoveInput");
     }
-
 
     private createLight(): void {
         const light = new BABYLON.HemisphericLight(
@@ -483,7 +515,7 @@ export class PongGame {
         // Ceiling/Roof
         const ceiling = BABYLON.MeshBuilder.CreateGround(
             "ceiling",
-            { width: r.width, height: r.depth + 14 }, // ADD 14 to match floor
+            { width: r.width, height: r.depth + 14 },
             this.scene
         );
         ceiling.position.y = r.height;
@@ -520,7 +552,7 @@ export class PongGame {
         // Left side wall - EXTEND DEPTH
         const leftWall = BABYLON.MeshBuilder.CreateBox(
             "leftWall",
-            { width: 1, height: r.height, depth: r.depth + 14 }, // ADD 14 to depth
+            { width: 1, height: r.height, depth: r.depth + 14 },
             this.scene
         );
         leftWall.position.set(-r.width / 2, r.height / 2 - 5, 0);
@@ -534,7 +566,7 @@ export class PongGame {
         // Right side wall
         const rightWall = BABYLON.MeshBuilder.CreateBox(
             "rightWall",
-            { width: 1, height: r.height, depth: r.depth + 14 }, // ADD 14 to depth
+            { width: 1, height: r.height, depth: r.depth + 14 },
             this.scene
         );
         rightWall.position.set(r.width / 2, r.height / 2 - 5, 0);
@@ -544,7 +576,6 @@ export class PongGame {
         rightWallMAt.diffuseTexture = rightTexture;
         rightWall.material = rightWallMAt;
     }
-
 
     private createTable():void {
         const t = gameConfigManager.current.table;
@@ -631,7 +662,6 @@ export class PongGame {
         bottomWall.parent = table;
     }
 
-    
     private createBall(): void {
         const t = gameConfigManager.current.table;
 
@@ -643,7 +673,6 @@ export class PongGame {
 
         this.ball = new Ball(this.scene, new BABYLON.Vector3(0, ballY, 0), gameConfigManager.current.ball.diameter);
     }
-
 
     private createPaddles(): void {
         const t = gameConfigManager.current.table;
@@ -659,16 +688,11 @@ export class PongGame {
 
         this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(leftX, y, 0), "leftPaddle");
         this.rightPaddle = new Paddle(this.scene, new BABYLON.Vector3(rightX, y, 0), "rightPaddle");
-        
-        //Apply custom scaling
-        // this.leftPaddle.updateScale();
-        // this.rightPaddle.updateScale()
-    
     }
 
-
-    //ball movements
-
+    // =============================
+    // PHYSICS & COLLISION DETECTION
+    // =============================
     private checkCollisions(): void {
         this.checkWallBounce();
         this.checkPaddleBounce();
@@ -679,12 +703,7 @@ export class PongGame {
         const ball = this.ball.mesh;
         const r = gameConfigManager.current.ball.radius;
         const wallThickness = gameConfigManager.current.wall.thickness;
-        
-        // Calculate ACTUAL wall positions
-        // Walls are positioned at ±(depth/2)
-        // Wall collision surface is INWARD by half the wall thickness
         const wallInnerZ = (t.depth / 2) - (wallThickness / 2);
-        
         const minZ = -wallInnerZ;
         const maxZ = wallInnerZ;
     

@@ -1,4 +1,4 @@
-export async function checkSession(client, userId, sessionId) {
+export async function checkSessionRequester(client, userId, sessionId) {
   const session = await client.gameSession.findUnique({
     where: { id: Number(sessionId) },
     include: {
@@ -10,8 +10,9 @@ export async function checkSession(client, userId, sessionId) {
   });
 
   if (!session) {
-    const err = new Error("Game session cannot be found");
-    err.code = 404;
+    const err = new Error('Game session cannot be found');
+    err.statusCode = 404;
+    err.code = 'SESSION_NOT_FOUND';
     throw err;
   }
   let isAuthorized = false;
@@ -27,24 +28,11 @@ export async function checkSession(client, userId, sessionId) {
   }
 
   if (!isAuthorized) {
-    const err = new Error("User is not authorized to modify game session");
-    err.code = 403;
+    const err = new Error('User is not authorized to modify game session');
+    err.statusCode = 403;
+    err.code = 'FORBIDDEN_SESSION_ACCESS';
     throw err;
   }
 
   return session;
-}
-
-export async function checkPlayer(client, sessionId, side) {
-  const player = await client.gameSessionPlayer.findUnique({
-    where: { sessionId_side: { sessionId: Number(sessionId), side } },
-  });
-
-  if (!player) {
-    const err = new Error("Player cannot be found");
-    err.code = 404;
-    throw err;
-  }
-
-  return player;
 }

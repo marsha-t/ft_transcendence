@@ -3,20 +3,20 @@ import { AuthUtils } from "../utils/authUtils.js";
 import { createButtonStyle } from "../utils";
 import { makeCircular3DButton } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
+import {navigate} from '../utils.js';
+
 
 export class Main implements IComponent {
+
   public render(): HTMLElement {
     const container = document.createElement('div');
-    container.className = `
-      flex justify-center bg-background-secondary
+    container.className = `flex justify-center bg-background-secondary
       h-full py-[23px]`;
 
     const subContainer = document.createElement('div');
-    subContainer.className = `
-        flex flex-row items-start justify-start
+    subContainer.className = `flex flex-row items-start justify-center
         bg-background-primary rounded-[16px] shadow-lg
-        mx-[23px] w-[calc(100%-46px)]
-        h-auto py-6 px-10`;
+        mx-[23px] w-[calc(100%-46px)] h-auto py-6 px-10`;
     
     // Left side (title + description)
     const textSection = document.createElement('div');
@@ -37,14 +37,11 @@ export class Main implements IComponent {
 
     // Right side (buttons)
     const rightSection = document.createElement('div')
-    rightSection.className = `
-      flex flex-col items-center flex-1 pt-16`;
+    rightSection.className = `flex flex-col items-center flex-1 pt-16`;
 
-      
       if (AuthUtils.isLoggedIn()) {
         const challengeHeading = document.createElement('h2');
-        challengeHeading.className = `
-          text-white text-[36px] font-pixel mb-4
+        challengeHeading.className = `text-white text-[36px] font-pixel mb-4
           tracking-wider text-center`;
         challengeHeading.textContent = t("main.challengeHeader") as string;
         rightSection.appendChild(challengeHeading);
@@ -53,6 +50,19 @@ export class Main implements IComponent {
         const aiButton = makeCircular3DButton(t("main.play-AI") as string, "ai-btn", "/ai", "🤖");
         const playButton = makeCircular3DButton(t("main.play-friend") as string, "play-btn", "/game", "👥");
       
+        tournamentBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/tournament");
+        });
+
+        aiButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/ai");
+        });
+        playButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigate("/game");
+        });
 
         const buttonGrid = document.createElement('div');
         buttonGrid.className = "flex flex-col items-center relative -space-y-4";
@@ -68,18 +78,21 @@ export class Main implements IComponent {
     } else { 
       // GIF placeholder
       const gif = document.createElement('img');
-      gif.src = "./pong_game.gif"; // path to your GIF
-      // gif.alt = "Bouncing Pong Ball";
-      gif.className = "w-[600px] h-[350px]"; // Tailwind classes for size & simple animation
+      gif.src = "./pong_game.gif";
+      gif.className = "w-[600px] h-[350px] mb-6";
       rightSection.appendChild(gif);
 
       const preloginButton = document.createElement('button');
+      preloginButton.type = 'button';
       preloginButton.textContent = t("main.loginToUnlock") as string;
       preloginButton.className = createButtonStyle("animate-bounce", 'green');
-      preloginButton.addEventListener("click", (e) => {
+      
+      preloginButton.addEventListener("click", (e: Event) => {
         e.preventDefault();
-        window.location.href = "/login";
+        e.stopPropagation();
+        navigate("/login");
       })
+
       rightSection.appendChild(preloginButton);
     }
 
@@ -91,6 +104,5 @@ export class Main implements IComponent {
     container.appendChild(subContainer);
 
     return container;
-  }
-
+  } 
 }
