@@ -1,5 +1,22 @@
 import { GameSession, PlayerSide, GameStatus } from "./types";
 
+/**
+ * GameService
+ * 
+ * PURPOSE:
+ * - Handles all HTTP communication with the game backend API
+ * - Manages game session lifecycle (create, start, pause, abort)
+ * - Updates player scores and tracks game state
+ * - Transforms raw API responses into type-safe GameSession objects
+ * 
+ * RESPONSIBILITIES:
+ * - CRUD operations for game sessions
+ * - Player management (adding guests, updating scores)
+ * - Status transitions (CREATED → PLAYING → FINISHED)
+ * - Error handling and validation
+ * 
+ * USED BY: Game.ts, AI.ts, TournamentMatch.ts
+ **/ 
 export class GameService{
     private baseUrl: string;
 
@@ -38,7 +55,7 @@ export class GameService{
     }
 
     // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: number, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
+    async addGuestPlayer(sessionId: number, guestName: string | null, side: PlayerSide): Promise<void>{
         try{
             const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
                 method: 'POST',
@@ -49,7 +66,6 @@ export class GameService{
 				credentials: 'include',
                 body: JSON.stringify({
                     guestName,
-                    playerUserId,
                     side
                 })
             });

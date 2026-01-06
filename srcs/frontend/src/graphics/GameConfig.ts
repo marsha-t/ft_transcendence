@@ -1,5 +1,12 @@
-
-
+/**
+ * GameConfig - Master configuration object for the entire Pong game
+ *
+ * Responsibilities:
+ * - Centralizes ALL gameplay, physics, visual, and balance-related constants
+ * - Provides a single source of truth for tuning the feel and appearance of the game
+ * - Used by GameConfigManager to allow runtime overrides (customization, power-ups, presets)
+ * - All values are carefully balanced for responsive, fair, and visually pleasing 3D pong gameplay
+ */
 export const GameConfig =  {
     table: {
         width: 20,
@@ -14,7 +21,7 @@ export const GameConfig =  {
         width: 0.2,
         height: 0.5,
         depth: 3,
-        offset: 0.5, // how much inside the table
+        offset: 0.5,
         speed: 10,
         velocityInfluence: 0.3
     },
@@ -54,11 +61,4 @@ export const GameConfig =  {
         duration: 3000, // Effect lasts 3 seconds
         types: [] as string[] // Empty array by default
     },
-    theme: {
-        name: 'CLASSIC' as 'CLASSIC' | 'NEON' | 'SPACE' | 'RETRO',
-        tableColor: { r: 0, g: 0.4, b: 0 },
-        ballColor: { r: 0.95, g: 0.6, b: 0.2 }
-    }
-
-
 }
