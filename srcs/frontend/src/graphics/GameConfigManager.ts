@@ -9,8 +9,16 @@ export type GamePreset = 'CLASSIC' | 'FAST' | 'CHAOS' | 'CUSTOM';
 
 
 /**
-* Interface for custom game settings that users can modify
-*/
+ * CustomGameSettings - Data structure passed from UI when user applies a preset or custom config
+ *
+ * Responsibilities:
+ * - Defines which preset is active
+ * - Optionally carries user-defined overrides (only used when preset is 'CUSTOM')
+ *
+ * Usage:
+ * - Passed to gameConfigManager.applyCustomizations()
+ * - Stored and used to compute final runtime configuration
+ */
 export interface CustomGameSettings {
     preset: GamePreset;
     config?: DeepPartial<typeof GameConfig>;
@@ -74,13 +82,10 @@ class GameConfigManager{
         CUSTOM: {} // will be filled by the user
     };
 
-    //getter:Returns the final merged configuration, Return the merged config
-    //    This is what PongGame and other classes should use
-    //     MERGE ORDER (later overrides earlier):
-    //     1. Base GameConfig (from GameConfig.ts)
-    //     2. Preset config (CLASSIC/FAST/CHAOS)
-    //      3. Custom user settings
-
+    /**
+     * Returns the fully merged current configuration
+     * This is the single source of truth used by all game systems
+     */
     get current(): typeof GameConfig {
         const presetConfig = this.presets[this.activePreset];
         
@@ -91,54 +96,36 @@ class GameConfigManager{
         );
     }
 
-    // Getter for preset name
+   /** Returns the name of the currently active preset */
     get preset(): GamePreset {
         return this.activePreset;
     }
-
-
-    public applyCustomizations(settings: CustomGameSettings): void {
-      console.log('🔧 [ConfigManager] BEFORE apply:', {
-        oldPreset: this.activePreset,
-        oldCustomConfigKeys: Object.keys(this.customConfig),
-        oldCustomConfig: JSON.stringify(this.customConfig)  // ✅ Show actual values
-    });
-        this.activePreset = settings.preset;
-
-        if(settings.config){
-            this.customConfig = settings.config;
-            console.log('[ConfigManager] Using provided config:', this.customConfig);
-
-        }else {
-            this.customConfig = {};
-            console.log('[ConfigManager] No config provided, reset to empty');
-
-        }
-
-      const finalConfig = this.current;
-      console.log('🔧 [ConfigManager] AFTER apply - Final values:', {
-          preset: this.activePreset,
-          customConfigKeys: Object.keys(this.customConfig),
-          ballSpeed: finalConfig.ball.speed.x,
-          paddleSpeed: finalConfig.paddle.speed,
-          paddleDepth: finalConfig.paddle.depth,
-          powerUpsEnabled: finalConfig.powerUps.enabled,
-          powerUpTypes: finalConfig.powerUps.types
-      });
-    }
-
-    reset(): void {
-        this.activePreset = 'CLASSIC';
-        this.customConfig = {};
-        console.log('Reset to default configuration');
-    }
-
 
     //Returns the configuration for a specific preset useful for UI test which preset being used
     public getPresetConfig(preset: GamePreset): typeof GameConfig{
         return this.mergeConfig(GameConfig, this.presets[preset]);
     }
 
+    /**
+     * Applies a new preset and/or custom settings
+     * Called from customization UI when user confirms changes
+    */
+    public applyCustomizations(settings: CustomGameSettings): void {
+        this.activePreset = settings.preset;
+
+        if(settings.config){
+            this.customConfig = settings.config;
+        }else {
+            this.customConfig = {};
+        }
+      const finalConfig = this.current;
+
+    }
+
+    public reset(): void {
+        this.activePreset = 'CLASSIC';
+        this.customConfig = {};
+    }
 
    /**
    * Deep merges multiple configuration objects
@@ -152,7 +139,6 @@ class GameConfigManager{
    * 3. Return merged result
    * 
    */
-
    private mergeConfig<T extends object>(
         base: T,
         ... overrides: DeepPartial<T>[]
@@ -166,7 +152,6 @@ class GameConfigManager{
    }
 
    //Recursively merges two objects
-
    private deepMerge<T extends object>(target: T, source: DeepPartial<T>): T {
     const result = { ...target } as T;
 
@@ -196,40 +181,6 @@ class GameConfigManager{
       }
     }
     return result;
-  }
-
-
-  //debug
-  validateConfig(config: DeepPartial<typeof GameConfig>): boolean {
-    try {
-      // Check for negative values that don't make sense
-      if (config.ball?.speed?.x !== undefined && config.ball.speed.x <= 0) {
-        console.error('Ball speed must be positive');
-        return false;
-      }
-
-      if (config.paddle?.speed !== undefined && config.paddle.speed <= 0) {
-        console.error('Paddle speed must be positive');
-        return false;
-      }
-
-      if (config.ball?.maxSpeed !== undefined && config.ball.maxSpeed <= 0) {
-        console.error(' Max speed must be positive');
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Config validation error:', error);
-      return false;
-    }
-  }
-  public debugCurrentConfig(): void {
-    console.log(' Current GameConfig:', {
-        preset: this.activePreset,
-        powerUps: this.current.powerUps,
-        ballSpeed: this.current.ball.speed.x
-    });
   }
 }
 export const gameConfigManager = new GameConfigManager();
