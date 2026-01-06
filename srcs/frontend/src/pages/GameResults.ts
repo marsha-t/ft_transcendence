@@ -1,9 +1,9 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
-import { navigate, createButtonStyle } from "../utils.js";
+import { navigate } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
-import { showConfirmation } from "../utils/uiUtils";
+import { createButtonStyle, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
 
 declare const Plotly: any;
@@ -123,7 +123,7 @@ export class GameResults implements IComponent {
 
     summaryDiv.innerHTML = `
         <div class="flex flex-col items-center">
-        <img src="${this.getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" class="w-[150px] h-[150px] rounded-full border-4 border-[#fdd835] object-cover mb-3 bg-black/25 shadow-[0_0_8px_rgba(255,255,0,0.5)]" />
+        <img src="${getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" class="w-[150px] h-[150px] rounded-full border-4 border-[#fdd835] object-cover mb-3 bg-black/25 shadow-[0_0_8px_rgba(255,255,0,0.5)]" />
         <div class="text-[150px] leading-none m-[10px] h-[200px] overflow-hidden flex items-center justify-center">🏆</div>
         <div class="uppercase text-[18px] text-[#b0b6e6] mb-1">${t("game-result.winner") as string}</div>
         <div class="text-[74px] font-bold mb-5 text-[#fdd835]">${summary.winner?.displayName ?? "No Winner"}</div>
@@ -196,7 +196,7 @@ export class GameResults implements IComponent {
       .map(
         (p) => `
         <div class="bg-[#21447E] rounded-[16px] p-6 w-full text-center text-white shadow-xl font-pixel text-base tracking-wide hover:-translate-y-1 transition-transform">
-          <img src="${this.getAvatarUrl(
+          <img src="${getAvatarUrl(
             p.avatar
           )}" class="w-[100px] h-[100px] rounded-full object-cover mx-auto mb-3 shadow-md border-2 border-[#fdd835]" />
           <h3 class="player-name mb-4 font-bold font-['Press_Start_2P'] text-center break-words leading-tight max-w-full">
@@ -230,20 +230,6 @@ export class GameResults implements IComponent {
     });
 
     playersDiv.innerHTML = playerCards;
-  }
-
-  private getAvatarUrl(path?: string): string {
-    const defaultAvatar = "/uploads/avatars/default.png";
-
-    if (!path) path = defaultAvatar;
-
-    // If path is already a full URL, use it as-is
-    if (path.startsWith("http://") || path.startsWith("https://")) {
-        return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
-    }
-
-    // Otherwise, use relative path
-    return `${path}${path.includes("?") ? "&" : "?"}t=${Date.now()}`;
   }
 
   public async canDeactivate(): Promise<boolean> {

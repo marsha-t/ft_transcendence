@@ -1,8 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
-import { createButtonStyle } from "../utils";
 import { apiServices } from "../services/ApiServices";
-import { showConfirmation } from "../utils/uiUtils";
+import { createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
 
 /*
@@ -20,43 +19,28 @@ export class Header implements IComponent {
     private linksGroup!: HTMLElement; // Container for navigation links (home, creators)
     private languageSwitcher!: HTMLElement; // Language switcher UI element
     private static languageDocClickAttached: boolean = false;  // Static flag to avoid attaching multiple document click listeners
-    // Stored handlers for cleanup
-    private languageChangedHandler: ((e?: any) => void) | null = null;
-    private avatarChangedHandler: ((e?: any) => void) | null = null;
-    private authChangeHandler: (() => void) | null = null;
-    private popstateHandler: (() => void) | null = null;
-    private documentLangClickHandler: ((e?: any) => void) | null = null;
-    private documentPlayClickHandler: ((e?: any) => void) | null = null;
 
     constructor() {
-        // Listen for language changes and re-render (store handler for cleanup)
-        this.languageChangedHandler = async () => { await this.updateContent(); };
-        window.addEventListener('languageChanged', this.languageChangedHandler);
+        // Listen for language changes and re-render
+        window.addEventListener('languageChanged', async () => { await this.updateContent(); });
 
-        // Listen for avatar changes to update header immediately (store handler for cleanup)
-        this.avatarChangedHandler = (e: any) => {
+        // Listen for avatar changes to update header immediately
+        window.addEventListener('avatarChanged', (e: any) => {
             try {
                 const avatarPath = e?.detail?.avatar;
-                if (!avatarPath) { // set default
-                    this.setHeaderAvatar(AuthUtils.getAvUrl('/uploads/avatars/default.png'));
-                } else {
-                    this.setHeaderAvatar(AuthUtils.getAvUrl(avatarPath));
+                if (this.buttonsGroup)
+                {
+                    const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
+                    if (avatarDiv) {
+                        applyAvatar(avatarDiv, avatarPath, "");
+                    }
                 }
             } catch (err) {
                 console.error('avatarChanged handler error', err);
             }
-        };
-        window.addEventListener('avatarChanged', this.avatarChangedHandler);
+        });
     }
 
-    //* Updates the avatar image in the header only.
-    private setHeaderAvatar(url: string): void {
-        if (!this.buttonsGroup) return;
-        const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
-        if (avatarDiv) {
-            avatarDiv.style.backgroundImage = `url('${url}')`;
-        }
-    }
 
     // * Main render method required by IComponent.
     public render(): HTMLElement {
@@ -142,8 +126,7 @@ export class Header implements IComponent {
         // Setup event listener BEFORE initial update
          // * Listen for authentication changes
          // * (login/logout from anywhere in the app).
-        this.authChangeHandler = async () => { await this.updateAuthButtons(); };
-        window.addEventListener('authChange', this.authChangeHandler);
+        window.addEventListener('authChange', async () => { await this.updateAuthButtons(); });
 
         // Initial update - use setTimeout to ensure it runs after render
         setTimeout(() => {
@@ -169,10 +152,9 @@ export class Header implements IComponent {
 
         // Attach a single document-level click handler once to close any open dropdowns
         if (!Header.languageDocClickAttached) {
-            this.documentLangClickHandler = () => {
+            document.addEventListener('click', () => {
                 document.querySelectorAll('.lang-dropdown').forEach(el => el.classList.add('hidden'));
-            };
-            document.addEventListener('click', this.documentLangClickHandler);
+            });
             Header.languageDocClickAttached = true;
         }
 
@@ -282,18 +264,13 @@ export class Header implements IComponent {
             }
         });
 
-        // Close dropdown when clicking outside -- store handler so it can be removed on re-render/cleanup
-        if (this.documentPlayClickHandler) {
-            document.removeEventListener('click', this.documentPlayClickHandler);
-            this.documentPlayClickHandler = null;
-        }
-        this.documentPlayClickHandler = (e) => {
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
             if (!playBtnWrapper.contains(e.target as Node)) {
                 dropdown.classList.add('hidden');
                 playBtn.classList.remove("bg-green");
             }
-        };
-        document.addEventListener('click', this.documentPlayClickHandler);
+        });
 
         this.buttonsGroup.appendChild(playBtnWrapper);
     
@@ -320,11 +297,6 @@ export class Header implements IComponent {
         try {
             const userInfo = await apiServices.profile.getCurrentUser();
             
-            let avatarUrl = AuthUtils.getAvUrl('/uploads/avatars/default.png');
-            if (userInfo.success && userInfo.data?.avatar) {
-                avatarUrl = AuthUtils.getAvUrl(userInfo.data.avatar);
-            }
-            
             const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
             if (existingAvatar) existingAvatar.remove();
 
@@ -339,7 +311,7 @@ export class Header implements IComponent {
             
             const avatarDiv = document.createElement("div");
             avatarDiv.className = "w-full h-full rounded-full bg-center bg-cover";
-            avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
+            applyAvatar(avatarDiv, userInfo.data?.avatar, userInfo.data?.username);
            
             avatarLink.appendChild(avatarDiv);
             
@@ -421,8 +393,7 @@ export class Header implements IComponent {
             });
         };
 
-        this.popstateHandler = updateActiveLink;
-        window.addEventListener('popstate', this.popstateHandler);
+        window.addEventListener('popstate', updateActiveLink);
         updateActiveLink();
     }
 
@@ -512,55 +483,4 @@ export class Header implements IComponent {
         return container;
     }
 
-    // Called by Router or page cleanup to remove persistent listeners/resources
-    public cleanup(): void {
-        console
-        try {
-            if (this.languageChangedHandler) {
-                window.removeEventListener('languageChanged', this.languageChangedHandler);
-            }
-        } catch (err) {}
-        this.languageChangedHandler = null;
-
-        try {
-            if (this.avatarChangedHandler) {
-                window.removeEventListener('avatarChanged', this.avatarChangedHandler);
-            }
-        } catch (err) {}
-        this.avatarChangedHandler = null;
-
-        try {
-            if (this.authChangeHandler) {
-                window.removeEventListener('authChange', this.authChangeHandler);
-            }
-        } catch (err) {}
-        this.authChangeHandler = null;
-
-        try {
-            if (this.popstateHandler) {
-                window.removeEventListener('popstate', this.popstateHandler);
-            }
-        } catch (err) {}
-        this.popstateHandler = null;
-
-        try {
-            if (this.documentLangClickHandler) {
-                document.removeEventListener('click', this.documentLangClickHandler);
-            }
-        } catch (err) {}
-        this.documentLangClickHandler = null;
-        Header.languageDocClickAttached = false;
-
-        try {
-            if (this.documentPlayClickHandler) {
-                document.removeEventListener('click', this.documentPlayClickHandler);
-            }
-        } catch (err) {}
-        this.documentPlayClickHandler = null;
-
-        // Clear DOM refs so GC can reclaim them
-        this.buttonsGroup = null as any;
-        this.linksGroup = null as any;
-        this.languageSwitcher = null as any;
-    }
 }

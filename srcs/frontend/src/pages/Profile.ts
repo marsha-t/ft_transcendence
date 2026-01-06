@@ -115,7 +115,6 @@ export class Profile implements IComponent {
 
   // Call cleanup on child components and disconnect observers
   public cleanup(): void {
-    console.log('Cleaning up Profile component');
     try {
       try { this.profileInfo?.cleanup?.(); } catch (e) { console.warn('Error cleaning ProfileInfo', e); }
       try { this.friendsAndUsers?.cleanup?.(); } catch (e) { console.warn('Error cleaning FriendsAndUsers', e); }

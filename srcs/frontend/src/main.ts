@@ -1,4 +1,4 @@
-import { getRouter } from './utils.js';
+import { getRouter } from './utils/commonUtils.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { Header } from './components/Header.js';
 import { Footer } from './components/Footer.js';
