@@ -1,17 +1,13 @@
 import gameStateStore from "./gameStateStore.js";
-import prisma from '../prisma/prismaClient.js'
 import aiBrain from "./aiBrain.js";
 
-/**
+/*
  * Accepts WebSocket connections from Frontend
  * Receives game state data (ball position, paddle position)
  * Stores it in gameStateStore
- * Will send AI moves back to Frontend
+ * Sends state to AI brain to decide move
+ * Sends AI's move back to Frontend
  * 
- * handleConnections:
- *  Step 1: Verify this is actually an AI game
- *  Check if session exists
- *  Check if it's an AI game
  */
 class AIWebSocketHandler{
 
@@ -20,89 +16,60 @@ class AIWebSocketHandler{
         this.aiBrains = new Map(); // Key = sessionId, Value = AIBrain instance
     }
 
-    async handleConnections(socket, sessionId, userId){
-
-        console.log(`{BE AI} handleConnections`);
-        console.log(`{BE AI} New connection: session=${sessionId}, user=${userId}`);
+    // Initialise AI runtime for specific game session
+    /*
+        - Store socket in activeSockets map
+        - Create new brain and store in aiBrains map
+        - Attach listeners for message, close and error
+            - for message, delegate to handleMessage()
+            - for close, call cleanUp()
+            - for error, log and call cleanUp()
+        - Send 'ai_ready' message to frontend
+        - Errors are logged and sockets closed 
+    */
+    async handleConnections(socket, sessionId){
 
         try{
-            const session = await prisma.gameSession.findUnique({
-                where: {id: Number(sessionId)},
-                include: {players: true}
-            });
-
-            if(!session){
-                console.error(`{BE AI} Session ${sessionId} not found`);
-                socket.send(JSON.stringify({
-                    type: 'error',
-                    message: 'Game session not found'
-                }));
-                socket.close();
-                return;
-            }
-
-            if(!session.isAi){
-                console.error(`{BE AI} Session ${sessionId} is not an AI game`);
-                socket.send(JSON.stringify({
-                    type: 'error',
-                    message: 'This is not AI game'
-                }));
-                socket.close();
-                return;
-            }
-
-            //Store socket connections
             this.activeSockets.set(sessionId, socket);
-            console.log(`{BE AI} Session ${sessionId} connected. Active sessions: ${this.activeSockets.size}`);
-
-            // Create a brain for this session
             this.aiBrains.set(sessionId, new aiBrain());
             
-            //Listen to FE
+            // Listen to Frontend
             socket.on('message', (rawData) => {
                 this.handleMessage(socket, sessionId, rawData);
             });
-
-            //check for connection close
             socket.on('close', () =>{
-                console.log(`{BE AI} Session ${sessionId} disconnected`);
                 this.cleanup(sessionId);
             });
-
             socket.on('error', (error) => {
-                console.error(`{BE AI} Session ${sessionId} error:`, error);
+                console.error(`[WebSocket] Session ${sessionId} error:`, error);
                 this.cleanup(sessionId);
             });
 
-            //Here WS sends 'ready' signal mess. to FE
+            // Send ready message to frontend
             socket.send(JSON.stringify({
                 type: 'ai_ready',
                 message: 'AI WebSocket connected!'
             }));
 
         } catch(err){
-            console.error(`{BE AI} Connection error:`, err);
-            socket.send(JSON.stringify({
-                type: 'error',
-                message: 'Internal Server error'
-            }));
-            socket.close();
+            console.error(`[WebSocket] Connection error:`, err);
+            socket.close(4500, "Internal server error");
         }
-
     }
 
-    /**
-   * Handle incoming messages from Frontend
-   * Frontend can send different types of messages (game_state, ping, etc.)
+    // Handle incoming messages from frontend
+    /*
+    - Different types of messages from frontend
+        - game_state: live game snapshot
+        - game_start: initial constants
+        - ping: connection keep-alive
+        - game_end: cleanup trigger
+    - Errors logged and JSON message sent to frontend
    */
-
     handleMessage(socket, sessionId, rawData){
-        console.log("here handleMessage was called ")
         try{
             const message = JSON.parse(rawData.toString()); // rawData is a Buffer (binary data), convert to string first
 
-
-            //handle diff types of message
             switch(message.type){
                 case 'game_state':
                     this.handleGameState(sessionId, message.data);
@@ -112,22 +79,26 @@ class AIWebSocketHandler{
                     socket.send(JSON.stringify({type: 'pong'}));
                     break;
 
-                case 'game_start': // Frontend is starting the game, sending constants
-                    console.log(`{BE AI} Game ${sessionId} started`);
+                case 'game_start':
                     if(message.data && message.data.constants)
                         this.handleGameStart(sessionId, message.data.constants);
                     break;
 
                 case 'game_end':
-                    console.log(`{BE AI} Game ${sessionId} ended`);
                     this.cleanup(sessionId);
                     break;
 
                 default:
-                    console.warn(`{BE AI} Unknown message type: ${message.type}`);
+                    console.warn(`[WebSocket] Unknown message type: ${message.type}`);
+                    socket.send(
+                        JSON.stringify({
+                        type: "error",
+                        message: "Unknown message type",
+                        })
+                    );
             }
-        }catch (err){
-            console.error(`{BE AI} Error handling message:`, err);
+        } catch (err){
+            console.error(`[WebSocket] Error handling message:`, err);
             socket.send(JSON.stringify({
                 type: 'error',
                 message: 'Failed to process message'
@@ -135,65 +106,20 @@ class AIWebSocketHandler{
         }
     }
 
-
-    /**
-   * Handle game state update from Frontend
-   * This is called 20-60 times per second!
-   * 
-   * store game state on gameStateStore class
-   */
-
-    handleGameState(sessionId, gameState){
-        console.log(`{BE AI} Received state for session ${sessionId}`); 
-        try{
-            gameStateStore.update(sessionId, gameState); //saving to gameStateStore class
-    
-            const shouldLog = Date.now() % 5000 < 50;
-            if(shouldLog) {
-                console.log(`{BE AI} Session ${sessionId} - Ball: (${gameState.ball.x.toFixed(2)}, ${gameState.ball.z.toFixed(2)})`);
-                console.log(`{BE AI} Session ${sessionId} - AI Paddle Z: ${gameState.aiPaddle?.z || 'N/A'}`);
-            }
-    
-            const brain = this.aiBrains.get(sessionId);
-            
-            if (!brain) {
-                console.error(`{BE AI} No brain found for session ${sessionId}`);
-                return;
-            }
-
-            //Get the full state with constants from store
-            const fullState = gameStateStore.getState(sessionId);
-        
-            if (!fullState || !fullState.constants) {
-                console.warn(`{BE AI} Constants not yet available for session ${sessionId}`);
-                return;
-            }
-
-            const action = brain.decide(gameState);
-            
-            if (shouldLog) {
-                console.log(`{BE AI} Session ${sessionId} - AI decided action: ${action}`);
-            }
-            
-            this.sendAIMove(sessionId, action);
-    
-        } catch(err){
-            console.error(`[AIWebSocket] Error storing game state:`, err);
-        }
-    }
-    /**
-   * Handle game start - store constants once
-   * Constants don't change during the game, so we only need them once
-   */
-
+    // Handle game start
+    /*
+    - Store constants in gameStateStore at start of game
+    - If state already exists, replace constants part of state
+    - If state doesn't exist, update gameStateStore with dummy values for non-constant fields
+    - Errors are logged - non critical failure
+    */
     handleGameStart(sessionId, constants){
         try{
 
             const currentState = gameStateStore.getState(sessionId);
 
             if(currentState){
-                currentState.constants = constants;
-                console.log(`{BE AI} Session ${sessionId} - Constants stored`);
+                currentState.constants = constants; // getState() returns a reference and hence this is updating gameStateStore
             }else{
                 gameStateStore.update(sessionId, {
                     ball: { x: 0, z: 0, vx: 0, vz: 0 },
@@ -203,30 +129,66 @@ class AIWebSocketHandler{
                     constants: constants
                 });
             }
-        }catch (err){
-            console.error(`{BE AI} Error storing constants:`, error);
+        } catch (err){
+            console.error(`[WebSocket] Error storing constants:`, err);
         }
     }
 
+    // Handle game state update from frontend 
+    /*
+    - This may be called up to 60 times per second
+    - Overwrite gameState in gameStateStore
+    - Defensively guard against constants not being in fullState - allow AI to wait for required inputs
+    - Error 
+        - Missing brain: critical error: log error and close socket
+        - Other errors: log error
+   */
+    handleGameState(sessionId, gameState){
+        try{
+            gameStateStore.update(sessionId, gameState);
+    
+            const brain = this.aiBrains.get(sessionId);
+            if (!brain) {
+                console.error(`[WebSocket] No brain found for session ${sessionId}`);
+                const socket = this.activeSockets.get(sessionId);
+                if (socket && socket.readyState == 1) {
+                    socket.close(4500, "AI brain unavailable");
+                }
+                this.cleanup(sessionId);
+                return;
+            }
 
-    // calculateAIMove(gameState)
+            //Get the full state with constants from store
+            const fullState = gameStateStore.getState(sessionId);
+            if (!fullState.constants) {
+                // Not an error - possible for messages to arrive out of order
+                return;
+            }
+
+            const action = brain.decide(fullState);
+            this.sendAIMove(sessionId, action);
+    
+        } catch(err){
+            console.error(`[AIWebSocket] Error storing game state:`, err);
+        }
+    }
+
+    // Send AI opponent's move to frontend
+    /*
+        - Check that socket exists and is open
+            - If not, early return (e.g., frontend closed tab, game ends naturally)
+        - Send AI opponet's move to frontend
+        - Error logged without JSON message since already error sending AI move
+    */
     sendAIMove(sessionId, action){
         try {
             const socket = this.activeSockets.get(sessionId);
             
             // Check if socket exists and is open
-            if (!socket) {
-              console.warn(`{BE AI} No socket for session ${sessionId}`);
+            if (!socket || socket.readyState !== 1) { // WebSocket readyState: 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
               return;
             }
       
-            // WebSocket readyState: 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
-            if (socket.readyState !== 1) {
-              console.warn(`{BE AI} Socket for session ${sessionId} is not open (state: ${socket.readyState})`);
-              return;
-            }
-      
-            // Send AI move to Frontend
             socket.send(JSON.stringify({
               type: 'ai_move',
               data: {
@@ -235,19 +197,20 @@ class AIWebSocketHandler{
             }));
       
           } catch (error) {
-            console.error(`{BE AI} Error sending AI move:`, error);
+            console.error(`[WebSocket] Error sending AI move:`, error);
         }
     }
 
-
+    // Clean up for each session
+    /*
+        - Remove socket from map
+        - Delete AI Brain (garbage collector will deallocate it)
+        - Remove gameState from gameStateStore
+    */
     cleanup(sessionId){
         this.activeSockets.delete(sessionId);
         this.aiBrains.delete(sessionId);
         gameStateStore.removeState(sessionId);
-    }
-
-    getActiveConnections(){
-        return this.activeSockets.size;
     }
 
     isConnected(sessionId){

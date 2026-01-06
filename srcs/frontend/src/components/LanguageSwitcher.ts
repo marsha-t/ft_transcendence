@@ -32,7 +32,7 @@ export class LanguageSwitcher {
       </button>
       
       <div class="lang-dropdown hidden absolute ${this.currentLang === 'ar' ? 'left-0' : 'right-0'} mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-600 z-50">
-        ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `
+        ${Object.entries(SUPPORTED_LANGUAGES).map(([code, info]) => `ar'
           <button 
             class="lang-option w-full text-left px-4 py-3 hover:bg-gray-700 transition-colors flex items-center justify-between ${code === this.currentLang ? 'bg-gray-700' : ''}"
             data-lang="${code}"
@@ -81,11 +81,16 @@ export class LanguageSwitcher {
     });
   }
 
-  private changeLanguage(lang: string): void {
-    changeLanguage(lang);
-    this.currentLang = lang;
-    this.render();
-    this.attachEventListeners();
+  private async changeLanguage(lang: string): Promise<void> {
+    try {
+      await changeLanguage(lang);
+      this.currentLang = lang;
+      this.render();
+      this.attachEventListeners();
+    } catch (error) {
+      console.error('Failed to change language:', error);
+      // Could show error message to user here
+    }
   }
 
   public getElement(): HTMLElement {

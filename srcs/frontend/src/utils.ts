@@ -6,6 +6,7 @@ import { t } from './services/i18n/i18nService.js';
 
 let routerInstance: Router | null = null;
 
+// Create one Router only if it has not been created before
 export function getRouter(container: HTMLElement): Router {
   if (!routerInstance) {
     routerInstance = new Router(container);
@@ -13,17 +14,18 @@ export function getRouter(container: HTMLElement): Router {
   return routerInstance;
 }
 
+/*
+  - Return if path is the same
+  - Update URL and trigger popstate event
+*/
 export function navigate(path: string, state: any = {}) {
   if (window.location.pathname === path) return;
   
-  const event = new PopStateEvent("popstate");
-  (event as any).isSynthetic = true;
-  
   window.history.pushState(state, "", path);
-  window.dispatchEvent(event);
+  window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-export async function confirmationPopup(message: string, title = "Please Confirm", action: boolean): Promise<boolean> {
+export async function confirmationPopup(message: string, title = t("common.pleaseConfirm") as string, action: boolean): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.style.position = "fixed";
@@ -194,11 +196,15 @@ export function createButtonStyle(customization: string = "", color: 'blue' | 'g
         transition-all duration-150 text-center no-underline whitespace-nowrap
       hover:translate-y-1 active:translate-y-2
       `;
+  
+   const greenHoverActive = `hover:bg-green active:bg-green hover:text-white`;
 
   if (color === 'blue') {
-    return mainBlueStyle + " " + customization;
+    return `${mainBlueStyle} ${greenHoverActive} ${customization}`;
   }
-  return mainGreenStyle + " " + customization;  
+  
+
+  return `${mainGreenStyle} ${greenHoverActive} ${customization}`;
   
 }
 //--------------------------
