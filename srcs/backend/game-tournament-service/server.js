@@ -42,7 +42,6 @@ await app.register(cors, {
   credentials: true,
 });
 
-
 // JWT setup
 if (!process.env.JWT_SECRET) throw new Error("Missing JWT_SECRET");
 app.register(fastifyJwt, { secret: process.env.JWT_SECRET });
