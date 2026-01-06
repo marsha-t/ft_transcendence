@@ -55,7 +55,7 @@ export class GameService{
     }
 
     // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: number, guestName: string | null, playerUserId: number | null, side: PlayerSide): Promise<void>{
+    async addGuestPlayer(sessionId: number, guestName: string | null, side: PlayerSide): Promise<void>{
         try{
             const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
                 method: 'POST',
@@ -66,7 +66,6 @@ export class GameService{
 				credentials: 'include',
                 body: JSON.stringify({
                     guestName,
-                    playerUserId,
                     side
                 })
             });
