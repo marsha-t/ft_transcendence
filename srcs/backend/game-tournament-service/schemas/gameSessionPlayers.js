@@ -5,29 +5,30 @@ export const joinSessionSchema = {
 	headers: {
 		type: 'object',
 		properties: {
-			'x-current-session-id': { type: 'string' },
+			'x-current-session-id': { type: 'string', pattern: '^[0-9]+$', },
 		  },	  
 		required: ['x-current-session-id'],
 	},
 	body: {
 		type: 'object',
 		properties: {
-		  playerUserId: { 
-			type: 'integer', 
-		  },
 		  guestName: { 
-			type: 'string', maxLength: 20
+			type: 'string', 
+			minLength: 3, 
+			maxLength: 20, 
+			pattern: '^[a-zA-Z0-9_]+$',
+			errorMessage: {
+				minLength: 'Username must be at least 3 characters',
+				maxLength: 'Username must not exceed 20 characters',
+				pattern: 'Username can only contain letters, numbers, and underscores'
+			}
 		  },
 		  side: { 
 			type: 'string', 
 			enum: ['LEFT', 'RIGHT'], 
 		  },
 		},
-		required: ['side'],
-		anyOf: [
-		  { required: ['playerUserId'] },
-		  { required: ['guestName'] },
-		],
+		required: ['guestName', 'side'],
 		additionalProperties: false,
 	},
 	response: {
@@ -43,68 +44,18 @@ export const joinSessionSchema = {
 				displayName: { type: 'string' },
 				isGuest: { type: 'boolean' },
 				user: {
-				type: ['object', 'null'],
-				properties: {
-					id: { type: 'integer' },
-					username: { type: 'string' },
+					type: ['object', 'null'],
+					properties: {
+						id: { type: 'integer' },
+						username: { type: 'string' },
+					},
 				},
-				additionalProperties: false,
-	},
 			},
-			additionalProperties: false,
 		},
-		400: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
-		404: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
-		409: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
-		500: { type: 'object', properties: { error: { type: 'string' }, }, additionalProperties: false, },
 	},
 };
 
 
-// List players in session
-export const listPlayersSessionSchema = {
-	tags: ['Game Session'],
-	summary: 'List players in session', 
-	headers: {
-		type: 'object',
-		properties: {
-			'x-current-session-id': { type: 'string' },
-		  },	  
-		required: ['x-current-session-id'],
-	},
-	response: {
-		200: {
-			type: 'array',
-			items: {
-				type: 'object',
-				properties: {
-					playerId: { type: 'integer' },
-					displayName: { type: 'string' },
-					side: { type: 'string', enum: ['LEFT', 'RIGHT'] },
-					isGuest: { type: 'boolean' },
-					score: { type: 'integer' },
-				},
-			required: ['playerId', 'displayName', 'side', 'isGuest', 'score'],
-			},
-		},
-		400: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
-		},
-		404: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
-		},
-	}
-}
 
 // Update player score
 export const updateScoreSchema = {
@@ -113,10 +64,13 @@ export const updateScoreSchema = {
 	headers: {
 		type: 'object',
 		properties: {
-			'x-current-session-id': { type: 'string' },
+			'x-current-session-id': { type: 'string', pattern: '^[0-9]+$', },
 			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
 		},
 		required: ['x-current-session-id', 'x-player-side'],
+	},
+	body: {
+		type: 'null',
 	},
 	response: {
 		200: {
@@ -141,58 +95,10 @@ export const updateScoreSchema = {
 						score: { type: 'integer' },
 					},
 					required: ['displayName', 'side', 'score'],
-					additionalProperties: false,
 					},
 				},
 			},
 			required: ['sessionId', 'status', 'players'],
-			additionalProperties: false,
-		},
-		400: {
-			type: 'object',
-			properties: {
-				error: { type: 'string' },
-				message: { type: 'string' },
-			},
-			additionalProperties: false,
-		},
-		404: {
-			type: 'object',
-			properties: {
-				error: { type: 'string' },
-				message: { type: 'string' },
-			},
-			additionalProperties: false,
-		},
-	},
-};
-
-// Delete player
-export const deletePlayerSchema = {
-	tags: ['Game Session'],
-	summary: 'Delete player', 
-	headers: {
-		type: 'object',
-		properties: {
-			'x-current-session-id': { type: 'string' },
-			'x-player-side': { type: 'string', enum: ['LEFT', 'RIGHT'] },
-		},
-		required: ['x-current-session-id', 'x-player-side'],
-	},
-	response: {
-		200: {
-			type: 'object',
-			properties: {
-				message: { type: 'string' },
-			},
-		},
-		404: {
-			type: 'object', 
-			properties: {
-				error: { type: 'string' },
-				message : { type: 'string' }
-			},
-			additionalProperties: false,
 		},
 	},
 };

@@ -11,46 +11,60 @@ import { GameResults } from './pages/GameResults.js';
 import { ProfileDashboard } from './pages/UserDashboard.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { AI } from './pages/AI.js';
+import { closeAnyOpenCustomizationUI } from './utils/gameCustom.js';
 
 export class Router {
   private currentPage: any = null;
   private container: HTMLElement;
 
+  private readonly PROTECTED_ROUTES: readonly string[] = [
+    '/game',
+    '/game/results',
+    '/profile',
+    '/dashboard',
+    '/tournament',
+    '/tournament/setup',
+    '/tournament/match',
+    '/tournament/results',
+    '/ai',
+  ];
+
+
   constructor(container: HTMLElement) {
     this.container = container;
-    const renderRoute = async () => {
+
+    window.addEventListener('languageChanged', () => this.renderRoute()); // Listen for language changes and re-render current page
+    window.addEventListener('popstate', () => this.renderRoute()); // Listen for navigation event and re-render current page
+  }
+  /*
+    - Check that user is logged in when accessing protected routes
+      - If not logged in, navigate to Login page
+    - Check if page allows navigation using canDeactivate
+    - Clean up current page
+    - Clear container
+    - Instantiate and render page
+  */
+  private async renderRoute() {
       const path = window.location.pathname;
       const state = history.state;
 
-      const PROTECTED_ROUTES = [
-        '/game',
-        '/game/results',
-        '/profile',
-        '/dashboard',
-        '/tournament',
-        '/tournament/setup',
-        '/tournament/match',
-        '/tournament/results',
-        '/ai',
-      ] 
-
-      // Check authentication for protected routes
-      if (PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
+      if (this.PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
         history.pushState({}, "", "/login");
         this.currentPage = new Login();
-        container.innerHTML = ''; // Clear container
-        container.appendChild(this.currentPage.render());
+        this.container.innerHTML = ''; // Clear container
+        this.container.appendChild(this.currentPage.render());
         return;
       }
 
-      // Check if current page allows navigation
       if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
         const canLeave = await this.currentPage.canDeactivate();
         if (!canLeave) {
-          history.pushState({}, "", window.location.pathname);
           return;
         }
       }
+
+      //cleanup gameCustomUI
+      closeAnyOpenCustomizationUI();
 
       // Clean up previous page
       if (this.currentPage && typeof this.currentPage.cleanup === "function") {
@@ -61,64 +75,63 @@ export class Router {
         }
       }
 
-      container.innerHTML = ''; // Clear container
-
+      this.container.innerHTML = ''; // Clear container
       switch (path) {
         case '/register':
           this.currentPage = new Register();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/login':
           this.currentPage = new Login();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/creators':
           this.currentPage = new Creators();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/game':
           this.currentPage = new Game();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/game/results':
           const sessionId = state?.sessionId;
           if (!sessionId) {
             history.pushState({}, "", "/main");
             this.currentPage = new Main();
-            container.appendChild(this.currentPage.render());
+            this.container.appendChild(this.currentPage.render());
             return;
           }
           this.currentPage = new GameResults(state);
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break; 
         case '/':
         case '/main':
           this.currentPage = new Main();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/profile':
           this.currentPage = new Profile();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/dashboard':
           this.currentPage = new ProfileDashboard();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break ;
         case '/tournament':
         case '/tournament/setup':
           this.currentPage = new TournamentSetup();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         case '/tournament/match': {
           const tournamentId = state?.tournamentId;
           if (!tournamentId) {
             history.pushState({}, "", "/tournament");
             this.currentPage = new TournamentSetup();
-            container.appendChild(this.currentPage.render());
+            this.container.appendChild(this.currentPage.render());
             return;
           }
           this.currentPage = new TournamentMatch(tournamentId);
-          container.appendChild(await this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         }
         case '/tournament/results': {
@@ -126,28 +139,20 @@ export class Router {
           if (!tournamentId) {
             history.pushState({}, "", "/tournament");
             this.currentPage = new TournamentSetup();
-            container.appendChild(this.currentPage.render());
+            this.container.appendChild(this.currentPage.render());
             return;
           }
           this.currentPage = new TournamentResults(tournamentId);
-          container.appendChild(await this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         }
         case '/ai':
           this.currentPage = new AI();
-          container.appendChild(this.currentPage.render());
+          this.container.appendChild(this.currentPage.render());
           break;
         default:
-          container.textContent = '404 - Page Not Found';
+          this.container.textContent = '404 - Page Not Found';
           this.currentPage = null;
       }
     };
-
-    // Listen for language changes and re-render the current page
-    window.addEventListener('languageChanged', renderRoute);
-
-    // renderRoute();
-    window.removeEventListener('popstate', renderRoute);
-    window.addEventListener('popstate', renderRoute);
-  }
 }
