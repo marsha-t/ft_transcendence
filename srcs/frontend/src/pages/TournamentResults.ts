@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
-import { navigate, createButtonStyle } from "../utils.js";
+import { navigate } from "../utils/commonUtils.js";
+import { createButtonStyle } from "../utils/uiUtils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { resetTournamentStore } from "../services/tournament/TournamentStore.js";
 import mermaid from "mermaid";

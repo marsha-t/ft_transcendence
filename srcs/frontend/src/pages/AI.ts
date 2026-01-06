@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { PlayerSide } from "../services/game/types.js";
-import { navigate, confirmationPopup } from "../utils";
+import { navigate, confirmationPopup } from "../utils/commonUtils.js";
 import {GameSession} from "../services/game/types.js";
 import { GameService } from "../services/game/GameService.js";
 import { apiServices } from "../services/ApiServices.js";

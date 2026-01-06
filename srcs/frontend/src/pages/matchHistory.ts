@@ -1,8 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { MatchHistory as MatchHistoryType } from '../services/dashboard/types'; 
-import { getAvatarUrl } from "../utils/profileUtils.js";
-import { createButtonStyle } from "../utils";
+import { createButtonStyle, getAvatarUrl } from "../utils/uiUtils.js";
 import { t } from "../services/i18n/i18nService.js";
 
 /**
@@ -93,7 +92,7 @@ export class MatchHistory implements IComponent {
     opponentCell.style.borderTopLeftRadius = "20px";
     opponentCell.style.borderBottomLeftRadius = "20px";
     const opponentWrapper = document.createElement("div");
-    opponentWrapper.className = "flex items-center justify-center gap-3";
+    opponentWrapper.className = "flex items-center justify-start gap-3";
 
     const avatarImg = document.createElement("img");
     avatarImg.src = getAvatarUrl(opponentAvatar);

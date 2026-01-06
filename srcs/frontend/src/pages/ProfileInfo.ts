@@ -1,10 +1,8 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { ProfileData, ApiResponse } from '../services/profile/types';
-import { getAvatarUrl } from "../utils/profileUtils.js";
-import { createButtonStyle } from "../utils";
 import { t } from "../services/i18n/i18nService.js";
-import { showConfirmation } from "../utils/uiUtils";
+import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
 
 /**
  * This class implements the profile information card for the user.
@@ -17,7 +15,7 @@ import { showConfirmation } from "../utils/uiUtils";
  *  - Provide public getters for username and avatar
  */
 export class ProfileInfo implements IComponent {
-    private messageContainer: HTMLDivElement | null = null;
+    private messageContainer!: HTMLDivElement;
     private popupAvatarEl: HTMLElement | null = null;
     private avatar: string = "";
     private username: string = "";
@@ -79,16 +77,7 @@ export class ProfileInfo implements IComponent {
         avatar.className = `profile-avatar w-[132px] h-[132px]
             rounded-full border-[7px] border-white
             bg-[#21447E] mt-6`;
-        
-        if (this.avatar) {
-            avatar.style.backgroundImage = `url(${getAvatarUrl(this.avatar)})`;
-            avatar.style.backgroundSize = "cover";
-            avatar.style.backgroundPosition = "center";
-            avatar.textContent = "";
-        } else {
-            avatar.style.backgroundImage = "";
-            avatar.textContent = (this.username ? this.username.charAt(0).toUpperCase() : "");
-        }
+        applyAvatar(avatar, this.avatar, this.username);
 
         // Username
         const name = document.createElement("h2");
@@ -154,30 +143,14 @@ export class ProfileInfo implements IComponent {
       
         nameEl.textContent = this.username || "";
       
-        if (this.avatar) {
-            avatarEl.style.backgroundImage = `url(${getAvatarUrl(this.avatar)})`;
-            avatarEl.style.backgroundSize = "cover";
-            avatarEl.style.backgroundPosition = "center";
-            avatarEl.textContent = "";
-        } else {
-            avatarEl.style.backgroundImage = "";
-            avatarEl.textContent = this.username ? this.username.charAt(0).toUpperCase() : "";
-        }
+        applyAvatar(avatarEl, this.avatar, this.username);
     }
 
     // ---- update avatar in popup modal ----
     private async updatePopupAvatar(): Promise<void> {
         if (!this.popupAvatarEl) return;
 
-        if (this.avatar) {
-            this.popupAvatarEl.style.backgroundImage = `url(${getAvatarUrl(this.avatar)})`;
-            this.popupAvatarEl.style.backgroundSize = "cover";
-            this.popupAvatarEl.style.backgroundPosition = "center";
-            this.popupAvatarEl.textContent = "";
-        } else {
-            this.popupAvatarEl.style.backgroundImage = "";
-            this.popupAvatarEl.textContent = this.username.charAt(0).toUpperCase() || "";
-        }
+        applyAvatar(this.popupAvatarEl, this.avatar, this.username);
     }
 
     // ---- profile settings popup modal ----
@@ -216,14 +189,7 @@ export class ProfileInfo implements IComponent {
         
         const avatarPlaceholder = document.createElement("div");
         avatarPlaceholder.className = `avatar-placeholder w-[132px] h-[132px] rounded-full border-[9.95px] border-white bg-[#21447E] flex items-center justify-center text-3xl font-pixel`;
-        
-        if (this.avatar) {
-            avatarPlaceholder.style.backgroundImage = `url(${getAvatarUrl(this.avatar)})`;
-            avatarPlaceholder.style.backgroundSize = "cover";
-            avatarPlaceholder.style.backgroundPosition = "center";
-        } else {
-            avatarPlaceholder.textContent = this.username.charAt(0).toUpperCase() || "";
-        }
+        applyAvatar(avatarPlaceholder, this.avatar, this.username);
 
         this.popupAvatarEl = avatarPlaceholder;
 
@@ -245,10 +211,8 @@ export class ProfileInfo implements IComponent {
             const small = document.createElement('button');
             small.type = 'button';
             small.className = `w-[40px] h-[40px] rounded-full border-2 border-white bg-background-yellow flex items-center justify-center text-sm font-pixel text-color_white focus:outline-none focus:ring-2 focus:ring-[#297138]`;
-            small.style.backgroundImage = `url('${avatarPaths[i]}')`;
-            small.style.backgroundSize = 'cover';
-            small.style.backgroundPosition = 'center';
             small.title = `Select avatar ${i+1}`;
+            applyAvatar(small, avatarPaths[i], "");
             
             // store handler so we can remove it later
             const smallHandler = async () => {
@@ -552,7 +516,6 @@ export class ProfileInfo implements IComponent {
         // Clear cached DOM refs so GC can reclaim them
         this.container = null;
         this.popupAvatarEl = null;
-        this.messageContainer = null;
     }
 
     private createSettingsForm(): HTMLElement {
@@ -643,14 +606,15 @@ export class ProfileInfo implements IComponent {
                 const response = await apiServices.profile.updateProfile(data);
     
                 if (!response.success) {
-                    this.showMessage((response.message || "Failed to update profile"), 'error');
+                    showMessage(overlay, this.messageContainer, (response.message || "Failed to update profile"), 'error');
                     return;
                 }
     
                 if (response.data.username) this.username = response.data.username;
                 if (response.data.email) this.email = response.data.email;
     
-                this.showMessage("Profile updated successfully!", 'success');
+                // this.showMessage("Profile updated successfully!", 'success');
+                showMessage(overlay, this.messageContainer, "Profile updated successfully!", 'success');
                 await this.fetchProfileData();
                 if (this.onProfileUpdate) this.onProfileUpdate();
                 overlay.remove();
@@ -745,44 +709,4 @@ export class ProfileInfo implements IComponent {
         }
     }
 
-    private showMessage(message: string, type: 'success' | 'error'): void {
-        if (!this.messageContainer) return;
-        
-        this.messageContainer.style.display = 'block';
-        const baseClass = `
-            mt-6 px-4 py-3 position:absolute top-2 right-2
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            text-color_white font-mono text-[20px]
-            text-center          
-            flex items-center justify-center 
-            transition-opacity duration-300
-        `;
-
-        const typeClasses = type === 'error' 
-            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
-            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
-        
-        this.messageContainer.className = `${baseClass} ${typeClasses}`;
-        this.messageContainer.textContent = message;
-        
-        setTimeout(() => {
-            if (this.messageContainer) {
-                this.messageContainer.style.opacity = '0';
-                setTimeout(() => {
-                    if (this.messageContainer) {
-                        this.messageContainer.style.display = 'none';
-                        this.messageContainer.style.opacity = '1';
-                    }
-                }, 300);
-            }
-        }, 1000);
-    }
-
-    // public getUsername(): string {
-    //     return this.username;
-    // }
-
-    // public getAvatar(): string {
-    //     return this.avatar;
-    // }
 }

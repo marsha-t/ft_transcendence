@@ -1,5 +1,6 @@
-import { Router } from './Router.js';
-import { t } from './services/i18n/i18nService.js';
+import { Router } from '../Router.js';
+import { t } from '../services/i18n/i18nService.js';
+import { createButtonStyle } from './uiUtils.js';
 //--------------------------
 // Routing
 //--------------------------
@@ -131,33 +132,7 @@ export async function alertPopup(message: string, title = "Alert"): Promise<void
   });
 }
 
-export function createButtonStyle(customization: string = "", color: 'blue' | 'green'): string {
-  const mainGreenStyle = ` inline-flex items-center justify-center px-8 py-3 bg-button-active text-white
-    font-bold rounded-lg tracking-widest 
-    shadow-[0_5px_0_var(--color-button-shadow)]
-    hover:shadow-[0_2px_0_var(--color-button-shadow)] active:shadow-none
-    hover:translate-y-1 active:translate-y-2
-    transition-all duration-150 mt-5 text-center no-underline whitespace-nowrap`;
 
-    const mainBlueStyle = `
-      inline-flex items-center justify-center px-8 py-3
-      bg-[#1F4D9A] text-white font-bold rounded-lg tracking-widest 
-      shadow-[0px_-2px_2px_0px_#0000001A_inset,0px_2px_2px_0px_#00000040]
-        transition-all duration-150 text-center no-underline whitespace-nowrap
-      hover:translate-y-1 active:translate-y-2
-      `;
-  
-   const greenHoverActive = `hover:bg-green active:bg-green hover:text-white`;
-
-  if (color === 'blue') {
-    return `${mainBlueStyle} ${greenHoverActive} ${customization}`;
-  }
-  
-
-  return `${mainGreenStyle} ${greenHoverActive} ${customization}`;
-  
-}
 //--------------------------
 // UI Helpers
 //--------------------------
-//showMessage()

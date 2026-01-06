@@ -1,8 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/friends/types'; 
-import { getAvatarUrl, showMessage } from "../utils/profileUtils.js";
-import { createButtonStyle } from "../utils.js";
+import { createButtonStyle, applyAvatar, showMessage } from "../utils/uiUtils.js";
 import { t } from "../services/i18n/i18nService.js";
 
 /* 
@@ -24,15 +23,14 @@ export class friendsAndUsers implements IComponent {
   private modalOverlay: HTMLElement | null = null;
   private modalTypingTimer: number | null = null;
   private modalSearchInputListener: ((e: Event) => void) | null = null;
-  // top-level UI elements and handlers (for explicit cleanup)
+  // event listeners references for cleanup
   private friendsTitleEl: HTMLElement | null = null;
   private friendsTitleHandler: (() => void) | null = null;
   private requestTitleEl: HTMLElement | null = null;
   private requestTitleHandler: (() => void) | null = null;
   private addFriendBtnEl: HTMLElement | null = null;
   private addFriendBtnHandler: (() => void) | null = null;
-  // destroyed flag to guard async callbacks
-  private _isDestroyed: boolean = false;
+
   
   // callback to notify profile page of updates
   constructor(onProfileUpdate?: () => void) {
@@ -41,8 +39,6 @@ export class friendsAndUsers implements IComponent {
 
   // Called by Router when the page is being removed. Tears down modal and clears timers/listeners.
   public cleanup(): void {
-    // mark destroyed so async callbacks can bail out
-    this._isDestroyed = true;
 
     try {
       if (this.modalTypingTimer) {
@@ -219,12 +215,7 @@ export class friendsAndUsers implements IComponent {
 
   const avatar = document.createElement("div");
   avatar.className = `w-[45px] h-[45px] rounded-full border-2 border-white shadow-md`;
-
-  // Use background-image for the avatar
-  avatar.style.backgroundImage = `url(${getAvatarUrl(avatarURL)})`;
-  avatar.style.backgroundSize = "cover";
-  avatar.style.backgroundPosition = "center";
-  avatar.textContent = ""; // clear any fallback text
+  applyAvatar(avatar, avatarURL, name);
 
   const friendName = document.createElement("span");
   friendName.className = `text-[16px] font-semibold text-[#183B76]`;
@@ -286,10 +277,7 @@ export class friendsAndUsers implements IComponent {
 
     const avatar = document.createElement("div");
     avatar.className = ` w-[45px] h-[45px] rounded-full border-2 border-white shadow-md`;
-    avatar.style.backgroundImage = `url(${getAvatarUrl(avatarURL)})`;
-    avatar.style.backgroundSize = "cover";
-    avatar.style.backgroundPosition = "center";
-    avatar.textContent = ""
+    applyAvatar(avatar, avatarURL, name);
 
     const userName = document.createElement("span");
     userName.className = `text-[16px] font-semibold text-[#183B76]`
@@ -514,10 +502,8 @@ export class friendsAndUsers implements IComponent {
       avatarNameContainer.className = "flex items-center";
 
       const avatar = document.createElement("div");
-      avatar.style.backgroundImage = `url(${getAvatarUrl(user.avatar)})`;
-      avatar.style.backgroundSize = "cover";
-      avatar.style.backgroundPosition = "center";
       avatar.className = `w-[45px] h-[45px] rounded-full border-2 border-white shadow-md flex-shrink-0`;
+      applyAvatar(avatar, user.avatar, user.username);
 
       const name = document.createElement("span");
       name.className = "ml-2 text-[16px] font-semibold text-[#183B76] text-left ";
@@ -552,7 +538,8 @@ export class friendsAndUsers implements IComponent {
             action.innerHTML = "";
             action.appendChild(pendingLabel);
           } else {
-            showMessage((res.message || "Failed to send friend request"), 'error');
+            // showMessage((res.message || "Failed to send friend request"), 'error');
+
           }
         });
 
