@@ -20,14 +20,21 @@ export class Header implements IComponent {
     private linksGroup!: HTMLElement; // Container for navigation links (home, creators)
     private languageSwitcher!: HTMLElement; // Language switcher UI element
     private static languageDocClickAttached: boolean = false;  // Static flag to avoid attaching multiple document click listeners
+    // Stored handlers for cleanup
+    private languageChangedHandler: ((e?: any) => void) | null = null;
+    private avatarChangedHandler: ((e?: any) => void) | null = null;
+    private authChangeHandler: (() => void) | null = null;
+    private popstateHandler: (() => void) | null = null;
+    private documentLangClickHandler: ((e?: any) => void) | null = null;
+    private documentPlayClickHandler: ((e?: any) => void) | null = null;
 
     constructor() {
-        // Listen for language changes and re-render
-        window.addEventListener('languageChanged', async () => {
-            await this.updateContent();
-        });
-        // Listen for avatar changes to update header immediately
-        window.addEventListener('avatarChanged', (e: any) => {
+        // Listen for language changes and re-render (store handler for cleanup)
+        this.languageChangedHandler = async () => { await this.updateContent(); };
+        window.addEventListener('languageChanged', this.languageChangedHandler);
+
+        // Listen for avatar changes to update header immediately (store handler for cleanup)
+        this.avatarChangedHandler = (e: any) => {
             try {
                 const avatarPath = e?.detail?.avatar;
                 if (!avatarPath) { // set default
@@ -38,7 +45,8 @@ export class Header implements IComponent {
             } catch (err) {
                 console.error('avatarChanged handler error', err);
             }
-        });
+        };
+        window.addEventListener('avatarChanged', this.avatarChangedHandler);
     }
 
     //* Updates the avatar image in the header only.
@@ -134,9 +142,8 @@ export class Header implements IComponent {
         // Setup event listener BEFORE initial update
          // * Listen for authentication changes
          // * (login/logout from anywhere in the app).
-        window.addEventListener('authChange', async () => {
-            await this.updateAuthButtons();
-        });
+        this.authChangeHandler = async () => { await this.updateAuthButtons(); };
+        window.addEventListener('authChange', this.authChangeHandler);
 
         // Initial update - use setTimeout to ensure it runs after render
         setTimeout(() => {
@@ -162,9 +169,10 @@ export class Header implements IComponent {
 
         // Attach a single document-level click handler once to close any open dropdowns
         if (!Header.languageDocClickAttached) {
-            document.addEventListener('click', () => {
+            this.documentLangClickHandler = () => {
                 document.querySelectorAll('.lang-dropdown').forEach(el => el.classList.add('hidden'));
-            });
+            };
+            document.addEventListener('click', this.documentLangClickHandler);
             Header.languageDocClickAttached = true;
         }
 
@@ -274,13 +282,18 @@ export class Header implements IComponent {
             }
         });
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
+        // Close dropdown when clicking outside -- store handler so it can be removed on re-render/cleanup
+        if (this.documentPlayClickHandler) {
+            document.removeEventListener('click', this.documentPlayClickHandler);
+            this.documentPlayClickHandler = null;
+        }
+        this.documentPlayClickHandler = (e) => {
             if (!playBtnWrapper.contains(e.target as Node)) {
                 dropdown.classList.add('hidden');
                 playBtn.classList.remove("bg-green");
             }
-        });
+        };
+        document.addEventListener('click', this.documentPlayClickHandler);
 
         this.buttonsGroup.appendChild(playBtnWrapper);
     
@@ -408,7 +421,8 @@ export class Header implements IComponent {
             });
         };
 
-        window.addEventListener('popstate', updateActiveLink);
+        this.popstateHandler = updateActiveLink;
+        window.addEventListener('popstate', this.popstateHandler);
         updateActiveLink();
     }
 
@@ -496,5 +510,56 @@ export class Header implements IComponent {
         this.attachLanguageSwitcherListeners(container);
 
         return container;
+    }
+
+    // Called by Router or page cleanup to remove persistent listeners/resources
+    public cleanup(): void {
+        try {
+            if (this.languageChangedHandler) {
+                window.removeEventListener('languageChanged', this.languageChangedHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.languageChangedHandler = null;
+
+        try {
+            if (this.avatarChangedHandler) {
+                window.removeEventListener('avatarChanged', this.avatarChangedHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.avatarChangedHandler = null;
+
+        try {
+            if (this.authChangeHandler) {
+                window.removeEventListener('authChange', this.authChangeHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.authChangeHandler = null;
+
+        try {
+            if (this.popstateHandler) {
+                window.removeEventListener('popstate', this.popstateHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.popstateHandler = null;
+
+        try {
+            if (this.documentLangClickHandler) {
+                document.removeEventListener('click', this.documentLangClickHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.documentLangClickHandler = null;
+        Header.languageDocClickAttached = false;
+
+        try {
+            if (this.documentPlayClickHandler) {
+                document.removeEventListener('click', this.documentPlayClickHandler);
+            }
+        } catch (err) { /* ignore */ }
+        this.documentPlayClickHandler = null;
+
+        // Clear DOM refs so GC can reclaim them
+        this.buttonsGroup = null as any;
+        this.linksGroup = null as any;
+        this.languageSwitcher = null as any;
     }
 }
