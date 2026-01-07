@@ -596,12 +596,25 @@ export class ProfileInfo implements IComponent {
                 const oldPasswordInput = form.querySelector<HTMLInputElement>("input[placeholder='Old Password']");
                 const newPasswordInput = form.querySelector<HTMLInputElement>("#newPassword");
     
-                const data: any = {
-                    username: usernameInput?.value || undefined,
-                    newEmail: emailInput?.value || undefined,
-                    oldPassword: oldPasswordInput?.value || undefined,
-                    newPassword: newPasswordInput?.value || undefined,
-                };
+                const data: any = {};
+
+                if (usernameInput?.value.trim()) {
+                    data.username = usernameInput.value.trim();
+                }
+
+                // Only include email if user is NOT Google user
+                if (!this.isGoogleUser && emailInput?.value.trim()) {
+                    data.newEmail = emailInput.value.trim();
+                }
+
+                // Only include old password if the user has a password
+                if (this.hasPassword && oldPasswordInput?.value.trim()) {
+                    data.oldPassword = oldPasswordInput.value.trim();
+                }
+
+                if (newPasswordInput?.value.trim()) {
+                    data.newPassword = newPasswordInput.value.trim();
+                }
     
                 const response = await apiServices.profile.updateProfile(data);
     

@@ -33,7 +33,7 @@ checkEnv('JWT_SECRET', process.env.JWT_SECRET);
 checkEnv('DATABASE_URL', process.env.DATABASE_URL);
 checkEnv('EMAIL_USER', process.env.EMAIL_USER);
 checkEnv('EMAIL_PASS', process.env.EMAIL_PASS);
-checkEnv('EMAIL_PASS', process.env.GOOGLE_CLIENT_ID);
+checkEnv('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID);
 
 // Initialize Fastify
 const app = Fastify({
