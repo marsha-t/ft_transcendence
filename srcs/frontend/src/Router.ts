@@ -47,7 +47,7 @@ export class Router {
   /*
     - Check that user is logged in when accessing protected routes
       - If not logged in, navigate to Login page
-    - Redirect logged-in users away from public-only routes to Main page
+    - Redirect logged-in users away from public-only routes to Profile page
     - Check if page allows navigation using canDeactivate
     - Clean up current page
     - Clear container
@@ -59,8 +59,8 @@ export class Router {
 
     // Redirect logged-in users away from public-only routes
     if (AuthUtils.isLoggedIn() && this.PUBLIC_ONLY_ROUTES.includes(path)) {
-      history.replaceState({}, "", "/main");
-      this.currentPage = new Main();
+      history.replaceState({}, "", "/profile");
+      this.currentPage = new Profile();
       this.container.innerHTML = ''; // Clear container
       this.container.appendChild(this.currentPage.render());
       return;
