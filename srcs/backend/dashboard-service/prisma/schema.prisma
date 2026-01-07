@@ -1,11 +1,13 @@
+// This service does NOT own or migrate these databases.
+// Models are duplicated here strictly for Prisma Client generation.
+
 generator client {
   provider = "prisma-client-js"
 }
 
-// NOTE: We'll use multiple datasources trick
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dummy.db"
 }
 
 // =====================
