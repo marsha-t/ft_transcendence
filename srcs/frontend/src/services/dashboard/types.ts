@@ -78,3 +78,14 @@ export interface LeaderboardEntry {
 	leaderboardScore: number;
 	isCurrentUser: boolean;
 }
+
+export interface MatchHistory {
+    date: string;       
+    opponent: string;
+    opponentAvatar: string;
+    userScore: number;
+    opponentScore: number;
+    result: "WIN" | "LOSS";
+    isTournament: boolean;
+  }
+  

@@ -1,4 +1,4 @@
-# docker-compose.yml - Final Architecture
+# Docker Compose File
 # 5 Services, 2 Databases
 
 services:
@@ -6,7 +6,6 @@ services:
   # USER-SOCIAL DATABASE SERVICES
   # All three share user-social.db
   # ===================================
-  
   auth:
     build:
       context: ./backend/auth-service
@@ -26,8 +25,6 @@ services:
       - ./backend/auth-service/prisma/migrations:/app/prisma/migrations
       - ./backend/auth-service/uploads:/app/uploads
     restart: always
-
-
   profile:
     build:
       context: ./backend/profile-service
@@ -48,7 +45,6 @@ services:
     depends_on:
       - auth
     restart: always
-
   friends:
     build:
       context: ./backend/friends-service
@@ -69,11 +65,11 @@ services:
     depends_on:
       - auth
     restart: always
+
   # ===================================
   # ANALYTICS SERVICE
   # Reads from both databases
   # ===================================
-  
   dashboard:
     build:
       context: ./backend/dashboard-service
@@ -90,19 +86,17 @@ services:
     networks:
       - web
     volumes:
-      # Optional: read-only access to both databases
+      # read-only access to both databases
       - user-social-data:/app/prisma/user-data:ro
       - game-tournament-data:/app/prisma/game-data:ro
     depends_on:
       - auth
       - game-tournament
     restart: always
-
   # ===================================
   # GAME-TOURNAMENT SERVICE
   # Has its own database
   # ===================================
-  
   game-tournament:
     build:
       context: ./backend/game-tournament-service
@@ -136,7 +130,6 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      # - 3000:3000
       - 8080:443
     depends_on:
       - auth
@@ -146,9 +139,6 @@ services:
       - game-tournament
     networks:
       - web
-    # volumes:
-    #   - .:/app
-    #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
     restart: always
@@ -164,7 +154,3 @@ volumes:
   # Used only by game-tournament service
   game-tournament-data:
     name: game-tournament-data
-  
-  # User uploads (avatars)
-  avatars-data:
-    name: avatars-data

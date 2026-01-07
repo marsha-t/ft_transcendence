@@ -1,0 +1,47 @@
+
+
+export interface FriendsData {
+    friends?: { avatarURL: string; name: string; online: boolean }[];
+}
+
+export interface FriendRequest {
+    id: number;
+    from?: {
+        username: string;
+        avatar: string;
+        status: string;
+    };
+}
+
+export interface FriendRequestsData {
+    incoming: FriendRequest[];
+    outgoing: FriendRequest[];
+}
+
+  
+export interface UserSearchResult {
+    id: number;
+    username: string;
+    avatar: string;
+    friendStatus: 'not_friend' | 'pending_sent';
+}
+
+export interface MatchHistory {
+    date: string;       
+    opponent: string;
+    opponentAvatar: string;
+    userScore: number;
+    opponentScore: number;
+    result: "WIN" | "LOSS";
+    isTournament: boolean;
+  }
+  
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    status?: number;
+    message?: string;
+    errors?: string[]; 
+}
+
