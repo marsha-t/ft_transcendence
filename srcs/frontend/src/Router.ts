@@ -29,6 +29,10 @@ export class Router {
     '/ai',
   ];
 
+  private readonly PUBLIC_ONLY_ROUTES: readonly string[] = [
+    '/login',
+    '/register',
+  ];
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -39,6 +43,7 @@ export class Router {
   /*
     - Check that user is logged in when accessing protected routes
       - If not logged in, navigate to Login page
+    - Redirect logged-in users away from public-only routes to Main page
     - Check if page allows navigation using canDeactivate
     - Clean up current page
     - Clear container
@@ -48,6 +53,16 @@ export class Router {
       const path = window.location.pathname;
       const state = history.state;
 
+      // Redirect logged-in users away from public-only routes
+      if (AuthUtils.isLoggedIn() && this.PUBLIC_ONLY_ROUTES.includes(path)) {
+        history.replaceState({}, "", "/main");
+        this.currentPage = new Main();
+        this.container.innerHTML = '';
+        this.container.appendChild(this.currentPage.render());
+        return;
+      }
+
+      // Redirect non-logged-in users away from protected routes
       if (this.PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
         history.pushState({}, "", "/login");
         this.currentPage = new Login();
