@@ -2,7 +2,7 @@ import * as BABYLON from "@babylonjs/core";
 import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
-import { aiWebSocketService } from "../services/websocket/WebsocketServices";
+import { apiServices } from "../services/ApiServices.js";
 import { GameState } from "../services/websocket/types";
 import { gameConfigManager } from "./GameConfigManager";
 import { PowerUpManager, PowerUpTypes } from "./PowerUps";
@@ -330,7 +330,7 @@ export class PongGame {
             }
         };
 
-        aiWebSocketService.sendGameState(gameState);
+        apiServices.aiWebSocketService.sendGameState(gameState);
     }
 
     // ==================
@@ -357,7 +357,7 @@ export class PongGame {
             tableBounds: gameConfigManager.current.tableBounds
         };
 
-        aiWebSocketService.sendGameStart(constants);
+        apiServices.aiWebSocketService.sendGameStart(constants);
     }
 
     public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
