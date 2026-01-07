@@ -220,6 +220,3 @@ export class AIWebSocketService {
     return this.socket ? this.socket.readyState : null;
   }
 }
-
-export const aiWebSocketService = new AIWebSocketService();
-

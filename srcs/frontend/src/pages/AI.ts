@@ -6,7 +6,6 @@ import {GameSession} from "../services/game/types.js";
 import { GameService } from "../services/game/GameService.js";
 import { apiServices } from "../services/ApiServices.js";
 import {makeButton} from "../utils/uiUtils.js";
-import { aiWebSocketService } from "../services/websocket/WebsocketServices.js";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { t } from "../services/i18n/i18nService.js";
@@ -213,7 +212,7 @@ export class AI implements IComponent {
 
     //disconnect ws tempr
     if(this.wsConnected){
-      aiWebSocketService.disconnect();
+      apiServices.aiWebSocketService.disconnect();
       this.wsConnected = false;
     }
 
@@ -331,17 +330,17 @@ export class AI implements IComponent {
     
     
     try {
-      await aiWebSocketService.connect(this.currentSession.sessionId);
+      await apiServices.aiWebSocketService.connect(this.currentSession.sessionId);
       
       this.wsConnected = true;
   
-      aiWebSocketService.on('ai_move', (data: any) => {
+      apiServices.aiWebSocketService.on('ai_move', (data: any) => {
         if (data && typeof data.action === 'string') {
           this.pongGame.applyAIDirection(data.action as "UP" | "DOWN" | "NONE" );
         }
       });
   
-      aiWebSocketService.on('ai_ready', () => {
+      apiServices.aiWebSocketService.on('ai_ready', () => {
         this.pongGame.sendGameConstants();
       });
   
@@ -488,7 +487,7 @@ export class AI implements IComponent {
 
     this.stopGameLoop();
     if(this.wsConnected){
-      aiWebSocketService.disconnect();
+      apiServices.aiWebSocketService.disconnect();
       this.wsConnected = false;
     }
 
@@ -603,7 +602,7 @@ export class AI implements IComponent {
     // Disconnect WebSocket
     if(this.wsConnected)
     {
-      aiWebSocketService.disconnect();
+      apiServices.aiWebSocketService.disconnect();
       this.wsConnected = false;
     }
 
