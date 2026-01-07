@@ -185,7 +185,6 @@ export async function showMessage( container: HTMLElement, messageContainer: HTM
     displayMessage = JSON.stringify(message);
   }
   messageContainer.textContent = displayMessage;
-  console.log("Showing message:", displayMessage);
 
   // Scroll to top to show message
   container.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -196,7 +195,7 @@ export async function showMessage( container: HTMLElement, messageContainer: HTM
       setTimeout(() => {
         messageContainer.style.display = 'none';
         resolve(void 0);
-      }, 5000);
+      }, 700);
     });
   }
 }
