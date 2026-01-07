@@ -155,8 +155,8 @@ export async function showConfirmation(message: string, title = t("common.please
 
 export type MessageType = 'success' | 'error';
 
-export function showMessage(container: HTMLElement, messageContainer: HTMLElement, message: string, type: MessageType = 'success') {
-  if (!container || !messageContainer) return;
+export async function showMessage( container: HTMLElement, messageContainer: HTMLElement, message: string, type: MessageType = 'success'
+): Promise<void> {  if (!container || !messageContainer) return;
 
   messageContainer.style.display = 'block';
 
@@ -187,15 +187,18 @@ export function showMessage(container: HTMLElement, messageContainer: HTMLElemen
   messageContainer.textContent = displayMessage;
   console.log("Showing message:", displayMessage);
 
-  // Auto-hide success messages after 5 seconds
-  if (type === 'success') {
-    setTimeout(() => {
-      messageContainer.style.display = 'none';
-    }, 5000);
-  }
-
   // Scroll to top to show message
   container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // For success messages, wait for the display duration before resolving
+  if (type === 'success') {
+    await new Promise(resolve => {
+      setTimeout(() => {
+        messageContainer.style.display = 'none';
+        resolve(void 0);
+      }, 5000);
+    });
+  }
 }
 
 

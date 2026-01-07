@@ -538,8 +538,7 @@ export class friendsAndUsers implements IComponent {
             action.innerHTML = "";
             action.appendChild(pendingLabel);
           } else {
-            // showMessage((res.message || "Failed to send friend request"), 'error');
-
+            await showMessage(this.container, resultsContainer, (res.message || "Failed to send friend request"), 'error');
           }
         });
 
