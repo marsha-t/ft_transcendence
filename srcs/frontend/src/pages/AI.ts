@@ -11,6 +11,24 @@ import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigMan
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { t } from "../services/i18n/i18nService.js";
 
+/**
+ * Manages the AI opponent game mode where a player competes against an
+ * artificial intelligence opponent. Handles WebSocket communication with
+ * the AI service, game state management, and UI rendering.
+ * 
+ * Features:
+ * - Real-time AI opponent via WebSocket
+ * - Game customization (ball speed, paddle size, color.)
+ * - Score tracking and game session management
+ * - Pause/Resume/Quit functionality
+ * - Integration with game service API
+ * 
+ * Architecture:
+ * - Implements IComponent interface for SPA navigation
+ * - Uses PongGame for rendering and physics
+ * - Communicates with backend via REST API and WebSocket
+ * - User is always on RIGHT side, AI is always on LEFT side
+ */
 export class AI implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;
@@ -34,6 +52,9 @@ export class AI implements IComponent {
     this.username = "Getting username...";
   }
 
+  // - Called once by Router when route becomes active
+  // - Builds DOM
+  // - Initializes game session
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
@@ -49,6 +70,9 @@ export class AI implements IComponent {
     return this.container;
   }
 
+  // ===============
+  // UI CONSTRUCTION
+  // ===============
   private createTitleContainer(): void {
     const titleContainer = document.createElement("div");
     titleContainer.className =
@@ -109,6 +133,9 @@ export class AI implements IComponent {
     this.createPongGame();
   }
 
+  // ===========
+  // GAME ENGINE
+  // ===========
   private createPongGame(): void{
     //create custom before the graphics
     if(this.customGameSettings){
@@ -161,6 +188,9 @@ export class AI implements IComponent {
     this.container.appendChild(controlsContainer);
   }
 
+  // ==================
+  // GAME CUSTOMIZATION
+  // ==================
   private openCustomizationPopUp(): void {
     this.customizationUI = openGameCustomization(
       document.body, (settings: CustomGameSettings) => {
@@ -232,7 +262,9 @@ export class AI implements IComponent {
     }
   }
 
-
+  // =================
+  // USER DATA LOADING
+  // =================
   private async loadUserAndUpdateName(): Promise<void> {
     await this.loadUser();
   
@@ -254,6 +286,9 @@ export class AI implements IComponent {
     }
   }
   
+  // ===============================
+  // GAME INITIALIZATION & WEBSOCKET
+  // ===============================
   private async initializeAIGame(): Promise<void> {
     try {
       const response = await fetch("/api/ai/create-game", {
@@ -316,7 +351,9 @@ export class AI implements IComponent {
     }
   }
 
-
+  // =====================
+  // GAME STATE MANAGEMENT
+  // =====================
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
     if (!this.isGameRunning) {
       return;
@@ -382,65 +419,6 @@ export class AI implements IComponent {
     }
   }
 
-  // CLEANUP
-
-  public async canDeactivate(): Promise<boolean> {
-    if (this.hasEndedNaturally) {
-      this.stopGameLoop();
-      return true;
-    }
-
-    const confirmLeave = confirm("Leaving will stop the current AI match.");
-    if (confirmLeave) {
-      if (this.currentSession?.sessionId) {
-        try {
-          await apiServices.game.updateGameStatus(
-            this.currentSession.sessionId,
-            "ABORTED"
-          );
-        } catch (err) {
-          console.error("Error aborting AI game:", err);
-        }
-      }
-      this.stopGameLoop();
-    }
-    return confirmLeave;
-  }
-
-  public terminate(): void {
-    this.cleanup();
-  }
-
-  public cleanup(): void {
-    this.stopGameLoop();
-
-    // Close customization UI if open
-    if (this.customizationUI) {
-      this.customizationUI.close();
-      this.customizationUI = null;
-    }
-
-    // Disconnect WebSocket
-    if(this.wsConnected)
-    {
-      aiWebSocketService.disconnect();
-      this.wsConnected = false;
-    }
-
-    // Dispose PongGame
-    if(this.pongGame){
-      this.pongGame.dispose();
-      this.pongGame = null as any;
-    }
-    
-    // Reset configuration
-    gameConfigManager.reset();
-    
-    this.currentSession = null;
-    this.customGameSettings = null;
-  }
-
-
   private startGameLoop(): void {
     this.isGameRunning = true;
     this.pongGame.resume();
@@ -451,6 +429,9 @@ export class AI implements IComponent {
     this.pongGame.pause();
   }
 
+  // ====================
+  // GAME CONTROL ACTIONS
+  // ====================
   private async toggleGame(): Promise<void> {
     if (!this.currentSession) {
       alert("Game session not initialized");
@@ -582,6 +563,61 @@ export class AI implements IComponent {
       if (quitBtn) quitBtn.style.display = "block";
       if(customizeBtn) customizeBtn.style.display = "none";
     }
+  }
+
+  // ====================
+  // CLEANUP
+  // ====================
+  public async canDeactivate(): Promise<boolean> {
+    if (this.hasEndedNaturally) {
+      this.stopGameLoop();
+      return true;
+    }
+
+    const confirmLeave = confirm("Leaving will stop the current AI match.");
+    if (confirmLeave) {
+      if (this.currentSession?.sessionId) {
+        try {
+          await apiServices.game.updateGameStatus(
+            this.currentSession.sessionId,
+            "ABORTED"
+          );
+        } catch (err) {
+          console.error("Error aborting AI game:", err);
+        }
+      }
+      this.stopGameLoop();
+    }
+    return confirmLeave;
+  }
+
+  public cleanup(): void {
+    this.stopGameLoop();
+
+    // Close customization UI if open
+    if (this.customizationUI) {
+      this.customizationUI.close();
+      this.customizationUI = null;
+    }
+
+    // Disconnect WebSocket
+    if(this.wsConnected)
+    {
+      aiWebSocketService.disconnect();
+      this.wsConnected = false;
+    }
+
+    // Dispose PongGame
+    if(this.pongGame){
+      this.pongGame.dispose();
+      this.pongGame = null as any;
+    }
+    
+    // Reset configuration
+    gameConfigManager.reset();
+    
+    this.currentSession = null;
+    this.customGameSettings = null;
   }
 
 }

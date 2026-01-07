@@ -371,9 +371,6 @@ export class PongGame {
     // RESOURCE CLEANUP
     // ===========================
     public dispose(): void {
-        if (this.isAIGame) {
-            aiWebSocketService.disconnect();
-        }
         
         this.activePowerUps?.forEach((_, type) => {
             this.deactivatePowerUp(type);
@@ -396,11 +393,6 @@ export class PongGame {
             this.scene.dispose();
             this.scene = null as any;
         }
-        // if(this.engine)
-        //     this.engine.dispose();
-
-        // this.scene = null as any;
-        // this.engine = null as any;
         this.leftPaddle = null as any;
         this.rightPaddle = null as any;
         this.ball = null as any;
