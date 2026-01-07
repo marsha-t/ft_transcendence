@@ -39,7 +39,11 @@ export class Router {
 
     window.addEventListener('languageChanged', () => this.renderRoute()); // Listen for language changes and re-render current page
     window.addEventListener('popstate', () => this.renderRoute()); // Listen for navigation event and re-render current page
+    // App-level window listeners - no manual cleanup needed
+    // Auto removed by browser when browser unloads document e.g., tab close/refresh
+    // since Router lives as long as window lives
   }
+
   /*
     - Check that user is logged in when accessing protected routes
       - If not logged in, navigate to Login page
@@ -50,124 +54,124 @@ export class Router {
     - Instantiate and render page
   */
   private async renderRoute() {
-      const path = window.location.pathname;
-      const state = history.state;
+    const path = window.location.pathname;
+    const state = history.state;
 
-      // Redirect logged-in users away from public-only routes
-      if (AuthUtils.isLoggedIn() && this.PUBLIC_ONLY_ROUTES.includes(path)) {
-        history.replaceState({}, "", "/main");
-        this.currentPage = new Main();
-        this.container.innerHTML = '';
-        this.container.appendChild(this.currentPage.render());
-        return;
-      }
-
-      // Redirect non-logged-in users away from protected routes
-      if (this.PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
-        history.pushState({}, "", "/login");
-        this.currentPage = new Login();
-        this.container.innerHTML = ''; // Clear container
-        this.container.appendChild(this.currentPage.render());
-        return;
-      }
-
-      if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
-        const canLeave = await this.currentPage.canDeactivate();
-        if (!canLeave) {
-          return;
-        }
-      }
-
-      //cleanup gameCustomUI
-      closeAnyOpenCustomizationUI();
-
-      // Clean up previous page
-      if (this.currentPage && typeof this.currentPage.cleanup === "function") {
-        try {
-          this.currentPage.cleanup();
-        } catch (err) {
-          console.log("Error during page cleanup: ", err);
-        }
-      }
-
+    // Redirect logged-in users away from public-only routes
+    if (AuthUtils.isLoggedIn() && this.PUBLIC_ONLY_ROUTES.includes(path)) {
+      history.replaceState({}, "", "/main");
+      this.currentPage = new Main();
       this.container.innerHTML = ''; // Clear container
-      switch (path) {
-        case '/register':
-          this.currentPage = new Register();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        case '/login':
-          this.currentPage = new Login();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        case '/creators':
-          this.currentPage = new Creators();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        case '/game':
-          this.currentPage = new Game();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        case '/game/results':
-          const sessionId = state?.sessionId;
-          if (!sessionId) {
-            history.pushState({}, "", "/main");
-            this.currentPage = new Main();
-            this.container.appendChild(this.currentPage.render());
-            return;
-          }
-          this.currentPage = new GameResults(state);
-          this.container.appendChild(this.currentPage.render());
-          break; 
-        case '/':
-        case '/main':
+      this.container.appendChild(this.currentPage.render());
+      return;
+    }
+
+    // Redirect non-logged-in users away from protected routes
+    if (this.PROTECTED_ROUTES.includes(path) && !AuthUtils.isLoggedIn()) {
+      history.pushState({}, "", "/login");
+      this.currentPage = new Login();
+      this.container.innerHTML = ''; // Clear container
+      this.container.appendChild(this.currentPage.render());
+      return;
+    }
+
+    if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
+      const canLeave = await this.currentPage.canDeactivate();
+      if (!canLeave) {
+        return;
+      }
+    }
+
+    // Clean up global singleton overlays (we only have gameCustomUI modal) 
+    closeAnyOpenCustomizationUI();
+
+    // Clean up previous page
+    if (this.currentPage && typeof this.currentPage.cleanup === "function") {
+      try {
+        this.currentPage.cleanup();
+      } catch (err) {
+        console.log("Error during page cleanup: ", err);
+      }
+    }
+
+    this.container.innerHTML = ''; // Clear container
+    switch (path) {
+      case '/register':
+        this.currentPage = new Register();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/login':
+        this.currentPage = new Login();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/creators':
+        this.currentPage = new Creators();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/game':
+        this.currentPage = new Game();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/game/results':
+        const sessionId = state?.sessionId;
+        if (!sessionId) {
+          history.pushState({}, "", "/main");
           this.currentPage = new Main();
           this.container.appendChild(this.currentPage.render());
-          break;
-        case '/profile':
-          this.currentPage = new Profile();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        case '/dashboard':
-          this.currentPage = new ProfileDashboard();
-          this.container.appendChild(this.currentPage.render());
-          break ;
-        case '/tournament':
-        case '/tournament/setup':
+          return;
+        }
+        this.currentPage = new GameResults(state);
+        this.container.appendChild(this.currentPage.render());
+        break; 
+      case '/':
+      case '/main':
+        this.currentPage = new Main();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/profile':
+        this.currentPage = new Profile();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/dashboard':
+        this.currentPage = new ProfileDashboard();
+        this.container.appendChild(this.currentPage.render());
+        break ;
+      case '/tournament':
+      case '/tournament/setup':
+        this.currentPage = new TournamentSetup();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      case '/tournament/match': {
+        const tournamentId = state?.tournamentId;
+        if (!tournamentId) {
+          history.pushState({}, "", "/tournament");
           this.currentPage = new TournamentSetup();
           this.container.appendChild(this.currentPage.render());
-          break;
-        case '/tournament/match': {
-          const tournamentId = state?.tournamentId;
-          if (!tournamentId) {
-            history.pushState({}, "", "/tournament");
-            this.currentPage = new TournamentSetup();
-            this.container.appendChild(this.currentPage.render());
-            return;
-          }
-          this.currentPage = new TournamentMatch(tournamentId);
-          this.container.appendChild(this.currentPage.render());
-          break;
+          return;
         }
-        case '/tournament/results': {
-          const tournamentId = state?.tournamentId;
-          if (!tournamentId) {
-            history.pushState({}, "", "/tournament");
-            this.currentPage = new TournamentSetup();
-            this.container.appendChild(this.currentPage.render());
-            return;
-          }
-          this.currentPage = new TournamentResults(tournamentId);
-          this.container.appendChild(this.currentPage.render());
-          break;
-        }
-        case '/ai':
-          this.currentPage = new AI();
-          this.container.appendChild(this.currentPage.render());
-          break;
-        default:
-          this.container.textContent = '404 - Page Not Found';
-          this.currentPage = null;
+        this.currentPage = new TournamentMatch(tournamentId);
+        this.container.appendChild(this.currentPage.render());
+        break;
       }
-    };
+      case '/tournament/results': {
+        const tournamentId = state?.tournamentId;
+        if (!tournamentId) {
+          history.pushState({}, "", "/tournament");
+          this.currentPage = new TournamentSetup();
+          this.container.appendChild(this.currentPage.render());
+          return;
+        }
+        this.currentPage = new TournamentResults(tournamentId);
+        this.container.appendChild(this.currentPage.render());
+        break;
+      }
+      case '/ai':
+        this.currentPage = new AI();
+        this.container.appendChild(this.currentPage.render());
+        break;
+      default:
+        this.container.textContent = '404 - Page Not Found';
+        this.currentPage = null;
+    }
+  };
 }
