@@ -202,7 +202,7 @@ export class Register implements IComponent {
         try{
             const response = await apiServices.register(userData);
             if(response.success){
-                showMessage(this.container, this.messageContainer, response.message, 'success');
+                await showMessage(this.container, this.messageContainer, response.message, 'success');
 
                 
                 this.form.reset();// Clear form
@@ -227,11 +227,11 @@ export class Register implements IComponent {
 
                 }, 2000);
             } else{
-                    showMessage(this.container, this.messageContainer, response.message, 'error');
+                    await showMessage(this.container, this.messageContainer, response.message, 'error');
             }
     } catch (error: any){
             console.error('Registration error:', error);
-            showMessage(this.container, this.messageContainer, 'Network error. Please check your connection and try again.', 'error');
+            await showMessage(this.container, this.messageContainer, 'Network error. Please check your connection and try again.', 'error');
             // Try to extract message from error response
             let errorMessage = 'Network error. Please check your connection and try again.';
             if (error.response && error.response.data && error.response.data.message) {
@@ -239,7 +239,7 @@ export class Register implements IComponent {
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            showMessage(this.container, this.messageContainer, errorMessage, 'error');
+            await showMessage(this.container, this.messageContainer, errorMessage, 'error');
         } finally {
                 this.setLoadingState(false);
             }

@@ -606,15 +606,14 @@ export class ProfileInfo implements IComponent {
                 const response = await apiServices.profile.updateProfile(data);
     
                 if (!response.success) {
-                    showMessage(overlay, this.messageContainer, (response.message || "Failed to update profile"), 'error');
+                    await showMessage(overlay, this.messageContainer, (response.message || "Failed to update profile"), 'error');
                     return;
                 }
     
                 if (response.data.username) this.username = response.data.username;
                 if (response.data.email) this.email = response.data.email;
-    
-                // this.showMessage("Profile updated successfully!", 'success');
-                showMessage(overlay, this.messageContainer, "Profile updated successfully!", 'success');
+
+                await showMessage(overlay, this.messageContainer, "Profile updated successfully!", 'success');
                 await this.fetchProfileData();
                 if (this.onProfileUpdate) this.onProfileUpdate();
                 overlay.remove();

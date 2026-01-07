@@ -201,14 +201,14 @@ export class Login implements IComponent {
                 this.otpInput.value = '';
                 this.otpInput.focus();
 
-        
-                showMessage(this.container, this.messageContainer, data.message, 'success');
+
+                await showMessage(this.container, this.messageContainer, data.message, 'success');
                 return;
             }
 
             if (response.success) {
-        
-                showMessage(this.container, this.messageContainer, response.message, 'success');
+
+                await showMessage(this.container, this.messageContainer, response.message, 'success');
 
                 // Reset UI && Set user as logged-in
                 AuthUtils.setLoggedIn({ username: userData.username });
@@ -222,12 +222,12 @@ export class Login implements IComponent {
                 setTimeout(() => navigate("/profile"), 2000);
 
             } else {
-        
-                showMessage(this.container, this.messageContainer, response.message, 'error');
+
+                await showMessage(this.container, this.messageContainer, response.message, 'error');
             }
         } catch (err) {
             console.error(err);
-            showMessage(this.container, this.messageContainer, 'API error', 'error');
+            await showMessage(this.container, this.messageContainer, 'API error', 'error');
     
         } finally {
             this.setLoadingState(false);
@@ -237,7 +237,7 @@ export class Login implements IComponent {
     private async handle2FA() {
         const code = this.otpInput.value.trim();
         console.log('2FA code entered:', code);
-        if (!code) return showMessage(this.container, this.messageContainer,'Enter 2FA code', 'error');
+        if (!code) return await showMessage(this.container, this.messageContainer,'Enter 2FA code', 'error');
 
         const payload: Login2FAData = {
             username: this.currentUsername,
@@ -248,18 +248,18 @@ export class Login implements IComponent {
         try {
             const response = await apiServices.login2FA(payload);
             if (response.success) {
-                showMessage(this.container, this.messageContainer, response.message || 'Login successful', 'success');
+                await showMessage(this.container, this.messageContainer, response.message || 'Login successful', 'success');
                  console.log('2FA code entered:', code);
                 AuthUtils.setLoggedIn({ username: payload.username });
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 2000);
             } else {
-                showMessage(this.container, this.messageContainer, response.message || 'Login failed', 'error');
+                await showMessage(this.container, this.messageContainer, response.message || 'Login failed', 'error');
         
             }
         } catch (err) {
             console.error(err);
-            showMessage(this.container, this.messageContainer, '2FA verification failed', 'error');
+            await showMessage(this.container, this.messageContainer, '2FA verification failed', 'error');
     
         } finally {
             this.setLoadingState(false);
@@ -268,23 +268,23 @@ export class Login implements IComponent {
 
     private async handleResendOTP() {
 
-        if (!this.currentUsername) return showMessage(this.container, this.messageContainer,'No user to resend OTP for', 'error');
+        if (!this.currentUsername) return await showMessage(this.container, this.messageContainer,'No user to resend OTP for', 'error');
 
         this.setLoadingState(true);
         try {
             const response = await apiServices.resendOTP({ username: this.currentUsername });
             if (response.success) {
-                showMessage(this.container, this.messageContainer, response.message || 'OTP resent successfully', 'success');
+                await showMessage(this.container, this.messageContainer, response.message || 'OTP resent successfully', 'success');
         
                 this.otpInput.value = '';
                 this.otpInput.focus();
             } else {
-                showMessage(this.container, this.messageContainer, response.message || 'Failed to resend OTP', 'error');
+                await showMessage(this.container, this.messageContainer, response.message || 'Failed to resend OTP', 'error');
         
             }
         } catch (err) {
             console.error(err);
-            showMessage(this.container, this.messageContainer, 'Resend OTP failed', 'error');
+            await showMessage(this.container, this.messageContainer, 'Resend OTP failed', 'error');
     
         } finally {
             this.setLoadingState(false);
@@ -325,9 +325,9 @@ export class Login implements IComponent {
 
         (window as any).google.accounts.id.initialize({
             client_id: '664010514832-jrr53943l8tvr54pths5ugpnkfs9aim5.apps.googleusercontent.com', // chnage to ENV GOOGLE_CLIENT_ID
-            callback: (response: any) => {
+            callback: async (response: any) => {
                 const idToken = response.credential;
-                if (!idToken) return showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
+                if (!idToken) return await showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
         
                 this.handleGoogleToken(idToken);
             }
@@ -346,18 +346,18 @@ export class Login implements IComponent {
         try {
             const response = await apiServices.googleLogin({ idToken });
             if (response.success) {
-                showMessage(this.container, this.messageContainer, response.data?.message || 'Login successful', 'success');
-        
+                await showMessage(this.container, this.messageContainer, response.data?.message || 'Login successful', 'success');
+
                 AuthUtils.setLoggedIn({ username: response.data.username });
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 1500);
             } else {
-                showMessage(this.container, this.messageContainer, response.data?.message || 'Login failed', 'error');
+                await showMessage(this.container, this.messageContainer, response.data?.message || 'Login failed', 'error');
         
             }
         } catch (err) {
             console.error(err);
-            showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
+            await showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
     
         } finally {
             this.setLoadingState(false);
