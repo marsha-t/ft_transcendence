@@ -24,12 +24,12 @@ export class AuthServices {
             });
             const data = await response.json();
             if(!response.ok){
-                let msg = data.validation?.[0]?.message || data.message || data.error;
                 return {
                     success: false,
                     status: response.status,
-                    message: msg || 'Registration failed',
-                    errors: data.errors || []
+                    message: data?.error?.message || 'Registration failed',
+                    errors: [],
+                    code: data?.error?.code
                 };
             }
             return {
@@ -39,13 +39,8 @@ export class AuthServices {
                 message: data.message || 'Registration successful'
             };
         } catch (error) {
-            console.error('API error', error);
-            return {
-                success: false,
-                status: 0,
-                message: 'Network error',
-                errors: []
-            };
+            console.error('Error registering: ', error);
+            throw error;
         }
     }
 
@@ -94,26 +89,19 @@ export class AuthServices {
             }
     
             // Error case
-            let msg = data.validation?.[0]?.message || data.error || 'Login failed';
             return {
                 success: false,
                 status: response.status,
-                message: msg,
-                errors: data.errors || [],
+                message: data?.error?.message || "Failed to login",
+                errors: [],
+                code: data?.error?.code,
                 data: null,
                 twoFactorRequired: false
             };
     
         } catch (error) {
             console.error('Login API error', error);
-            return {
-                success: false,
-                status: 0,
-                message: 'Login API, network error',
-                errors: [],
-                data: null,
-                twoFactorRequired: false
-            };
+            throw error;
         }
     }
 
@@ -126,12 +114,13 @@ export class AuthServices {
             const data = await response.json();
   
             if (!response.ok) {
-                const msg = data.error || 'Logout failed';
+                const msg = data.error 
                 return {
                     success: false,
                     status: response.status,
-                    message: msg,
-                    errors: data.errors || []
+                    message: data?.error?.message || 'Logout failed',
+                    errors: [],
+                    code: data?.error?.code
                 };
             }
   
@@ -143,12 +132,7 @@ export class AuthServices {
             };
         } catch (error) {
             console.error('Logout API error', error);
-            return {
-                success: false,
-                status: 0,
-                message: 'Network error',
-                errors: []
-            };
+            throw error;
         }
       }
 
@@ -174,27 +158,19 @@ export class AuthServices {
                     twoFactorRequired: false
                 };
             }
-
-            let msg = data.message || data.error || '2FA verification failed';
             return {
                 success: false,
                 status: response.status,
-                message: msg,
-                errors: data.errors || [],
+                message: data?.error?.message || '2FA verification failed',
+                errors: [],
+				code: data?.error?.code,
                 data: null,
                 twoFactorRequired: false
             };
 
         } catch (error) {
             console.error('2FA API error', error);
-            return {
-                success: false,
-                status: 0,
-                message: '2FA API network error',
-                errors: [],
-                data: null,
-                twoFactorRequired: false
-            };
+            throw error;
         }
     }
 
@@ -218,15 +194,7 @@ export class AuthServices {
             };
         } catch (error) {
             console.error('Resend OTP API error', error);
-
-            return {
-                success: false,
-                status: 0,
-                message: 'Network error',
-                errors: [],
-                data: null,
-                twoFactorRequired: true
-            };
+            throw error;
         }
     }
 
@@ -252,26 +220,18 @@ export class AuthServices {
                     twoFactorRequired: false
                 };
             }
-
-            let msg = data.message || data.error || 'Google login failed';
             return {
                 success: false,
                 status: response.status,
-                message: msg,
-                errors: data.errors || [],
+                message: data?.error?.message  || 'Google login failed',
+                errors: [],
+                code: data?.error?.code,
                 data: null,
                 twoFactorRequired: false
             };
         } catch (error) {
             console.error('Google login API error', error);
-            return {
-                success: false,
-                status: 0,
-                message: 'Google login network error',
-                errors: [],
-                data: null,
-                twoFactorRequired: false
-            };
+            throw error;
         }
     }
 
@@ -404,4 +364,3 @@ export class AuthServices {
   }
 }
 
-export const apiServices = new AuthServices();
