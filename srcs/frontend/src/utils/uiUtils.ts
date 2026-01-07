@@ -196,12 +196,10 @@ export async function showMessage( container: HTMLElement, messageContainer: HTM
       setTimeout(() => {
         messageContainer.style.display = 'none';
         resolve(void 0);
-      }, 5000);
+      }, 1000);
     });
   }
 }
-
-
 
   export function applyAvatar(element: HTMLElement, avatarUrl?: string, username?: string) {
   if (!element) return;

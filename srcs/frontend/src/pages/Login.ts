@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { apiServices } from "../services/auth/AuthServices.js";
+import { apiServices } from "../services/ApiServices";
 import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils/commonUtils.js";
 import {showMessage, createButtonStyle} from "../utils/uiUtils.js";
@@ -184,7 +184,7 @@ export class Login implements IComponent {
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.login(userData);
+            const response = await apiServices.auth.login(userData);
             const data = response?.data || response;
 
             if (data.twoFactorRequired) {
@@ -246,7 +246,7 @@ export class Login implements IComponent {
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.login2FA(payload);
+            const response = await apiServices.auth.login2FA(payload);
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.message || 'Login successful', 'success');
                  console.log('2FA code entered:', code);
@@ -272,7 +272,7 @@ export class Login implements IComponent {
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.resendOTP({ username: this.currentUsername });
+            const response = await apiServices.auth.resendOTP({ username: this.currentUsername });
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.message || 'OTP resent successfully', 'success');
         
@@ -344,7 +344,7 @@ export class Login implements IComponent {
     private async handleGoogleToken(idToken: string) {
         this.setLoadingState(true);
         try {
-            const response = await apiServices.googleLogin({ idToken });
+            const response = await apiServices.auth.googleLogin({ idToken });
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.data?.message || 'Login successful', 'success');
 
