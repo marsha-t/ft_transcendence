@@ -1,5 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/auth/AuthServices.js';
+import { showMessage } from "../utils/uiUtils";
 import { RegisterData } from "../services/auth/types";
 import { t } from "../services/i18n/i18nService.js";
 
@@ -201,7 +202,8 @@ export class Register implements IComponent {
         try{
             const response = await apiServices.register(userData);
             if(response.success){
-                this.showMessage(response.message, 'success');
+                await showMessage(this.container, this.messageContainer, response.message, 'success');
+
                 
                 this.form.reset();// Clear form
 
@@ -225,12 +227,11 @@ export class Register implements IComponent {
 
                 }, 2000);
             } else{
-                    this.showMessage(response.message, 'error');
+                    await showMessage(this.container, this.messageContainer, response.message, 'error');
             }
     } catch (error: any){
-            // console.error('Registration error:', error);
-            // this.showMessage('Network error. Please check your connection and try again.', 'error');
             console.error('Registration error:', error);
+            await showMessage(this.container, this.messageContainer, 'Network error. Please check your connection and try again.', 'error');
             // Try to extract message from error response
             let errorMessage = 'Network error. Please check your connection and try again.';
             if (error.response && error.response.data && error.response.data.message) {
@@ -238,40 +239,12 @@ export class Register implements IComponent {
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            this.showMessage(errorMessage, 'error');
+            await showMessage(this.container, this.messageContainer, errorMessage, 'error');
         } finally {
                 this.setLoadingState(false);
             }
     }
    
-    private showMessage(message: string, type: 'success' | 'error'): void {
-        this.messageContainer.style.display = 'block';
-        const baseClass = `
-            mt-6 px-4 py-3    
-            w-[360px] h-[54px] px-4 rounded-[16px]
-            text-white font-nunito text-[20px]
-            text-center          
-            flex items-center justify-center 
-            transition-opacity duration-300
-        `;
-
-        const typeClasses = type === 'error' 
-            ? 'border-2 border-red-600 bg-red-900 bg-opacity-20' 
-            : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
-        
-        this.messageContainer.className = `${baseClass} ${typeClasses}`;
-        this.messageContainer.textContent = message;
-        
-        // Auto-hide success messages after 5 seconds
-        if (type === 'success') {
-            setTimeout(() => {
-                this.messageContainer.style.display = 'none';
-            }, 5001);
-        }
-        // Scroll to top to show message
-        this.container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    
-    }
 
     private setLoadingState(loading: boolean): void {
         this.isLoading = loading;

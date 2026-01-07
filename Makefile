@@ -1,7 +1,5 @@
 # Variables
-CONTAINERS = backend frontend nginx
-VOLUMES = user-social-data game-tournament-data avatars-data
-# BIND_MOUNTS = ./backend/uploads
+VOLUMES = user-social-data game-tournament-data 
 
 
 all: build up 
@@ -25,5 +23,16 @@ fclean: clean
 	- docker volume rm $(VOLUMES)
 	- yes | docker system prune -a --volumes
 	- rm -rf $(BIND_MOUNTS)
-
+	# Remove all avatar images except default and user avatars
+	- find srcs/backend/auth-service/uploads/avatars \
+	    -maxdepth 1 \
+	    -type f \
+	    ! \( \
+	        -name "default.png" -o \
+	        -name "user_avatar-1.jpg" -o \
+	        -name "user_avatar-2.jpg" -o \
+	        -name "user_avatar-3.png" -o \
+	        -name "user_avatar-4.jpg" \
+	    \) \
+	    -exec rm {} \;
 .PHONY: all up down build clean re fclean

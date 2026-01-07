@@ -1,9 +1,8 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; 
-import { createButtonStyle } from "../utils";
-import { makeCircular3DButton } from "../utils/uiUtils";
+import { createButtonStyle, makeCircular3DButton } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
-import {navigate} from '../utils.js';
+import {navigate} from '../utils/commonUtils.js';
 
 
 export class Main implements IComponent {

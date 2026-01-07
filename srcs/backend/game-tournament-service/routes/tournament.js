@@ -1,7 +1,10 @@
 import prisma from "../prisma/prismaClient.js";
 import { updateTournamentStatusSchema, getNextMatchSchema, validatePlayerSchema,  finalizeTournamentSchema, } from "../schemas/tournament.js";
 import { createGameSession } from "../services/gameSessionService.js";
-import { seedPlayersRandom, propagateWinner, } from "../services/tournamentService.js";
+import {
+  seedPlayersRandom,
+  propagateWinner,
+} from "../services/tournamentService.js";
 import { getUserInfo, validateUserCredentials } from "../services/authServiceClient.js";
 
 async function tournamentRoutes(app) {
