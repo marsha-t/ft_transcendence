@@ -3,8 +3,6 @@ import { AuthUtils } from './authUtils.js';
 
 export function getAvatarUrl(avatarPath: string): string {
   // Use AuthUtils.getAvUrl to add cache-busting timestamp and consistent backend base URL
-  if (!avatarPath) return AuthUtils.getAvUrl('/uploads/avatars/default.png');
-  if (avatarPath.startsWith('http')) return AuthUtils.getAvUrl(avatarPath);
   return AuthUtils.getAvUrl(avatarPath);
 }
 
