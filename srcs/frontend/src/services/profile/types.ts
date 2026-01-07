@@ -33,5 +33,6 @@ export interface ApiResponse<T> {
     status?: number;
     message?: string;
     errors?: string[]; 
+    code?: string;
 }
 

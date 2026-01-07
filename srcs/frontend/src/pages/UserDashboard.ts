@@ -8,7 +8,17 @@ declare const Plotly: any;
 export class ProfileDashboard implements IComponent {
   private container!: HTMLElement;
   private dashboardData: UserDashboard | null = null;
+  private destroyed = false;
 
+  /*
+    - Render profile dashboard layout
+      - Overview metrics card
+      - Win rate over time chart
+      - Score histogram
+      - Wins per opponent bar chart
+      - Global leaderboard table
+    - Trigger async data fetch and rendering
+  */
   public render(): HTMLElement {
     const page = document.createElement('div');
     page.className = `
@@ -41,10 +51,12 @@ export class ProfileDashboard implements IComponent {
     overviewDiv.id = "overviewCard";
     overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
+    // Win rate over time container
     const winRateChartDiv = document.createElement("div");
     winRateChartDiv.id = "winRateChart";
     winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
+    // Score histogram container
     const scoreHistogramDiv = document.createElement("div");
     scoreHistogramDiv.id = "scoreHistogram";
     scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
@@ -65,10 +77,8 @@ export class ProfileDashboard implements IComponent {
     leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     bottomRow.appendChild(winsPerOpponentDiv);
     bottomRow.appendChild(leaderboardDiv);
-
     grid.appendChild(topRow);
     grid.appendChild(bottomRow);
-
     this.container.appendChild(grid);
     page.appendChild(this.container);
 
@@ -76,38 +86,57 @@ export class ProfileDashboard implements IComponent {
     return page;
   }
 
+  /*
+    - Fetch aggregated stats from backend and store locally
+    - Overview metrics are rendered immediately
+    - Charts and leaderboard rendered only if there are matches and data is available
+      - requestAnimationFrame ensures browser completed layout and sizing before Plotly renders charts
+    - Use destroyed flag to guard against DOM mutation if page is unmounted during async flow
+  */
   private async fetchAndRender() {
     try {
       const response = await apiServices.dashboard.getUserDashboard();
-      if (!response.success || !response.data) {
+      if (this.destroyed) return;
+      if (!response.success || !response.data) return ;
+      
+      this.dashboardData = response.data;
+      
+      this.renderOverview();
+      
+      const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
+      const hasChartData = Boolean(
+        this.dashboardData.dailyStats?.length &&
+        this.dashboardData.scoreDistribution?.length &&
+        this.dashboardData.winsPerOpponent?.length
+      );
+
+      if (totalMatches === 0 || !hasChartData) {
+        this.renderNoDataMessages();
         return;
       }
-      this.dashboardData = response.data;
-      const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
-
-      this.renderOverview();
-      if (totalMatches > 0) {
-        setTimeout(() => {
-          this.renderWinRateChart();
-          this.renderScoreHistogram();
-          this.renderOpponentBarChart();
-        }, 0);
-        this.renderLeaderboard();
-      } else {
-        this.renderNoDataMessages();
-      }
+      requestAnimationFrame(() => {
+        if (this.destroyed) return;
+        this.renderWinRateChart();
+        this.renderScoreHistogram();
+        this.renderOpponentBarChart();
+      });
+      this.renderLeaderboard();
     } catch (err) {
-      console.error("Error fetching dashboard: ", err);
+      if (!this.destroyed) {
+        console.error("Error fetching dashboard: ", err);
+      }
     }
   }
 
+  /*
+    - Render high-level user metrics: total matches, wins, win rate, avg score, win streaks
+  */
   private renderOverview() {
-    if (!this.dashboardData) return;
-  
-    const overviewDiv = document.getElementById("overviewCard");
-    if (!overviewDiv) return;
-  
+    if (this.destroyed || !this.dashboardData?.overview) return;
     const { overview } = this.dashboardData;
+  
+    const overviewDiv = this.container.querySelector("#overviewCard");
+    if (!overviewDiv) return;
   
     const metrics = [
       { label: t("dashboard.totalMatches") as string, value: overview.totalMatches },
@@ -137,15 +166,16 @@ export class ProfileDashboard implements IComponent {
     `;
   }
   
+  // Render win rate over time using Plotly
   private renderWinRateChart() {
-    if (!this.dashboardData) return;
+    if (this.destroyed || !this.dashboardData?.dailyStats?.length) return;
+    const { dailyStats } = this.dashboardData;
 
-    const winRateChartDiv = document.getElementById("winRateChart");
+    const winRateChartDiv = this.container.querySelector("#winRateChart");
     if (!winRateChartDiv) return;
 
-    const { dailyStats } = this.dashboardData;
     const trace = {
-      x: dailyStats.map((p) => p.date),
+      x: dailyStats.map((p) => new Date(p.date).toISOString().split("T")[0]),
       y: dailyStats.map((p) => p.winRate * 100),
       type: "scatter",
       mode: "lines+markers",
@@ -161,28 +191,33 @@ export class ProfileDashboard implements IComponent {
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       xaxis: {
+        type: "date",
         title: t("dashboard.date"),
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
+        tickformat: "%b %d",
+        tickangle: -30,
+        dtick: "D1",
       },
       yaxis: {
         title: "%",
+        range: [0, 100],
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
       margin: { t: 70, b: 80, l: 60, r: 40 },
     };
-
     Plotly.newPlot(winRateChartDiv, [trace], layout, { responsive: true });
   }
 
+  // Render score distribution histogram using Plotly
   private renderScoreHistogram() {
-    if (!this.dashboardData) return;
+    if (this.destroyed || !this.dashboardData?.scoreDistribution?.length) return;
+    const { scoreDistribution } = this.dashboardData;
 
-    const scoreHistogramDiv = document.getElementById("scoreHistogram");
+    const scoreHistogramDiv = this.container.querySelector("#scoreHistogram");
     if (!scoreHistogramDiv) return;
 
-    const { scoreDistribution } = this.dashboardData;
     const trace = {
       x: scoreDistribution,
       type: "histogram",
@@ -214,22 +249,25 @@ export class ProfileDashboard implements IComponent {
       autosize: true,
       margin: { t: 70, b: 80, l: 60, r: 40 },
     };
-
     Plotly.newPlot(scoreHistogramDiv, [trace], layout, { responsive: true });
   }
 
+  // Render win rate by opponent (registered user) using bar chart
   private renderOpponentBarChart() {
-    if (!this.dashboardData) return;
+    if (this.destroyed || !this.dashboardData?.winsPerOpponent?.length) return;
+    const { winsPerOpponent } = this.dashboardData;
 
-    const winsPerOpponentDiv = document.getElementById("winsPerOpponent");
+    const winsPerOpponentDiv = this.container.querySelector("#winsPerOpponent");
     if (!winsPerOpponentDiv) return;
 
-    const { winsPerOpponent } = this.dashboardData;
     const trace = {
       x: winsPerOpponent.map((p) => p.opponent),
       y: winsPerOpponent.map((p) => p.winRate),
       type: "bar",
       marker: { color: "#6B5B95" },
+      text: winsPerOpponent.map(p => `${p.winRate}%`),
+      textposition: "outside",
+      cliponaxis: false
     };
     const layout = {
       title: t("dashboard.winsPerOpponent"),
@@ -246,6 +284,7 @@ export class ProfileDashboard implements IComponent {
       },
       yaxis: {
         title: "%",
+        range: [0, 100],
         color: "#FFD400",
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
@@ -255,18 +294,21 @@ export class ProfileDashboard implements IComponent {
     Plotly.newPlot(winsPerOpponentDiv, [trace], layout, { responsive: true });
   }
 
+  // Render global leaderboard table
+  /*
+    - Highlights current user row
+    - Alternates row styling 
+  */
   private renderLeaderboard() {
-    if (!this.dashboardData) return;
-  
-    const leaderboardDiv = document.getElementById("leaderboard");
+    if (this.destroyed || !this.dashboardData?.leaderboard?.length) return;
+    const { leaderboard } = this.dashboardData;
+
+    const leaderboardDiv = this.container.querySelector("#leaderboard");
     if (!leaderboardDiv) return;
   
-    const { leaderboard } = this.dashboardData;
-  
-    // Generate table rows with dynamic Tailwind classes
     const rows = leaderboard
       .map((p, index) => {
-        // Determine row background based on odd/even
+        // Determine row background based on odd/even 
         const rowColor = p.isCurrentUser
           ? "bg-yellow-400 text-black"
           : index % 2 === 0
@@ -306,8 +348,10 @@ export class ProfileDashboard implements IComponent {
     `;
   }
   
-
+  // Placeholder messages when no match data exists to avoid empty/misleading charts
   private renderNoDataMessages() {
+    if (this.destroyed) return;
+
     const placeholders = [
       { id: "winRateChart", title: t('dashboard.winRateOverTime') as string },
       { id: "scoreHistogram", title: t('dashboard.scoreDistribution') as string },
@@ -315,12 +359,28 @@ export class ProfileDashboard implements IComponent {
       { id: "leaderboard", title: t('dashboard.leaderboard') as string },
     ];
     placeholders.forEach(({ id, title }) => {
-      const div = document.getElementById(id);
-      if (div) {
+      const div = this.container.querySelector<HTMLElement>(`#${id}`);
+      if (!div) return;
         div.innerHTML = `
-          <h2>${title}</h2>
-          <p class="no-data">${t('dashboard.noDataMessage') || 'Not enough matches yet — play a few games to unlock insights!'}</p>
+            <h2 class="text-yellow-300 mb-2 font-bold">${title}</h2>
+          <p class="no-data">${t('dashboard.noDataMessage')}</p>
         `;
+    });
+  }
+  
+  /*
+    - Set destroyed flag to true
+    - Destroy each Plotly chart 
+  */
+  public cleanup() {
+    this.destroyed = true;
+
+    const plotIds = ["winRateChart", "scoreHistogram", "winsPerOpponent",];
+
+    plotIds.forEach((id) => {
+      const el = this.container?.querySelector<HTMLElement>(`#${id}`);
+      if (el && typeof Plotly !== "undefined") {
+        Plotly.purge(el);
       }
     });
   }
