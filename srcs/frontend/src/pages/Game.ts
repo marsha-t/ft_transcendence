@@ -45,7 +45,6 @@ export class Game implements IComponent {
     this.canvas.height = 500;
   }
 
-
   // - Called once by Router when route becomes active
   // - Builds DOM
   // - Initializes game session

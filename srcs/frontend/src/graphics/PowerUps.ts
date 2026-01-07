@@ -180,6 +180,7 @@ export class PowerUpManager{
         }, 50);
     }
     
+    //called by PongGame.dispose()
     public cleanPowerUp(): void {
         // Dispose all active power-ups
         this.powerUps.forEach(p => {
@@ -199,8 +200,6 @@ export class PowerUpManager{
             this.glowLayer.dispose();
             this.glowLayer = null;
         }
-
-        // console.log("PowerUpManager fully cleaned");
     }
     
 
