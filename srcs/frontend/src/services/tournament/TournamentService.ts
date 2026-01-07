@@ -1,4 +1,4 @@
-import { ApiResponse  } from "../auth/types";
+import { ApiResponse } from "../auth/types";
 import { Tournament, TournamentStatus, GetNextMatchResponse } from "./types";
 
 export class TournamentService {
@@ -24,7 +24,8 @@ export class TournamentService {
 					success: false,
 					status: response.status,
 					message: data?.error?.message || "Failed to validate player",
-					errors: []
+					errors: [],
+					code: data?.error?.code
 				};
 			}
 			return { success: true, status: response.status, message: 'Valid player', data };
@@ -47,12 +48,12 @@ export class TournamentService {
 			
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status, 
-					message: data.error || 'Failed to finalize tournament',
-					errors: data.errors || []
+					message: data?.error?.message || 'Failed to finalize tournament',
+					errors: [],
+					code: data?.error?.code,
 				};
 			}
 			return {
@@ -80,12 +81,12 @@ export class TournamentService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status, 
-					message: msg || "Failed to update tournament status",
-					errors: data.errors || []
+					message: data?.error?.message || "Failed to update tournament status",
+					errors: [],
+					code: data?.error?.code
 				};
 			}
 			return {
@@ -111,12 +112,12 @@ export class TournamentService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false, 
 					status: response.status,
-					message: msg || "Failed to fetch next match",
-					errors: data.errors || [],
+					message: data?.error?.message || "Failed to fetch next match",
+					errors: [],
+					code: data?.error?.code
 				};
 			}
 			return {

@@ -10,7 +10,6 @@ let mermaidInitialized = false;
 export class TournamentResults implements IComponent {
   private container!: HTMLElement;
   private tournamentId: number;
-  private newTournamentHandler?: () => void;
   private destroyed = false; // Guards async callbacks from changing DOM if router navigates away before they resolve
 
   /*
@@ -323,8 +322,7 @@ export class TournamentResults implements IComponent {
       "green"
     );
     
-    this.newTournamentHandler = () => navigate("/tournament/setup");
-    newBtn.addEventListener("click", this.newTournamentHandler);
+    newBtn.addEventListener("click", () => navigate("/tournament/setup"));
 
     btnContainer.appendChild(newBtn);
     this.container.appendChild(btnContainer);
@@ -338,9 +336,5 @@ export class TournamentResults implements IComponent {
   // Note: Mermaid does not need to be cleaned up
   public cleanup() {
     this.destroyed = true;
-    if (this.newTournamentHandler) {
-      const btn = this.container.querySelector("button");
-      btn?.removeEventListener("click", this.newTournamentHandler);
-    }
   }
 }
