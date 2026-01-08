@@ -12,7 +12,6 @@ interface AIConfig {
     aiSide: 'LEFT' | 'RIGHT';
 }
 
-
 /**
  * - Initializing BabylonJS engine and scene
  * - Running the fixed-step physics loop
