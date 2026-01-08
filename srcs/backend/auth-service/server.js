@@ -33,6 +33,7 @@ checkEnv('JWT_SECRET', process.env.JWT_SECRET);
 checkEnv('DATABASE_URL', process.env.DATABASE_URL);
 checkEnv('EMAIL_USER', process.env.EMAIL_USER);
 checkEnv('EMAIL_PASS', process.env.EMAIL_PASS);
+checkEnv('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID);
 
 // Initialize Fastify
 const app = Fastify({
@@ -44,15 +45,10 @@ const app = Fastify({
 });
 
 // CORS
-const allowedOrigins = ('https://localhost,https://localhost:443,https://localhost:8080')
-  .split(',')
-  .map(o => o.trim())
-  .filter(Boolean);
-
 await app.register(cors, {
-  origin: allowedOrigins,
+  origin: 'https://localhost:8080',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  methods: ['GET', 'POST', 'OPTIONS'],
 });
 
 // Static file handling for avatars in the `auth` service

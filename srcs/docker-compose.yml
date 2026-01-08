@@ -1,4 +1,4 @@
-# docker-compose.yml - Final Architecture
+# Docker Compose File
 # 5 Services, 2 Databases
 
 services:
@@ -6,14 +6,13 @@ services:
   # USER-SOCIAL DATABASE SERVICES
   # All three share user-social.db
   # ===================================
-  
   auth:
     build:
       context: ./backend/auth-service
       dockerfile: Dockerfile
     container_name: auth-service
-    ports:
-      - 5001:5001
+    expose:
+      - "5001"
     env_file:
       - ./.env
     environment:
@@ -26,15 +25,13 @@ services:
       - ./backend/auth-service/prisma/migrations:/app/prisma/migrations
       - ./backend/auth-service/uploads:/app/uploads
     restart: always
-
-
   profile:
     build:
       context: ./backend/profile-service
       dockerfile: Dockerfile
     container_name: profile-service
-    ports:
-      - 5002:5002
+    expose:
+      - "5002"
     env_file:
       - ./.env
     environment:
@@ -48,14 +45,13 @@ services:
     depends_on:
       - auth
     restart: always
-
   friends:
     build:
       context: ./backend/friends-service
       dockerfile: Dockerfile
     container_name: friends-service
-    ports:
-      - 5003:5003
+    expose:
+      - "5003"
     env_file:
       - ./.env
     environment:
@@ -69,18 +65,18 @@ services:
     depends_on:
       - auth
     restart: always
+
   # ===================================
   # ANALYTICS SERVICE
   # Reads from both databases
   # ===================================
-  
   dashboard:
     build:
       context: ./backend/dashboard-service
       dockerfile: Dockerfile
     container_name: dashboard-service
-    ports:
-      - 5004:5004
+    expose:
+      - "5004"
     env_file:
       - ./.env
     environment:
@@ -90,26 +86,24 @@ services:
     networks:
       - web
     volumes:
-      # Optional: read-only access to both databases
+      # read-only access to both databases
       - user-social-data:/app/prisma/user-data:ro
       - game-tournament-data:/app/prisma/game-data:ro
     depends_on:
       - auth
       - game-tournament
     restart: always
-
   # ===================================
   # GAME-TOURNAMENT SERVICE
   # Has its own database
   # ===================================
-  
   game-tournament:
     build:
       context: ./backend/game-tournament-service
       dockerfile: Dockerfile
     container_name: game-tournament-service
-    ports:
-      - 5005:5005
+    expose:
+      - "5005"
     env_file:
       - ./.env
     environment:
@@ -136,7 +130,6 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      # - 3000:3000
       - 8080:443
     depends_on:
       - auth
@@ -146,9 +139,6 @@ services:
       - game-tournament
     networks:
       - web
-    # volumes:
-    #   - .:/app
-    #   - /app/node_modules
     environment:
     - HOST=0.0.0.0
     restart: always
@@ -164,7 +154,3 @@ volumes:
   # Used only by game-tournament service
   game-tournament-data:
     name: game-tournament-data
-  
-  # User uploads (avatars)
-  avatars-data:
-    name: avatars-data

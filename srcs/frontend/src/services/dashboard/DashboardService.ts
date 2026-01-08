@@ -1,5 +1,5 @@
 import { ApiResponse } from "../auth/types";
-import { GameDashboard, UserDashboard } from "./types";
+import { GameDashboard, UserDashboard , MatchHistory} from "./types";
 
 export class DashboardService {
 	private baseUrl: string;
@@ -114,6 +114,54 @@ export class DashboardService {
 		} catch (err) {
 			console.error('Error fetching user dashboard: ', err);
 			throw err;
+		}
+	}
+
+	async getMatchHistory(): Promise<ApiResponse<MatchHistory[]>> {
+		try {
+			const response = await fetch(`${this.baseUrl}/dashboardServ/stats/users/match-history`, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+						credentials: 'include',
+			});
+			
+			const data = await response.json();
+			if (!response.ok) {
+				return {
+					success: false,
+					status: response.status,
+					message: data.error || data.message || "Failed to fetch match history",
+					errors: data.errors || [],
+				};
+			}
+			const matches: MatchHistory[] = Array.isArray(data)
+				? data.map((m: any) => ({
+				date: m.date,
+				opponent: m.opponent,
+				opponentAvatar: m.opponentAvatar || "/uploads/avatar/default.png",
+				userScore: m.userScore,
+				opponentScore: m.opponentScore,
+				result: m.result === "WIN" ? "WIN" : "LOSS",
+				isTournament: Boolean(m.isTournament),
+				}))
+				: [];
+	
+			return {
+				success: true,
+				status: response.status,
+				data: matches,
+				message: "Users fetched successfully",
+			};
+		} catch (error: any) {
+			console.error("API error", error);
+			return {
+				success: false,
+				status: 0,
+				message: error?.message || "Network error",
+				errors: [],
+			};
 		}
 	}
 }

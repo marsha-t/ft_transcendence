@@ -22,7 +22,7 @@ export class TournamentMatch implements IComponent {
   public render(): HTMLElement {
     const page = document.createElement("div");
     page.className = `bg-[var(--color-background)]
-      min-h-[80vh] flex justify-center items-center
+      h-full flex justify-center items-center
       font-['Press_Start_2P',monospace]
       text-[var(--color-text-white)] overflow-hidden`;
 
