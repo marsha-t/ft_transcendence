@@ -29,6 +29,7 @@
   },
   "creators": {
     "creatorsHeader": "Creators",
+    "discription": "A co-op team of developers who turned a classic game into a modern multiplayer experience. Built with experimentation, teamwork, and a lot of trial and error — just like any good game.  Meet the minds behind Transcendence Pong:",
     "backendDeveloper": "Backend Developer",
     "frontendDeveloper": "Frontend Developer",
     "securityEngineer": "JWT & Security Specialist",
