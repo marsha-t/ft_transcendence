@@ -6,10 +6,13 @@ import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager";
-import { createButtonStyle, showConfirmation } from "../utils/uiUtils";
+import { createButtonStyle, showConfirmation, showMessage } from "../utils/uiUtils";
 
 export class TournamentSetup implements IComponent {
   private container!: HTMLElement;
+  private isPlayerCountValid = true;
+  private nextBtn!: HTMLButtonElement;
+  private pageMessageContainer!: HTMLDivElement;
   private modal: HTMLElement | null = null;
   private isModalOpen = false;
   private creatorUsername: string = "Creator";
@@ -17,6 +20,8 @@ export class TournamentSetup implements IComponent {
   private customizationSection!: HTMLElement;
   private destroyed = false;
   private activeMode: "guest" | "user" = "guest";
+  private modalMessageContainer!: HTMLDivElement;
+
 
   /*
     - Reset any existing tournament store so that TournamentSetup starts from clean baseline
@@ -33,6 +38,7 @@ export class TournamentSetup implements IComponent {
     - Render:
       - Game customisation entry point to modal
       - Number of players input (min = 2, max = 16, default to 2)
+      - Error message box 
   */
   public render(): HTMLElement {
     const page = document.createElement("div");
@@ -103,17 +109,29 @@ export class TournamentSetup implements IComponent {
     input.addEventListener("change", () => {
       const newNum = parseInt(input.value, 10);
 
-      if (isNaN(newNum) || newNum < 2) {
-        alert("Minimum 2 players required");
-        input.value = "2";
-        TournamentDraftStore.setNumberOfPlayers(2);
+      if (isNaN(newNum))
+      {
+        this.isPlayerCountValid = false;
+        this.nextBtn.disabled = true;
+        showMessage(counterContainer, this.pageMessageContainer, "Please enter a value between 2 and 16", 'error'); 
+        return;
+      }
+      if (newNum < 2) {
+        this.isPlayerCountValid = false;
+        this.nextBtn.disabled = true;
+        showMessage(counterContainer, this.pageMessageContainer, "Minimum 2 players required", 'error'); 
         return;
       }
       if (newNum > 16) {
-        input.value = "16";
-        TournamentDraftStore.setNumberOfPlayers(16);
+        this.isPlayerCountValid = false;
+        this.nextBtn.disabled = true;
+        showMessage(counterContainer, this.pageMessageContainer, "Maximum 16 players allowed", 'error'); 
         return ;
       }
+      this.isPlayerCountValid = true;
+      this.nextBtn.disabled = false;
+      this.pageMessageContainer.style.display = "none";
+      this.pageMessageContainer.textContent = "";
       TournamentDraftStore.setNumberOfPlayers(newNum);
     });
     counter.appendChild(input);
@@ -122,12 +140,22 @@ export class TournamentSetup implements IComponent {
     // Buttons 
     const actions = document.createElement("div");
     const nextBtn = document.createElement("button");
+    this.nextBtn = nextBtn;
     nextBtn.textContent = t("common.next") as string;
     nextBtn.className = createButtonStyle("w-[390px] h-[60px] text-[1.6rem] text-[24px]", 'green');
-    nextBtn.addEventListener("click", () => this.openAddPlayersPopup());
+    nextBtn.addEventListener("click", () => {
+      if (!this.isPlayerCountValid) return;
+      this.openAddPlayersPopup();
+    });
     actions.appendChild(nextBtn);
     counterContainer.appendChild(actions);
     
+    // Message container
+    this.pageMessageContainer = document.createElement('div');
+    this.pageMessageContainer.className = 'message_container w-full p-3 rounded-md mb-3 text-sm';
+    this.pageMessageContainer.style.display = 'none';
+    counterContainer.appendChild(this.pageMessageContainer);
+
     this.container.appendChild(counterContainer);
     page.appendChild(this.container);
 
@@ -161,7 +189,9 @@ export class TournamentSetup implements IComponent {
   /*
     - Prevent multiple modal instances via isModalOpen guard
     - Modal has:
-      - close button (calls closeModal())
+      - Header
+      - Close button (calls closeModal())
+      - Container for error messages
       - Left side: Add player form
       - Right side: Lineup preview
     - destroyed guard used here to prevent async DOM attachment if page is already 'destroyed'
@@ -169,7 +199,8 @@ export class TournamentSetup implements IComponent {
   private async openAddPlayersPopup() {
     if (this.isModalOpen) return;
     this.isModalOpen = true;
-    
+    this.clearModalMessage();
+
     this.modal = document.createElement("div");
     this.modal.className = `fixed top-0 left-0 w-full h-full bg-black/50 flex
       justify-center items-center backdrop-blur-sm`;
@@ -185,13 +216,20 @@ export class TournamentSetup implements IComponent {
     h2.className = "font-['Press_Start_2P',monospace] text-base uppercase text-[var(--color-text-white)] m-0";
     h2.textContent = t("tournament.addPlayers") as string;
     
+    const modalMessageWrapper = document.createElement("div");
+    modalMessageWrapper.className = "flex justify-center w-full mb-4"; // To center modalMessageContainer
+    this.modalMessageContainer = document.createElement('div');
+    this.modalMessageContainer.className = 'message_container w-full p-3 rounded-md mb-3 text-sm';
+    this.modalMessageContainer.style.display = 'none';
+    modalMessageWrapper.appendChild(this.modalMessageContainer);
+  
     const closeBtn = document.createElement("button");
     closeBtn.className = `bg-transparent border-none text-[var(--color-text-white)] text-[2rem]
       cursor-pointer leading-none absolute top-0 right-0 transition-transform hover:scale-110`;
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", () => this.closeModal());
     header.append(h2, closeBtn);
-
+    
     // overlay body split: Left to add player; Right to show lineup
     const body = document.createElement("div");
     body.className = "grid grid-cols-2 gap-[30px]";
@@ -207,7 +245,7 @@ export class TournamentSetup implements IComponent {
     };
 
     body.append(left, right);
-    modalContent.append(header, body);
+    modalContent.append(header, modalMessageWrapper, body);
     this.modal.appendChild(modalContent);
     document.body.appendChild(this.modal);
   }
@@ -218,7 +256,6 @@ export class TournamentSetup implements IComponent {
       - Toggle buttons to allow guest player and registered user
         - Toggling between the two modes resets input for the 'hidden' mode
       - Input form for guestName or username/password
-      - Error box for error messages from backend
       - Add button
     - Add button event listener calls handleAddPlayer() and then updateLineup()
       - updateLineup called regardless of success (harmless if nothing changed)
@@ -285,13 +322,14 @@ export class TournamentSetup implements IComponent {
     const toggleForm = (type: "guest" | "user") => {
       this.activeMode = type;
 
+      this.clearModalMessage();
+
       guestBtn.dataset.active = (type === "guest").toString();
       userBtn.dataset.active = (type === "user").toString();
 
       guestForm.classList.toggle("hidden", type !== "guest");
       userForm.classList.toggle("hidden", type !== "user");
 
-      errorBox.classList.add("hidden");
 
       if (type === "guest") {
         usernameInput.value = "";
@@ -303,14 +341,6 @@ export class TournamentSetup implements IComponent {
     guestBtn.addEventListener("click", () => toggleForm("guest"));
     userBtn.addEventListener("click", () => toggleForm("user"));
 
-    // Error box
-    const errorBox = document.createElement("div");
-    errorBox.id = "add-player-error";
-    errorBox.className =
-      "hidden w-full bg-[#ff4d4d]/20 text-[#ffb3b3] border border-[#ff4d4d]/40 " +
-      "rounded-md px-3 py-1 mb-2 font-['VT323'] text-[1rem] text-center leading-tight";
-    errorBox.textContent = "";
-
     // Add player button
     const addBtn = document.createElement("button");
     addBtn.textContent = t("tournament.addPlayerBtn") as string;
@@ -319,14 +349,15 @@ export class TournamentSetup implements IComponent {
       py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
       shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8]`;
     addBtn.addEventListener("click", async () => {
-      await this.handleAddPlayer(usernameInput, passwordInput, guestNameInput, errorBox);
+      this.clearModalMessage();
+      await this.handleAddPlayer(usernameInput, passwordInput, guestNameInput);
       usernameInput.value = passwordInput.value = guestNameInput.value = "";
       const warning = guestForm.querySelector("#guest-warning") as HTMLElement;
       if (warning) warning.classList.add("hidden");
       this.updateLineup();
     });
 
-    form.append(guestForm, userForm, errorBox, addBtn);
+    form.append(guestForm, userForm, addBtn);
     return form;
   }
 
@@ -341,24 +372,20 @@ export class TournamentSetup implements IComponent {
     username: HTMLInputElement,
     password: HTMLInputElement,
     guestName: HTMLInputElement,
-    errorBox: HTMLElement
   ) {
-    errorBox.classList.add("hidden");
     const user = username.value.trim();
     const pass = password.value.trim();
     const guest = guestName.value.trim();
     if (this.activeMode === "guest")
     {
       if (!guest) {
-        errorBox.textContent = "Please enter a guest name";
-        errorBox.classList.remove("hidden");
+        showMessage(this.modal!, this.modalMessageContainer, "Please enter a guest name", 'error');
         return ;
       }
     }
     if (this.activeMode === "user") {
       if (!user || !pass) {
-        errorBox.textContent = "Please enter username and password";
-        errorBox.classList.remove("hidden");
+        showMessage(this.modal!, this.modalMessageContainer, "Please enter username and password", 'error');
         return ;
       }
     }
@@ -369,28 +396,25 @@ export class TournamentSetup implements IComponent {
         : { username: user, password: pass }
     );
     if (!res.success || !res.data?.valid) {
-      errorBox.textContent =
-        res.message || "Failed to validate player";
-      errorBox.classList.remove("hidden");
+      showMessage(this.modal!, this.modalMessageContainer, res.message, 'error');
       return;
     }
   
-    const { displayName, userId, type } = res.data;
+    const { valid, displayName, userId } = res.data;
 
     const existingNames = [
       this.creatorUsername.toLowerCase(), 
       ...TournamentDraftStore.players.map((p) => p.displayName.toLowerCase())
     ];
     if (existingNames.includes(displayName!.toLowerCase())) {
-      errorBox.textContent = `${displayName} already added`;
-      errorBox.classList.remove("hidden");
+      showMessage(this.modal!, this.modalMessageContainer, `${displayName} already added`, 'error');
       return;
     }
 
     TournamentDraftStore.addPlayer({
       displayName, 
       userId: userId ?? undefined,
-      isGuest: type == "guest",
+      isGuest: userId == null,
     });
   }
   
@@ -442,6 +466,7 @@ export class TournamentSetup implements IComponent {
         delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold 
           cursor-pointer ml-2 transition-transform hover:text-[#ff5c5c] hover:scale-110`;
         delBtn.addEventListener("click", () => {
+          this.clearModalMessage();
           TournamentDraftStore.removePlayer(i);
           this.updateLineup();
         });
@@ -504,16 +529,12 @@ export class TournamentSetup implements IComponent {
 
   // Fetch current logged in user's username for lineup section
   private async fetchCreatorUsername() {
-    try {
-      const response = await apiServices.profile.getCurrentUser();
-      if (!response.success || !response.data) return;
-      const { username, id } = response.data;
-      if (username) {
-        this.creatorUsername = username;
-        this.creatorId = id ?? null;
-      }
-    } catch (err) {
-      console.log("Failed to fetch creator username: ", err);
+    const response = await apiServices.profile.getCurrentUser();
+    if (!response.success || !response.data) return;
+    const { username, id } = response.data;
+    if (username) {
+      this.creatorUsername = username;
+      this.creatorId = id ?? null;
     }
   }
 
@@ -548,32 +569,35 @@ export class TournamentSetup implements IComponent {
       isGuest: p.isGuest,
     }));
 
-    try {
-      const response = await apiServices.tournament.finalizeTournament(
-        numPlayers,
-        playerData
-      );
-      if (!response.success) {
-        alert(response.message);
-        return;
-      }
-      const tournamentId = response.data.id;
-      const start = await apiServices.tournament.updateTournamentStatus(
-        tournamentId,
-        "STARTED"
-      );
-      if (!start.success) {
-        alert(start.message || "Failed to start tournament");
-        return;
-      }
-      TournamentDraftStore.clear();
-      this.closeModal();
-      navigate("/tournament/match", { tournamentId });
-    } catch (err) {
-      console.error("Error finalizing tournament:", err);
+    const response = await apiServices.tournament.finalizeTournament(
+      numPlayers,
+      playerData
+    );
+    if (!response.success) {
+      showMessage(this.modal!, this.modalMessageContainer, response.message, 'error');
+      return;
     }
+    const tournamentId = response.data.id;
+    const start = await apiServices.tournament.updateTournamentStatus(
+      tournamentId,
+      "STARTED"
+    );
+    if (!start.success) {
+      showMessage(this.modal!, this.modalMessageContainer, start.message, 'error');
+      return;
+    }
+    TournamentDraftStore.clear();
+    this.closeModal();
+    navigate("/tournament/match", { tournamentId });
   }
   
+  // Helper to clear error message in modal
+  private clearModalMessage() {
+    if (!this.modalMessageContainer) return;
+    this.modalMessageContainer.style.display = "none";
+    this.modalMessageContainer.textContent = "";
+  }
+
   // Handle closing of modal
   /*
     - Prompt for confirmation if draft lineup already exists 
