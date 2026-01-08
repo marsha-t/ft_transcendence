@@ -15,7 +15,7 @@ export class AIWebSocketService {
     private isConnecting =  false;
     private socket: WebSocket | null = null;
     private sessionId: number | null = null;
-    private reconnectDelay = 2000; //20 sec;
+    private reconnectDelay = 2000; //2 sec;
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private messageHandlers: Map<string, (data: any) => void> = new Map();
@@ -148,7 +148,7 @@ export class AIWebSocketService {
     this.stopStateStream();
 
     // Don't reconnect if it was a clean close (user quit)
-    if(event.code === 1000 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
+    if(event.code === 1000 || event.code === 4401 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
         // console.log('[AIWebSocket] Clean disconnect -  not reconnecting');
         return;
 
