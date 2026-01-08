@@ -31,7 +31,13 @@ export class TournamentService {
 			return { success: true, status: response.status, message: 'Valid player', data };
 		} catch (err) {
 			console.error ('Error validating player: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				errors: [],
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -64,7 +70,13 @@ export class TournamentService {
 			};
 		} catch (err) {
 			console.error('Error finalizing tournament: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				errors: [],
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -97,7 +109,13 @@ export class TournamentService {
 			}
 		} catch (err) {
 			console.error('Error updating tournament status: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				errors: [],
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -128,7 +146,13 @@ export class TournamentService {
 			};
 		} catch (err) {
 			console.error('Error getting next match: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				errors: [],
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 }
