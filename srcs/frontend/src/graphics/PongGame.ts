@@ -5,12 +5,8 @@ import { InputHandler } from "../graphics/InputHandler";
 import { apiServices } from "../services/ApiServices.js";
 import { GameState } from "../services/websocket/types";
 import { gameConfigManager } from "./GameConfigManager";
-import { PowerUpManager, PowerUpTypes } from "./PowerUps";
-
-interface AIConfig {
-    aiEnabled: boolean;
-    aiSide: 'LEFT' | 'RIGHT';
-}
+import { PowerUpManager } from "./PowerUps";
+import { PowerUpTypes, AIConfig } from './types';
 
 /**
  * - Initializing BabylonJS engine and scene
@@ -74,10 +70,11 @@ export class PongGame {
         this.createBall();
         this.input = new InputHandler(this.leftPaddle, this.rightPaddle);
 
+        if(this.isAIGame)
+            this.input.setControlModes("AI", "HUMAN");
         //Initialize power-ups if enabled
-        if(gameConfigManager.current.powerUps.enabled){
+        if(gameConfigManager.current.powerUps.enabled)
             this.powerUpManager = new PowerUpManager(this.scene);
-        }
         
         this.engine.runRenderLoop(() => {
             if (this.isPaused) {

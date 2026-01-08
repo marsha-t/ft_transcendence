@@ -247,7 +247,6 @@ export class Login implements IComponent {
 
     private async handle2FA() {
         const code = this.otpInput.value.trim();
-        console.log('2FA code entered:', code);
         if (!code) return await showMessage(this.container, this.messageContainer,'Enter 2FA code', 'error');
 
         const payload: Login2FAData = {
@@ -260,7 +259,6 @@ export class Login implements IComponent {
             const response = await apiServices.auth.login2FA(payload);
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.message || 'Login successful', 'success');
-                 console.log('2FA code entered:', code);
                 AuthUtils.setLoggedIn({ username: payload.username });
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 2000);
