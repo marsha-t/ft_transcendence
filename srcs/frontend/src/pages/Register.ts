@@ -209,7 +209,7 @@ export class Register implements IComponent {
             } else {
                 await showMessage(this.container, this.messageContainer, response.message, 'error'); // Handle non-successful responses
             }
-        } catch (error: any){ // Handle unexpected JavaScript errors like network or form parsing issues
+        } catch (error: any){
             const errorMessage = error.message ? error.message : 'An unexpected error occurred. Please try again.';
             console.error('Registration error:', errorMessage);
             await showMessage(this.container, this.messageContainer, errorMessage, 'error');

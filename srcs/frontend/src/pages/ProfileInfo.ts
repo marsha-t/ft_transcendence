@@ -1,6 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { ProfileData, ApiResponse } from '../services/profile/types';
+import { ProfileData } from '../services/profile/types';
+import { ApiResponse } from "../services/auth/types";
 import { t } from "../services/i18n/i18nService.js";
 import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
 
@@ -366,7 +367,7 @@ export class ProfileInfo implements IComponent {
         const init2FAStatus = async () => {
             const res = await apiServices.auth.get2FAStatus();
             if (this._isDestroyed) return;
-            if (res.success && res.enabled) {
+            if (res.success && res.data?.enabled) {
                 toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
                 toggleCircle.style.transform = "translate(100%, -50%)";
                 toggleCircle.style.left = "16px";

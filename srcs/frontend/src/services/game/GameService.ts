@@ -27,7 +27,6 @@ export class GameService{
     // 1- Create a new game session
     async createGameSession(side: PlayerSide): Promise<GameSession>{
         try{
-            //Send POST request to backend with user + side
             const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions`, {
                 method: 'POST',
                 headers: {
@@ -38,19 +37,20 @@ export class GameService{
                     side
                 })
             });
-
             if(!response.ok) {
                 console.log(`Failed to create game session: ${response.status}`);
                 throw new Error(`Failed to create game session: ${response.status}`);
             }
-
-            //get data from backend and  Parse JSON response
             const data = await response.json();
-            //transform data into game session, Convert raw API data → GameSession object
             return this.transformApiResponseToGameSession(data);
         }catch(error){
-            console.error('Error creating game session:', error);
-            throw error;
+            console.error('Error creating game session: ', error);
+            return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
         }
     }
 
@@ -69,7 +69,6 @@ export class GameService{
                     side
                 })
             });
-
             if(!response.ok) {
                 let message = `Error to add guest player: ${response.status}`;
                 if (response.status === 409) {
@@ -87,8 +86,13 @@ export class GameService{
                 throw err;
             }
         }catch(error){
-            console.log('Error adding guest player:', error);
-            throw error;
+            console.log('Error adding guest player: ', error);
+            return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
         }
     }
     // 3- update game session status
@@ -120,8 +124,13 @@ export class GameService{
             const data = await response.json();
             return this.transformApiResponseToGameSession(data);
         } catch (error) {
-            console.error('Error updating game status:', error);
-            throw error;
+            console.error('Error updating game status: ', error);
+            return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
         }
     }
     // 4- update player score
@@ -141,7 +150,12 @@ export class GameService{
             return data;
         }catch(error){
             console.log("Error updating player score"), console.error();
-                throw error
+            return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
         }
     }
     // 6- Start game
