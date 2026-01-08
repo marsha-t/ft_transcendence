@@ -74,7 +74,7 @@ export class Ball {
         try {
             this.mesh.dispose();
         } catch (er){ 
-            console.log("Ball mesh already disposed or error during cleanup:", er)
+            console.error("Ball mesh already disposed or error during cleanup:", er)
         }
 
         this.mesh = null as any;

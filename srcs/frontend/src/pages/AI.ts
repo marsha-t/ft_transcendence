@@ -1,11 +1,10 @@
 import { IComponent } from "../components/IComponent.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { PlayerSide } from "../services/game/types.js";
-import { navigate, confirmationPopup } from "../utils/commonUtils.js";
-import {GameSession} from "../services/game/types.js";
-import { GameService } from "../services/game/GameService.js";
+import { navigate } from "../utils/commonUtils.js";
+import { GameSession } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
-import {makeButton} from "../utils/uiUtils.js";
+import { makeButton, gameCompletionPopup, showMessage, showConfirmation } from "../utils/uiUtils.js";
 import { gameConfigManager } from "../graphics/GameConfigManager.js";
 import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
@@ -32,12 +31,12 @@ import { t } from "../services/i18n/i18nService.js";
 export class AI implements IComponent {
   private container!: HTMLElement;
   private canvas: HTMLCanvasElement;
+  private messageContainer!: HTMLDivElement;
   private pongGame!: PongGame;
   private isScoring: boolean = false;
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
   private currentSession: GameSession | null = null;
-  private gameService: GameService;
   private username: string = 'Loading ...';
   private wsConnected: boolean = false;
 
@@ -48,7 +47,6 @@ export class AI implements IComponent {
     this.canvas = document.createElement("canvas");
     this.canvas.width = 900;
     this.canvas.height = 500;
-    this.gameService = new GameService();
     this.username = "Getting username...";
   }
 
@@ -65,6 +63,9 @@ export class AI implements IComponent {
       this.createCanvas();
       this.createControlsContainer();
       this.initializeAIGame();
+      this.messageContainer = document.createElement("div");
+      this.messageContainer.style.display = "none";
+      this.container.appendChild(this.messageContainer);
     });
 
     return this.container;
@@ -100,7 +101,6 @@ export class AI implements IComponent {
     this.container.appendChild(titleContainer);
   }
 
-
   private createCanvas(): void {
     const canvasContainer = document.createElement("div");
     canvasContainer.className = "relative";
@@ -131,6 +131,13 @@ export class AI implements IComponent {
 
     this.container.appendChild(canvasContainer);
     this.createPongGame();
+  }
+
+  private clearMessage(): void {
+    if (this.messageContainer) {
+      this.messageContainer.style.display = "none";
+      this.messageContainer.textContent = "";
+    }
   }
 
   // ===========
@@ -192,6 +199,7 @@ export class AI implements IComponent {
   // GAME CUSTOMIZATION
   // ==================
   private openCustomizationPopUp(): void {
+    this.clearMessage();
     this.customizationUI = openGameCustomization(
       document.body, (settings: CustomGameSettings) => {
 
@@ -201,9 +209,7 @@ export class AI implements IComponent {
         this.recreatePongGame();
         this.showCustomizationApplied(settings.preset);
       },
-      () => {
-        console.log("Customization cancelled.");
-      }
+      () => {}
     );
   }
 
@@ -275,14 +281,11 @@ export class AI implements IComponent {
   }
 
   async loadUser() {
-    try {
-      const response = await apiServices.profile.getProfile();
-      const username = response.data?.username;
-      if (response.success && username) {
-        this.username = username;
-      }
-    } catch (err) {
-      console.log("Failed to fetch username: ", err);
+    const response = await apiServices.profile.getCurrentUser();
+    if (!response.success || !response.data) return;
+    const { username } = response.data;
+    if (username) {
+      this.username = username;
     }
   }
   
@@ -292,7 +295,7 @@ export class AI implements IComponent {
   private async initializeAIGame(): Promise<void> {
       const res = await apiServices.ai.createAIGame();
       if (!res.success || !res.data) {
-        alert(res.message);
+        showMessage(this.container, this.messageContainer, res.message || "Failed to initialize AI game", "error");
         return;
       }
       this.currentSession = res.data; 
@@ -325,7 +328,7 @@ export class AI implements IComponent {
   
     } catch (error) {
       console.error('CONNECTION ERROR:', error);
-      alert('Failed to connect to AI opponent. Please try again.');
+      showMessage(this.container, this.messageContainer, "Failed to connect to AI opponent. Please try again.", "error");
     }
   }
 
@@ -337,22 +340,24 @@ export class AI implements IComponent {
       return;
     }
 
-    try {
-      if (this.currentSession) {
-        this.currentSession = await this.gameService.updatePlayerScore(
-          this.currentSession.sessionId,
-          scoringSide
-        );
-        this.updateScoreDisplay();
-
-        if (this.currentSession.status === "FINISHED") {
-          setTimeout(() => this.endGame(), 500);
-        } else if (this.currentSession.status === "ABORTED") {
-          this.stopGameLoop();
-        }
+    if (this.currentSession) {
+      const res = await apiServices.game.updatePlayerScore(
+        this.currentSession.sessionId,
+        scoringSide
+      );
+      if (!res.success || !res.data) {
+        this.stopGameLoop();
+        showMessage(this.container, this.messageContainer, "Score syncing failed", "error");
+        return;
       }
-    } catch (error) {
-      console.error("Failed to update score:", error);
+      this.currentSession = res.data;
+      this.updateScoreDisplay();
+
+      if (this.currentSession.status === "FINISHED") {
+        setTimeout(() => this.endGame(), 500);
+      } else if (this.currentSession.status === "ABORTED") {
+        this.stopGameLoop();
+      }
     }
   }
 
@@ -382,7 +387,7 @@ export class AI implements IComponent {
       this.stopGameLoop();
 
       const winnerName = this.currentSession.winnerName ?? "Unknown";
-      const confirmed = await confirmationPopup(
+      const confirmed = await gameCompletionPopup(
         `${t("game-result.gameOver") as string}! ${winnerName} ${t("game-result.wins") as string}!`,
         `${t("game-result.gameOver") as string}`,
         true
@@ -411,59 +416,63 @@ export class AI implements IComponent {
   // GAME CONTROL ACTIONS
   // ====================
   private async toggleGame(): Promise<void> {
+    this.clearMessage();
     if (!this.currentSession) {
-      alert("Game session not initialized");
+      showMessage(this.container, this.messageContainer, "Game session not initialized", "error");
       return;
     }
 
-    try {
-      if (!this.isGameRunning) {
-        await this.gameService.startGame(this.currentSession.sessionId);
-        this.startGameLoop();
-        this.updateGameButtons(true);
+    if (!this.isGameRunning) {
+      const res = await apiServices.game.startGame(this.currentSession.sessionId);
+      if (!res.success || !res.data) {
+        showMessage(this.container, this.messageContainer, res.message || "Failed to start game", "error");
+        return;
       }
-    } catch (error) {
-      console.error("Failed to start game:", error);
-      alert("Failed to start game. Please try again.");
+      this.currentSession = res.data;
+      this.startGameLoop();
+      this.updateGameButtons(true);
     }
   }
 
   private async pauseGame(): Promise<void> {
+    this.clearMessage();
     if (!this.currentSession) return;
 
-    try {
-      if (this.isGameRunning) {
-        await this.gameService.pauseGame(this.currentSession.sessionId);
-        this.stopGameLoop();
-        this.updateGameButtons(false);
-      } else {
-        await this.gameService.startGame(this.currentSession.sessionId);
-        this.startGameLoop();
-        this.updateGameButtons(true);
-      }
-    } catch (error) {
-      console.error("Failed to pause/resume game:", error);
+    const res = this.isGameRunning
+    ? await apiServices.game.pauseGame(this.currentSession.sessionId)
+    : await apiServices.game.startGame(this.currentSession.sessionId);
+    if (!res.success || !res.data) {
+      showMessage(this.container, this.messageContainer, res.message, "error");
+      return;
+    }
+    this.currentSession = res.data;
+    if (this.isGameRunning) {
+      this.stopGameLoop();
+      this.updateGameButtons(false);
+    } else {
+      this.startGameLoop();
+      this.updateGameButtons(true);
     }
   }
 
   private async quitGame(): Promise<void> {
+    this.clearMessage();
     if (!this.currentSession) return;
 
-    const confirmed = confirm("Are you sure you want to quit the AI game?");
+    const confirmed = await showConfirmation("Are you sure you want to quit the AI game?", t("common.pleaseConfirm") as string, true);
     if (!confirmed) return;
 
-    try {
-      await this.gameService.abortGame(this.currentSession.sessionId);
-      this.stopGameLoop();
-      // navigate("/");
-      this.resetGame();
-    } catch (error) {
-      console.error("Failed to quit game:", error);
+    const res = await apiServices.game.abortGame(this.currentSession.sessionId);
+    if (!res.success || !res.data) {
+      showMessage(this.container, this.messageContainer, res.message || "Failed to quit game", "error");
+      return ;
     }
+    this.currentSession = res.data;
+    this.stopGameLoop();
+    this.resetGame();
   }
   
   private async resetGame(): Promise<void> {
-
     this.stopGameLoop();
     if(this.wsConnected){
       apiServices.aiWebSocketService.disconnect();
@@ -482,11 +491,9 @@ export class AI implements IComponent {
 
     gameConfigManager.reset();
 
-
     const indicator = document.getElementById("custom-indicator");
     if(indicator)
       indicator.remove();
-
 
     const startBtn = document.getElementById("start-btn");
     const pauseBtn = document.getElementById("pause-btn");
@@ -552,13 +559,12 @@ export class AI implements IComponent {
       return true;
     }
 
-    const confirmLeave = confirm("Leaving will stop the current AI match.");
+    const confirmLeave = await showConfirmation("Leaving will stop the current AI match.", t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
-
+    this.stopGameLoop();
     if (this.currentSession?.sessionId) {
       apiServices.game.abortGame(this.currentSession.sessionId).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
     }
-    this.stopGameLoop();
     return confirmLeave;
   }
 

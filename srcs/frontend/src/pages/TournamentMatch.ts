@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
-import {showConfirmation} from "../utils/uiUtils.js";
+import { showConfirmation } from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
 
