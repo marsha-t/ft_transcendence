@@ -1,8 +1,8 @@
-import * as BABYLON from "babylonjs";
+import * as BABYLON from "@babylonjs/core";
 import { Paddle } from "../graphics/Paddle";
 import { Ball } from "../graphics/Ball";
 import { InputHandler } from "../graphics/InputHandler";
-import { aiWebSocketService } from "../services/websocket/WebsocketServices";
+import { apiServices } from "../services/ApiServices.js";
 import { GameState } from "../services/websocket/types";
 import { gameConfigManager } from "./GameConfigManager";
 import { PowerUpManager, PowerUpTypes } from "./PowerUps";
@@ -11,7 +11,6 @@ interface AIConfig {
     aiEnabled: boolean;
     aiSide: 'LEFT' | 'RIGHT';
 }
-
 
 /**
  * - Initializing BabylonJS engine and scene
@@ -50,6 +49,8 @@ export class PongGame {
     private enlargedPaddleSize: number = 2.0; // Multiplier
     private powerUpManager: PowerUpManager | null = null;
     private activePowerUps: Map<PowerUpTypes, number> = new Map();
+    private lastPaddleCollisionTime: number = 0;
+    private paddleCollisionCooldown: number = 100; // milliseconds
 
     // ============================================================
     // INITIALIZATION & GAME LOOP
@@ -328,7 +329,7 @@ export class PongGame {
             }
         };
 
-        aiWebSocketService.sendGameState(gameState);
+        apiServices.aiWebSocketService.sendGameState(gameState);
     }
 
     // ==================
@@ -355,7 +356,7 @@ export class PongGame {
             tableBounds: gameConfigManager.current.tableBounds
         };
 
-        aiWebSocketService.sendGameStart(constants);
+        apiServices.aiWebSocketService.sendGameStart(constants);
     }
 
     public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
@@ -369,9 +370,6 @@ export class PongGame {
     // RESOURCE CLEANUP
     // ===========================
     public dispose(): void {
-        if (this.isAIGame) {
-            aiWebSocketService.disconnect();
-        }
         
         this.activePowerUps?.forEach((_, type) => {
             this.deactivatePowerUp(type);
@@ -394,11 +392,6 @@ export class PongGame {
             this.scene.dispose();
             this.scene = null as any;
         }
-        // if(this.engine)
-        //     this.engine.dispose();
-
-        // this.scene = null as any;
-        // this.engine = null as any;
         this.leftPaddle = null as any;
         this.rightPaddle = null as any;
         this.ball = null as any;
@@ -694,8 +687,11 @@ export class PongGame {
     // PHYSICS & COLLISION DETECTION
     // =============================
     private checkCollisions(): void {
-        this.checkWallBounce();
-        this.checkPaddleBounce();
+        const paddleHit = this.checkPaddleBounce();
+    
+        if (!paddleHit) {
+            this.checkWallBounce();
+        }
     }
 
     private checkWallBounce(): void {
@@ -720,15 +716,20 @@ export class PongGame {
         }
     }
 
-    private checkPaddleBounce(): void {
+    private checkPaddleBounce(): boolean {
+        const currentTime = Date.now();
+        
+        // Prevent rapid re-collisions (corner trap fix)
+        if (currentTime - this.lastPaddleCollisionTime < this.paddleCollisionCooldown)
+            return false;
+
         const ball = this.ball.mesh;
         const left = this.leftPaddle.mesh;
         const right = this.rightPaddle.mesh;
-    
+
         const r = gameConfigManager.current.ball.radius;
         const halfW = gameConfigManager.current.paddle.width / 2;
         
-        // Get the actual depth for each paddle (accounting for power-ups)
         const baseDepth = gameConfigManager.current.paddle.depth;
         const leftHalfD = this.enlargedPaddle === 'LEFT' 
             ? (baseDepth * this.enlargedPaddleSize) / 2 
@@ -736,32 +737,48 @@ export class PongGame {
         const rightHalfD = this.enlargedPaddle === 'RIGHT' 
             ? (baseDepth * this.enlargedPaddleSize) / 2 
             : baseDepth / 2;
-    
+
         const maxBounceAngle = gameConfigManager.current.ball.maxBounceAngle;
         const paddleInfluence = gameConfigManager.current.paddle.velocityInfluence;
-    
-        // Left paddle collision - uses leftHalfD (may be enlarged)
-        if (
+
+        // Left paddle - only if ball is moving LEFT
+        if (this.ball.speed.x < 0 &&
             ball.position.x - r <= left.position.x + halfW &&
             ball.position.x >= left.position.x - halfW &&
-            Math.abs(ball.position.z - left.position.z) <= leftHalfD
-        ) {
+            Math.abs(ball.position.z - left.position.z) <= leftHalfD + r)
+        {
+            // Clamp ball outside paddle to prevent tunneling
+            ball.position.x = left.position.x + halfW + r;
+            
             const hitFactor = (ball.position.z - left.position.z) / leftHalfD;
             this.ball.bounceX();
             this.ball.applySpeedIncrement();
-            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.leftPaddle.velocity * paddleInfluence);
+            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + 
+                            (this.leftPaddle.velocity * paddleInfluence);
+            
+            this.lastPaddleCollisionTime = currentTime;
+            return true;
         }
-    
-        // Right paddle collision - uses rightHalfD (may be enlarged)
-        if (
+
+        // Right paddle - only if ball is moving RIGHT
+        if (this.ball.speed.x > 0 &&
             ball.position.x + r >= right.position.x - halfW &&
             ball.position.x <= right.position.x + halfW &&
-            Math.abs(ball.position.z - right.position.z) <= rightHalfD
-        ) {
+            Math.abs(ball.position.z - right.position.z) <= rightHalfD + r)
+        {
+            // Clamp ball outside paddle
+            ball.position.x = right.position.x - halfW - r;
+            
             const hitFactor = (ball.position.z - right.position.z) / rightHalfD;
             this.ball.bounceX();
             this.ball.applySpeedIncrement();
-            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + (this.rightPaddle.velocity * paddleInfluence);
+            this.ball.speed.z = hitFactor * maxBounceAngle * Math.abs(this.ball.speed.x) + 
+                            (this.rightPaddle.velocity * paddleInfluence);
+            
+            this.lastPaddleCollisionTime = currentTime;
+            return true;
         }
+
+        return false;
     }
 }
