@@ -197,25 +197,6 @@ export class Header implements IComponent {
         const dropdown = this.createDropdown(dropdownItems, playBtn);
         playBtnWrapper.appendChild(dropdown);
         
-        // Toggle dropdown on click
-        playBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            dropdown.classList.toggle('hidden');
-            if (!dropdown.classList.contains("hidden")) {
-                playBtn.classList.add("bg-green");
-            } else {
-                playBtn.classList.remove("bg-green");
-            }
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!playBtnWrapper.contains(e.target as Node)) {
-                dropdown.classList.add('hidden');
-                playBtn.classList.remove("bg-green");
-            }
-        });
-
         this.buttonsGroup.appendChild(playBtnWrapper);
     
         // Logout button

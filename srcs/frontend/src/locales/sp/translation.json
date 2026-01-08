@@ -29,6 +29,7 @@
   },
   "creators": {
     "creatorsHeader": "Creadores",
+    "discription": "Un equipo de desarrolladores cooperativo que transformó un juego clásico en una experiencia multijugador moderna. Construido con experimentación, trabajo en equipo y muchos intentos y errores — como cualquier buen juego.",
     "backendDeveloper": "Desarrollador Backend",
     "frontendDeveloper": "Desarrollador Frontend",
     "securityEngineer": "Especialista en JWT y Seguridad",
