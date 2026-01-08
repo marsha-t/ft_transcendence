@@ -1,4 +1,5 @@
 import { GameSession, PlayerSide, GameStatus } from "./types";
+import { ApiResponse } from "../auth/types";
 
 /**
  * GameService
@@ -24,9 +25,9 @@ export class GameService{
         this.baseUrl = '/api';
     }
 
-    // 1- Create a new game session
-    async createGameSession(side: PlayerSide): Promise<GameSession>{
-        try{
+    // Create a new game session
+    async createGameSession(side: PlayerSide): Promise<ApiResponse<GameSession>>{
+        try {
             const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions`, {
                 method: 'POST',
                 headers: {
@@ -37,13 +38,22 @@ export class GameService{
                     side
                 })
             });
-            if(!response.ok) {
-                console.log(`Failed to create game session: ${response.status}`);
-                throw new Error(`Failed to create game session: ${response.status}`);
-            }
             const data = await response.json();
-            return this.transformApiResponseToGameSession(data);
-        }catch(error){
+            if(!response.ok) {
+                return {
+					success: false,
+					status: response.status,
+					message: data?.error?.message || "Failed to create new game",
+					code: data?.error?.code
+				};
+            }
+            return {
+                success: true, 
+                status: response.status, 
+                message: 'New game created', 
+                data: this.transformApiResponseToGameSession(data),
+            };
+        } catch(error) {
             console.error('Error creating game session: ', error);
             return {
 				success: false,
@@ -54,49 +64,8 @@ export class GameService{
         }
     }
 
-    // 2- add a guest player to an existing session
-    async addGuestPlayer(sessionId: number, guestName: string | null, side: PlayerSide): Promise<void>{
-        try{
-            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Current-Session-Id': String(sessionId),
-                },
-				credentials: 'include',
-                body: JSON.stringify({
-                    guestName,
-                    side
-                })
-            });
-            if(!response.ok) {
-                let message = `Error to add guest player: ${response.status}`;
-                if (response.status === 409) {
-                    try {
-                        const data = await response.json();
-                        if (data?.error) {
-                            message = data.error;
-                        }
-                    } catch { // keep generic message
-                    }
-                }
-                // Create error object with extra status field
-                const err = new Error(message) as Error & { status?: number }; 
-                err.status = response.status;
-                throw err;
-            }
-        }catch(error){
-            console.log('Error adding guest player: ', error);
-            return {
-				success: false,
-				status: 0,
-				message: "Network error",
-				code: 'NETWORK_ERROR'
-			};
-        }
-    }
-    // 3- update game session status
-    async updateGameStatus(sessionId: number, status: GameStatus): Promise<GameSession> {
+    // Update game session status
+    async updateGameStatus(sessionId: number, status: GameStatus): Promise<ApiResponse<GameSession>> {
         try {
             const response = await fetch(`${this.baseUrl}/gameSessionServ/game-sessions/status`, {
                 method: 'PATCH',
@@ -109,20 +78,22 @@ export class GameService{
                     status
                 })
             });
-
-            if (!response.ok) {
-                let errorMessage = `Failed to update game status: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    console.error('Backend error details:', errorData);
-                    errorMessage = errorData.error || errorData.message || errorMessage;
-                } catch (e) {
-                    // Response wasn't JSON
-                }
-                throw new Error(errorMessage);            }
-
             const data = await response.json();
-            return this.transformApiResponseToGameSession(data);
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message:
+                    data?.error?.message || "Failed to update game session status",
+                    code: data?.error?.code,
+                };
+            }
+            return {
+                success: true,
+                status: response.status,
+                message: "Game status updated",
+                data: this.transformApiResponseToGameSession(data),
+            }
         } catch (error) {
             console.error('Error updating game status: ', error);
             return {
@@ -133,8 +104,52 @@ export class GameService{
 			};
         }
     }
-    // 4- update player score
-    async updatePlayerScore(sessionId: number, scoringSide: PlayerSide): Promise<GameSession>{
+
+    // Add a guest player to an existing session
+    async addGuestPlayer(sessionId: number, guestName: string, side: PlayerSide): Promise<ApiResponse<null>>{
+        try {
+            const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Current-Session-Id': String(sessionId),
+                },
+				credentials: 'include',
+                body: JSON.stringify({
+                    guestName,
+                    side
+                })
+            });
+            let data: any = null;
+            try {
+                data = await response.json();
+            } catch {}
+            if(!response.ok) {
+                return {
+					success: false,
+					status: response.status,
+					message: data?.error?.message || "Failed to add guest player",
+					code: data?.error?.code
+				};
+            }
+            return {
+                success: true,
+                status: response.status,
+                message: "Guest player added",
+            };
+        } catch(error) {
+            console.error('Error adding guest player: ', error);
+            return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
+        }
+    }
+    
+    // Update player score
+    async updatePlayerScore(sessionId: number, scoringSide: PlayerSide): Promise<ApiResponse<GameSession>>{
         try{
             const response = await fetch(`${this.baseUrl}/gameSessionPlayersServ/game-sessions/players/score`, {
                method: 'PATCH',
@@ -144,12 +159,23 @@ export class GameService{
                },
 				credentials: 'include',
             });
-            if(!response.ok)
-                throw new Error(`Failed to update player score: ${response.status}`);
             const data = await response.json();
-            return data;
-        }catch(error){
-            console.log("Error updating player score"), console.error();
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data?.error?.message || "Failed to update score",
+                    code: data?.error?.code,
+                };
+            }
+            return {
+                success: true,
+                status: response.status,
+                message: "Score updated",
+                data,
+            };
+        } catch(error) {
+            console.error("Error updating player score: ", error);
             return {
 				success: false,
 				status: 0,
@@ -158,23 +184,25 @@ export class GameService{
 			};
         }
     }
-    // 6- Start game
-    async startGame(sessionId: number):Promise<GameSession>{
+
+    // Start game
+    async startGame(sessionId: number){
         return this.updateGameStatus(sessionId, "PLAYING");
     }
 
-    // 7- Pause game;
-    async pauseGame(sessionId: number): Promise<GameSession> {
+    // Pause game;
+    async pauseGame(sessionId: number) {
         return this.updateGameStatus(sessionId, "PAUSED");
     }
 
-    // 8- Abort game
-    async abortGame(sessionId: number): Promise<GameSession> {
+    // Abort game
+    async abortGame(sessionId: number){
         return this.updateGameStatus(sessionId, "ABORTED");
     }
 
-    // 10- Transform API response to match our GameSession interface
-    private transformApiResponseToGameSession(apiResponse: any){
+    // Transform API response to match GameSession interface
+    // Needed because backend responses across routes are not shaped like GameSession interfaces
+    private transformApiResponseToGameSession(apiResponse: any): GameSession {
         return {
             sessionId: apiResponse.id.toString(),
             status: apiResponse.status as GameStatus,
