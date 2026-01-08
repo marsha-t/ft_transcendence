@@ -1,15 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import { gameConfigManager } from "./GameConfigManager";
-
-export type PowerUpTypes =  'SPEED_BOOST' | 'ENLARGE_PADDLE' | 'SLOW_MOTION';
-
-//PowerUp - Internal representation of an active power-up on the table
-interface PowerUp {
-    mesh: BABYLON.Mesh;
-    type: PowerUpTypes;
-    position: {x: number; z: number};
-    glowLayer?: BABYLON.GlowLayer;
-}
+import { PowerUp, PowerUpTypes } from './types';
 
 /**
  * PowerUpManager - Manages spawning, visuals, collision, and cleanup of power-ups
