@@ -2,7 +2,7 @@ import { IComponent } from "../components/IComponent.js";
 import {GameSession, PlayerSide, GameOptions,} from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
-import { navigate, confirmationPopup } from "../utils";
+import { navigate, confirmationPopup } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
 import { openGameCustomization } from "../utils/gameCustom.js";

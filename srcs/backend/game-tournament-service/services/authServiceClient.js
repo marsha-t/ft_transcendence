@@ -1,5 +1,4 @@
-// game-tournament-service/services/userServiceClient.js
-// API client to communicate with User-Social Service
+// API client to communicate with auth-profile Services to update and fetch user info from user table
 
 import jwt from 'jsonwebtoken';
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL;

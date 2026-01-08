@@ -87,13 +87,4 @@ export class AuthUtils {
         }));
     }
 
-
-    static getAvUrl(path?: string): string {
-        if (!path) return "";
-        const backendUrl = "http://localhost:5001";
-        const full = path.startsWith("http://") || path.startsWith("https://");
-        const base = full ? path : `${backendUrl}${path}`;
-        const sep = base.includes("?") ? "&" : "?";
-        return `${base}${sep}t=${Date.now()}`;
-    }
 }
