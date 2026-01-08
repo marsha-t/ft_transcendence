@@ -6,7 +6,8 @@ import {GameSession} from "../services/game/types.js";
 import { GameService } from "../services/game/GameService.js";
 import { apiServices } from "../services/ApiServices.js";
 import {makeButton} from "../utils/uiUtils.js";
-import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
+import { gameConfigManager } from "../graphics/GameConfigManager.js";
+import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { t } from "../services/i18n/i18nService.js";
 
