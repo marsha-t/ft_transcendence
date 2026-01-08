@@ -290,37 +290,15 @@ export class AI implements IComponent {
   // GAME INITIALIZATION & WEBSOCKET
   // ===============================
   private async initializeAIGame(): Promise<void> {
-    try {
-      const response = await fetch("/api/ai/create-game", {
-        method: "POST",
-        credentials: "include",
-      });
-  
-      if (!response.ok) {
-        const err = await response.text();
-        throw new Error(`Failed: ${response.status} ${err}`);
+      const res = await apiServices.ai.createAIGame();
+      if (!res.success || !res.data) {
+        alert(res.message);
+        return;
       }
-  
-      const data = await response.json();
-        
-      this.currentSession = {
-        sessionId: data.sessionId,
-        status: data.status,
-        players: data.players.map((p: any) => ({
-          side: p.side,
-          displayName: p.displayName || p.user?.username || "Player",
-          score: p.score || 0,
-        })),
-        winnerName: data.winnerName,
-      } as GameSession;
-  
+      this.currentSession = res.data; 
+
       //connect websocket
       await this.connectWebSocket();
-  
-    } catch (err: any) {
-      console.error("Failed to start AI game:", err);
-      alert("Could not connect to game service.");
-    }
   }
   
   private async connectWebSocket(): Promise<void> {
@@ -575,19 +553,12 @@ export class AI implements IComponent {
     }
 
     const confirmLeave = confirm("Leaving will stop the current AI match.");
-    if (confirmLeave) {
-      if (this.currentSession?.sessionId) {
-        try {
-          await apiServices.game.updateGameStatus(
-            this.currentSession.sessionId,
-            "ABORTED"
-          );
-        } catch (err) {
-          console.error("Error aborting AI game:", err);
-        }
-      }
-      this.stopGameLoop();
+    if (!confirmLeave) return false;
+
+    if (this.currentSession?.sessionId) {
+      apiServices.game.abortGame(this.currentSession.sessionId).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
     }
+    this.stopGameLoop();
     return confirmLeave;
   }
 

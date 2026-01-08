@@ -55,8 +55,6 @@ export const joinSessionSchema = {
 	},
 };
 
-
-
 // Update player score
 export const updateScoreSchema = {
 	tags: ['Game Session'],

@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent.js";
-import {GameSession, PlayerSide, GameOptions,} from "../services/game/types.js";
+import { GameSession, PlayerSide, GameOptions } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate, confirmationPopup } from "../utils/commonUtils.js";
@@ -278,19 +278,16 @@ export class Game implements IComponent {
   // BACKEND & SERVICE COMMUNICATION
   // ===============================
   private async initializeStandalone(): Promise<void> {
-    try {
-      this.currentSession = await apiServices.game.createGameSession("RIGHT");
-      const rightPlayerElement = document.getElementById("right-player");
-      if (rightPlayerElement && this.currentSession?.players[0]) {
-        rightPlayerElement.textContent =
-          this.currentSession.players[0].displayName;
-      }
-    } catch (error) {
-      //Check for abort error
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-      alert("Failed to initialize game");
+    const res = await apiServices.game.createGameSession("RIGHT");
+    if (!res.success || !res.data) {
+      alert(res.message || "Failed to initialize game");
+      return;
+    }
+    this.currentSession = res.data;
+    const rightPlayerElement = document.getElementById("right-player");
+    if (rightPlayerElement && this.currentSession?.players[0]) {
+      rightPlayerElement.textContent =
+        this.currentSession.players[0].displayName;
     }
   }
 
@@ -323,38 +320,32 @@ export class Game implements IComponent {
       return;
     }
 
-    try {
-      await apiServices.game.addGuestPlayer(
-        this.currentSession.sessionId,
-        guestName,
-        "LEFT"
-      );
+    const res = await apiServices.game.addGuestPlayer(
+      this.currentSession.sessionId,
+      guestName,
+      "LEFT"
+    );
 
-      const leftPlayerElement = document.getElementById("left-player");
-      if (leftPlayerElement) {
-        leftPlayerElement.textContent = guestName;
-      }
-
-      // Hide setup, show game controls
-      const setupSection = document.getElementById("setup-section");
-      const startBtn = document.getElementById("start-btn");
-      const quitBtn = document.getElementById("quit-btn");
-
-      if (setupSection) setupSection.style.display = "none";
-      if (startBtn) startBtn.style.display = "block";
-      if (quitBtn) quitBtn.style.display = "block";
-
-      guestInput.value = "";
-    } catch (error: any) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-      if (error.status === 409) {
-        alert(error.message);
-      } else {
-        alert("Error adding guest player");
-      }
+    if (!res.success) {
+      alert(res.message || "Failed to add guest player");
+      return;
     }
+
+    const leftPlayerElement = document.getElementById("left-player");
+    if (leftPlayerElement) {
+      leftPlayerElement.textContent = guestName;
+    }
+
+    // Hide setup, show game controls
+    const setupSection = document.getElementById("setup-section");
+    const startBtn = document.getElementById("start-btn");
+    const quitBtn = document.getElementById("quit-btn");
+
+    if (setupSection) setupSection.style.display = "none";
+    if (startBtn) startBtn.style.display = "block";
+    if (quitBtn) quitBtn.style.display = "block";
+
+    guestInput.value = "";
   }
 
   private async toggleGame(): Promise<void> {
@@ -363,36 +354,35 @@ export class Game implements IComponent {
       return;
     }
 
-    try {
-      if (!this.isGameRunning) {
-        await apiServices.game.startGame(this.currentSession.sessionId);
-        this.startGameLoop();
-        this.updateGameButtons(true);
+    if (!this.isGameRunning) {
+      const res = await apiServices.game.startGame(this.currentSession.sessionId);
+      if (!res.success || !res.data) {
+        alert(res.message || "Failed to start game");
+        return;
       }
-    } catch (error) {
-      alert("Failed to start game. Please try again.");
+
+      this.currentSession = res.data;
+      this.startGameLoop();
+      this.updateGameButtons(true);
     }
   }
 
   private async pauseGame(): Promise<void> {
     if (!this.currentSession) return;
 
-    try {
-      if (this.isGameRunning) {
-        await apiServices.game.pauseGame(this.currentSession.sessionId);
-        this.stopGameLoop();
-        this.updateGameButtons(false);
-      } else {
-        await apiServices.game.startGame(this.currentSession.sessionId);
-        this.startGameLoop();
-        this.updateGameButtons(true);
-      }
-    } catch (error) {
-      //Check for abort error
-      if (error instanceof Error && error.name === 'AbortError') {
-        return;
-      }
-      console.error("Failed to pause/resume game:", error);
+    const res = this.isGameRunning
+    ? await apiServices.game.pauseGame(this.currentSession.sessionId)
+    : await apiServices.game.startGame(this.currentSession.sessionId);
+    if (!res.success || !res.data) {
+      return;
+    }
+    this.currentSession = res.data;
+    if (this.isGameRunning) {
+      this.stopGameLoop();
+      this.updateGameButtons(false);
+    } else {
+      this.startGameLoop();
+      this.updateGameButtons(true);
     }
   }
 
@@ -403,37 +393,35 @@ export class Game implements IComponent {
     const confirmed = confirm("Are you sure you want to quit the game?");
     if (!confirmed) return;
 
-    try {
-      await apiServices.game.abortGame(this.currentSession.sessionId);
-      this.stopGameLoop();
-      this.resetGame();
-    } catch (error) {
-      console.error("Failed to quit game:", error);
+    const res = await apiServices.game.abortGame(this.currentSession.sessionId);
+    if (!res.success || !res.data) {
+      alert(res.message || "Failed to quit game");
+      return ;
     }
+    this.currentSession = res.data;
+    this.stopGameLoop();
+    this.resetGame();
   }
 
   private async scorePoint(scoringSide: PlayerSide): Promise<void> {
     if (!this.isGameRunning) {
       return;
     }
+    if (this.currentSession) {
+      const res = await apiServices.game.updatePlayerScore(
+        this.currentSession.sessionId,
+        scoringSide
+      );
+      if (!res.success || !res.data) return;
+      this.currentSession = res.data;
+      this.updateScoreDisplay();
 
-    try {
-      if (this.currentSession) {
-        this.currentSession = await apiServices.game.updatePlayerScore(
-          this.currentSession.sessionId,
-          scoringSide
-        );
-        this.updateScoreDisplay();
-
-        if (this.currentSession.status === "FINISHED") {
-          const timeoutId = window.setTimeout(() => this.endGame(), 500);
-          this.timeoutIds.push(timeoutId);
-        } else if (this.currentSession.status === "ABORTED") {
-          this.stopGameLoop();
-        }
+      if (this.currentSession.status === "FINISHED") {
+        const timeoutId = window.setTimeout(() => this.endGame(), 500);
+        this.timeoutIds.push(timeoutId);
+      } else if (this.currentSession.status === "ABORTED") {
+        this.stopGameLoop();
       }
-    } catch (error) {
-      console.error("Failed to update score:", error);
     }
   }
 
@@ -548,16 +536,11 @@ export class Game implements IComponent {
       return true;
     }
     const confirmLeave = confirm("Leaving will stop the current match.");
-    if (confirmLeave) {
-      const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
-      if (sessionId) {
-        try {
-          await apiServices.game.updateGameStatus(sessionId, "ABORTED");
-        } catch (err) {
-          console.error("Error aborting game:", err);
-        }
-      }
-      this.stopGameLoop();
+    if (!confirmLeave) return false;
+    this.stopGameLoop();
+    const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
+    if (sessionId && this.currentSession?.status !== "ABORTED") {
+      apiServices.game.abortGame(sessionId).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
     }
     return confirmLeave;
   }
