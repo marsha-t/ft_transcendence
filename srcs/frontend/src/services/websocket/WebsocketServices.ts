@@ -1,5 +1,15 @@
 import { GameState } from "./types";
 
+/**
+ * Manages WebSocket connection for AI opponent game mode
+ * Handles real-time communication between client and AI service
+ * 
+ * Features:
+ * - Auto-reconnection on connection loss
+ * - Event-based message handling
+ * - Game state streaming
+ * - Connection state management
+ */
 export class AIWebSocketService {
 
     private isConnecting =  false;
@@ -10,7 +20,6 @@ export class AIWebSocketService {
     private maxReconnectAttempts = 5;
     private messageHandlers: Map<string, (data: any) => void> = new Map();
     private stateStreamInterval: number | null = null;
-
 
     constructor (){}
 
@@ -90,13 +99,11 @@ export class AIWebSocketService {
   public on(messageType: string, handler: (data: any) => void): void {
       this.messageHandlers.set(messageType, handler);
     }
-
     
   //4 Remove a message handler
   public off(messageType: string): void {
       this.messageHandlers.delete(messageType);
     }
-
 
   //5 Send game state to backend (called every frame from PongGame)
   public sendGameState(gameState: GameState): void {
@@ -202,7 +209,6 @@ export class AIWebSocketService {
     this.reconnectAttempts = 0;
   }
 
-
   //12 Check if connected
   public isConnected(): boolean {
     return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
@@ -212,8 +218,4 @@ export class AIWebSocketService {
   public getReadyState(): number | null {
     return this.socket ? this.socket.readyState : null;
   }
-
 }
-
-export const aiWebSocketService = new AIWebSocketService();
-

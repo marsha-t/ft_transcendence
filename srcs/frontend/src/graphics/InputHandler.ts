@@ -10,12 +10,6 @@ import { gameConfigManager } from "./GameConfigManager";
  * - Updating paddle velocities based on input
  * - Supporting AI control by simulating key presses
  * 
- * CRITICAL - CLEANUP REQUIRED:
- * - Attaches event listeners to window (global scope)
- * - Must remove listeners via dispose() to prevent memory leaks in SPA
- * - Each PongGame instance creates new InputHandler with new listeners
- * - Without cleanup, listeners accumulate on every game page visit
- * 
  * Lifecycle:
  * - Created by PongGame constructor
  * - Updated every physics step (120Hz)
