@@ -1,4 +1,4 @@
-import { RegisterData, ApiResponse, LoginApiResponse, LoginData, Login2FAData } from './types';
+import { RegisterData, ApiResponse, LoginApiResponse, LoginData } from './types';
 
 export class AuthServices {
 	private baseUrl: string;
@@ -371,5 +371,38 @@ export class AuthServices {
 			};
 		}
 	}
+
+	 async getLoginStatus(): Promise<ApiResponse<{ loggedIn: boolean; username?: string }>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/loginStatus`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            
+            const data = await response.json();
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data?.error?.message || 'Failed to get login status',
+					code: data?.error?.code
+                };
+            }
+            return {
+                success: true,
+                status: response.status,
+                data: data,
+                message: 'Login status retrieved successfully'
+            };
+        } catch (error) {
+            console.error('Error getting login status: ', error);
+            return {
+                success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+            };
+        }
+    }
 }
 

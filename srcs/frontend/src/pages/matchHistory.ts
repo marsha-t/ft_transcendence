@@ -70,13 +70,12 @@ export class MatchHistory implements IComponent {
 
   // Fetches match history data from backend
   public async fetchData(): Promise<void> {
-    try {
-      const matchHistoryResponse = await apiServices.dashboard.getMatchHistory();
-      if (matchHistoryResponse.success && matchHistoryResponse.data) {
-        this.matchHistoryData = matchHistoryResponse.data;
-      }
-    } catch (error) {
-      console.error("Error fetching match history:", error);
+    const matchHistoryResponse = await apiServices.dashboard.getMatchHistory();
+    if (matchHistoryResponse.success && matchHistoryResponse.data) {
+      this.matchHistoryData = matchHistoryResponse.data;
+    }
+    else {
+      console.error("Failed to fetch match history:", matchHistoryResponse.message);
     }
   }
 
@@ -107,7 +106,7 @@ export class MatchHistory implements IComponent {
     opponentCell.appendChild(opponentWrapper);
 
     const resultCell = document.createElement("td");
-    resultCell.textContent = localizedResult;
+    resultCell.textContent = localizedResult as string;
     const scoreCell = document.createElement("td");
     scoreCell.textContent = score;
 
@@ -210,18 +209,13 @@ export class HeatMap implements IComponent {
     const startISO = startDate.toISOString().slice(0,10);
     const endISO = endDate.toISOString().slice(0,10);
     let dayCounts: Record<string, number> = {};
-    try {
-      // ✅ CHANGED: Use dashboard service instead of profile service
-      const res = await apiServices.dashboard.getPlayCounts(startISO, endISO);
-      if (res.success && res.data) {
-        res.data.forEach((item: {date: string, count: number}) => { 
-          dayCounts[item.date] = item.count; 
-        });
-      } else {
-        console.warn('Failed to fetch play counts', res.message);
-      }
-    } catch (e) {
-      console.warn('Error fetching play counts', e);
+    const res = await apiServices.dashboard.getPlayCounts(startISO, endISO);
+    if (res.success && res.data) {
+      res.data.forEach((item: {date: string, count: number}) => { 
+        dayCounts[item.date] = item.count; 
+      });
+    } else {
+      console.warn('Failed to fetch play counts', res.message);
     }
 
     // Build month start dates
