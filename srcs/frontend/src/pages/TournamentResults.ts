@@ -72,28 +72,22 @@ export class TournamentResults implements IComponent {
     - Render champion, brackets, stats and actions (buttons)
   */
   private async loadResults() {
-    try {
-      const response = await apiServices.tournament.getNextMatch(
-        this.tournamentId
-      );
-      if (this.destroyed) return ;
-      if (!response.success || !response.data || !response.data.results) {
-        this.container.textContent =
-          response.message || "Failed to load results";
-        return;
-      }
-
-      const { champion, bracket, stats } = response.data.results;
-
-      this.renderChampion(champion);
-      this.renderBracket(bracket);
-      this.renderStats(stats);
-      this.renderActions();
-    } catch (err) {
-      if (this.destroyed) return;
-      console.error("Error loading results:", err);
-      this.container.textContent = "Error loading results.";
+    const response = await apiServices.tournament.getNextMatch(
+      this.tournamentId
+    );
+    if (this.destroyed) return ;
+    if (!response.success || !response.data || !response.data.results) {
+      this.container.textContent =
+        response.message || "Failed to load results";
+      return;
     }
+
+    const { champion, bracket, stats } = response.data.results;
+
+    this.renderChampion(champion);
+    this.renderBracket(bracket);
+    this.renderStats(stats);
+    this.renderActions();
   }
 
   /*

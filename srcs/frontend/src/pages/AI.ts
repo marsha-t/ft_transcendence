@@ -563,7 +563,7 @@ export class AI implements IComponent {
     if (!confirmLeave) return false;
     this.stopGameLoop();
     if (this.currentSession?.sessionId) {
-      apiServices.game.abortGame(this.currentSession.sessionId).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
+      apiServices.game.abortGame(this.currentSession.sessionId); // backend abort is best-effort; don't block navigation regardless of success
     }
     return confirmLeave;
   }

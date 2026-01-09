@@ -2,11 +2,14 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { UserDashboard } from "../services/dashboard/types";
 import { t } from "../services/i18n/i18nService.js";
+import { showMessage } from "../utils/uiUtils";
 
 declare const Plotly: any;
 
 export class ProfileDashboard implements IComponent {
   private container!: HTMLElement;
+  private messageContainer!: HTMLDivElement;
+  private gridContainer!: HTMLDivElement;
   private dashboardData: UserDashboard | null = null;
   private destroyed = false;
 
@@ -35,13 +38,18 @@ export class ProfileDashboard implements IComponent {
     const title = document.createElement("h1");
     title.textContent = t("dashboard.title") as string;
     title.className = `text-[1.8rem] font-bold text-yellow-300 mb-4 drop-shadow-[2px_2px_0_#000]`;
-  
     this.container.appendChild(title);
 
+    // Error message 
+    this.messageContainer = document.createElement("div");
+    this.messageContainer.className = "w-full flex justify-center";
+    this.messageContainer.style.display = "none";
+    this.container.appendChild(this.messageContainer);
+
     // Grid
-    const grid = document.createElement("div");
-    grid.className = "grid grid-rows-2  gap-4 w-[90%] max-w-[1400px] place-items-stretch";
-    this.container.appendChild(grid);
+    this.gridContainer = document.createElement("div");
+    this.gridContainer.className = "grid grid-rows-2  gap-4 w-[90%] max-w-[1400px] place-items-stretch";
+    this.container.appendChild(this.gridContainer);
 
     const topRow = document.createElement("div");
     topRow.className = "grid grid-cols-3 gap-4 w-full";
@@ -77,9 +85,9 @@ export class ProfileDashboard implements IComponent {
     leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     bottomRow.appendChild(winsPerOpponentDiv);
     bottomRow.appendChild(leaderboardDiv);
-    grid.appendChild(topRow);
-    grid.appendChild(bottomRow);
-    this.container.appendChild(grid);
+    this.gridContainer.appendChild(topRow);
+    this.gridContainer.appendChild(bottomRow);
+    this.container.appendChild(this.gridContainer);
     page.appendChild(this.container);
 
     this.fetchAndRender();
@@ -94,38 +102,35 @@ export class ProfileDashboard implements IComponent {
     - Use destroyed flag to guard against DOM mutation if page is unmounted during async flow
   */
   private async fetchAndRender() {
-    try {
-      const response = await apiServices.dashboard.getUserDashboard();
-      if (this.destroyed) return;
-      if (!response.success || !response.data) return ;
-      
-      this.dashboardData = response.data;
-      
-      this.renderOverview();
-      
-      const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
-      const hasChartData = Boolean(
-        this.dashboardData.dailyStats?.length &&
-        this.dashboardData.scoreDistribution?.length &&
-        this.dashboardData.winsPerOpponent?.length
-      );
-
-      if (totalMatches === 0 || !hasChartData) {
-        this.renderNoDataMessages();
-        return;
-      }
-      requestAnimationFrame(() => {
-        if (this.destroyed) return;
-        this.renderWinRateChart();
-        this.renderScoreHistogram();
-        this.renderOpponentBarChart();
-      });
-      this.renderLeaderboard();
-    } catch (err) {
-      if (!this.destroyed) {
-        console.error("Error fetching dashboard: ", err);
-      }
+    const response = await apiServices.dashboard.getUserDashboard();
+    if (this.destroyed) return;
+    if (!response.success || !response.data) {
+      showMessage(this.container, this.messageContainer, "Dashboard data could not be loaded. Please try again later.", "error");
+      this.gridContainer.style.display = "none";
+      return ;
     }
+    
+    this.dashboardData = response.data;
+    
+    this.renderOverview();
+    const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
+    const hasChartData = Boolean(
+      this.dashboardData.dailyStats?.length &&
+      this.dashboardData.scoreDistribution?.length &&
+      this.dashboardData.winsPerOpponent?.length
+    );
+
+    if (totalMatches === 0 || !hasChartData) {
+      this.renderNoDataMessages();
+      return;
+    }
+    requestAnimationFrame(() => {
+      if (this.destroyed) return;
+      this.renderWinRateChart();
+      this.renderScoreHistogram();
+      this.renderOpponentBarChart();
+    });
+    this.renderLeaderboard();
   }
 
   /*

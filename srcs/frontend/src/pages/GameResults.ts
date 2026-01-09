@@ -3,7 +3,7 @@ import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
 import { navigate } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
-import { createButtonStyle, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
+import { createButtonStyle, getAvatarUrl, showConfirmation, showMessage } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
 
 declare const Plotly: any;
@@ -14,6 +14,8 @@ export class GameResults implements IComponent {
   private onMatchEnd?: () => void;
   private dashboardData: GameDashboard | null = null;
   private container!: HTMLElement;
+  private messageContainer!: HTMLDivElement;
+  private resultsContainer!: HTMLDivElement;
   private tournamentId: number | null = null;
   private destroyed = false;
 
@@ -48,6 +50,11 @@ export class GameResults implements IComponent {
     this.container.className = `min-h-screen flex flex-col items-center gap-8 p-8  rounded-[16px] text-[var(--color-text-yellow)] font-pixel`;
     this.container.style.backgroundColor = 'var(--color-background-primary)';
 
+    this.messageContainer = document.createElement("div");
+    this.messageContainer.className = "w-full flex justify-center";
+    this.messageContainer.style.display = "none";
+    this.container.appendChild(this.messageContainer);
+
     const summaryDiv = document.createElement("div");
     summaryDiv.id = "summaryDiv";
     summaryDiv.className = "w-full text-center text-[var(--color-text-white)]";
@@ -64,8 +71,8 @@ export class GameResults implements IComponent {
     playersDiv.className =
       "w-full grid grid-cols-2 gap-8 justify-between items-stretch";
 
-    const resultsContainer = document.createElement("div");
-    resultsContainer.className =
+    this.resultsContainer = document.createElement("div");
+    this.resultsContainer.className =
       "grid [grid-template-columns:0.3fr_0.6fr] gap-8 w-[90%] max-w-[1200px]  items-stretch";
 
     const leftDiv = document.createElement("div");
@@ -79,9 +86,9 @@ export class GameResults implements IComponent {
     rightDiv.appendChild(chartDiv);
     rightDiv.appendChild(playersDiv);
 
-    resultsContainer.appendChild(leftDiv);
-    resultsContainer.appendChild(rightDiv);
-    this.container.appendChild(resultsContainer);
+    this.resultsContainer.appendChild(leftDiv);
+    this.resultsContainer.appendChild(rightDiv);
+    this.container.appendChild(this.resultsContainer);
 
     const btnContainer = document.createElement("div");
     btnContainer.className = "flex gap-4 text-center mt-4";
@@ -117,22 +124,20 @@ export class GameResults implements IComponent {
     - Trigger rendering of summary, chart and player stats
   */
   private async fetchAndRender() {
-    try {
-      const response = await apiServices.dashboard.getGameDashboard(
-        Number(this.sessionId)
-      );
-      if (this.destroyed) return;
-      if (!response.success || !response.data) return;
+    const response = await apiServices.dashboard.getGameDashboard(
+      Number(this.sessionId)
+    );
+    if (this.destroyed) return;
+    if (!response.success || !response.data) {
+      showMessage(this.container, this.messageContainer, "Statistics could not be loaded. You can still continue.", "error");
+      this.resultsContainer.style.display = "none";
+      return;
+    } 
 
-      this.dashboardData = response.data;
-      this.renderSummary();
-      this.renderChart();
-      this.renderPlayerStats();
-    } catch (err) {
-      if (!this.destroyed) {
-        console.error("Error fetching dashboard:", err);
-      }
-    }
+    this.dashboardData = response.data;
+    this.renderSummary();
+    this.renderChart();
+    this.renderPlayerStats();
   }
   
   /*
@@ -295,20 +300,13 @@ export class GameResults implements IComponent {
 
     if (!confirmLeave) return false;
     
-    try {
-      const tournamentId = this.tournamentId;
-      if (tournamentId) {
-        const result = await apiServices.tournament.updateTournamentStatus(
-          tournamentId,
-          "ABORTED"
-        );
-        if (!result.success && result.code !== "INVALID_TOURNAMENT_TRANSITION" ) { // 400 is expected here if tournament is already finished
-          console.error("Unexpected abort failure: ", result.message); // log unexpected failures
-        }
-      }
-    } catch (err) { // catch unexpected system errors
-      console.error("Failed to abort tournament:", err);
-    }
+    const tournamentId = this.tournamentId;
+    if (tournamentId) {
+      apiServices.tournament.updateTournamentStatus(
+        tournamentId,
+        "ABORTED"
+      ); // backend abort is best-effort; don't block navigation regardless of success
+    } 
 
     return true;
   }

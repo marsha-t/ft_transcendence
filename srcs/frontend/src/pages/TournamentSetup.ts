@@ -23,7 +23,6 @@ export class TournamentSetup implements IComponent {
   private activeMode: "guest" | "user" = "guest";
   private modalMessageContainer!: HTMLDivElement;
 
-
   /*
     - Reset any existing tournament store so that TournamentSetup starts from clean baseline
     - Clears TournamentDraftStore for fresh draft
