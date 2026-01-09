@@ -10,7 +10,7 @@ export class Register implements IComponent {
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
     private messageContainer!: HTMLDivElement;
-
+    private destroyed = false;
     /*
         - Render Registration page layout
             - Title
@@ -198,24 +198,19 @@ export class Register implements IComponent {
             password: formData.get('password') as string
         };
         this.setLoadingState(true);
-        try {
-            const response = await apiServices.auth.register(userData);
-            if(response.success){
-                await showMessage(this.container, this.messageContainer, response.message, 'success');
-                this.form.reset();
-                setTimeout(() => {
-                    navigate('/login');
-                }, 600);
-            } else {
-                await showMessage(this.container, this.messageContainer, response.message, 'error'); // Handle non-successful responses
-            }
-        } catch (error: any){
-            const errorMessage = error.message ? error.message : 'An unexpected error occurred. Please try again.';
-            console.error('Registration error:', errorMessage);
-            await showMessage(this.container, this.messageContainer, errorMessage, 'error');
-        } finally {
-            this.setLoadingState(false);
+        const response = await apiServices.auth.register(userData);
+        if(response.success){
+            await showMessage(this.container, this.messageContainer, response.message, 'success');
+            if (this.destroyed) return ; // prevent subsequent code from running if page unmounts while showing message
+            this.form.reset();
+            setTimeout(() => {
+                if (this.destroyed) return ;
+                navigate('/login');
+            }, 600);
+        } else {
+            showMessage(this.container, this.messageContainer, response.message, 'error'); // Handle non-successful responses
         }
+        this.setLoadingState(false);
     }
    
 
@@ -235,5 +230,10 @@ export class Register implements IComponent {
             // querySelectorAll returns Nodelist of Element type
             // Need to cast to HTMLInputElement to access disabled
         });
+    }
+    
+    // Flag to guard await showMessage from changing DOM after 
+    public cleanup(): void {
+        this.destroyed = true;
     }
 }

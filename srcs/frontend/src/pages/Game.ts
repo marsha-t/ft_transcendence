@@ -550,7 +550,7 @@ export class Game implements IComponent {
     this.stopGameLoop();
     const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
     if (sessionId && this.currentSession?.status !== "ABORTED") {
-      apiServices.game.abortGame(sessionId).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
+      apiServices.game.abortGame(sessionId); // backend abort is best-effort; don't block navigation regardless of success
     }
     return confirmLeave;
   }
