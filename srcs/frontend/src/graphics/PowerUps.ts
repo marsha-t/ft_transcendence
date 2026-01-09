@@ -102,8 +102,6 @@ export class PowerUpManager{
         }
 
         this.powerUps.push({ mesh, type, position: { x, z } });
-        console.log(`Spawned ${type} at (${x.toFixed(1)}, ${z.toFixed(1)})`);
-
     }
 
     //Helper method for consistent colors
@@ -127,7 +125,6 @@ export class PowerUpManager{
             const dz = ballZ - powerUp.position.z;
             const distance = Math.sqrt(dx * dx + dz * dz);
 
-            const collisionRadius = 1.0;
             // Collision! Remove power-up and return type
             if (distance < ballR + 0.4) {
                 const type = powerUp.type;
@@ -181,10 +178,6 @@ export class PowerUpManager{
             p.mesh.dispose();
         });
         this.powerUps = [];
-
-        // Clear all collection effect intervals
-        // this.collectionIntervals.forEach(clearInterval);
-        // this.collectionIntervals = [];
 
         // Dispose shared glow layer
         if (this.glowLayer) {

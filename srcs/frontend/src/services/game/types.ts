@@ -1,4 +1,5 @@
-import { CustomGameSettings } from "../../graphics/GameConfigManager";
+import { CustomGameSettings } from "../../graphics/types";
+
 
 export type PlayerSide = "LEFT" | "RIGHT";
 
