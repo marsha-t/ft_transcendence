@@ -23,14 +23,12 @@ export class Main implements IComponent {
       flex-1 basis-[400px] max-w-[600px] text-white pt-16`;
 
     const heading = document.createElement('h1');
-    heading.className = `
-      text-[clamp(18px,4vw,36px)] font-nunito mb-4 tracking-widest`;
+    heading.className = `text-[clamp(18px,4vw,36px)] font-nunito mb-4 tracking-widest`;
       heading.textContent = t("main.discriptionHeader") as string;
     textSection.appendChild(heading);
 
     const description = document.createElement('p');
-    description.className = `
-            text-[clamp(8px,1.2vw,20px)] leading-[2] font-sans tracking-wider`;
+    description.className = `text-[clamp(8px,1.2vw,20px)] leading-[2] font-sans tracking-wider`;
     description.textContent = t("main.discription") as string;
     textSection.appendChild(description);
 

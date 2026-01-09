@@ -1,6 +1,6 @@
 // routes/auth.js
 
-import { registerSchema, loginSchema, googleLoginSchema, login2FASchema, resendOTPSchema, status2FASchema, enable2FASchema, verify2FASchema, disable2FASchema, logoutSchema, loginStatusSchema, userInfoSchema } from '../schemas/auth.js';
+import { registerSchema, loginSchema, googleLoginSchema, login2FASchema, resendOTPSchema, status2FASchema, enable2FASchema, verify2FASchema, disable2FASchema, logoutSchema, loginStatusSchema } from '../schemas/auth.js';
 import { sendEmail } from '../services/emailService.js';
 import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
 import prisma from '../prisma/prismaClient.js';

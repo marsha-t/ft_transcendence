@@ -26,19 +26,20 @@ export class Header implements IComponent {
 
         // Listen for avatar changes to update header immediately
         window.addEventListener('avatarChanged', (e: any) => {
-            try {
-                const avatarPath = e?.detail?.avatar;
-                if (this.buttonsGroup)
-                {
-                    const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
-                    if (avatarDiv) {
-                        applyAvatar(avatarDiv, avatarPath, "");
-                    }
-                }
-            } catch (err) {
-                console.error('avatarChanged handler error', err);
+        const avatarPath = e?.detail?.avatar;
+        if (this.buttonsGroup)
+        {
+            const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
+            if (avatarDiv) {
+                applyAvatar(avatarDiv, avatarPath, "");
             }
+        }
         });
+    }
+
+    private navigateTo(url: string) {
+        history.pushState(null, '', url);
+        window.dispatchEvent(new PopStateEvent('popstate'));
     }
 
 
@@ -72,8 +73,7 @@ export class Header implements IComponent {
         logo.className = `flex items-center gap-[6px] no-underline`;
         logo.addEventListener('click', (e) => {
             e.preventDefault();
-            history.pushState(null, '', '/main');
-            window.dispatchEvent(new PopStateEvent('popstate'));
+            this.navigateTo('/main');
         });
 
         const logoText = document.createElement('span');
@@ -123,50 +123,15 @@ export class Header implements IComponent {
 
         rightNav.appendChild(this.linksGroup);
         rightNav.appendChild(this.buttonsGroup);
-        // Setup event listener BEFORE initial update
-         // * Listen for authentication changes
-         // * (login/logout from anywhere in the app).
+        // Setup event listener BEFORE initial update - Listen for authentication changes ( login/logout from anywhere in the app)
         window.addEventListener('authChange', async () => { await this.updateAuthButtons(); });
 
         // Initial update - use setTimeout to ensure it runs after render
         setTimeout(() => {
             this.updateAuthButtons();
         }, 0);
-        
-        // Setup active link updating
-        // this.setupActiveLinks(this.linksGroup, this.buttonsGroup);
 
         return rightNav;
-    }
-
-    //  * Attaches click handlers to the language switcher.
-    private attachLanguageSwitcherListeners(container: HTMLElement): void {
-        const button = container.querySelector('.lang-button') as HTMLButtonElement;
-        const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
-
-        // Toggle dropdown for this instance
-        button.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.toggle('hidden');
-        });
-
-        // Attach a single document-level click handler once to close any open dropdowns
-        if (!Header.languageDocClickAttached) {
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.lang-dropdown').forEach(el => el.classList.add('hidden'));
-            });
-            Header.languageDocClickAttached = true;
-        }
-
-        // Language option selection
-        container.querySelectorAll('.lang-option').forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const selectedLang = (e.currentTarget as HTMLElement).dataset.lang!;
-                changeLanguage(selectedLang);
-                dropdown.classList.add('hidden');
-            });
-        });
     }
 
     //  * Updates translated content when language changes.
@@ -218,60 +183,16 @@ export class Header implements IComponent {
         playBtn.className = createButtonStyle(` w-[110px] h-[42px]`, 'blue');
 
         playBtnWrapper.appendChild(playBtn);
-
-        // play Dropdown menu
-        const dropdown: HTMLDivElement = document.createElement('div');
-        dropdown.className = `absolute left-0 mt-[5px] w-[180px] rounded-lg bg-[none]
-             shadow-lg z-50 hidden flex flex-col space-y-[10px]`;
-
-        // Define dropdown items (with text + href)
-        interface DropdownItem {
-            label: string;
-            href: string;
-        }
-
-        const dropdownItems: DropdownItem[] = [
-            { label: t("header.play-AI"), href: '/ai' }, 
-            { label: t("header.play-friend"), href: '/game' },
-            { label: t("header.play-tournament"), href: '/tournament' },
+        // Dropdown items
+        const dropdownItems: { label: string; href: string }[] = [
+            { label: t("header.play-AI") as string, href: '/ai' }, 
+            { label: t("header.play-friend") as string, href: '/game' },
+            { label: t("header.play-tournament") as string, href: '/tournament' },
         ];
-
-        // Populate dropdown
-        dropdownItems.forEach((item: DropdownItem): void => {
-            const option: HTMLAnchorElement = document.createElement('a');
-            option.href = item.href;
-            option.textContent = item.label;
-            option.className = createButtonStyle(" w-fit h-[32px] text-[18px]", 'green');
-            option.addEventListener('click', (e: MouseEvent) => {
-                e.preventDefault();
-                history.pushState(null, '', item.href);
-                window.dispatchEvent(new PopStateEvent('popstate'));
-                dropdown.classList.add('hidden');
-            });
-            dropdown.appendChild(option);
-        });
-
+        // play Dropdown menu
+        const dropdown = this.createDropdown(dropdownItems, playBtn);
         playBtnWrapper.appendChild(dropdown);
         
-        // Toggle dropdown on click
-        playBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            dropdown.classList.toggle('hidden');
-            if (!dropdown.classList.contains("hidden")) {
-                playBtn.classList.add("bg-green");
-            } else {
-                playBtn.classList.remove("bg-green");
-            }
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!playBtnWrapper.contains(e.target as Node)) {
-                dropdown.classList.add('hidden');
-                playBtn.classList.remove("bg-green");
-            }
-        });
-
         this.buttonsGroup.appendChild(playBtnWrapper);
     
         // Logout button
@@ -296,8 +217,7 @@ export class Header implements IComponent {
             const res = await apiServices.auth.logout();
             if (res.success) {
                 AuthUtils.setLoggedOut();
-                history.pushState(null, '', '/main');
-                window.dispatchEvent(new PopStateEvent('popstate'));
+                 this.navigateTo('/main');
             } else {
                 alert(res.message || "Logout failed");
             }
@@ -305,40 +225,16 @@ export class Header implements IComponent {
         this.buttonsGroup.appendChild(logoutBtn);
     
         // Fetch user info and add avatar
-        try {
-            const userInfo = await apiServices.profile.getCurrentUser();
-            
-            const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
-            if (existingAvatar) existingAvatar.remove();
+        const userInfo = await apiServices.profile.getCurrentUser();
+        
+        const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
+        if (existingAvatar) existingAvatar.remove();
 
-            const avatarLink = document.createElement("a");
-            avatarLink.href = "/profile";
-            avatarLink.className = `header-avatar-link
-                w-[40px] h-[40px]
-                rounded-full overflow-hidden
-                border border-[3px] border-green
-                inline-flex justify-center items-center cursor-pointer
-            `;
-            
-            const avatarDiv = document.createElement("div");
-            avatarDiv.className = "w-full h-full rounded-full bg-center bg-cover";
-            applyAvatar(avatarDiv, userInfo.data?.avatar, userInfo.data?.username);
-           
-            avatarLink.appendChild(avatarDiv);
-            
-            avatarLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                history.pushState(null, '', '/profile');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-            });
-            
-            this.buttonsGroup.appendChild(avatarLink);
-            // Append language switcher once (created at start of this method)
-            this.buttonsGroup.appendChild(this.languageSwitcher);
+        const avatarLink = this.createAvatarLink(userInfo.data || {});
+        this.buttonsGroup.appendChild(avatarLink);
+        // Append language switcher once (created at start of this method)
+        this.buttonsGroup.appendChild(this.languageSwitcher);
 
-        } catch (error) {
-            console.error("Error loading avatar:", error);
-        }
     }
     
     // * Creates a link or button element based on type.
@@ -352,15 +248,70 @@ export class Header implements IComponent {
         } else {
             a.className = this.getNavLinkClasses(link.href);
         }
-        // if (link.type === 'link') {
-            a.addEventListener('click', (e) => {
-                e.preventDefault();
-                history.pushState(null, '', link.href);
-                window.dispatchEvent(new PopStateEvent('popstate'));
-            });
-        // }
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.navigateTo(link.href);
+        });
         return a;
     }
+
+    private createAvatarLink(user: { avatar?: string, username?: string }): HTMLElement {
+        const avatarLink = document.createElement("a");
+        avatarLink.href = "/profile";
+        avatarLink.className = `header-avatar-link
+            w-[40px] h-[40px]
+            rounded-full overflow-hidden
+            border border-[3px] border-green
+            inline-flex justify-center items-center cursor-pointer`;
+
+        const avatarDiv = document.createElement("div");
+        avatarDiv.className = "w-full h-full rounded-full bg-center bg-cover";
+        applyAvatar(avatarDiv, user.avatar, user.username);
+        avatarLink.appendChild(avatarDiv);
+
+        avatarLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.navigateTo('/profile');
+        });
+
+        return avatarLink;
+    }
+
+    private createDropdown(items: {label: string, href: string}[], button: HTMLElement): HTMLElement {
+        const dropdown = document.createElement('div');
+        dropdown.className = `absolute left-0 mt-[5px] w-[180px] rounded-lg bg-[none] shadow-lg z-50 hidden flex flex-col space-y-[10px]`;
+
+        items.forEach(item => {
+            const option = document.createElement('a');
+            option.href = item.href;
+            option.textContent = item.label;
+            option.className = createButtonStyle(" w-fit h-[32px] text-[18px]", 'green');
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.navigateTo(item.href);
+                dropdown.classList.add('hidden');
+            });
+            dropdown.appendChild(option);
+        });
+
+        // Toggle dropdown visibility
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            dropdown.classList.toggle('hidden');
+            button.classList.toggle('bg-green', !dropdown.classList.contains('hidden'));
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target as Node) && !button.contains(e.target as Node)) {
+                dropdown.classList.add('hidden');
+                button.classList.remove('bg-green');
+            }
+        });
+
+        return dropdown;
+    }
+
 
     // * Determines the CSS classes for navigation links based on active state.
     private getNavLinkClasses(href: string): string {
@@ -374,66 +325,6 @@ export class Header implements IComponent {
         } else {
             return `${baseClass} text-white hover:underline hover:text-yellow`;
         }
-    }
-
-    // * Sets up active link highlighting for navigation links and buttons.
-    private setupActiveLinks(linksGroup: HTMLElement, buttonsGroup: HTMLElement): void {
-        const updateActiveLink = () => {
-            const currentPath = window.location.pathname;
-            
-            // Update header links
-            linksGroup.querySelectorAll('a').forEach(navLink => {
-                const href = navLink.getAttribute('href');
-                const baseClass = `
-                    text-[14px] font-pixel no-underline whitespace-nowrap
-                    underline-offset-[3px] transition-all duration-200 decoration-2`;
-                
-                if (href === currentPath) {
-                    navLink.style.textDecoration = 'underline';
-                    navLink.style.textDecorationColor = 'var(yellow)';
-                    navLink.className = `${baseClass} text-yellow`;
-                } else {
-                    navLink.style.textDecoration = 'none';
-                    navLink.className = `${baseClass} text-white hover:underline hover:text-yellow`;
-                }
-            });
-
-            // Update buttons
-            buttonsGroup.querySelectorAll('a').forEach(btn => {
-                this.updateButtonState(btn, currentPath);
-            });
-        };
-
-        window.addEventListener('popstate', updateActiveLink);
-        updateActiveLink();
-    }
-
-    private updateButtonState(btn: Element, currentPath: string): void {
-        const href = btn.getAttribute('href');
-        const isLogin = href === '/login';
-        const isRegister = href === '/register';
-
-        if (isLogin) {
-            btn.className = this.getLoginButtonClasses(href === currentPath);
-        }
-
-        if (isRegister) {
-            btn.className = this.getRegisterButtonClasses(href === currentPath);
-        }
-    }
-
-    private getLoginButtonClasses(isActive: boolean): string {
-        const baseClasses = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
-        
-        return isActive ? `${baseClasses} bg-green`
-            : `${baseClasses} hover:bg-green hover:text-white`;
-    }
-
-    private getRegisterButtonClasses(isActive: boolean): string {
-        const baseClasses = createButtonStyle('w-fit h-[42px] text-[16px]', 'blue');
-        
-        return isActive ? `${baseClasses} bg-green`
-        : `${baseClasses} hover:bg-green hover:text-white`;
     }
     
     private createLanguageSwitcher(): HTMLElement {
@@ -494,4 +385,33 @@ export class Header implements IComponent {
         return container;
     }
 
+ //  * Attaches click handlers to the language switcher.
+    private attachLanguageSwitcherListeners(container: HTMLElement): void {
+        const button = container.querySelector('.lang-button') as HTMLButtonElement;
+        const dropdown = container.querySelector('.lang-dropdown') as HTMLElement;
+
+        // Toggle dropdown for this instance
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // Attach a single document-level click handler once to close any open dropdowns
+        if (!Header.languageDocClickAttached) {
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.lang-dropdown').forEach(el => el.classList.add('hidden'));
+            });
+            Header.languageDocClickAttached = true;
+        }
+
+        // Language option selection
+        container.querySelectorAll('.lang-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const selectedLang = (e.currentTarget as HTMLElement).dataset.lang!;
+                changeLanguage(selectedLang);
+                dropdown.classList.add('hidden');
+            });
+        });
+    }
 }

@@ -13,26 +13,16 @@ export class AuthUtils {
 
         this.initPromise = (async () => {
             try {
-                const response = await fetch("/api/auth/loginStatus", {
-                    credentials: "include",
-                })
+                const loginStatusResponse = await apiServices.auth.getLoginStatus();
 
-                if (response.ok) {
-                    const status = await response.json();
-                    let userData = null;
-                    if (status.loggedIn === true) {
-                        // const profileService = new ProfileServices();
-                        const userResponse = await apiServices.profile.getCurrentUser();
-                        const userData = userResponse.data;
-                        this.isLoggedIn_flag = true;
-                        this.currentUser = userData;
-                        window.dispatchEvent(new CustomEvent('authChange', { 
-                            detail: { isLoggedIn: true, userData } 
-                        }));
-                    } else {
-                        this.isLoggedIn_flag = false;
-                        this.currentUser = null;
-                    }
+                if (loginStatusResponse.success && loginStatusResponse.data?.loggedIn === true) {
+                    const userResponse = await apiServices.profile.getCurrentUser();
+                    const userData = userResponse.data;
+                    this.isLoggedIn_flag = true;
+                    this.currentUser = userData;
+                    window.dispatchEvent(new CustomEvent('authChange', { 
+                        detail: { isLoggedIn: true, userData } 
+                    }));
                 } else {
                     this.isLoggedIn_flag = false;
                     this.currentUser = null;

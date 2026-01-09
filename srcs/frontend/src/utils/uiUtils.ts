@@ -298,7 +298,7 @@ export async function showMessage( container: HTMLElement, messageContainer: HTM
       setTimeout(() => {
         messageContainer.style.display = 'none';
         resolve(void 0);
-      }, 1000);
+      }, 700);
     });
   }
 }
