@@ -3,6 +3,7 @@ import { apiServices } from '../services/ApiServices.js';
 import { MatchHistory as MatchHistoryType } from '../services/dashboard/types'; 
 import { createButtonStyle, getAvatarUrl } from "../utils/uiUtils.js";
 import { t } from "../services/i18n/i18nService.js";
+import { navigate } from "../utils/commonUtils";
 
 /**
  * MatchHistory Component
@@ -14,8 +15,6 @@ import { t } from "../services/i18n/i18nService.js";
 export class MatchHistory implements IComponent {
   private container!: HTMLElement;
   private matchHistoryData: MatchHistoryType[] = [];
-  private dashboardBtnEl: HTMLElement | null = null;
-  private dashboardBtnHandler: (() => void) | null = null;
 
   constructor() {
   }
@@ -286,8 +285,7 @@ export class HeatMap implements IComponent {
     button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-pixel", 'green');
     // store handler for cleanup
     this.dashboardBtnHandler = () => {
-      history.pushState(null, '', '/dashboard');
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      navigate('/dashboard');
     };
     button.addEventListener("click", this.dashboardBtnHandler);
     this.dashboardBtnEl = button;
