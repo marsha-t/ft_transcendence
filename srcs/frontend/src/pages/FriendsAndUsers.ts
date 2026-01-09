@@ -177,19 +177,21 @@ export class friendsAndUsers implements IComponent {
 
   // Fetches friends and requests data from the backend
   private async fetchProfileData(): Promise<void> {
-    try {
       const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
       if (friendsResponse.success) {
         this.friendsListData = friendsResponse.data?.friends || [];
+      }
+      else {
+        console.error("Failed to fetch friends data:", friendsResponse.message);
       }
 
       const requestsResponse = await apiServices.friends.getIncomingRequests();
       if (requestsResponse.success && requestsResponse.data) {
         this.requestsListData = requestsResponse.data;
       }
-    } catch (error) {
-      console.error("Error fetching friends/requests data:", error);
-    }
+      else {
+        console.error("Failed to fetch requests data:", requestsResponse.message);
+      }
   }
 
   // Public method to refresh data and UI
@@ -395,7 +397,7 @@ export class friendsAndUsers implements IComponent {
         }
     }
 
-    // Try to update tab classes only if the elements exist
+    //update tab classes only if the elements exist
     const friendsTitle = this.container.querySelector(".friends-tab");
     const requestTitle = this.container.querySelector(".requests-tab");
     
@@ -566,7 +568,7 @@ export class friendsAndUsers implements IComponent {
         return;
       }
 
-      const text: string = t("profile.searchLoading"); // t returns string
+      const text: string = t("profile.searchLoading") as string;
       resultsContainer.innerHTML = `<p class='loading-text'>${text}</p>`;
 
       this.modalTypingTimer = window.setTimeout(async () => {

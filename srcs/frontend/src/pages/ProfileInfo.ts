@@ -100,20 +100,16 @@ export class ProfileInfo implements IComponent {
 
     // ---- Fetch profile data from backend ----
     public async fetchProfileData(): Promise<void> {
-        try {
-            const profileResponse: ApiResponse<ProfileData> = await apiServices.profile.getProfile();
-            if (profileResponse.success && profileResponse.data) {
-                this.username = profileResponse.data.username;
-                this.email = profileResponse.data.email;
-                this.avatar = profileResponse.data.avatar || "";
-                this.hasPassword = profileResponse.data.hasPassword;
-                this.isGoogleUser = profileResponse.data.isGoogleUser;
-                await this.updateProfileUI();
-            } else {
-                console.error('Failed to fetch profile data:', profileResponse.message);
-            }
-        } catch (error: any) {
-            console.error('Error fetching profile data:', error);
+        const profileResponse: ApiResponse<ProfileData> = await apiServices.profile.getProfile();
+        if (profileResponse.success && profileResponse.data) {
+            this.username = profileResponse.data.username;
+            this.email = profileResponse.data.email;
+            this.avatar = profileResponse.data.avatar || "";
+            this.hasPassword = profileResponse.data.hasPassword;
+            this.isGoogleUser = profileResponse.data.isGoogleUser;
+            await this.updateProfileUI();
+        } else {
+            console.error('Failed to fetch profile data:', profileResponse.message);
         }
     }
 
@@ -647,78 +643,68 @@ export class ProfileInfo implements IComponent {
     }
 
     private async handleAvatarEdit(avPath: 'preset' | 'external', avatarPath : string): Promise<void> {
-        try {
-            if (avPath === 'preset') {
-                const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
-                if (!confirmed) return;
-                const response = await apiServices.profile.uploadAvatarFromPreset(avatarPath);
-                if (response.success && response.data) {
-                    this.avatar = response.data.avatar;
-                    await this.updatePopupAvatar();
-                    await this.updateProfileUI();
-                    // Notify other UI (header, profile page) about avatar change immediately
-                    window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
-                    window.dispatchEvent(new CustomEvent('authChange'));
-                    if (this.onProfileUpdate) this.onProfileUpdate();
-                } else {
-                    alert(response.message || 'Failed to set avatar');
-                }
-                return ;
+        if (avPath === 'preset') {
+            const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
+            if (!confirmed) return;
+            const response = await apiServices.profile.uploadAvatarFromPreset(avatarPath);
+            if (response.success && response.data) {
+                this.avatar = response.data.avatar;
+                await this.updatePopupAvatar();
+                await this.updateProfileUI();
+                // Notify other UI (header, profile page) about avatar change immediately
+                window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
+                window.dispatchEvent(new CustomEvent('authChange'));
+                if (this.onProfileUpdate) this.onProfileUpdate();
+            } else {
+                alert(response.message || 'Failed to set avatar');
             }
-            else {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = "image/*";
+            return ;
+        }
+        else {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = "image/*";
 
-                input.addEventListener("change", async (e: Event) => {
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (file) {
-                        const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
-                        if (!confirmed) return;
+            input.addEventListener("change", async (e: Event) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                    const confirmed = await showConfirmation(t("profile.changeAvatarConfirmation") as string, t("profile.changeAvatarLabel") as string, true);
+                    if (!confirmed) return;
 
-                        const response = await apiServices.profile.uploadAvatar(file);
+                    const response = await apiServices.profile.uploadAvatar(file);
 
-                        if (response.success && response.data) {
-                            this.avatar = response.data.avatar;
-                            await this.updatePopupAvatar();
-                            await this.updateProfileUI();
-                            // Notify other UI (header, profile page) about avatar change immediately
-                            window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
-                            window.dispatchEvent(new CustomEvent('authChange'));
-                            if (this.onProfileUpdate) this.onProfileUpdate();
-                        } else {
-                            alert(response.message || 'Failed to set avatar');
-                        }
+                    if (response.success && response.data) {
+                        this.avatar = response.data.avatar;
+                        await this.updatePopupAvatar();
+                        await this.updateProfileUI();
+                        // Notify other UI (header, profile page) about avatar change immediately
+                        window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
+                        window.dispatchEvent(new CustomEvent('authChange'));
+                        if (this.onProfileUpdate) this.onProfileUpdate();
+                    } else {
+                        alert(response.message || 'Failed to set avatar');
                     }
-                });
+                }
+            });
 
-                input.click();
-            }
-    } catch (error) {
-        console.error("Error updating avatar:", error);
-        alert("An error occurred while updating your avatar.");
-    }
+            input.click();
+        }
     }
 
     private async handleAvatarDelete(): Promise<void> {
         const confirmed = await showConfirmation(t("profile.removeAvatarConfirmation") as string, t("profile.removeAvatarLabel") as string, false);
         if (!confirmed) return;
 
-        try {
-            const result = await apiServices.profile.deleteAvatar();
-            if (!result.success) return;
+        const result = await apiServices.profile.deleteAvatar();
+        if (!result.success) return;
 
-            this.avatar = result.data?.avatar || "";
-            await this.updatePopupAvatar();
-            await this.updateProfileUI();
-            // Notify other UI about avatar deletion
-            window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
-            window.dispatchEvent(new CustomEvent('authChange'));
-            if (this.onProfileUpdate) this.onProfileUpdate();
-        } catch (error) {
-            console.error("Network error:", error);
-            alert("Network error while removing avatar.");
-        }
+        this.avatar = result.data?.avatar || "";
+        await this.updatePopupAvatar();
+        await this.updateProfileUI();
+        // Notify other UI about avatar deletion
+        window.dispatchEvent(new CustomEvent('avatarChanged', { detail: { avatar: this.avatar } }));
+        window.dispatchEvent(new CustomEvent('authChange'));
+        if (this.onProfileUpdate) this.onProfileUpdate();
     }
 
 }

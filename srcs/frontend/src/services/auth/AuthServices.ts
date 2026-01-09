@@ -151,7 +151,40 @@ export class AuthServices {
             };
         }
       }
-
+    async getLoginStatus(): Promise<ApiResponse<{ loggedIn: boolean; username?: string }>> {
+        try {
+            const response = await fetch(`${this.baseUrl}/loginStatus`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                return {
+                    success: false,
+                    status: response.status,
+                    message: data.error || 'Failed to get login status',
+                    errors: data.errors || []
+                };
+            }
+            
+            return {
+                success: true,
+                status: response.status,
+                data: data,
+                message: 'Login status retrieved successfully'
+            };
+        } catch (error) {
+            console.error('Get login status API error', error);
+            return {
+                success: false,
+                status: 0,
+                message: 'Network error',
+                errors: []
+            };
+        }
+    }
     // ⚡ New method for 2FA verification during login
     async login2FA(payload: { username: string; code: string }): Promise<LoginApiResponse<any>> {
         try {

@@ -30,6 +30,7 @@
     "mermaid": "^11.12.1"
   },
   "devDependencies": {
+    "@types/i18next": "^13.0.0",
     "@types/node": "^20.0.0",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",

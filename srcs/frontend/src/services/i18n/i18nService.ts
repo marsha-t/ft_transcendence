@@ -66,7 +66,6 @@ export const changeLanguage = async (lang: string, persistToBackend: boolean = t
         }
       } catch (error) {
         console.error('Failed to update language on backend:', error);
-        // Don't throw error to avoid breaking UI flow
       }
     }
   }
@@ -99,31 +98,19 @@ const updateLanguageOnBackend = async (language: string) => {
 export const initializeLanguageFromBackend = async (): Promise<string> => {
   try {
     // First check if user is logged in
-    const loginStatusResponse = await fetch('/api/auth/loginStatus', {
-      credentials: 'include',
-      method: 'GET'
-    });
+    const loginStatusResponse = await apiServices.auth.getLoginStatus();
     
-    if (loginStatusResponse.ok) {
-      const loginStatus = await loginStatusResponse.json();
-      
+    if (loginStatusResponse.success && loginStatusResponse.data?.loggedIn === true) {
       // If user is logged in, get their language preference from userInfo
-      if (loginStatus.loggedIn) {
-        try {
-          const userInfoRes = await apiServices.profile.getCurrentUser();
+      const userInfoRes = await apiServices.profile.getCurrentUser();
 
-          if (userInfoRes.success && userInfoRes.data) {
-            const backendLanguage = userInfoRes.data.defaultLanguage || userInfoRes.data.language;
+      if (userInfoRes.success && userInfoRes.data) {
+        const backendLanguage = userInfoRes.data.defaultLanguage || userInfoRes.data.language;
 
-            // Validate language is supported
-            if (SUPPORTED_LANGUAGES[backendLanguage as keyof typeof SUPPORTED_LANGUAGES]) {
-              await changeLanguage(backendLanguage, false); // Don't persist to backend during initialization
-              return backendLanguage;
-            }
-          }
-        } catch (userInfoError) {
-          console.error('Error fetching user info:', userInfoError);
-          // Continue to fallback if userInfo fails
+        // Validate language is supported
+        if (SUPPORTED_LANGUAGES[backendLanguage as keyof typeof SUPPORTED_LANGUAGES]) {
+          await changeLanguage(backendLanguage, false); 
+          return backendLanguage;
         }
       }
     }
@@ -131,12 +118,12 @@ export const initializeLanguageFromBackend = async (): Promise<string> => {
     // For non-logged-in users or if backend calls fail, use stored language or default
     const storedLanguage = localStorage.getItem('i18nextLng') || DEFAULT_LANGUAGE;
     if (SUPPORTED_LANGUAGES[storedLanguage as keyof typeof SUPPORTED_LANGUAGES]) {
-      await changeLanguage(storedLanguage, false); // Don't persist to backend during initialization
+      await changeLanguage(storedLanguage, false); 
       return storedLanguage;
     }
     
     // Final fallback to default language (English for non-logged-in users)
-    await changeLanguage(DEFAULT_LANGUAGE, false); // Don't persist to backend during initialization
+    await changeLanguage(DEFAULT_LANGUAGE, false); 
     return DEFAULT_LANGUAGE;
     
   } catch (error) {
@@ -145,11 +132,11 @@ export const initializeLanguageFromBackend = async (): Promise<string> => {
     // Fallback to stored language or default
     const storedLanguage = localStorage.getItem('i18nextLng') || DEFAULT_LANGUAGE;
     if (SUPPORTED_LANGUAGES[storedLanguage as keyof typeof SUPPORTED_LANGUAGES]) {
-      await changeLanguage(storedLanguage, false); // Don't persist to backend during initialization
+      await changeLanguage(storedLanguage, false); 
       return storedLanguage;
     }
     
-    await changeLanguage(DEFAULT_LANGUAGE, false); // Don't persist to backend during initialization
+    await changeLanguage(DEFAULT_LANGUAGE, false); 
     return DEFAULT_LANGUAGE;
   }
 };
