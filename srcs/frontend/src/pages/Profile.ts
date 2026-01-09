@@ -44,15 +44,11 @@ export class Profile implements IComponent {
   // ** Fetch and refresh profile data across components (fetch all data needed for profile page before rendering) **
 
   private async fetchProfileData(): Promise<void> {
-    try {
-      await Promise.all([
-        this.profileInfo.fetchProfileData(),
-        this.friendsAndUsers.fetchData(),
-        this.matchHistory.fetchData()
-      ]);
-    } catch (error) {
-      console.error("Error fetching profile data:", error);
-    }
+    await Promise.all([
+      this.profileInfo.fetchProfileData(),
+      this.friendsAndUsers.fetchData(),
+      this.matchHistory.fetchData()
+    ]);
   }
 
   /* ** Handle profile update events and trigger re-fetching when needed **

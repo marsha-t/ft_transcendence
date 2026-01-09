@@ -26,18 +26,14 @@ export class Header implements IComponent {
 
         // Listen for avatar changes to update header immediately
         window.addEventListener('avatarChanged', (e: any) => {
-            try {
-                const avatarPath = e?.detail?.avatar;
-                if (this.buttonsGroup)
-                {
-                    const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
-                    if (avatarDiv) {
-                        applyAvatar(avatarDiv, avatarPath, "");
-                    }
-                }
-            } catch (err) {
-                console.error('avatarChanged handler error', err);
+        const avatarPath = e?.detail?.avatar;
+        if (this.buttonsGroup)
+        {
+            const avatarDiv = this.buttonsGroup.querySelector('.header-avatar-link > div') as HTMLElement;
+            if (avatarDiv) {
+                applyAvatar(avatarDiv, avatarPath, "");
             }
+        }
         });
     }
 
@@ -189,9 +185,9 @@ export class Header implements IComponent {
         playBtnWrapper.appendChild(playBtn);
         // Dropdown items
         const dropdownItems: { label: string; href: string }[] = [
-            { label: t("header.play-AI"), href: '/ai' }, 
-            { label: t("header.play-friend"), href: '/game' },
-            { label: t("header.play-tournament"), href: '/tournament' },
+            { label: t("header.play-AI") as string, href: '/ai' }, 
+            { label: t("header.play-friend") as string, href: '/game' },
+            { label: t("header.play-tournament") as string, href: '/tournament' },
         ];
         // play Dropdown menu
         const dropdown = this.createDropdown(dropdownItems, playBtn);
@@ -218,20 +214,16 @@ export class Header implements IComponent {
         this.buttonsGroup.appendChild(logoutBtn);
     
         // Fetch user info and add avatar
-        try {
-            const userInfo = await apiServices.profile.getCurrentUser();
-            
-            const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
-            if (existingAvatar) existingAvatar.remove();
+        const userInfo = await apiServices.profile.getCurrentUser();
+        
+        const existingAvatar = this.buttonsGroup.querySelector('.header-avatar-link');
+        if (existingAvatar) existingAvatar.remove();
 
-            const avatarLink = this.createAvatarLink(userInfo.data || {});
-            this.buttonsGroup.appendChild(avatarLink);
-            // Append language switcher once (created at start of this method)
-            this.buttonsGroup.appendChild(this.languageSwitcher);
+        const avatarLink = this.createAvatarLink(userInfo.data || {});
+        this.buttonsGroup.appendChild(avatarLink);
+        // Append language switcher once (created at start of this method)
+        this.buttonsGroup.appendChild(this.languageSwitcher);
 
-        } catch (error) {
-            console.error("Error loading avatar:", error);
-        }
     }
     
     // * Creates a link or button element based on type.
