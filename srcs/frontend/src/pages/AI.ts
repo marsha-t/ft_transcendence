@@ -3,7 +3,6 @@ import { PongGame } from "../graphics/PongGame.js";
 import { PlayerSide } from "../services/game/types.js";
 import { navigate, confirmationPopup } from "../utils/commonUtils.js";
 import {GameSession} from "../services/game/types.js";
-import { GameService } from "../services/game/GameService.js";
 import { apiServices } from "../services/ApiServices.js";
 import {makeButton} from "../utils/uiUtils.js";
 import { gameConfigManager } from "../graphics/GameConfigManager.js";
@@ -37,7 +36,6 @@ export class AI implements IComponent {
   private isGameRunning: boolean = false;
   private hasEndedNaturally: boolean = false;
   private currentSession: GameSession | null = null;
-  private gameService: GameService;
   private username: string = 'Loading ...';
   private wsConnected: boolean = false;
 
@@ -48,7 +46,6 @@ export class AI implements IComponent {
     this.canvas = document.createElement("canvas");
     this.canvas.width = 900;
     this.canvas.height = 500;
-    this.gameService = new GameService();
     this.username = "Getting username...";
   }
 
@@ -361,7 +358,7 @@ export class AI implements IComponent {
 
     try {
       if (this.currentSession) {
-        this.currentSession = await this.gameService.updatePlayerScore(
+        this.currentSession = await apiServices.game.updatePlayerScore(
           this.currentSession.sessionId,
           scoringSide
         );
@@ -440,7 +437,7 @@ export class AI implements IComponent {
 
     try {
       if (!this.isGameRunning) {
-        await this.gameService.startGame(this.currentSession.sessionId);
+        await apiServices.game.startGame(this.currentSession.sessionId);
         this.startGameLoop();
         this.updateGameButtons(true);
       }
@@ -455,11 +452,11 @@ export class AI implements IComponent {
 
     try {
       if (this.isGameRunning) {
-        await this.gameService.pauseGame(this.currentSession.sessionId);
+        await apiServices.game.pauseGame(this.currentSession.sessionId);
         this.stopGameLoop();
         this.updateGameButtons(false);
       } else {
-        await this.gameService.startGame(this.currentSession.sessionId);
+        await apiServices.game.startGame(this.currentSession.sessionId);
         this.startGameLoop();
         this.updateGameButtons(true);
       }
@@ -475,7 +472,7 @@ export class AI implements IComponent {
     if (!confirmed) return;
 
     try {
-      await this.gameService.abortGame(this.currentSession.sessionId);
+      await apiServices.game.abortGame(this.currentSession.sessionId);
       this.stopGameLoop();
       // navigate("/");
       this.resetGame();
