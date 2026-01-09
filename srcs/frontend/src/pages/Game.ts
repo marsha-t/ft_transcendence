@@ -4,7 +4,8 @@ import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { navigate } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
-import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager.js";
+import { gameConfigManager } from "../graphics/GameConfigManager.js";
+import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { makeButton, showMessage, showConfirmation, gameCompletionPopup } from "../utils/uiUtils.js"
 import { t } from "../services/i18n/i18nService.js";
