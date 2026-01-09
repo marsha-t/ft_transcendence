@@ -4,6 +4,7 @@ import { Game } from "./Game.js";
 import { showConfirmation } from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
+import { NavigationState } from "../utils/commonUtils";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -159,13 +160,18 @@ export class TournamentMatch implements IComponent {
     - Allow navigation if internalTournamentNavigation is true
   */
   public async canDeactivate(): Promise<boolean> {
-     if (TournamentStore.isInternalTournamentNavigation) {
+    if (NavigationState.forceNavigate) {
+      return true;
+    } 
+    if (TournamentStore.isInternalTournamentNavigation) {
         TournamentStore.isInternalTournamentNavigation = false;
         return true;
     }
     if (this.hasEnded) return true;
      const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress") as string, t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
+    NavigationState.activeGameSessionId = null;
+    NavigationState.activeTournamentId = null;
     apiServices.tournament.updateTournamentStatus(
     this.tournamentId,
       "ABORTED"

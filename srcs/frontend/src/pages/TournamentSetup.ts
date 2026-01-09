@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { navigate } from "../utils/commonUtils.js";
+import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
 import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
@@ -578,6 +578,7 @@ export class TournamentSetup implements IComponent {
       return;
     }
     const tournamentId = response.data.id;
+    NavigationState.activeTournamentId = tournamentId;
     const start = await apiServices.tournament.updateTournamentStatus(
       tournamentId,
       "STARTED"

@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent.js";
 import { PongGame } from "../graphics/PongGame.js";
 import { PlayerSide } from "../services/game/types.js";
-import { navigate } from "../utils/commonUtils.js";
+import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { GameSession } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { makeButton, gameCompletionPopup, showMessage, showConfirmation } from "../utils/uiUtils.js";
@@ -298,6 +298,7 @@ export class AI implements IComponent {
         showMessage(this.container, this.messageContainer, res.message || "Failed to initialize AI game", "error");
         return;
       }
+      NavigationState.activeGameSessionId = res.data.sessionId;
       this.currentSession = res.data; 
 
       //connect websocket
@@ -381,8 +382,8 @@ export class AI implements IComponent {
   }
 
   private async endGame(): Promise<void> {
+    NavigationState.activeGameSessionId = null;
     this.hasEndedNaturally = true;
-
     if (this.currentSession) {
       this.stopGameLoop();
 
@@ -467,6 +468,7 @@ export class AI implements IComponent {
       showMessage(this.container, this.messageContainer, res.message || "Failed to quit game", "error");
       return ;
     }
+    NavigationState.activeGameSessionId = null;
     this.currentSession = res.data;
     this.stopGameLoop();
     this.resetGame();
@@ -554,6 +556,10 @@ export class AI implements IComponent {
   // CLEANUP
   // ====================
   public async canDeactivate(): Promise<boolean> {
+    if (NavigationState.forceNavigate) {
+      this.stopGameLoop();
+      return true;
+    }
     if (this.hasEndedNaturally) {
       this.stopGameLoop();
       return true;
@@ -563,6 +569,7 @@ export class AI implements IComponent {
     if (!confirmLeave) return false;
     this.stopGameLoop();
     if (this.currentSession?.sessionId) {
+      NavigationState.activeGameSessionId = null;
       apiServices.game.abortGame(this.currentSession.sessionId); // backend abort is best-effort; don't block navigation regardless of success
     }
     return confirmLeave;
