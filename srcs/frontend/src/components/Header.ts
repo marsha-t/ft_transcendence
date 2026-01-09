@@ -3,7 +3,7 @@ import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { apiServices } from "../services/ApiServices";
 import { createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
-
+import { NavigationState } from "../utils/commonUtils";
 /*
     * - Display navigation links (Home, Creators)
     * - Show different buttons based on authentication state
@@ -281,7 +281,18 @@ export class Header implements IComponent {
         logoutBtn.addEventListener("click", async () => {
             const confirmed = await showConfirmation(t("auth.logoutConfirm") as string, t("auth.logout") as string, true);
             if (!confirmed) return;
-    
+            NavigationState.forceNavigate = true;
+            if (NavigationState.activeGameSessionId) {
+                await apiServices.game.abortGame(
+                    NavigationState.activeGameSessionId
+                ).catch(() => {});
+            }
+            if (NavigationState.activeTournamentId) {
+                await apiServices.tournament.updateTournamentStatus(
+                    NavigationState.activeTournamentId,
+                    "ABORTED"
+                ).catch(() => {});
+            }
             const res = await apiServices.auth.logout();
             if (res.success) {
                 AuthUtils.setLoggedOut();

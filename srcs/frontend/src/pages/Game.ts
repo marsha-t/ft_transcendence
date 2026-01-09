@@ -2,14 +2,13 @@ import { IComponent } from "../components/IComponent.js";
 import { GameSession, PlayerSide, GameOptions } from "../services/game/types.js";
 import { apiServices } from "../services/ApiServices.js";
 import { PongGame } from "../graphics/PongGame.js";
-import { navigate } from "../utils/commonUtils.js";
+import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { gameConfigManager } from "../graphics/GameConfigManager.js";
 import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { makeButton, showMessage, showConfirmation, gameCompletionPopup } from "../utils/uiUtils.js"
 import { t } from "../services/i18n/i18nService.js";
-
 /**
  * - Render and manage the Pong game UI
  * - Control game lifecycle (start, pause, score, end)
@@ -289,8 +288,9 @@ export class Game implements IComponent {
       showMessage(this.container, this.messageContainer, res.message || "Failed to initialize game", "error");
       return;
     }
-
     this.currentSession = res.data;
+    NavigationState.activeGameSessionId = this.currentSession.sessionId;
+
     const rightPlayerElement = document.getElementById("right-player");
     if (rightPlayerElement && this.currentSession?.players[0]) {
       rightPlayerElement.textContent =
@@ -408,6 +408,7 @@ export class Game implements IComponent {
       showMessage(this.container, this.messageContainer, res.message || "Failed to quit game", "error");
       return ;
     }
+    NavigationState.activeGameSessionId = null;
     this.currentSession = res.data;
     this.stopGameLoop();
     this.resetGame();
@@ -517,6 +518,7 @@ export class Game implements IComponent {
   // =============================
   private async endGame(): Promise<void> {
     this.hasEndedNaturally = true;
+    NavigationState.activeGameSessionId = null;
 
     if (this.currentSession) {
       this.stopGameLoop();
@@ -541,6 +543,10 @@ export class Game implements IComponent {
   // SPA SAFETY & CLEANUP
   // =====================
   public async canDeactivate(): Promise<boolean> {
+    if (NavigationState.forceNavigate) {
+      this.stopGameLoop();
+      return true;
+    }
     if (this.hasEndedNaturally) {
       this.stopGameLoop();
       return true;
@@ -550,6 +556,8 @@ export class Game implements IComponent {
     this.stopGameLoop();
     const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
     if (sessionId && this.currentSession?.status !== "ABORTED") {
+      NavigationState.activeGameSessionId = null;
+      NavigationState.activeTournamentId = null;
       apiServices.game.abortGame(sessionId); // backend abort is best-effort; don't block navigation regardless of success
     }
     return confirmLeave;
@@ -569,7 +577,6 @@ export class Game implements IComponent {
     });
     this.buttonCleanups = [];
 
-
     this.stopGameLoop();
 
     if(this.cutomizationUI){
@@ -581,13 +588,12 @@ export class Game implements IComponent {
       this.pongGame.dispose();
       this.cutomizationUI = null as any;
     }
-
+    NavigationState.activeGameSessionId = null;
     gameConfigManager.reset();
     this.currentSession = null;
     this.customGameSettings = null;
     this.abortController = new AbortController();
   }
-
 
   public terminate(): void {
     this.cleanup();

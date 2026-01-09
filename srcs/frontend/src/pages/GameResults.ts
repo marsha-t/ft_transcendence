@@ -1,7 +1,7 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { GameDashboard } from "../services/dashboard/types";
-import { navigate } from "../utils/commonUtils.js";
+import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { createButtonStyle, getAvatarUrl, showConfirmation, showMessage } from "../utils/uiUtils";
 import { t } from "../services/i18n/i18nService.js";
@@ -285,6 +285,10 @@ export class GameResults implements IComponent {
       an invalid transition is expected when updating tournament status 
   */
   public async canDeactivate(): Promise<boolean> {
+    if (NavigationState.forceNavigate) {
+      return true;
+    }
+    
     if (!this.isTournament) return true;
 
     if (TournamentStore.isInternalTournamentNavigation) {
@@ -302,6 +306,8 @@ export class GameResults implements IComponent {
     
     const tournamentId = this.tournamentId;
     if (tournamentId) {
+      NavigationState.activeGameSessionId = null;
+      NavigationState.activeTournamentId = null;
       apiServices.tournament.updateTournamentStatus(
         tournamentId,
         "ABORTED"

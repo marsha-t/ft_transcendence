@@ -1,4 +1,5 @@
 import { Router } from '../Router.js';
+
 //--------------------------
 // Routing
 //--------------------------
@@ -23,3 +24,10 @@ export function navigate(path: string, state: any = {}) {
   window.history.pushState(state, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
+
+// Navigation Store - used for logging out 
+export const NavigationState = {
+  forceNavigate: false,
+  activeGameSessionId: null as number | null,
+  activeTournamentId: null as number | null,
+};
