@@ -169,7 +169,7 @@ export class TournamentMatch implements IComponent {
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress"), t("common.pleaseConfirm") as string, true);
+     const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress") as string, t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     try {
       this.cleanup();

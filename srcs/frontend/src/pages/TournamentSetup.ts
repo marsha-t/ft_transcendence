@@ -5,7 +5,8 @@ import { resetTournamentStore, TournamentStore } from "../services/tournament/To
 import { apiServices } from "../services/ApiServices.js";
 import { t } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
-import { gameConfigManager, CustomGameSettings } from "../graphics/GameConfigManager";
+import { gameConfigManager } from "../graphics/GameConfigManager";
+import { CustomGameSettings } from "../graphics/types";
 import { createButtonStyle, showConfirmation, showMessage } from "../utils/uiUtils";
 
 export class TournamentSetup implements IComponent {
@@ -607,7 +608,7 @@ export class TournamentSetup implements IComponent {
     if (!this.isModalOpen) return ;
     const hasDraft = TournamentDraftStore.players.length > 0;
     if (hasDraft) {
-      const confirmClose = await showConfirmation(t("tournament.closeTournamentAlert"), t("common.pleaseConfirm") as string, true);
+      const confirmClose = await showConfirmation(t("tournament.closeTournamentAlert") as string, t("common.pleaseConfirm") as string, true);
       if (!confirmClose) return ;
     }
     TournamentDraftStore.clearPlayers();
