@@ -188,6 +188,7 @@ export async function alertPopup(message: string, title = "Alert"): Promise<void
   });
 }
 
+
 export async function showConfirmation(message: string, title = t("common.pleaseConfirm") as string, action: boolean): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
@@ -257,31 +258,26 @@ export async function showConfirmation(message: string, title = t("common.please
 }
 
 export type MessageType = 'success' | 'error';
-
-export async function showMessage( container: HTMLElement, messageContainer: HTMLElement, message: string, type: MessageType = 'success'
-): Promise<void> {  if (!container || !messageContainer) return;
+export async function showMessage( container: HTMLElement, messageContainer: HTMLElement, message: string, type: MessageType): Promise<void> { 
+  if (!container || !messageContainer) return;
 
   messageContainer.style.display = 'block';
-
   const baseClass = `
-    mt-6 px-4 py-3    
-    w-[360px] h-[54px] px-4 rounded-[16px]
-    text-white font-nunito text-[20px]
-    text-center          
+    mt-6 p-4 mx-auto
+    w-fit h-fit rounded-[16px]
+    font-nunito text-[18px] text-center          
     flex items-center justify-center 
     transition-opacity duration-300
   `;
 
-  const typeClasses = type === 'error'
-    ? 'border-2 border-red-600 bg-red-900 bg-opacity-20'
-    : 'border-2 border-green-600 bg-green-900 bg-opacity-20';
+  const typeClasses = type === 'success'? 'text-[#225326] border-2 border-[#4AB553] bg-[#CCEACF]' : 'text-[#950F0F] border-2 border-[#E31717] bg-[#F9BEBE]';
 
   messageContainer.className = `${baseClass} ${typeClasses}`;
   
-  // Ensure message is a string
+  // Ensure message is a string for display . convert objects to string
   let displayMessage: string;
   if (typeof message === 'string') {
-    displayMessage = message;
+    displayMessage = message;           
   } else if (typeof message === 'object' && message !== null && 'message' in message) {
     displayMessage = String((message as any).message);
   } else {
