@@ -1,4 +1,4 @@
-import { CustomGameSettings } from "../../graphics/GameConfigManager";
+import { CustomGameSettings } from "../../graphics/types";
 
 export interface TournamentStoreType {
   onMatchEnd: (() => Promise<void>) | null;

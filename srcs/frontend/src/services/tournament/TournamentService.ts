@@ -24,14 +24,18 @@ export class TournamentService {
 					success: false,
 					status: response.status,
 					message: data?.error?.message || "Failed to validate player",
-					errors: [],
 					code: data?.error?.code
 				};
 			}
 			return { success: true, status: response.status, message: 'Valid player', data };
 		} catch (err) {
 			console.error ('Error validating player: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -52,7 +56,6 @@ export class TournamentService {
 					success: false,
 					status: response.status, 
 					message: data?.error?.message || 'Failed to finalize tournament',
-					errors: [],
 					code: data?.error?.code,
 				};
 			}
@@ -64,7 +67,12 @@ export class TournamentService {
 			};
 		} catch (err) {
 			console.error('Error finalizing tournament: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -85,7 +93,6 @@ export class TournamentService {
 					success: false,
 					status: response.status, 
 					message: data?.error?.message || "Failed to update tournament status",
-					errors: [],
 					code: data?.error?.code
 				};
 			}
@@ -97,7 +104,12 @@ export class TournamentService {
 			}
 		} catch (err) {
 			console.error('Error updating tournament status: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -116,7 +128,6 @@ export class TournamentService {
 					success: false, 
 					status: response.status,
 					message: data?.error?.message || "Failed to fetch next match",
-					errors: [],
 					code: data?.error?.code
 				};
 			}
@@ -128,7 +139,12 @@ export class TournamentService {
 			};
 		} catch (err) {
 			console.error('Error getting next match: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 }

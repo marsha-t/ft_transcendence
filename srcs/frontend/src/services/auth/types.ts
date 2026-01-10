@@ -18,8 +18,7 @@ export interface ApiResponse<T> {
     success: boolean;
     status?: number;      // HTTP status code
     message: string;     // friendly message
-    errors?: string[];    // validation errors
-    code?: string;
+    code?: string;         // Error string code
     data?: T;             // any data returned
 }
 

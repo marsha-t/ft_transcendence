@@ -1,32 +1,45 @@
 import { IComponent } from "../components/IComponent";
-import { apiServices } from "../services/auth/AuthServices.js";
+import { apiServices } from "../services/ApiServices";
 import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils/commonUtils.js";
-import {showMessage, createButtonStyle} from "../utils/uiUtils.js";
+import { showMessage, createButtonStyle} from "../utils/uiUtils.js";
 import { AuthUtils } from "../utils/authUtils.js";
 import { t } from "../services/i18n/i18nService.js";
 
+/*
+- Render login UI (username/password)
+- Handle authentication via backend API
+- Handle optional 2FA (OTP) flow
+- Handle Google OAuth login
+- Manage loading and error states
+- Navigate user after successful login
+
+// Note:
+    Try/Catch clauses are kept here not because AuthService throws error but to guard login transaction as a whole
+    Login flow spans multiple UI updates and async operations that can fail independently of service layer. E.g., 
+    - DOM access assumptions: elements may be missing or stale during rapid navigation/UI mode switches
+    - Multiple async UI paths (eg, normal login, 2FA flow, resend OTP) which aren´t tied to Router lifecycle 
+    Async operations may continue running after Router has unmounted this page
+    Try/Catch provides safety net against crashes caused by async code running after unmount
+*/
 export class Login implements IComponent {
     private container!: HTMLElement;
     private loginCard!: HTMLElement;
-    private messageContainer!: HTMLElement;
+    private messageContainer!: HTMLDivElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
-    private isLoading: boolean = false;
-
-    // 2FA elements
     private otpGroup!: HTMLDivElement;
     private otpInput!: HTMLInputElement;
     private otpSubmitButton!: HTMLButtonElement;
     private otpResendButton!: HTMLButtonElement;
     private is2FAActive: boolean = false;
     private currentUsername: string = '';
+    private destroyed = false;
 
     public render(): HTMLElement {
-        // === Main container ===
+        // Main container
         this.container = document.createElement('div');
-        this.container.className = `
-            flex justify-center bg-yellow
+        this.container.className = `flex justify-center bg-yellow
             h-full py-[23px]`;
     
         const subContainer = document.createElement('div');
@@ -36,29 +49,31 @@ export class Login implements IComponent {
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
     
-        // === Heading ===
+        // Heading
         const heading = document.createElement('h2');
-        heading.className =
-            'w-[596px] text-center mb-6 text-[28px] font-press text-white';
+        heading.className ='w-[596px] text-center mb-6 text-[28px] font-press text-white';
         heading.textContent = t('auth.welcomeBack') as string;
         
-        // === Login card (form wrapper) ===
+        //Login card (form wrapper)
         this.loginCard = document.createElement('div');
         this.loginCard.className =
             `flex flex-col items-center justify-center 
              bg-background-primary border-2 border-border-green 
              rounded-[16px] p-8`;
     
-        // === Register link ===
+        // Register link
         const registerLink = document.createElement('p');
-        registerLink.className =
-            'font-nunito text-white text-left mb-4';
+        registerLink.className = 'font-nunito text-white text-left mb-4';
         registerLink.innerHTML = `
             ${t('auth.noAccount')}
-            <a href="/register"
-            class="font-mono text-color-green underline ml-40 hover:opacity-80">
-            ${t('auth.register-btn')}
-            </a>`;
+            <a href="#"
+            class="font-nunito text-green underline mt-4
+            ml-40 hover:opacity-80">${t('auth.register-btn')}</a>`;
+        const getLink = registerLink.querySelector('a') as HTMLAnchorElement;  
+        getLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigate('/register');
+        });
         
         // Form
         this.form = document.createElement('form');
@@ -69,28 +84,28 @@ export class Login implements IComponent {
         const usernameGroup = this.createInput('username', 'USERNAME', 'text', 'username');
         const passwordGroup = this.createInput('password', 'Password', 'password', '••••••••');
     
-        // === Submit button ===
+        // Submit button
         this.submitButton = document.createElement('button');
         this.submitButton.type = 'submit';
         this.submitButton.textContent = t('auth.login-btn') as string;
         this.submitButton.className = createButtonStyle("w-[360px] h-[54px] mb-4 mt-5", 'green');
     
-        // === Build the form ===
+        // Build the form
         this.form.appendChild(usernameGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
     
-        // === Google button container ===
+        // Google button container
         const googleButtonContainer = document.createElement('div');
         googleButtonContainer.id = 'google-login-button';
         googleButtonContainer.className = 'mt-4';
     
-        // === Assemble login card ===
+        // Assemble login card 
         this.loginCard.appendChild(registerLink);
         this.loginCard.appendChild(this.form);
         this.loginCard.appendChild(googleButtonContainer);
     
-        // === OTP group (hidden initially) ===
+        // OTP group (hidden initially)
         this.otpGroup = document.createElement('div');
         this.otpGroup.className = `flex flex-col items-center justify-center 
             bg-background-primary border-2 border-border-green 
@@ -105,7 +120,9 @@ export class Login implements IComponent {
         this.otpInput.type = 'text';
         this.otpInput.id = 'otp';
         this.otpInput.placeholder = '123456';
-        this.otpInput.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        this.otpInput.className = `w-[360px] h-[54px] px-4 rounded-[16px] bg-white 
+            text-background-primary text-opacity-60 font-mono focus:outline-none 
+            focus:border-border-green`;
     
         this.otpSubmitButton = document.createElement('button');
         this.otpSubmitButton.type = 'button';
@@ -122,20 +139,20 @@ export class Login implements IComponent {
         this.otpGroup.appendChild(this.otpSubmitButton);
         this.otpGroup.appendChild(this.otpResendButton);
     
-        // === Message container ===
+        //  Message container
         this.messageContainer = document.createElement('div');
     
-        // === Build page ===
+        // Build page 
         subContainer.appendChild(heading);
         subContainer.appendChild(this.loginCard);
         subContainer.appendChild(this.otpGroup);
         subContainer.appendChild(this.messageContainer);
         this.container.appendChild(subContainer);
     
-        // === Attach event listeners ===
+        // Attach event listeners 
         this.attachEventListeners();
     
-        // === Load Google login dynamically ===
+        // Load Google login dynamically
         this.loadGoogleScript()
             .then(() => this.initGoogleLogin())
             .catch(err => console.error(err));
@@ -143,7 +160,7 @@ export class Login implements IComponent {
         return this.container;
     }
 
-    // ------------------ Helper methods ------------------
+    // Helper methods
     private createInput(id: string, labelText: string, type: string, placeholder: string): HTMLDivElement {
         const group = document.createElement('div');
         group.className = 'flex flex-col gap-2';
@@ -158,7 +175,9 @@ export class Login implements IComponent {
         input.id = id;
         input.name = id;
         input.placeholder = placeholder;
-        input.className = 'w-[360px] h-[54px] px-4 rounded-[16px] bg-white text-background-primary text-opacity-60 font-mono focus:outline-none focus:border-border-green';
+        input.className = `w-[360px] h-[54px] px-4 rounded-[16px] bg-white 
+            text-background-primary text-opacity-60 font-mono focus:outline-none 
+            focus:border-border-green`;
 
         group.appendChild(label);
         group.appendChild(input);
@@ -184,7 +203,7 @@ export class Login implements IComponent {
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.login(userData);
+            const response = await apiServices.auth.login(userData);
             const data = response?.data || response;
 
             if (data.twoFactorRequired) {
@@ -201,14 +220,14 @@ export class Login implements IComponent {
                 this.otpInput.value = '';
                 this.otpInput.focus();
 
-
                 await showMessage(this.container, this.messageContainer, data.message, 'success');
+                if (this.destroyed) return;
                 return;
             }
 
             if (response.success) {
-
                 await showMessage(this.container, this.messageContainer, response.message, 'success');
+                if (this.destroyed) return;
 
                 // Reset UI && Set user as logged-in
                 AuthUtils.setLoggedIn({ username: userData.username });
@@ -222,12 +241,11 @@ export class Login implements IComponent {
                 setTimeout(() => navigate("/profile"), 2000);
 
             } else {
-
-                await showMessage(this.container, this.messageContainer, response.message, 'error');
+                showMessage(this.container, this.messageContainer, response.message, 'error');
             }
         } catch (err) {
             console.error(err);
-            await showMessage(this.container, this.messageContainer, 'API error', 'error');
+            showMessage(this.container, this.messageContainer, 'API error', 'error');
     
         } finally {
             this.setLoadingState(false);
@@ -236,8 +254,7 @@ export class Login implements IComponent {
 
     private async handle2FA() {
         const code = this.otpInput.value.trim();
-        console.log('2FA code entered:', code);
-        if (!code) return await showMessage(this.container, this.messageContainer,'Enter 2FA code', 'error');
+        if (!code) return showMessage(this.container, this.messageContainer,'Enter 2FA code', 'error');
 
         const payload: Login2FAData = {
             username: this.currentUsername,
@@ -246,21 +263,19 @@ export class Login implements IComponent {
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.login2FA(payload);
+            const response = await apiServices.auth.login2FA(payload);
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.message || 'Login successful', 'success');
-                 console.log('2FA code entered:', code);
+                if (this.destroyed) return;
                 AuthUtils.setLoggedIn({ username: payload.username });
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 2000);
             } else {
-                await showMessage(this.container, this.messageContainer, response.message || 'Login failed', 'error');
-        
+                showMessage(this.container, this.messageContainer, response.message || 'Login failed', 'error');
             }
         } catch (err) {
             console.error(err);
-            await showMessage(this.container, this.messageContainer, '2FA verification failed', 'error');
-    
+            showMessage(this.container, this.messageContainer, '2FA verification failed', 'error');
         } finally {
             this.setLoadingState(false);
         }
@@ -268,36 +283,35 @@ export class Login implements IComponent {
 
     private async handleResendOTP() {
 
-        if (!this.currentUsername) return await showMessage(this.container, this.messageContainer,'No user to resend OTP for', 'error');
+        if (!this.currentUsername) return showMessage(this.container, this.messageContainer,'No user to resend OTP for', 'error');
 
         this.setLoadingState(true);
         try {
-            const response = await apiServices.resendOTP({ username: this.currentUsername });
+            const response = await apiServices.auth.resendOTP({ username: this.currentUsername });
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.message || 'OTP resent successfully', 'success');
-        
+                if (this.destroyed) return;
                 this.otpInput.value = '';
                 this.otpInput.focus();
             } else {
-                await showMessage(this.container, this.messageContainer, response.message || 'Failed to resend OTP', 'error');
-        
+                showMessage(this.container, this.messageContainer, response.message || 'Failed to resend OTP', 'error');
             }
         } catch (err) {
             console.error(err);
-            await showMessage(this.container, this.messageContainer, 'Resend OTP failed', 'error');
+            showMessage(this.container, this.messageContainer, 'Resend OTP failed', 'error');
     
         } finally {
             this.setLoadingState(false);
         }
     }
 
+    // UI state management
     private setLoadingState(loading: boolean): void {
-        this.isLoading = loading;
         this.submitButton.disabled = loading;
         this.otpSubmitButton.disabled = loading;
         this.otpResendButton.disabled = loading;
         this.form.querySelectorAll('input').forEach(input => (input as HTMLInputElement).disabled = loading);
-        this.submitButton.textContent = loading ? t("auth.loggingIn") : t("auth.login-btn");
+        this.submitButton.textContent = loading ? t("auth.loggingIn") as string: t("auth.login-btn") as string;
 
         const inputs = this.form.querySelectorAll('input');
         inputs.forEach(input => {
@@ -305,7 +319,7 @@ export class Login implements IComponent {
         });
     }
     
-    // ------------------ Google Login ------------------
+    // Google OAuth login
     private loadGoogleScript(): Promise<void> {
         return new Promise((resolve, reject) => {
             if ((window as any).google?.accounts?.id) return resolve();
@@ -327,7 +341,7 @@ export class Login implements IComponent {
             client_id: '664010514832-jrr53943l8tvr54pths5ugpnkfs9aim5.apps.googleusercontent.com', // chnage to ENV GOOGLE_CLIENT_ID
             callback: async (response: any) => {
                 const idToken = response.credential;
-                if (!idToken) return await showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
+                if (!idToken) return showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
         
                 this.handleGoogleToken(idToken);
             }
@@ -344,23 +358,27 @@ export class Login implements IComponent {
     private async handleGoogleToken(idToken: string) {
         this.setLoadingState(true);
         try {
-            const response = await apiServices.googleLogin({ idToken });
+            const response = await apiServices.auth.googleLogin({ idToken });
             if (response.success) {
                 await showMessage(this.container, this.messageContainer, response.data?.message || 'Login successful', 'success');
+                if (this.destroyed) return;
 
                 AuthUtils.setLoggedIn({ username: response.data.username });
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 1500);
             } else {
-                await showMessage(this.container, this.messageContainer, response.data?.message || 'Login failed', 'error');
+                showMessage(this.container, this.messageContainer, response.data?.message || 'Login failed', 'error');
         
             }
         } catch (err) {
             console.error(err);
-            await showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
+            showMessage(this.container, this.messageContainer, 'Google login failed', 'error');
     
         } finally {
             this.setLoadingState(false);
         }
+    }
+    public cleanup() {
+        this.destroyed = true;
     }
 }

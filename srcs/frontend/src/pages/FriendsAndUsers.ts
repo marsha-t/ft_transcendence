@@ -172,7 +172,7 @@ export class friendsAndUsers implements IComponent {
       this.updateFriendsList();
     });
 
-    return friends; // ✅ Return for integration
+    return friends;
   }
 
   // Fetches friends and requests data from the backend
@@ -241,7 +241,7 @@ export class friendsAndUsers implements IComponent {
     if (response.success) {
       item.remove(); // Remove from UI
       await this.fetchProfileData();
-      this.switchToFriends(); // ✅ use captured instance
+      this.switchToFriends();
       if (this.onProfileUpdate) {
         this.onProfileUpdate();
       }

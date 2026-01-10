@@ -1,28 +1,5 @@
 import { GameConfig } from "./GameConfig";
-
-
-type DeepPartial<T> = {
-    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
-
-export type GamePreset = 'CLASSIC' | 'FAST' | 'CHAOS' | 'CUSTOM';
-
-
-/**
- * CustomGameSettings - Data structure passed from UI when user applies a preset or custom config
- *
- * Responsibilities:
- * - Defines which preset is active
- * - Optionally carries user-defined overrides (only used when preset is 'CUSTOM')
- *
- * Usage:
- * - Passed to gameConfigManager.applyCustomizations()
- * - Stored and used to compute final runtime configuration
- */
-export interface CustomGameSettings {
-    preset: GamePreset;
-    config?: DeepPartial<typeof GameConfig>;
-}
+import { GamePreset, DeepPartial, CustomGameSettings } from "./types";
 
 /**
  * GameConfigManager Class
@@ -184,5 +161,4 @@ class GameConfigManager{
   }
 }
 export const gameConfigManager = new GameConfigManager();
-export type {DeepPartial};
 

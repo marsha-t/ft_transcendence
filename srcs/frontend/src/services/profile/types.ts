@@ -14,8 +14,6 @@ export interface UpdateProfileData {
     newEmail?: string;
 }
 
-
-
 export interface AvatarUploadResponse {
     message: string;
     avatar: string;
@@ -25,14 +23,3 @@ export interface AvatarDeleteResponse {
     message: string;
     avatar: string;
 }
-
-
-export interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    status?: number;
-    message?: string;
-    errors?: string[]; 
-    code?: string;
-}
-

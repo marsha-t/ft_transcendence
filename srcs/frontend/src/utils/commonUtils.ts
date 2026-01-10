@@ -1,6 +1,5 @@
 import { Router } from '../Router.js';
-import { t } from '../services/i18n/i18nService.js';
-import { createButtonStyle } from './uiUtils.js';
+
 //--------------------------
 // Routing
 //--------------------------
@@ -26,113 +25,9 @@ export function navigate(path: string, state: any = {}) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-export async function confirmationPopup(message: string, title = t("common.pleaseConfirm") as string, action: boolean): Promise<boolean> {
-  return new Promise((resolve) => {
-    const overlay = document.createElement("div");
-    overlay.className = `fixed inset-0 w-screen h-screen bg-black/50
-      flex items-center justify-center z-[2000]
-    `;
-
-    const modal = document.createElement("div");
-    modal.className = ` bg-[var(--color-background-secondary,#fff)] p-6 rounded-2xl w-[320px]
-      shadow-[0_4px_12px_rgba(0,0,0,0.15)] text-center transition-[transform,opacity]
-      duration-200 ease-in-out scale-100 opacity-100`;
-
-    const titleEl = document.createElement("h3");
-    titleEl.textContent = title;
-    titleEl.className = `mt-0 mb-2 text-[24px] font-bold`;
-    titleEl.style.color = "#dc2626";
-
-    const messageEl = document.createElement("p");
-    messageEl.textContent = message;
-    messageEl.className = `my-4 text-[18px] font-medium`;
-
-    const buttons = document.createElement("div");
-    buttons.className = `flex justify-center gap-4`;
-
-    const yesBtn = document.createElement("button");
-    yesBtn.textContent = t("game-result.checkResults") as string;
-    yesBtn.className = createButtonStyle("w-fit h-[42px]", "green");
-
-    buttons.appendChild(yesBtn);
-    modal.appendChild(titleEl);
-    modal.appendChild(messageEl);
-    modal.appendChild(buttons);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    const cleanup = (confirmed: boolean) => {
-      modal.style.opacity = "0";
-      modal.style.transform = "scale(0.95)";
-      setTimeout(() => overlay.remove(), 200);
-      resolve(confirmed);
-    };
-
-    yesBtn.addEventListener("click", () => cleanup(true));
-    document.addEventListener(
-      "keydown",
-      (e) => {
-        if (e.key === "Escape") cleanup(false);
-      },
-      { once: true }
-    );
-  });
-}
-
-export async function alertPopup(message: string, title = "Alert"): Promise<void> {
-  return new Promise((resolve) => {
-   const overlay = document.createElement("div");
-    overlay.className = `fixed inset-0 w-screen h-screen bg-black/50
-      flex items-center justify-center z-[2000]
-    `;
-
-    const modal = document.createElement("div");
-    modal.className = ` bg-[var(--color-background-secondary,#fff)] p-6 rounded-2xl w-[320px]
-      shadow-[0_4px_12px_rgba(0,0,0,0.15)] text-center transition-[transform,opacity]
-      duration-200 ease-in-out scale-100 opacity-100`;
-
-    const titleEl = document.createElement("h3");
-    titleEl.textContent = title;
-    titleEl.className = `mt-0 mb-2 text-[24px] font-bold`;
-    titleEl.style.color = "#dc2626";
-
-    const messageEl = document.createElement("p");
-    messageEl.textContent = message;
-    messageEl.className = `my-4 text-[18px] font-medium`;
-
-    const buttons = document.createElement("div");
-    buttons.className = `flex justify-center gap-4`;
-
-    const okBtn = document.createElement("button");
-    okBtn.textContent = "OK";
-    okBtn.className = createButtonStyle("w-fit h-[42px]", "green");
-
-    buttons.appendChild(okBtn);
-    modal.appendChild(titleEl);
-    modal.appendChild(messageEl);
-    modal.appendChild(buttons);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    const cleanup = () => {
-      modal.style.opacity = "0";
-      modal.style.transform = "scale(0.95)";
-      setTimeout(() => overlay.remove(), 200);
-      resolve();
-    };
-
-    okBtn.addEventListener("click", () => cleanup());
-    document.addEventListener(
-      "keydown",
-      (e) => {
-        if (e.key === "Escape" || e.key === "Enter") cleanup();
-      },
-      { once: true }
-    );
-  });
-}
-
-
-//--------------------------
-// UI Helpers
-//--------------------------
+// Navigation Store - used for logging out 
+export const NavigationState = {
+  forceNavigate: false,
+  activeGameSessionId: null as number | null,
+  activeTournamentId: null as number | null,
+};
