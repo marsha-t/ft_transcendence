@@ -3,7 +3,7 @@ import { apiServices } from '../services/ApiServices.js';
 import { ProfileData } from '../services/profile/types';
 import { ApiResponse } from "../services/auth/types";
 import { t } from "../services/i18n/i18nService.js";
-import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
+import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation} from "../utils/uiUtils";
 
 /**
  * This class implements the profile information card for the user.
@@ -176,8 +176,6 @@ export class ProfileInfo implements IComponent {
         this.closeBtnEl = closeBtn;
         
         this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'message_container w-full p-3 rounded-md mb-3 text-sm';
-        this.messageContainer.style.display = 'none';
         modal.appendChild(this.messageContainer);
         
         // Avatar section
@@ -315,16 +313,14 @@ export class ProfileInfo implements IComponent {
 
         // Toggle switch
         const toggleSwitch = document.createElement("div");
-        toggleSwitch.className = `
-            w-12 h-6 rounded-full relative
-            bg-[#183B76] border-2 border-[#77AB55] cursor-pointer
-            transition-all duration-200 ease-in-out
-        `;
+        toggleSwitch.className = `w-12 h-5 rounded-full relative bg-[#183B76] border-2 border-[#77AB55]
+            cursor-pointer transition-all duration-200 ease-in-out py-2 enabled bg-[#77AB55]`;
         const toggleCircle = document.createElement("div");
         toggleCircle.className = `
-            absolute w-4 h-4 bg-[#77AB55] rounded-full
-            top-1/2 -translate-y-1/2 left-1
+         absolute w-4 h-4 bg-[#77AB55] rounded-full
+            top-1/2 -translate-y-1/2
             transition-all duration-200 ease-in-out
+        
         `;
         toggleSwitch.appendChild(toggleCircle);
 
@@ -342,15 +338,15 @@ export class ProfileInfo implements IComponent {
 
         this.otpButtonHandler = async () => {
             const code = otpInput.value.trim();
-            if (!code) return alert("Enter OTP");
+            if (!code) return showMessage(overlay, this.messageContainer, 'Please enter the OTP code', 'error');
             if (this._isDestroyed) return;
             const verifyRes = await apiServices.auth.verify2FA(code);
             if (this._isDestroyed) return;
             if (verifyRes.success) {
-                alert("2FA enabled successfully!");
+                showMessage(overlay, this.messageContainer, "2FA enabled successfully!", 'success');
                 otpContainer.classList.add("hidden");
             } else {
-                alert(`Error: ${verifyRes.message}`);
+                showMessage(overlay, this.messageContainer, verifyRes.message || 'Failed to verify OTP', 'error');
             }
         };
         otpButton.addEventListener("click", this.otpButtonHandler);
@@ -365,13 +361,15 @@ export class ProfileInfo implements IComponent {
             if (this._isDestroyed) return;
             if (res.success && res.data?.enabled) {
                 toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(100%, -50%)";
-                toggleCircle.style.left = "16px";
+                toggleCircle.style.transform = "translate(0%, -50%)";
+                toggleCircle.style.left = "32px";
+                toggleCircle.style.backgroundColor = "white";
                 otpContainer.classList.add("hidden"); // OTP only shows when enabling
             } else {
                 toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(-0%, -50%)";
+                toggleCircle.style.transform = "translate(0%, -50%)";
                 toggleCircle.style.left = "4px";
+                toggleCircle.style.backgroundColor = "#77AB55";
                 otpContainer.classList.add("hidden");
             }
         };
@@ -388,11 +386,12 @@ export class ProfileInfo implements IComponent {
                 if (this._isDestroyed) return;
                 if (res.success) {
                     toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
-                    toggleCircle.style.transform = "translate(-0%, -50%)";
+                    toggleCircle.style.transform = "translate(0%, -50%)";
                     toggleCircle.style.left = "4px";
-                    alert(res.message);
+                    toggleCircle.style.backgroundColor = "#77AB55";
+                    showMessage(overlay, this.messageContainer, res.message, 'success');
                 } else {
-                    alert(res.message);
+                    showMessage(overlay, this.messageContainer, res.message, 'error');
                 }
             } else {
                 // Show OTP input immediately
@@ -401,16 +400,17 @@ export class ProfileInfo implements IComponent {
                 // Send OTP email asynchronously
                 apiServices.auth.enable2FA().then(res => {
                     if (this._isDestroyed) return;
-                    if (res.success) alert(res.message);
-                    else alert(res.message);
+                    if (res.success) showMessage(overlay, this.messageContainer, res.message, 'success');
+                    else showMessage(overlay, this.messageContainer, res.message, 'error');
                 }).catch(err => {
                     console.error(err);
-                    if (!this._isDestroyed) alert("Failed to send OTP email");
+                    if (!this._isDestroyed) showMessage(overlay, this.messageContainer, 'Failed to send OTP', 'error');
                 });
 
                 toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
-                toggleCircle.style.transform = "translate(100%, -50%)";
-                toggleCircle.style.left = "16px";
+                toggleCircle.style.transform = "translate(0%, -50%)";
+                toggleCircle.style.left = "32px";
+                toggleCircle.style.backgroundColor = "white";
             }
         };
         toggleSwitch.addEventListener("click", this.toggleSwitchHandler);
@@ -657,7 +657,7 @@ export class ProfileInfo implements IComponent {
                 window.dispatchEvent(new CustomEvent('authChange'));
                 if (this.onProfileUpdate) this.onProfileUpdate();
             } else {
-                alert(response.message || 'Failed to set avatar');
+                showMessage(this.modalOverlay as HTMLElement, this.messageContainer, response.message || 'Failed to set avatar', 'error');
             }
             return ;
         }
@@ -683,7 +683,7 @@ export class ProfileInfo implements IComponent {
                         window.dispatchEvent(new CustomEvent('authChange'));
                         if (this.onProfileUpdate) this.onProfileUpdate();
                     } else {
-                        alert(response.message || 'Failed to set avatar');
+                        showMessage(this.modalOverlay as HTMLElement, this.messageContainer, response.message || 'Failed to set avatar', 'error');
                     }
                 }
             });
