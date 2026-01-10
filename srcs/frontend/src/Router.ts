@@ -76,16 +76,21 @@ export class Router {
       return;
     }
 
+    // Check if page allows navigation via page.canDeactivate()
     if (this.currentPage && typeof this.currentPage.canDeactivate === "function") {
       const canLeave = await this.currentPage.canDeactivate();
       if (!canLeave) {
         return;
       }
     }
-    // Reset forced navigation flag
+    
+    // Reset NavigationState after logout
     if (NavigationState.forceNavigate) {
       NavigationState.forceNavigate = false;
+      NavigationState.activeGameSessionId = null;
+      NavigationState.activeTournamentId = null;
     }
+
     // Clean up global singleton overlays (we only have gameCustomUI modal) 
     closeAnyOpenCustomizationUI();
 
