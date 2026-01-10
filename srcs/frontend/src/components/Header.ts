@@ -1,8 +1,10 @@
 import { IComponent } from "../components/IComponent";
 import { AuthUtils } from "../utils/authUtils.js"; // Import auth utility
 import { apiServices } from "../services/ApiServices";
-import { createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation } from "../utils/uiUtils";
+import { createButtonStyle, applyAvatar, showConfirmation } from "../utils/uiUtils";
 import { t, changeLanguage, getCurrentLanguage, SUPPORTED_LANGUAGES } from "../services/i18n/i18nService.js";
+import { NavigationState } from "../utils/commonUtils";
+import { navigate } from "../utils/commonUtils";
 
 /*
     * - Display navigation links (Home, Creators)
@@ -37,12 +39,6 @@ export class Header implements IComponent {
         });
     }
 
-    private navigateTo(url: string) {
-        history.pushState(null, '', url);
-        window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-
-
     // * Main render method required by IComponent.
     public render(): HTMLElement {
         const header = document.createElement('header');
@@ -73,7 +69,7 @@ export class Header implements IComponent {
         logo.className = `flex items-center gap-[6px] no-underline`;
         logo.addEventListener('click', (e) => {
             e.preventDefault();
-            this.navigateTo('/main');
+            navigate('/main');
         });
 
         const logoText = document.createElement('span');
@@ -202,11 +198,22 @@ export class Header implements IComponent {
         logoutBtn.addEventListener("click", async () => {
             const confirmed = await showConfirmation(t("auth.logoutConfirm") as string, t("auth.logout") as string, true);
             if (!confirmed) return;
-    
+            NavigationState.forceNavigate = true;
+            if (NavigationState.activeGameSessionId) {
+                await apiServices.game.abortGame(
+                    NavigationState.activeGameSessionId
+                ).catch(() => {});
+            }
+            if (NavigationState.activeTournamentId) {
+                await apiServices.tournament.updateTournamentStatus(
+                    NavigationState.activeTournamentId,
+                    "ABORTED"
+                ).catch(() => {});
+            }
             const res = await apiServices.auth.logout();
             if (res.success) {
                 AuthUtils.setLoggedOut();
-                 this.navigateTo('/main');
+                navigate('/main');
             } else {
                 alert(res.message || "Logout failed");
             }
@@ -239,7 +246,7 @@ export class Header implements IComponent {
         }
         a.addEventListener('click', (e) => {
             e.preventDefault();
-            this.navigateTo(link.href);
+            navigate(link.href);
         });
         return a;
     }
@@ -260,7 +267,7 @@ export class Header implements IComponent {
 
         avatarLink.addEventListener('click', (e) => {
             e.preventDefault();
-            this.navigateTo('/profile');
+            navigate('/profile')
         });
 
         return avatarLink;
@@ -277,7 +284,7 @@ export class Header implements IComponent {
             option.className = createButtonStyle(" w-fit h-[32px] text-[18px]", 'green');
             option.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.navigateTo(item.href);
+                navigate(item.href);
                 dropdown.classList.add('hidden');
             });
             dropdown.appendChild(option);

@@ -8,9 +8,6 @@ export class DashboardService {
 		this.baseUrl = '/api';
 	}
 	
-	getToken(): string | null {
-		return localStorage.getItem('jwtToken');
-	}
 	// Get play counts for heatmap
 	async getPlayCounts(startDate: string, endDate: string): Promise<ApiResponse<Array<{date: string, count: number}>>> {
 		try {
@@ -24,19 +21,15 @@ export class DashboardService {
 					credentials: 'include',
 				}
 			);
-			
 			const data = await response.json();
-			
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status, 
-					message: msg || "Failed to fetch play counts",
-					errors: data.errors || []
+					message: data?.error?.message || "Failed to fetch play counts",
+					code: data?.error?.code
 				};
 			}
-			
 			return {
 				success: true,
 				status: response.status,
@@ -47,9 +40,9 @@ export class DashboardService {
 			console.error('Error fetching play counts: ', err);
 			return {
 				success: false,
-				status: 500,
-				message: "Network error fetching play counts",
-				errors: []
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
 			};
 		}
 	}
@@ -66,12 +59,11 @@ export class DashboardService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status, 
-					message: msg || "Failed to fetch game dashboard",
-					errors: data.errors || []
+					message: data?.error?.message || "Failed to fetch game dashboard",
+					code: data?.error?.code
 				};
 			}
 			return {
@@ -82,7 +74,12 @@ export class DashboardService {
 			}
 		} catch (err) {
 			console.error('Error fetching game dashboard: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 	
@@ -97,12 +94,11 @@ export class DashboardService {
 			});
 			const data = await response.json();
 			if (!response.ok) {
-				let msg = data.validation?.[0]?.message || data.error;
 				return {
 					success: false,
 					status: response.status, 
-					message: msg || "Failed to fetch user dashboard",
-					errors: data.errors || []
+					message: data?.error?.message || "Failed to fetch user dashboard",
+					code: data?.error?.code
 				};
 			}
 			return {
@@ -113,7 +109,12 @@ export class DashboardService {
 			}
 		} catch (err) {
 			console.error('Error fetching user dashboard: ', err);
-			throw err;
+			return {
+				success: false,
+				status: 0,
+				message: "Network error",
+				code: 'NETWORK_ERROR'
+			};
 		}
 	}
 
@@ -124,7 +125,7 @@ export class DashboardService {
 				headers: {
 					"Content-Type": "application/json",
 				},
-						credentials: 'include',
+				credentials: 'include',
 			});
 			
 			const data = await response.json();
@@ -132,8 +133,8 @@ export class DashboardService {
 				return {
 					success: false,
 					status: response.status,
-					message: data.error || data.message || "Failed to fetch match history",
-					errors: data.errors || [],
+					message: data?.error?.message || "Failed to fetch match history",
+					code: data?.error?.code
 				};
 			}
 			const matches: MatchHistory[] = Array.isArray(data)
@@ -155,12 +156,12 @@ export class DashboardService {
 				message: "Users fetched successfully",
 			};
 		} catch (error: any) {
-			console.error("API error", error);
+			console.error("Error fetching match history: ", error);
 			return {
 				success: false,
 				status: 0,
-				message: error?.message || "Network error",
-				errors: [],
+				message: "Network error",
+				code: 'NETWORK_ERROR'
 			};
 		}
 	}

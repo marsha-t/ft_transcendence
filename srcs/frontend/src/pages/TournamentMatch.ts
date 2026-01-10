@@ -1,9 +1,10 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices.js";
 import { Game } from "./Game.js";
-import {showConfirmation} from "../utils/uiUtils.js";
+import { showConfirmation } from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
+import { NavigationState } from "../utils/commonUtils";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -43,29 +44,24 @@ export class TournamentMatch implements IComponent {
       - 3) Valid nextMatch, render match UI
   */
   private async loadNextMatch() {
-    try {
-      this.container.innerHTML = `<div class="text-[var(--color-text-white)]">Loading next match...</div>`;
+    this.container.innerHTML = `<div class="text-[var(--color-text-white)]">Loading next match...</div>`;
 
-      const response = await apiServices.tournament.getNextMatch(
-        this.tournamentId
-      );
-      if (!response.success) {
-        this.container.textContent = response.message || "Failed to load match";
-        return;
-      }
-      const data = response.data;
-      if (!data?.nextMatch) {
-        this.hasEnded = true;
-        this.cleanup();
-        TournamentStore.nextIsFinal = true;
-        return;
-      }
-      const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
-      this.renderMatch(matchIndex, player1, player2, gameSessionId);
-    } catch (err) {
-      console.error("Error loading match:", err);
-      this.container.textContent = "Error loading match.";
+    const response = await apiServices.tournament.getNextMatch(
+      this.tournamentId
+    );
+    if (!response.success) {
+      this.container.textContent = response.message || "Failed to load match";
+      return;
     }
+    const data = response.data;
+    if (!data?.nextMatch) {
+      this.hasEnded = true;
+      this.cleanup();
+      TournamentStore.nextIsFinal = true;
+      return;
+    }
+    const { matchIndex, player1, player2, gameSessionId } = data.nextMatch;
+    this.renderMatch(matchIndex, player1, player2, gameSessionId);
   }
   /*
     - Clear container
@@ -164,23 +160,22 @@ export class TournamentMatch implements IComponent {
     - Allow navigation if internalTournamentNavigation is true
   */
   public async canDeactivate(): Promise<boolean> {
-     if (TournamentStore.isInternalTournamentNavigation) {
+    if (NavigationState.forceNavigate) {
+      return true;
+    } 
+    if (TournamentStore.isInternalTournamentNavigation) {
         TournamentStore.isInternalTournamentNavigation = false;
         return true;
     }
     if (this.hasEnded) return true;
-     const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress"), t("common.pleaseConfirm") as string, true);
+     const confirmLeave = await showConfirmation(t("tournament.tournamentInProgress") as string, t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
-    try {
-      this.cleanup();
-
-      await apiServices.tournament.updateTournamentStatus(
-        this.tournamentId,
-        "ABORTED"
-      );
-    } catch (err) {
-      console.error("Failed to abort tournament:", err);
-    }
+    NavigationState.activeGameSessionId = null;
+    NavigationState.activeTournamentId = null;
+    apiServices.tournament.updateTournamentStatus(
+    this.tournamentId,
+      "ABORTED"
+    ).catch(() => {}); // backend abort is best-effort; don't block navigation regardless of success
     return true;
   }
 

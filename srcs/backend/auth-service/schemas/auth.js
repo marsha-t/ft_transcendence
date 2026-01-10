@@ -282,19 +282,3 @@ export const loginStatusSchema = {
     }
   }
 };
-
-export const userInfoSchema = {
-  tags: ['User'],
-  summary: 'Get authenticated user basic info',
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        username: { type: 'string' },
-        avatar: { type: 'string' },
-      },
-      required: ['username', 'avatar'],
-      additionalProperties: false,
-    }
-  }
-};

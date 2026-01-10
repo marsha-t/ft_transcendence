@@ -1,5 +1,6 @@
 import { Paddle } from "./Paddle";
 import { gameConfigManager } from "./GameConfigManager";
+import { ControlMode } from "./types";
 
 /**
  * InputHandler - Keyboard input management for paddle control
@@ -10,12 +11,6 @@ import { gameConfigManager } from "./GameConfigManager";
  * - Updating paddle velocities based on input
  * - Supporting AI control by simulating key presses
  * 
- * CRITICAL - CLEANUP REQUIRED:
- * - Attaches event listeners to window (global scope)
- * - Must remove listeners via dispose() to prevent memory leaks in SPA
- * - Each PongGame instance creates new InputHandler with new listeners
- * - Without cleanup, listeners accumulate on every game page visit
- * 
  * Lifecycle:
  * - Created by PongGame constructor
  * - Updated every physics step (120Hz)
@@ -25,6 +20,8 @@ export class InputHandler {
     private leftPaddle: Paddle;
     private rightPaddle: Paddle;
     private paddleSpeed = gameConfigManager.current.paddle.speed;
+    private leftControl: ControlMode = 'HUMAN';
+    private rightControl: ControlMode = 'HUMAN';
 
     private keys: { [key: string]: boolean } = {
         w: false,
@@ -50,6 +47,17 @@ export class InputHandler {
     // ===========================
     // KEYBOARD EVENT REGISTRATION
     // ===========================
+    public setControlModes(ai: ControlMode, human: ControlMode): void {
+        this.leftControl = ai;
+        this.rightControl = human;
+
+        // Clear keys when switching modes
+        this.keys.w = false;
+        this.keys.s = false;
+        this.keys.ArrowUp = false;
+        this.keys.ArrowDown = false;
+    }
+
     private registerKeyboardEvents(): void {
         window.addEventListener("keydown", this.onKeyDown);
         window.addEventListener("keyup", this.onKeyUp);
@@ -59,19 +67,25 @@ export class InputHandler {
         switch (ev.key) {
             case "w":
             case "W":
-                this.keys.w = true;
+                if(this.leftControl === 'HUMAN')
+                    this.keys.w = true;
                 break;
             case "s":
             case "S":
-                this.keys.s = true;
+                if(this.leftControl === 'HUMAN')
+                    this.keys.s = true;
                 break;
             case "ArrowUp":
-                this.keys.ArrowUp = true;
-                ev.preventDefault();
+                if(this.rightControl === 'HUMAN'){
+                    this.keys.ArrowUp = true;
+                    ev.preventDefault();
+                }
                 break;
             case "ArrowDown":
-                this.keys.ArrowDown = true;
-                ev.preventDefault();
+                if(this.rightControl === 'HUMAN'){
+                    this.keys.ArrowDown = true;
+                    ev.preventDefault();
+                }
                 break;
         }
     }
@@ -80,17 +94,21 @@ export class InputHandler {
         switch (ev.key) {
             case "w":
             case "W":
-                this.keys.w = false;
+                if(this.leftControl === 'HUMAN')
+                    this.keys.w = false;
                 break;
             case "s":
             case "S":
-                this.keys.s = false;
+                if(this.leftControl === 'HUMAN')
+                    this.keys.s = false;
                 break;
             case "ArrowUp":
-                this.keys.ArrowUp = false;
+                if(this.rightControl === 'HUMAN')
+                    this.keys.ArrowUp = false;
                 break;
             case "ArrowDown":
-                this.keys.ArrowDown = false;
+                if(this.rightControl === 'HUMAN')
+                    this.keys.ArrowDown = false;
                 break;
         }
     }
@@ -114,14 +132,27 @@ export class InputHandler {
     }
 
     public applyAIDirection(direction: "UP" | "DOWN" | "NONE") {
-        // Reset both keys first
-        this.keys.w = false;
-        this.keys.s = false;
+       // Control LEFT paddle if AI is on LEFT
+        if (this.leftControl === 'AI') {
+            this.keys.w = false;
+            this.keys.s = false;
 
-        if (direction === "UP") {
-            this.keys.w = true;
-        } else if (direction === "DOWN") {
-            this.keys.s = true;
+            if (direction === "UP") {
+                this.keys.w = true;
+            } else if (direction === "DOWN") {
+                this.keys.s = true;
+            }
+        }
+        // Control RIGHT paddle if AI is on RIGHT
+        else if (this.rightControl === 'AI') {
+            this.keys.ArrowUp = false;
+            this.keys.ArrowDown = false;
+
+            if (direction === "UP") {
+                this.keys.ArrowUp = true;
+            } else if (direction === "DOWN") {
+                this.keys.ArrowDown = true;
+            }
         }
     }
 

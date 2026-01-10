@@ -1,20 +1,35 @@
 import { GameState } from "./types";
 
+/**
+ * Manages WebSocket connection for AI opponent game mode
+ * Handles real-time communication between client and AI service
+ * 
+ * Features:
+ * - Auto-reconnection on connection loss
+ * - Send game state snapshots to the backend AI service
+ * - Receive and route AI-related messages via registered handlers
+ * - Handle connection loss and attempt controlled reconnection
+ * - Provide explicit cleanup on game exit
+ */
 export class AIWebSocketService {
 
     private isConnecting =  false;
     private socket: WebSocket | null = null;
     private sessionId: number | null = null;
-    private reconnectDelay = 2000; //20 sec;
+    private reconnectDelay = 2000;
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private messageHandlers: Map<string, (data: any) => void> = new Map();
     private stateStreamInterval: number | null = null;
 
-
     constructor (){}
 
-    //1) COnnect to AI websocket server
+    /**
+   * Establish a WebSocket connection to the AI service for a given session.
+   * - Prevents duplicate connections
+   * - Resolves once the socket is fully open
+   * - Registers internal event handlers
+   */
     public async connect(sessionId: number): Promise<void> {
         if(this.isConnecting || (this.socket && this.socket.readyState === WebSocket.OPEN)){
             console.warn('[AIWebSocket] Already connected or connecting');
@@ -57,7 +72,7 @@ export class AIWebSocketService {
         });
     }
 
-  //2)  Handle incoming WebSocket messages
+  // Handle incoming WebSocket messages.
   private handleMessage(event: MessageEvent): void {
       try{
 
@@ -80,25 +95,17 @@ export class AIWebSocketService {
                   console.error('[AIWebSocket] Server error:', message.message);
                   break;
           }
-
       }catch (err){
           console.error('[AIWebSocket] Failed to parse message:', err);
       }
   }
 
-  //3 Register a message handler for specific message types
+  // Register a callback for a specific message type.
   public on(messageType: string, handler: (data: any) => void): void {
       this.messageHandlers.set(messageType, handler);
     }
-
-    
-  //4 Remove a message handler
-  public off(messageType: string): void {
-      this.messageHandlers.delete(messageType);
-    }
-
-
-  //5 Send game state to backend (called every frame from PongGame)
+  
+  // Send the current game state snapshot to the AI service.
   public sendGameState(gameState: GameState): void {
     if(!this.socket || this.socket.readyState !== WebSocket.OPEN){
         console.warn('[AIWebSocket] Cannot send - socket not open');
@@ -116,7 +123,7 @@ export class AIWebSocketService {
     }
   }
 
-  //6 Send game constants once at start
+  // Send immutable game configuration data to the AI service.
   public sendGameStart(constants: any): void {
     if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
         console.warn('[AIWebSocket] Cannot send game_start - socket not open');
@@ -128,23 +135,19 @@ export class AIWebSocketService {
     }));
   }
 
-
-  //7 Send ping to keep connection alive
-  public sendPing(): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ type: 'ping' }));
-    }
-  }
-
-  //8 Handle disconnection and attempt reconnect
+  /**
+   * Handle WebSocket disconnection.
+   * - Stops any active state streaming
+   * - Skips reconnection for intentional/authorized closures
+   * - Attempts controlled reconnection for unexpected disconnects
+   */
   private handleDisconnect(event: CloseEvent): void {
     this.stopStateStream();
 
-    // Don't reconnect if it was a clean close (user quit)
-    if(event.code === 1000 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
+    // Do not reconnect on intentional or authorization-related closes
+    if(event.code === 1000 || event.code === 4401 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
         // console.log('[AIWebSocket] Clean disconnect -  not reconnecting');
         return;
-
     }
     // Attempt reconnection
     if (this.reconnectAttempts < this.maxReconnectAttempts && this.sessionId) {
@@ -160,21 +163,9 @@ export class AIWebSocketService {
       } else {
         console.error('[AIWebSocket] Max reconnection attempts reached');
     }
-
   }
 
-  //9  Start streaming game state at regular intervals
-  public startStateStream(getGameState: () => GameState, intervalMs: number = 50): void {
-    this.stopStateStream();
-    
-    this.stateStreamInterval = window.setInterval(() => {
-      const state = getGameState();
-      this.sendGameState(state);
-    }, intervalMs);
-
-  }
-
-  //10 Stop streaming game state
+  // Stop any active interval-based game state streaming.
   public stopStateStream(): void {
     if (this.stateStreamInterval !== null) {
       clearInterval(this.stateStreamInterval);
@@ -182,7 +173,7 @@ export class AIWebSocketService {
     }
   }
 
-  //11 Disconnect and cleanup
+  // Explicitly terminate the WebSocket connection and release resources.
   public disconnect(): void {
     
     this.stopStateStream();
@@ -201,19 +192,4 @@ export class AIWebSocketService {
     this.sessionId = null;
     this.reconnectAttempts = 0;
   }
-
-
-  //12 Check if connected
-  public isConnected(): boolean {
-    return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
-  }
-
-  //13 Get connection state
-  public getReadyState(): number | null {
-    return this.socket ? this.socket.readyState : null;
-  }
-
 }
-
-export const aiWebSocketService = new AIWebSocketService();
-

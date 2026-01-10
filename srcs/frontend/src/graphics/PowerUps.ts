@@ -1,15 +1,6 @@
 import * as BABYLON from '@babylonjs/core';
 import { gameConfigManager } from "./GameConfigManager";
-
-export type PowerUpTypes =  'SPEED_BOOST' | 'ENLARGE_PADDLE' | 'SLOW_MOTION';
-
-//PowerUp - Internal representation of an active power-up on the table
-interface PowerUp {
-    mesh: BABYLON.Mesh;
-    type: PowerUpTypes;
-    position: {x: number; z: number};
-    glowLayer?: BABYLON.GlowLayer;
-}
+import { PowerUp, PowerUpTypes } from './types';
 
 /**
  * PowerUpManager - Manages spawning, visuals, collision, and cleanup of power-ups
@@ -111,8 +102,6 @@ export class PowerUpManager{
         }
 
         this.powerUps.push({ mesh, type, position: { x, z } });
-        console.log(`Spawned ${type} at (${x.toFixed(1)}, ${z.toFixed(1)})`);
-
     }
 
     //Helper method for consistent colors
@@ -136,7 +125,6 @@ export class PowerUpManager{
             const dz = ballZ - powerUp.position.z;
             const distance = Math.sqrt(dx * dx + dz * dz);
 
-            const collisionRadius = 1.0;
             // Collision! Remove power-up and return type
             if (distance < ballR + 0.4) {
                 const type = powerUp.type;
@@ -180,6 +168,7 @@ export class PowerUpManager{
         }, 50);
     }
     
+    //called by PongGame.dispose()
     public cleanPowerUp(): void {
         // Dispose all active power-ups
         this.powerUps.forEach(p => {
@@ -190,17 +179,11 @@ export class PowerUpManager{
         });
         this.powerUps = [];
 
-        // Clear all collection effect intervals
-        // this.collectionIntervals.forEach(clearInterval);
-        // this.collectionIntervals = [];
-
         // Dispose shared glow layer
         if (this.glowLayer) {
             this.glowLayer.dispose();
             this.glowLayer = null;
         }
-
-        // console.log("PowerUpManager fully cleaned");
     }
     
 

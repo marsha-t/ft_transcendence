@@ -1,4 +1,6 @@
-import { CustomGameSettings, GamePreset, gameConfigManager } from '../graphics/GameConfigManager';
+import { gameConfigManager } from '../graphics/GameConfigManager';
+import { CustomGameSettings, GamePreset } from "../graphics/types";
+
 import { GameConfig } from '../graphics/GameConfig';
 import { makeButton } from './uiUtils';
 import { t } from "../services/i18n/i18nService";
@@ -237,7 +239,7 @@ export class GameCustomizationUI {
         const ballSection = document.createElement('div');
         ballSection.className = 'bg-black/30 rounded-xl p-5 border border-white/10 mb-4 text-white';
 
-        ballSection.appendChild(this.createSettingsGroup(t("gameCustomization.ballSettings" as string), [
+        ballSection.appendChild(this.createSettingsGroup(t("gameCustomization.ballSettings") as string, [
             { key: 'ball.speed.x', label: t("gameCustomization.ballSpeed") as string, min: 5, max: 30, step: 1, default: GameConfig.ball.speed.x },
             { key: 'ball.maxSpeed', label: t("gameCustomization.maxSpeed") as string, min: 10, max: 40, step: 1, default: GameConfig.ball.maxSpeed },
             { key: 'ball.speedIncrement', label: t("gameCustomization.speedIncrement") as string, min: 0.5, max: 3, step: 0.1, default: GameConfig.ball.speedIncrement }

@@ -1,45 +1,45 @@
 import { IComponent } from "../components/IComponent";
-import { apiServices } from '../services/auth/AuthServices.js';
+import { apiServices } from "../services/ApiServices";
 import { showMessage } from "../utils/uiUtils";
 import { RegisterData } from "../services/auth/types";
 import { t } from "../services/i18n/i18nService.js";
+import { navigate } from "../utils/commonUtils";
 
 export class Register implements IComponent {
     private container!: HTMLElement;
     private form!: HTMLFormElement;
     private submitButton!: HTMLButtonElement;
     private messageContainer!: HTMLDivElement;
-    private isLoading: boolean = false;
-
+    private destroyed = false;
+    /*
+        - Render Registration page layout
+            - Title
+            - Registration form
+            - Submit button
+            - Link to Login page
+    */
     public render(): HTMLElement {
         this.container = document.createElement('div');
         this.container.className = `
         flex justify-center bg-color-yellow
         h-full py-[23px]`;
-
         const subContainer = document.createElement('div');
         subContainer.className = `
             flex flex-col items-center justify-start
             bg-background-primary rounded-[16px] shadow-lg
             mx-[23px] w-[calc(100%-46px)]
             h-auto py-6 px-10`;
-
-        // Heading stays above the card
         const heading = document.createElement('h2');
         heading.className = `
             w-[596px] text-center mb-8 
             text-[28px] font-nunito text-white`;
         heading.textContent = t('auth.noAccount') as string;
 
-        // === Login card (form wrapper) ===
         const registerCard = document.createElement('div');
         registerCard.className =
             `flex flex-col items-center justify-center 
             bg-background-primary border-2 border-border-green 
             rounded-[16px] p-8` ;
-    
-
-
         this.form = document.createElement('form');
         this.form.className = `
             flex flex-col gap-[16px] 
@@ -98,7 +98,7 @@ export class Register implements IComponent {
         emailGroup.appendChild(emailLabel);
         emailGroup.appendChild(emailInput);
 
-        // === Password group ===
+        // Password field
         const passwordGroup = document.createElement('div');
         passwordGroup.className = 'flex flex-col gap-2';
     
@@ -124,7 +124,7 @@ export class Register implements IComponent {
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(passwordInput);
 
-        // === Submit button ===
+        // Submit button 
         this.submitButton = document.createElement('button');
         this.submitButton.className = `
                w-[360px] h-[54px]
@@ -143,124 +143,97 @@ export class Register implements IComponent {
             transition-all duration-150
             mb-4 mt-5
         `;
-
         this.submitButton.type = 'submit';
         this.submitButton.textContent = t('auth.register-btn') as string;
+        this.form.addEventListener('submit', this.handleRegister.bind(this));
 
-        // === Register link ===
+        // Login link 
         const loginLink = document.createElement('p');
         loginLink.className =
             'font-nunito text-white text-left mt-2';
-            loginLink.innerHTML = `
-            Already have an account? 
-            <a href="/login"
+        loginLink.innerHTML = `
+            ${t('auth.hasAccount')} 
+            <a href="#"
             class="font-nunito text-green underline mt-4
-            ml-40 hover:opacity-80">Login</a>`;
+            ml-40 hover:opacity-80">${t('auth.login-btn')}</a>`;
+        const loginAnchor = loginLink.querySelector('a') as HTMLAnchorElement;
+        loginAnchor.addEventListener('click', (event) => {
+            event.preventDefault();
+            navigate('/login');
+        });
 
-        // === Message container ===
+        // Message container (for success/error msg)
         this.messageContainer = document.createElement('div');
         this.messageContainer.className = 'none';
         
-        // === Build the form ===
         this.form.appendChild(usernameGroup);
         this.form.appendChild(emailGroup);
         this.form.appendChild(passwordGroup);
         this.form.appendChild(this.submitButton);
-
-        // === Assemble card ===
         registerCard.appendChild(this.form);
         registerCard.appendChild(loginLink);
-
-        // === Add to main container ===
         subContainer.appendChild(heading);
         subContainer.appendChild(registerCard);
         subContainer.appendChild(this.messageContainer);
-
-        // === Add to main container ===
         this.container.appendChild(subContainer);
 
-        this.attachEventListener();
         return this.container;
     }
 
-    private attachEventListener(): void{
-        this.form.addEventListener('submit', this.handleRegister.bind(this));
-    }
+    // Handle registration when submit button is clicked
+    /*
+        - Retrieve form data
+        - Set loading state while sending credentials to backend for registration
+        - Redirect to login page after successful registration
+            - After a 600ms delay, so user can see success message before redirect
+    */
     private async handleRegister(event: Event): Promise<void>{
-        event.preventDefault();
+        event.preventDefault(); // Needed since input is set up as a form
+            // Default form submission behaviour is form submission and reloaded page
         
-        //Get form data
-        const formData = new FormData(this.form);
+        const formData = new FormData(this.form); // Built-in JS object to capture data from form elements
         const userData: RegisterData = {
             username: formData.get('username') as string,
             email: formData.get('email') as string,
             password: formData.get('password') as string
         };
-        //set loading state
         this.setLoadingState(true);
-        //send data to API
-        try{
-            const response = await apiServices.register(userData);
-            if(response.success){
-                await showMessage(this.container, this.messageContainer, response.message, 'success');
-
-                
-                this.form.reset();// Clear form
-
-                // Redirect to login page after successful registration
-                setTimeout(() => {
-
-                    console.log("Current URL before navigation:", window.location.href);
-                    console.log("Current pathname:", window.location.pathname);
-                    console.log("Current hash:", window.location.hash);
-                    
-                    //i need to check and clear the path first
-                    if(window.location.hash)
-                        history.replaceState(null, '', window.location.pathname);
-                    
-                    //then navigate to destination
-                    history.pushState(null, '', '/login');
-                    // Trigger router update
-                    window.dispatchEvent(new PopStateEvent('popstate'));
-
-                    console.log("PopState event dispatched");
-
-                }, 2000);
-            } else{
-                    await showMessage(this.container, this.messageContainer, response.message, 'error');
-            }
-    } catch (error: any){
-            console.error('Registration error:', error);
-            await showMessage(this.container, this.messageContainer, 'Network error. Please check your connection and try again.', 'error');
-            // Try to extract message from error response
-            let errorMessage = 'Network error. Please check your connection and try again.';
-            if (error.response && error.response.data && error.response.data.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            await showMessage(this.container, this.messageContainer, errorMessage, 'error');
-        } finally {
-                this.setLoadingState(false);
-            }
+        const response = await apiServices.auth.register(userData);
+        if(response.success){
+            await showMessage(this.container, this.messageContainer, response.message, 'success');
+            if (this.destroyed) return ; // prevent subsequent code from running if page unmounts while showing message
+            this.form.reset();
+            setTimeout(() => {
+                if (this.destroyed) return ;
+                navigate('/login');
+            }, 600);
+        } else {
+            showMessage(this.container, this.messageContainer, response.message, 'error'); // Handle non-successful responses
+        }
+        this.setLoadingState(false);
     }
    
 
+    // Set loading state for buttons and input
+    /*
+        When loading is true (submitting register data):
+        - Disable submit button
+        - Change text of submit button
+        - Disable form input
+     */
     private setLoadingState(loading: boolean): void {
-        this.isLoading = loading;
         this.submitButton.disabled = loading;
         this.submitButton.textContent = loading ? t("auth.creatingAccount") as string : t("auth.register-btn") as string;
-        // Optionally disable form inputs during loading
-        const inputs = this.form.querySelectorAll('input');
+        const inputs = this.form.querySelectorAll('input'); 
         inputs.forEach(input => {
             (input as HTMLInputElement).disabled = loading;
+            // querySelectorAll returns Nodelist of Element type
+            // Need to cast to HTMLInputElement to access disabled
         });
     }
-    // Optional: Clean up method if needed
-    // public destroy(): void {
-    //     // Remove event listeners if component is destroyed
-    //     if (this.form) {
-    //         this.form.removeEventListener('submit', this.handleRegister.bind(this));
-    //     }
-    // }
+    
+    // Flag to guard await showMessage from changing DOM after 
+    public cleanup(): void {
+        this.destroyed = true;
+    }
 }

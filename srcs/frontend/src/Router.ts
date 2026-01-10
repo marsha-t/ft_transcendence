@@ -12,6 +12,7 @@ import { ProfileDashboard } from './pages/UserDashboard.js';
 import { AuthUtils } from './utils/authUtils.js';
 import { AI } from './pages/AI.js';
 import { closeAnyOpenCustomizationUI } from './utils/gameCustom.js';
+import { NavigationState } from './utils/commonUtils.js';
 
 export class Router {
   private currentPage: any = null;
@@ -81,7 +82,10 @@ export class Router {
         return;
       }
     }
-
+    // Reset forced navigation flag
+    if (NavigationState.forceNavigate) {
+      NavigationState.forceNavigate = false;
+    }
     // Clean up global singleton overlays (we only have gameCustomUI modal) 
     closeAnyOpenCustomizationUI();
 
