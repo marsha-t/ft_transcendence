@@ -27,7 +27,10 @@ export function navigate(path: string, state: any = {}) {
 
 // Navigation Store - used for logging out 
 export const NavigationState = {
-  forceNavigate: false,
-  activeGameSessionId: null as number | null,
+  // To suppress canDeactivate's page-level confirmation popup when logout is confirmed 
+  forceNavigate: false, 
+
+  // To abort game/tournament (in Header) when logout is confirmed 
+  activeGameSessionId: null as number | null, 
   activeTournamentId: null as number | null,
 };
