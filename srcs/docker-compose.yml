@@ -107,7 +107,7 @@ services:
     env_file:
       - ./.env
     environment:
-      - DATABASE_URL=file:/app/prisma/data/game-tournament.db
+      - GAME_DB_URL=file:/app/prisma/data/game-tournament.db
       - PORT=5005
       - AUTH_SERVICE_URL=http://auth:5001
       - PROFILE_SERVICE_URL=http://profile:5002

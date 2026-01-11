@@ -1,7 +1,5 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { ProfileData } from '../services/profile/types';
-import { ApiResponse } from "../services/auth/types";
 import { t } from "../services/i18n/i18nService.js";
 import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation} from "../utils/uiUtils";
 
@@ -101,7 +99,7 @@ export class ProfileInfo implements IComponent {
 
     // ---- Fetch profile data from backend ----
     public async fetchProfileData(): Promise<void> {
-        const profileResponse: ApiResponse<ProfileData> = await apiServices.profile.getProfile();
+        const profileResponse = await apiServices.profile.getProfile();
         if (profileResponse.success && profileResponse.data) {
             this.username = profileResponse.data.username;
             this.email = profileResponse.data.email;
