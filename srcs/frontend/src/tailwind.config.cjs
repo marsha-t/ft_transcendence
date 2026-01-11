@@ -1,10 +1,24 @@
 /** @type {import('tailwindcss').Config} */
+
+/** 
+ * Tailwind CSS configuration file
+ * This file defines:
+ *  - Which files Tailwind scans for class usage
+ *  - Custom design tokens (fonts, colors, etc.)
+ *  - Plugins (if any)
+ */
+
 module.exports = {
+  //Tells Tailwind *where to look* for class names.
+  //Tailwind will scan these files during build.
   content: [
+    //Scan all TypeScript / JavaScript files under src/
     "./src/**/*.{ts,tsx,js,jsx}",
     "./public/**/*.html",
   ],
+  // Controls the design system of current project
   theme: {
+    // extend allows adding custom values without overriding Tailwind defaults
     extend: {
       // Font Families
       fontFamily: {
@@ -12,7 +26,7 @@ module.exports = {
         nunito: ['Nunito', 'sans-serif'],
       },
 
-      // Colors
+      // These colors are exposed as Tailwind utility classes (bg-*, text-*, border-*)
       colors: {
         // Background Colors
         background: {
@@ -55,5 +69,7 @@ module.exports = {
       },
     },
   },
+  // No Tailwind plugins are used in this project
   plugins: [],
+
 };
