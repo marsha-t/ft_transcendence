@@ -164,7 +164,6 @@ export class Register implements IComponent {
 
         // Message container (for success/error msg)
         this.messageContainer = document.createElement('div');
-        this.messageContainer.className = 'none';
         
         this.form.appendChild(usernameGroup);
         this.form.appendChild(emailGroup);
