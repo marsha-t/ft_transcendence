@@ -281,7 +281,7 @@ export class Header implements IComponent {
             const option = document.createElement('a');
             option.href = item.href;
             option.textContent = item.label;
-            option.className = createButtonStyle(" w-fit h-[32px] text-[18px]", 'green');
+            option.className = createButtonStyle(" w-fit h-[32px] text-[18px] mt-5", 'green');
             option.addEventListener('click', (e) => {
                 e.preventDefault();
                 navigate(item.href);
