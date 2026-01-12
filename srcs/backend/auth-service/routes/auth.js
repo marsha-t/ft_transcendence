@@ -317,7 +317,7 @@ async function authRoutes(app) {
     } catch {
       const err = new Error('Invalid 2FA session');
       err.statusCode = 401;
-      err.code = 'INVALID_SESSION';
+      err.code = 'INVALID_2FA_SESSION';
       throw err;
     }
 
@@ -401,14 +401,14 @@ async function authRoutes(app) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (user.twoFactorCode !== code) {
-      const err = new Error('Invalid verification code');
+      const err = new Error('Invalid OTP');
       err.statusCode = 401;
       err.code = 'INVALID_OTP';
       throw err;
     }
 
     if (new Date() > user.twoFactorExpiry) {
-      const err = new Error('Verification code expired');
+      const err = new Error('OTP expired');
       err.statusCode = 401;
       err.code = 'OTP_EXPIRED';
       throw err;

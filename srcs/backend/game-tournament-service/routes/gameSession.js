@@ -48,7 +48,7 @@ async function gameSessionRoutes(app) {
       },
     });
     if (!session) {
-      const err = new Error('Game session not found');
+      const err = new Error('Session not found');
       err.statusCode = 404;
       err.code = 'SESSION_NOT_FOUND';
       throw err;
@@ -66,9 +66,9 @@ async function gameSessionRoutes(app) {
       isAuthorized = tournamentPlayers.some(p => p.userId === userId);
     }
     if (!isAuthorized) {
-      const err = new Error('You are not authorized to modify this game session');
+      const err = new Error('Unauthorized');
       err.statusCode = 403;
-      err.code = 'NOT_AUTHORIZED';
+      err.code = 'UNAUTHORIZED';
       throw err;
     }
 

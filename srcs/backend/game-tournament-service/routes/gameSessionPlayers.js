@@ -23,9 +23,9 @@ async function gameSessionPlayersRoutes(app) {
       include: { players: true },
     });
     if (!session) {
-      const err = new Error("Game session not found");
+      const err = new Error("Session not found");
       err.statusCode = 404;
-      err.code = "GAME_SESSION_NOT_FOUND";
+      err.code = "SESSION_NOT_FOUND";
       throw err;
     }
     if (session.status !== 'CREATED') {
@@ -210,7 +210,7 @@ async function gameSessionPlayersRoutes(app) {
       include: { players: true },
     });
     if (!updatedSession) {
-      const err = new Error('Game session not found');
+      const err = new Error('Session not found');
       err.statusCode = 404;
       err.code = 'SESSION_NOT_FOUND';
       throw err;

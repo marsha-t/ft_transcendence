@@ -10,7 +10,7 @@ export async function checkSessionRequester(client, userId, sessionId) {
   });
 
   if (!session) {
-    const err = new Error('Game session cannot be found');
+    const err = new Error('Session not found');
     err.statusCode = 404;
     err.code = 'SESSION_NOT_FOUND';
     throw err;
