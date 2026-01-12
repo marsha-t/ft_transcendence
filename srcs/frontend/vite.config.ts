@@ -2,7 +2,7 @@
 // IMPORT VITE CONFIGURATION HELPER
 // ============================================
 
-// defineConfig: Provides TypeScript autocomplete/IntelliSense for Vite config
+// defineConfig: Provides TypeScript autocomplete for Vite config
 import { defineConfig } from "vite";
 import path from "path";
 

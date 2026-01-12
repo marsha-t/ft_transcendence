@@ -4,8 +4,6 @@
  * Responsibilities:
  * - Centralizes ALL gameplay, physics, visual, and balance-related constants
  * - Provides a single source of truth for tuning the feel and appearance of the game
- * - Used by GameConfigManager to allow runtime overrides (customization, power-ups, presets)
- * - All values are carefully balanced for responsive, fair, and visually pleasing 3D pong gameplay
  */
 export const GameConfig =  {
     table: {
