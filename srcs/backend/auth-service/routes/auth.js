@@ -490,7 +490,6 @@ async function authRoutes(app) {
       return reply.code(200).send({ loggedIn: false });
     }
 
-    // ------------------------ fclean >> logout Issue -----------------------------
     // Verify that the user still exists in the database
     const user = await prisma.user.findUnique({ where: { id: payload.id } });
     if (!user) {
@@ -498,7 +497,6 @@ async function authRoutes(app) {
       reply.clearCookie('token', { path: '/' });
       return reply.code(200).send({ loggedIn: false });
     }
-    // -----------------------------------------------------------------------------
 
     return reply.code(200).send({ loggedIn: true });
   });
