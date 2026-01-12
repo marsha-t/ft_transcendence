@@ -2,7 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
 import { UserSearchResult, FriendRequest } from '../services/friends/types'; 
 import { createButtonStyle, applyAvatar, showMessage } from "../utils/uiUtils.js";
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 
 /* 
   * Manages:
@@ -540,7 +540,7 @@ export class friendsAndUsers implements IComponent {
             action.innerHTML = "";
             action.appendChild(pendingLabel);
           } else {
-            await showMessage(this.container, resultsContainer, (res.message || "Failed to send friend request"), 'error');
+            await showMessage(this.container, resultsContainer, translateApiError(res) || "Failed to send friend request", 'error');
           }
         });
 

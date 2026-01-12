@@ -4,7 +4,7 @@ import { LoginData, Login2FAData } from "../services/auth/types";
 import { navigate } from "../utils/commonUtils.js";
 import { showMessage, createButtonStyle} from "../utils/uiUtils.js";
 import { AuthUtils } from "../utils/authUtils.js";
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 
 /*
 - Render login UI (username/password)
@@ -241,7 +241,7 @@ export class Login implements IComponent {
                 setTimeout(() => navigate("/profile"), 2000);
 
             } else {
-                showMessage(this.container, this.messageContainer, response.message, 'error');
+                showMessage(this.container, this.messageContainer, translateApiError(response), 'error');
             }
         } catch (err) {
             console.error(err);
@@ -271,7 +271,7 @@ export class Login implements IComponent {
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 2000);
             } else {
-                showMessage(this.container, this.messageContainer, response.message || 'Login failed', 'error');
+                showMessage(this.container, this.messageContainer, translateApiError(response) || 'Login failed', 'error');
             }
         } catch (err) {
             console.error(err);
@@ -294,7 +294,7 @@ export class Login implements IComponent {
                 this.otpInput.value = '';
                 this.otpInput.focus();
             } else {
-                showMessage(this.container, this.messageContainer, response.message || 'Failed to resend OTP', 'error');
+                showMessage(this.container, this.messageContainer, translateApiError(response)  || 'Failed to resend OTP', 'error');
             }
         } catch (err) {
             console.error(err);
@@ -367,7 +367,7 @@ export class Login implements IComponent {
                 this.form.reset();
                 setTimeout(() => navigate("/profile"), 1500);
             } else {
-                showMessage(this.container, this.messageContainer, response.data?.message || 'Login failed', 'error');
+                showMessage(this.container, this.messageContainer, translateApiError(response) || 'Login failed', 'error');
         
             }
         } catch (err) {

@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 import { showMessage, createButtonStyle, applyAvatar, getAvatarUrl, showConfirmation} from "../utils/uiUtils";
 
 /**
@@ -344,7 +344,7 @@ export class ProfileInfo implements IComponent {
                 showMessage(overlay, this.messageContainer, "2FA enabled successfully!", 'success');
                 otpContainer.classList.add("hidden");
             } else {
-                showMessage(overlay, this.messageContainer, verifyRes.message || 'Failed to verify OTP', 'error');
+                showMessage(overlay, this.messageContainer, translateApiError(verifyRes) || 'Failed to verify OTP', 'error');
             }
         };
         otpButton.addEventListener("click", this.otpButtonHandler);
@@ -389,7 +389,7 @@ export class ProfileInfo implements IComponent {
                     toggleCircle.style.backgroundColor = "#77AB55";
                     showMessage(overlay, this.messageContainer, res.message, 'success');
                 } else {
-                    showMessage(overlay, this.messageContainer, res.message, 'error');
+                    showMessage(overlay, this.messageContainer, translateApiError(res), 'error');
                 }
             } else {
                 // Show OTP input immediately
@@ -399,7 +399,7 @@ export class ProfileInfo implements IComponent {
                 apiServices.auth.enable2FA().then(res => {
                     if (this._isDestroyed) return;
                     if (res.success) showMessage(overlay, this.messageContainer, res.message, 'success');
-                    else showMessage(overlay, this.messageContainer, res.message, 'error');
+                    else showMessage(overlay, this.messageContainer, translateApiError(res), 'error');
                 }).catch(err => {
                     console.error(err);
                     if (!this._isDestroyed) showMessage(overlay, this.messageContainer, 'Failed to send OTP', 'error');
@@ -614,7 +614,7 @@ export class ProfileInfo implements IComponent {
                 const response = await apiServices.profile.updateProfile(data);
     
                 if (!response.success) {
-                    await showMessage(overlay, this.messageContainer, (response.message || "Failed to update profile"), 'error');
+                    await showMessage(overlay, this.messageContainer, translateApiError(response) || "Failed to update profile", 'error');
                     return;
                 }
     
@@ -655,7 +655,7 @@ export class ProfileInfo implements IComponent {
                 window.dispatchEvent(new CustomEvent('authChange'));
                 if (this.onProfileUpdate) this.onProfileUpdate();
             } else {
-                showMessage(this.modalOverlay as HTMLElement, this.messageContainer, response.message || 'Failed to set avatar', 'error');
+                showMessage(this.modalOverlay as HTMLElement, this.messageContainer, translateApiError(response) || 'Failed to set avatar', 'error');
             }
             return ;
         }
@@ -681,7 +681,7 @@ export class ProfileInfo implements IComponent {
                         window.dispatchEvent(new CustomEvent('authChange'));
                         if (this.onProfileUpdate) this.onProfileUpdate();
                     } else {
-                        showMessage(this.modalOverlay as HTMLElement, this.messageContainer, response.message || 'Failed to set avatar', 'error');
+                        showMessage(this.modalOverlay as HTMLElement, this.messageContainer, translateApiError(response) || 'Failed to set avatar', 'error');
                     }
                 }
             });

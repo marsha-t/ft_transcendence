@@ -3,7 +3,7 @@ import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
 import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
 import { gameConfigManager } from "../graphics/GameConfigManager";
 import { CustomGameSettings } from "../graphics/types";
@@ -396,7 +396,7 @@ export class TournamentSetup implements IComponent {
         : { username: user, password: pass }
     );
     if (!res.success || !res.data?.valid) {
-      showMessage(this.modal!, this.modalMessageContainer, res.message, 'error');
+      showMessage(this.modal!, this.modalMessageContainer, translateApiError(res), 'error');
       return;
     }
   
@@ -574,7 +574,7 @@ export class TournamentSetup implements IComponent {
       playerData
     );
     if (!response.success) {
-      showMessage(this.modal!, this.modalMessageContainer, response.message, 'error');
+      showMessage(this.modal!, this.modalMessageContainer, translateApiError(response), 'error');
       return;
     }
     const tournamentId = response.data.id;
@@ -584,7 +584,7 @@ export class TournamentSetup implements IComponent {
       "STARTED"
     );
     if (!start.success) {
-      showMessage(this.modal!, this.modalMessageContainer, start.message, 'error');
+      showMessage(this.modal!, this.modalMessageContainer, translateApiError(start), 'error');
       return;
     }
     TournamentDraftStore.clear();
