@@ -2,7 +2,7 @@ import { IComponent } from "../components/IComponent";
 import { apiServices } from "../services/ApiServices";
 import { showMessage } from "../utils/uiUtils";
 import { RegisterData } from "../services/auth/types";
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 import { navigate } from "../utils/commonUtils";
 
 export class Register implements IComponent {
@@ -207,7 +207,7 @@ export class Register implements IComponent {
                 navigate('/login');
             }, 600);
         } else {
-            showMessage(this.container, this.messageContainer, response.message, 'error'); // Handle non-successful responses
+            showMessage(this.container, this.messageContainer, translateApiError(response), 'error'); // Handle non-successful responses
         }
         this.setLoadingState(false);
     }

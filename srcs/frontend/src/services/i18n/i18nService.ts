@@ -151,6 +151,25 @@ export const t = (key: string, options?: any) => {
   return i18next.t(key, options);
 };
 
+// Translation for error messages
+// Function takes API error response and translates it based on error code
+type ApiErrorLike = {
+  code?: string;
+  message?: string;
+};
+
+export function translateApiError(
+  response: ApiErrorLike,
+  fallbackKey = "errors.GENERIC"
+): string {
+  if (response?.code) {
+    const translated = t(`errors.${response.code}`);
+    if (translated) return translated as string;
+  }
+
+  return t(fallbackKey) as string; // if there is no error code or translation, show generic message
+}
+
 // Initialize direction on load
 const currentLang = getCurrentLanguage();
 const direction = SUPPORTED_LANGUAGES[currentLang as keyof typeof SUPPORTED_LANGUAGES]?.dir || 'ltr';
