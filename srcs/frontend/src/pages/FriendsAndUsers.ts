@@ -1,6 +1,6 @@
 import { IComponent } from "../components/IComponent";
 import { apiServices } from '../services/ApiServices.js';
-import { ApiResponse, FriendsData, UserSearchResult, FriendRequest } from '../services/friends/types'; 
+import { UserSearchResult, FriendRequest } from '../services/friends/types'; 
 import { createButtonStyle, applyAvatar, showMessage } from "../utils/uiUtils.js";
 import { t } from "../services/i18n/i18nService.js";
 
@@ -177,7 +177,7 @@ export class friendsAndUsers implements IComponent {
 
   // Fetches friends and requests data from the backend
   private async fetchProfileData(): Promise<void> {
-      const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
+      const friendsResponse = await apiServices.friends.getFriends();
       if (friendsResponse.success) {
         this.friendsListData = friendsResponse.data?.friends || [];
       }
@@ -300,7 +300,7 @@ export class friendsAndUsers implements IComponent {
       const res = await apiServices.friends.respondToRequest(name, "accept");
       if (res.success) {
         item.remove(); // Remove from UI
-        const friendsResponse: ApiResponse<FriendsData> = await apiServices.friends.getFriends();
+        const friendsResponse = await apiServices.friends.getFriends();
         if (friendsResponse.success) {
             this.friendsListData = friendsResponse.data?.friends || [];
             await this.fetchProfileData();
