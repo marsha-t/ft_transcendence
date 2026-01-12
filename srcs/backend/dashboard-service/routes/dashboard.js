@@ -181,9 +181,9 @@ async function dashboardRoutes(app) {
         isAuthorized = tournamentPlayers.some((p) => p.userId === userId);
       }
       if (!isAuthorized) {
-        const err = new Error("You are not authorized to view this game session");
+        const err = new Error("Unauthorized");
         err.statusCode = 403;
-        err.code = "UNAUTHORIZED_GAME_ACCESS";
+        err.code = "UNAUTHORIZED";
         throw err;
       }
 

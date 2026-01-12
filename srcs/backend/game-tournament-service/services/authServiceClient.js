@@ -120,7 +120,7 @@ export async function validateUserCredentials(username, password) {
   
   // Handle case where auth explicitly rejects credentials
   if (response.status === 401) {
-    const err = new Error('Invalid username or password');
+    const err = new Error('Invalid credentials');
     err.statusCode = 401;
     err.code = 'INVALID_CREDENTIALS';
     throw err;
