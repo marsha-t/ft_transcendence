@@ -82,7 +82,7 @@ export class ProfileInfo implements IComponent {
         const name = document.createElement("h2");
         name.className = `profile-name text-[20px] leading-[24px] tracking-[-0.01em]
             text-text-primary font-[700]
-            w-fit h-fit text-[24px] uppercase font-VT323
+            w-fit h-fit text-[24px] uppercase font-sans
             flex justify-center items-center
             rounded-md mt-3`;
         name.textContent = this.username || "";

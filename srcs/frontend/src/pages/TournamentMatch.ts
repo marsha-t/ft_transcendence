@@ -44,7 +44,7 @@ export class TournamentMatch implements IComponent {
       - 3) Valid nextMatch, render match UI
   */
   private async loadNextMatch() {
-    this.container.innerHTML = `<div class="text-text-primary font-['VT323'] text-xl font-bold">Loading next match...</div>`;
+    this.container.innerHTML = `<div class="text-text-primary font-sans text-xl font-bold">Loading next match...</div>`;
     
     if (NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
@@ -94,7 +94,7 @@ export class TournamentMatch implements IComponent {
 
     const header = document.createElement("h3");
     header.textContent = `${t("tournament.match") as string} ${matchIndex}`;
-    header.className = "text-[24px] font-['VT323'] font-bold uppercase text-text-primary mb-4";
+    header.className = "text-[24px] font-sans font-bold uppercase text-text-primary mb-4";
     matchInfo.appendChild(header);
 
     const playerContainer = document.createElement('div');
@@ -136,7 +136,7 @@ export class TournamentMatch implements IComponent {
 
     const startBtn = document.createElement("button");
     startBtn.textContent = t("tournament.startMatchBtn") as string;
-    startBtn.className = createButtonStyle("mt-5 w-fit h-fit font-['VT323'] uppercase", 'green');
+    startBtn.className = createButtonStyle("mt-5 w-fit h-fit font-sans uppercase", 'green');
     startBtn.addEventListener("click", () =>
       this.startGame(gameSessionId, p1, p2)
     );
