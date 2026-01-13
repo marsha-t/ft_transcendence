@@ -156,6 +156,9 @@
     "paddleSpeed": "Paddle Speed",
     "paddleSize": "Paddle Size",
     "units/second": "units/second",
+    "enabled": "Enabled ✓",
+    "noneSelected": "None selected",
+    "modeActive": "{{mode}} Mode Active",
     "apply&Start": "Apply & Start"
   },
   "game-result": {
@@ -216,7 +219,9 @@
     "playedMatches": "Played Matches",
     "startNewTournamentBtn": "Start New Tournament",
     "tournamentInProgress": "A tournament is in progress. Leaving will abort it.",
-    "closeTournamentAlert": "Closing this window will discard your current tournament setup. Continue?"
+    "closeTournamentAlert": "Closing this window will discard your current tournament setup. Continue?",
+    "unavailableTitle": "Tournament Unavailable",
+    "unavailableMessage": "This tournament is no longer active. You can start a new one."
   },
   "dashboard": {
     "title": "YOUR PERFORMANCE DASHBOARD",

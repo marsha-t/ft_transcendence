@@ -156,6 +156,9 @@
     "paddleSpeed": "Скорость ракетки",
     "paddleSize": "Размер ракетки",
     "units/second": "ед/сек",
+    "enabled": "Включено ✓",
+    "noneSelected": "Ничего не выбрано",
+    "modeActive": "Режим «{{mode}}» активен",
     "apply&Start": "Применить и начать"
   },
   "game-result": {
@@ -216,7 +219,9 @@
     "playedMatches": "Игранные матчи",
     "startNewTournamentBtn": "Начать новый турнир",
     "tournamentInProgress": "Турнир в процессе. Выход прервет его.",
-    "closeTournamentAlert": "Закрытие этого окна сбросит настройки турнира. Продолжить?"
+    "closeTournamentAlert": "Закрытие этого окна сбросит настройки турнира. Продолжить?",
+    "unavailableTitle": "Турнир недоступен",
+    "unavailableMessage": "Этот турнир больше не активен. Вы можете начать новый."
   },
   "dashboard": {
     "title": "ВАША ПАНЕЛЬ ЭФФЕКТИВНОСТИ",

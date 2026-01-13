@@ -504,17 +504,27 @@ export class GameCustomizationUI {
         let powerUpInfo = '';
         if (config.powerUps.enabled) {
             const types = config.powerUps.types || [];
-            const typeNames = types.map((t: string) => 
-                t.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())
-            ).join(', ');
+            const powerUpLabelMap: Record<string, string> = {
+                SPEED_BOOST: t("gameCustomization.speedBoost") as string,
+                ENLARGE_PADDLE: t("gameCustomization.enlargePaddle") as string,
+                SLOW_MOTION: t("gameCustomization.slowMotion") as string,
+                };
+            const typeNames = types
+                .map((type: string) => powerUpLabelMap[type] ?? type)
+                .join(", ");
             powerUpInfo = `
-                <strong>${t("gameCustomization.powerUps") as string}:</strong> Enabled ✓<br>
-                <strong>${t("gameCustomization.types") as string}:</strong> ${typeNames || 'None selected'}<br>
+                <strong>${t("gameCustomization.powerUps") as string}:</strong> ${t("gameCustomization.enabled")}<br>
+                <strong>${t("gameCustomization.types") as string}:</strong> ${typeNames || t("gameCustomization.noneSelected") }<br>
             `;
         }
-
+        const presetLabelMap: Record<string, string> = {
+            CLASSIC: t("gameCustomization.classic") as string,
+            FAST: t("gameCustomization.fastMode") as string,
+            CHAOS: t("gameCustomization.chaosMode") as string,
+            CUSTOM: t("gameCustomization.customMode") as string,
+        };
         previewContent.innerHTML = `
-            <strong>${t("gameCustomization.preset") as string}:</strong> ${this.currentPreset}<br>
+            <strong>${t("gameCustomization.preset") as string}:</strong> ${presetLabelMap[this.currentPreset] ?? this.currentPreset} <br>
             <strong>${t("gameCustomization.ballSpeed") as string}:</strong> ${config.ball.speed.x} <br>
             <strong>${t("gameCustomization.maxSpeed") as string}:</strong> ${config.ball.maxSpeed} <br>
             <strong>${t("gameCustomization.speedIncrement") as string}:</strong> ${config.ball.speedIncrement} %<br>

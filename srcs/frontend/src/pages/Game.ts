@@ -192,7 +192,17 @@ export class Game implements IComponent {
   private showCustomizationApplied(preset: string): void {
     const indicator = document.createElement("div");
     indicator.id = "custom-indicator";
-    indicator.textContent = `${preset} Mode Active`;
+    const presetLabelMap: Record<string, string> = {
+      CLASSIC: t("gameCustomization.classic"),
+      FAST: t("gameCustomization.fastMode"),
+      CHAOS: t("gameCustomization.chaosMode"),
+      CUSTOM: t("gameCustomization.customMode"),
+    };
+
+    indicator.textContent = t("gameCustomization.modeActive", {
+      mode: presetLabelMap[preset] ?? preset
+    }) as string;
+
     indicator.className = "text-white bg-purple-600 px-4 py-2 rounded-lg " +
       "font-semibold text-sm mt-2";
     
