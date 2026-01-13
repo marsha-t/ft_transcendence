@@ -1,9 +1,24 @@
+// ============================================
+// COMPILER OPTIONS
+// Controls how TypeScript compiles code
+// ============================================
 {
   "compilerOptions": {
+    // "target": Which JavaScript version to output
     "target": "ES2020",
+
+    // "module": Which module system to use in output files
+    // Vite expects ES modules, so this is required
     "module": "ES2020",
+
+    // "outDir": Where to put compiled .js files
     "outDir": "./public/js",
+
+    // "rootDir": Where projectś source TypeScript files are
+    // ./src = all .ts files are in src/ folder
     "rootDir": "./src",
+
+    // "strict": Enable ALL strict type-checking rules
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -15,9 +30,15 @@
     "noEmitOnError": true,
     "resolveJsonModule": true
   },
+  // "include": TypeScript will compile these files
+  // src/**/* = all files in src/ and subdirectories
+  // **/ = any number of subdirectories
+  // * = any filename
   "include": [
     "src/**/*"
   ],
+  // "exclude": TypeScript will IGNORE these files
+  // Even if they match "include" pattern above
   "exclude": [
     "node_modules",
     "public",

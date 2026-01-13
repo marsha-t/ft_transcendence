@@ -132,7 +132,7 @@ export class Login implements IComponent {
         this.otpResendButton = document.createElement('button');
         this.otpResendButton.type = 'button';
         this.otpResendButton.textContent = t("auth.resendOTP") as string;
-        this.otpResendButton.className = this.submitButton.className + ' mt-2 bg-yellow hover:bg-button-active';
+        this.otpResendButton.className = this.submitButton.className + ' mt-2 hover:bg-button-active';
     
         this.otpGroup.appendChild(otpLabel);
         this.otpGroup.appendChild(this.otpInput);
