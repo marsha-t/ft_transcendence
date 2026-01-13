@@ -273,7 +273,17 @@ export class TournamentSetup implements IComponent {
     const userBtn = document.createElement("button");
     userBtn.textContent = t("tournament.registeredUser") as string;
     userBtn.dataset.active = "false";
-    userBtn.className = createButtonStyle("h-fit w-full", 'blue');
+    userBtn.className = `
+      inline-flex items-center justify-center
+      w-full h-auto px-8 py-3
+      bg-button-inactive text-white font-bold rounded-lg tracking-widest
+      shadow-[0_5px_0_var(--color-button-shadow-blue)]
+      hover:shadow-[0_2px_0_var(--color-button-shadow-blue)]
+      hover:translate-y-1 active:translate-y-2
+      transition-all duration-150
+      text-center
+      whitespace-normal break-words leading-tight
+    `;
 
     toggleContainer.append(guestBtn, userBtn);
     form.appendChild(toggleContainer);
