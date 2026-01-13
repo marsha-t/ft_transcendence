@@ -52,7 +52,7 @@ export class Game implements IComponent {
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
-      "flex flex-col items-center min-h-[80vh] p-20 bg-background-primary rounded-[30px] ml-6 mr-6 ";
+      "flex flex-col items-center bg-background-primary rounded-[30px] mx-6 my-6 py-8 px-4 shadow-lg h-auto gap-4";
 
     this.createTitleContainer();
     this.createCanvas();
@@ -75,7 +75,7 @@ export class Game implements IComponent {
   private createTitleContainer(): void {
     const titleContainer = document.createElement("div");
     titleContainer.className =
-      "grid grid-cols-3 items-center w-full max-w-[900px] text-3xl font-bold text-white mb-6";
+      "grid grid-cols-3 items-center w-full max-w-[900px] text-3xl font-bold text-white";
 
     const userLeft = document.createElement("h2");
     userLeft.textContent = this.opts?.displayNames?.leftName ?? "User 1";
@@ -131,7 +131,7 @@ export class Game implements IComponent {
     private createControlsContainer(): void {
     const controlsContainer = document.createElement("div");
     controlsContainer.className =
-      "flex flex-row gap-4 items-center justify-between pt-10";
+      "flex flex-row gap-4 items-center justify-between";
 
     const customizeBtn = this.createTrackedButton(t("game.customizeGame") as string, "customize-btn", "block", () => 
       this.openCustomizationPopUp());
