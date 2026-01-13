@@ -60,13 +60,15 @@ export function createButtonStyle(customization: string = "", color: 'blue' | 'g
     shadow-[0_5px_0_var(--color-button-shadow)]
     hover:shadow-[0_2px_0_var(--color-button-shadow)] active:shadow-none
     hover:translate-y-1 active:translate-y-2
-    transition-all duration-150 mt-5 text-center no-underline whitespace-nowrap`;
+    transition-all duration-150 text-center no-underline whitespace-nowrap`;
 
     const mainBlueStyle = `
       inline-flex items-center justify-center px-8 py-3
-      bg-[#1F4D9A] text-white font-bold rounded-lg tracking-widest 
-      shadow-[0px_-2px_2px_0px_#0000001A_inset,0px_2px_2px_0px_#00000040]
-        transition-all duration-150 text-center no-underline whitespace-nowrap
+      bg-button-inactive text-white font-bold rounded-lg tracking-widest
+      shadow-[0_5px_0_var(--color-button-shadow-blue)]
+      hover:shadow-[0_2px_0_var(--color-button-shadow-blue)]
+      active:shadow-none
+      transition-all duration-150 text-center no-underline whitespace-nowrap
       hover:translate-y-1 active:translate-y-2
       `;
   
@@ -161,7 +163,7 @@ export async function showConfirmation(message: string, title = t("common.please
 
     const yesBtn = document.createElement("button");
     yesBtn.textContent = t("common.yes") as string;
-    yesBtn.className = createButtonStyle("w-fit h-[42px]", 'green');
+    yesBtn.className = createButtonStyle("w-fit h-[42px] mt-5", 'green');
     if (action)
         yesBtn.style.backgroundColor = "#4caf50";
     else

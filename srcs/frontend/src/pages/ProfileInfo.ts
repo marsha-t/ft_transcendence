@@ -64,7 +64,7 @@ export class ProfileInfo implements IComponent {
         // Edit button
         const editProfileBtn = document.createElement("div");
         editProfileBtn.textContent = t("profile.editProfile") as string;
-        editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-fit h-[32px] font-pixel", 'green');
+        editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-fit h-[32px] font-nunito mt-5", 'green');
 
         // store handler so it can be removed during cleanup
         this.editProfileHandler = () => this.openSettingsPopup();

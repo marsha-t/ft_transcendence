@@ -42,23 +42,24 @@ export class TournamentResults implements IComponent {
   */
   public render(): HTMLElement {
     const page = document.createElement("div");
-    page.className =
-      "min-h-screen flex justify-center items-start pt-12 font-['Press_Start_2P'] text-[var(--color-text-yellow)] bg-[var(--color-background)]";
+    page.className = `bg-background-primary justify-center items-center
+      flex flex-col w-[calc(100%-46px)] h-[calc(100%-46px)] rounded-[16px] shadow-lg
+      text-center mx-[23px] my-[23px] py-6 px-10 overflow-auto`;
 
     this.container = document.createElement("div");
     this.container.className =
-      "bg-[var(--color-background)] rounded-xl px-16 py-8 max-w-[900px] w-full flex flex-col items-center text-center";
+      "bg-transparent rounded-xl px-16 py-8 max-w-[900px] h-full w-full flex flex-col items-center text-center";
 
     // Header
     const h2 = document.createElement("h2");
     h2.textContent = t("tournament.tournamentResults") as string;
-    h2.className = "text-[1.5rem] text-[var(--color-text-white)] mb-10";
+    h2.className = "text-[1.5rem] text-text-primary mb-2";
     this.container.appendChild(h2);
 
     // Bracket placeholder
     const bracketContainer = document.createElement("div");
     bracketContainer.id = "mermaid-bracket";
-    bracketContainer.className = "w-full flex justify-center mt-8 mb-12";
+    bracketContainer.className = "w-full flex justify-center mt-4 mb-4";
     this.container.appendChild(bracketContainer);
 
     this.loadResults();
@@ -95,12 +96,12 @@ export class TournamentResults implements IComponent {
   */
   private renderChampion(champion: string | null) {
     const championDiv = document.createElement("div");
-    championDiv.className = "mb-12";
+    championDiv.className = "m-4";
 
     championDiv.innerHTML = `
       <div class="flex flex-col items-center">
         <span class="text-[1.8rem] mb-2">🏆</span>
-        <div class="bg-[var(--color-button)] text-[var(--color-text-white)] px-4 py-2 rounded-lg text-[1rem] font-bold">
+        <div class="bg-[var(--color-button)] text-text-primary px-4 py-2 rounded-lg text-[1rem] font-bold">
           ${champion ?? "-"}
         </div>
       </div>
@@ -240,13 +241,13 @@ export class TournamentResults implements IComponent {
       linkStyle default stroke:#d1d5db,stroke-width:2px,curve:0.3;
 
       %% Player nodes
-      classDef player fill:#0f172a,stroke-width:0,color:white;
+      classDef player fill:#21447E,stroke-width:0,color:white;
 
       %% Round winners (light → dark green outlines)
-      classDef r1 fill:#0f172a,stroke:#5BAA6B,stroke-width:2px,color:white;
-      classDef r2 fill:#0f172a,stroke:#4ECA6C,stroke-width:2px,color:white;
-      classDef r3 fill:#0f172a,stroke:#85EAA0,stroke-width:3px,color:white;
-      classDef r4 fill:#0f172a,stroke:#a8ffbf,stroke-width:3.5px,color:white;
+      classDef r1 fill:#21447E,stroke:#5BAA6B,stroke-width:2px,color:white;
+      classDef r2 fill:#21447E,stroke:#4ECA6C,stroke-width:2px,color:white;
+      classDef r3 fill:#21447E,stroke:#85EAA0,stroke-width:3px,color:white;
+      classDef r4 fill:#21447E,stroke:#a8ffbf,stroke-width:3.5px,color:white;
 
       %% Final winner
       classDef winner fill:#059669,stroke:#34d399,stroke-width:3px,color:white;
@@ -295,7 +296,7 @@ export class TournamentResults implements IComponent {
   // Render stats
   private renderStats(stats: any) {
     const statsDiv = document.createElement("div");
-    statsDiv.className = "text-[var(--color-text-white)] mb-10";
+    statsDiv.className = "text-text-primary text-[1rem] font-bold  mb-4";
 
     statsDiv.innerHTML = `
       <h3 class="text-[1rem] mb-4">${t("tournament.stats") as string}</h3>
@@ -308,12 +309,12 @@ export class TournamentResults implements IComponent {
   // Render button for new tournament
   private renderActions() {
     const btnContainer = document.createElement("div");
-    btnContainer.className = "flex justify-center mt-8";
+    btnContainer.className = "flex justify-center";
 
     const newBtn = document.createElement("button");
     newBtn.textContent = t("tournament.startNewTournamentBtn") as string;
     newBtn.className = createButtonStyle(
-      "w-auto h-[50px] text-[16px]",
+      "w-auto h-[50px] text-[16px] mt-5",
       "green"
     );
     

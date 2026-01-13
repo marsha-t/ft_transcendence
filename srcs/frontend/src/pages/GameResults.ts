@@ -47,8 +47,7 @@ export class GameResults implements IComponent {
   */
   public render(): HTMLElement {
     this.container = document.createElement("div");
-    this.container.className = `min-h-screen flex flex-col items-center gap-8 p-8  rounded-[16px] text-[var(--color-text-yellow)] font-pixel`;
-    this.container.style.backgroundColor = 'var(--color-background-primary)';
+    this.container.className = ` bg-background-primary min-h-screen flex flex-col items-center gap-8 p-4 mx-[20px] rounded-[16px] font-nunito`;
 
     this.messageContainer = document.createElement("div");
     this.messageContainer.className = "w-full flex justify-center";
@@ -57,11 +56,11 @@ export class GameResults implements IComponent {
 
     const summaryDiv = document.createElement("div");
     summaryDiv.id = "summaryDiv";
-    summaryDiv.className = "w-full text-center text-[var(--color-text-white)]";
+    summaryDiv.className = "w-full text-center text-text-primary";
 
     const chartDiv = document.createElement("div");
     chartDiv.className =
-      "rounded-lg bg-[#21447E] p-5 shadow-inner w-full max-w-[850px]";
+      "rounded-lg bg-background-tertiary p-5 shadow-inner w-full max-w-[850px]";
     chartDiv.id = "scoreChart";
     chartDiv.style.width = "700px";
     chartDiv.style.height = "400px";
@@ -77,12 +76,12 @@ export class GameResults implements IComponent {
 
     const leftDiv = document.createElement("div");
     leftDiv.className =
-      "flex flex-col bg-[#21447E] rounded-[16px] shadow-inner p-8 flex-1 overflow-y-auto";
+      "flex flex-col bg-background-tertiary rounded-[16px] shadow-inner p-8 flex-1 overflow-y-auto";
     leftDiv.appendChild(summaryDiv);
 
     const rightDiv = document.createElement("div");
     rightDiv.className =
-      "flex flex-col bg-[var(--color-background)] gap-8 rounded-xl shadow-inner flex-1";
+      "flex flex-col bg-transparent gap-8 rounded-xl shadow-inner flex-1";
     rightDiv.appendChild(chartDiv);
     rightDiv.appendChild(playersDiv);
 
@@ -156,16 +155,16 @@ export class GameResults implements IComponent {
 
     summaryDiv.innerHTML = `
         <div class="flex flex-col items-center">
-        <img src="${getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" class="w-[150px] h-[150px] rounded-full border-4 border-[#fdd835] object-cover mb-3 bg-black/25 shadow-[0_0_8px_rgba(255,255,0,0.5)]" />
+        <img src="${getAvatarUrl(summary.winner?.avatar ?? "/uploads/avatars/default.png")}" class="w-[150px] h-[150px] rounded-full border-4 border-border-yellow object-cover mb-3 bg-black/25 shadow-[0_0_8px_rgba(255,255,0,0.5)]" />
         <div class="text-[150px] leading-none m-[10px] h-[200px] overflow-hidden flex items-center justify-center">🏆</div>
-        <div class="uppercase text-[18px] text-[#b0b6e6] mb-1">${t("game-result.winner") as string}</div>
-        <div id="winnerName" class="text-[74px] font-bold mb-5 text-[#fdd835]">${summary.winner?.displayName ?? "No Winner"}</div>
+        <div class="uppercase text-[18px] text-purple_gray mb-1">${t("game-result.winner") as string}</div>
+        <div id="winnerName" class="text-[74px] font-bold mb-5 text-text-yellow">${summary.winner?.displayName ?? "No Winner"}</div>
       </div>
-      <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto mb-4">
-        <p class="text-lg text-white font-semibold tracking-wider">${t("game-result.finalScore") as string}: ${summary.finalScore.left} - ${summary.finalScore.right}</p>
+      <div class="bg-[transparent] border-2 border-purple_gray rounded-lg p-4 w-[90%] mx-auto mb-4">
+        <p class="text-lg text-text-primary font-semibold tracking-wider">${t("game-result.finalScore") as string}: ${summary.finalScore.left} - ${summary.finalScore.right}</p>
       </div>
-      <div class="bg-[transparent] border-2 border-[#b0b6e6] rounded-lg p-4 w-[90%] mx-auto">
-        <p class="text-lg text-white font-semibold tracking-wider">${t("game-result.totalDuration") as string}: ${summary.totalDurationSec.toFixed(1)}s</p>
+      <div class="bg-[transparent] border-2 border-purple_gray rounded-lg p-4 w-[90%] mx-auto">
+        <p class="text-lg text-text-primary font-semibold tracking-wider">${t("game-result.totalDuration") as string}: ${summary.totalDurationSec.toFixed(1)}s</p>
       </div>
     `;
     const nameEl = this.container.querySelector<HTMLElement>("#winnerName")
@@ -240,20 +239,20 @@ export class GameResults implements IComponent {
     const playerCards = this.dashboardData.players
       .map(
         (p) => `
-        <div class="bg-[#21447E] rounded-[16px] p-6 w-full text-center text-white shadow-xl font-pixel text-base tracking-wide hover:-translate-y-1 transition-transform">
+        <div class=" bg-background-tertiary rounded-[16px] p-6 w-full text-center text-text-primary shadow-xl font-pixel text-base tracking-wide hover:-translate-y-1 transition-transform">
           <img src="${getAvatarUrl(
             p.avatar
-          )}" class="w-[100px] h-[100px] rounded-full object-cover mx-auto mb-3 shadow-md border-2 border-[#fdd835]" />
+          )}" class="w-[100px] h-[100px] rounded-full object-cover mx-auto mb-3 shadow-md border-2 border-border-yellow" />
           <h3 class="player-name mb-4 font-bold font-['Press_Start_2P'] text-center break-words leading-tight max-w-full">
             ${p.displayName}
           </h3>
-          <ul class="list-none p-0 text-left text-[#d0d0ff] leading-relaxed">
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.score") as string}:</strong> ${p.score}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.timeTo1stPoint") as string}:</strong> ${typeof p.timeToFirstPointSec === "number" ? `${p.timeToFirstPointSec.toFixed(1)}s` :"-"}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.avgTime") as string}:</strong> ${typeof p.avgTimePerPointSec === "number" ? `${p.avgTimePerPointSec.toFixed(1)}s` :"-"}
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.matches") as string}:</strong> ${p.totalMatches}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.wins") as string}:</strong> ${p.totalWins}</li>
-            <li class="flex justify-between"><strong class="text-[#fdd835]">${t("game-result.winRate") as string}:</strong> ${p.winRate.toFixed(1)}%</li>
+          <ul class="list-none p-0 text-left text-purple_gray leading-relaxed">
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.score") as string}:</strong> ${p.score}</li>
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.timeTo1stPoint") as string}:</strong> ${typeof p.timeToFirstPointSec === "number" ? `${p.timeToFirstPointSec.toFixed(1)}s` :"-"}</li>
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.avgTime") as string}:</strong> ${typeof p.avgTimePerPointSec === "number" ? `${p.avgTimePerPointSec.toFixed(1)}s` :"-"}
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.matches") as string}:</strong> ${p.totalMatches}</li>
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.wins") as string}:</strong> ${p.totalWins}</li>
+            <li class="flex justify-between"><strong class="text-text-yellow">${t("game-result.winRate") as string}:</strong> ${p.winRate.toFixed(1)}%</li>
           </ul>
         </div>`
       )

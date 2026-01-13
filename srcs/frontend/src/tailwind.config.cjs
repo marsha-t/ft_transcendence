@@ -18,6 +18,8 @@ module.exports = {
         background: {
           primary: 'var(--color-background-primary)',
           secondary: 'var(--color-background-secondary)',
+          tertiary: 'var(--color-background-tertiary)',
+          quaternary: 'var(--color-background-quaternary)',
         },
 
         // Button Colors
@@ -32,6 +34,7 @@ module.exports = {
         text: {
           primary: 'var(--color-text-primary)',
           secondary: 'var(--color-text-secondary)',
+          yellow: 'var(--color-text-yellow)',
         },
 
         // Border Colors
@@ -52,6 +55,7 @@ module.exports = {
         green: '#77AB55',
         'blue-inactive': '#1F4D9A',
         red: '#DA483B',
+        purple_gray: '#B0B6E6'
       },
     },
   },
