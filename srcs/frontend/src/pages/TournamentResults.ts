@@ -75,7 +75,17 @@ export class TournamentResults implements IComponent {
   private async loadResults() {
     if (NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
-      navigate("/tournament/setup");
+      this.container.innerHTML = `
+        <div class="flex flex-col items-center justify-center gap-4 text-center">
+          <h2 class="text-3xl font-sans uppercase text-text-primary">
+            ${t("tournament.unavailableTitle")}
+          </h2>
+          <p class="text-lg opacity-80 text-text-primary max-w-md">
+            ${t("tournament.unavailableMessage")}
+          </p>
+        </div>
+      `;
+      return ;
     }
     const response = await apiServices.tournament.getNextMatch(
       this.tournamentId

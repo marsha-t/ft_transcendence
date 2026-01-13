@@ -4,7 +4,7 @@ import { Game } from "./Game.js";
 import { showConfirmation , createButtonStyle} from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
-import { navigate, NavigationState } from "../utils/commonUtils";
+import { NavigationState } from "../utils/commonUtils";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -44,13 +44,22 @@ export class TournamentMatch implements IComponent {
       - 3) Valid nextMatch, render match UI
   */
   private async loadNextMatch() {
+    this.container.innerHTML = `<div class="text-text-primary font-['VT323'] text-xl font-bold">Loading next match...</div>`;
+    
     if (NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
-      navigate("/tournament/setup");
+      this.container.innerHTML = `
+      <div class="flex flex-col items-center justify-center gap-4 text-center">
+        <h2 class="text-3xl font-sans uppercase text-text-primary">
+          ${t("tournament.unavailableTitle")}
+        </h2>
+        <p class="text-lg opacity-80 text-text-primary max-w-md">
+          ${t("tournament.unavailableMessage")}
+        </p>
+      </div>
+    `;
       return;
     }
-    this.container.innerHTML = `<div class="text-text-primary font-['VT323'] text-xl font-bold">Loading next match...</div>`;
-
     const response = await apiServices.tournament.getNextMatch(
       this.tournamentId
     );
