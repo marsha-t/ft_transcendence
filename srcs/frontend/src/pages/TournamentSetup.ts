@@ -42,36 +42,30 @@ export class TournamentSetup implements IComponent {
   */
   public render(): HTMLElement {
     const page = document.createElement("div");
-    page.className = `bg-[var(--color-background)] flex justify-center items-center
-      flex-col h-full py-5 text-[var(--color-text-white)]
-      font-pixel text-center`;
+    page.className = `bg-background-primary justify-center items-center
+      flex flex-col w-[calc(100%-46px)] h-[calc(100%-46px)] rounded-[16px] shadow-lg
+      text-center mx-[23px] my-[23px] py-6 px-10 overflow-hidden`;
 
     this.container = document.createElement("div");
-    this.container.className =
-      "flex flex-col items-center p-20 bg-background rounded-[30px] ml-6 mr-6 ";
+    this.container.className = `flex flex-col items-center p-20 rounded-[30px] mx-6 font-nunito text-white`;
 
     const title = document.createElement("h2");
-    title.className = "text-[1.8rem] font-pixel font-normal mb-10";
+    title.className = "text-[1.8rem] mb-8";
     title.textContent = t("tournament.tournamentSetup") as string;
     this.container.appendChild(title);
 
     // Input Container
     const counterContainer = document.createElement("div");
     counterContainer.className = `flex items-center justify-center flex-col gap-6
-      border-2 border-[var(--color-border-green)] p-[10px] rounded-[16px] w-[500px] min-h-[320px]
+      border-2 border-green p-8 rounded-[16px] w-fit h-fit
       bg-transparent box-border`;
 
     // Input: Game customisation 
     this.customizationSection = document.createElement("div");
-    this.customizationSection.className = `
-      flex flex-col items-center gap-3
-    `;
+    this.customizationSection.className = `flex flex-col items-center gap-3`;
     const customizeBtn = document.createElement("button");
     customizeBtn.textContent = t("game.customizeGame") as string;
-    customizeBtn.className = createButtonStyle(
-      "w-[390px] h-[60px] text-[24px]",
-      "blue"
-    );
+    customizeBtn.className = createButtonStyle("w-[390px] h-[60px] text-[24px]", "blue");
     customizeBtn.addEventListener("click", () => {
       openGameCustomization(
         document.body,
@@ -92,7 +86,7 @@ export class TournamentSetup implements IComponent {
 
     const label = document.createElement("label");
     label.textContent = t("tournament.numberOfPlayers") as string;
-    label.className = `text-[var(--color-text-white)] text-[24px] font-pixel font-[400]  whitespace-nowrap`;
+    label.className = `text-text-primary text-[24px] font-nunito font-[400]  whitespace-nowrap`;
     counter.appendChild(label);
 
     const input = document.createElement("input");
@@ -206,15 +200,11 @@ export class TournamentSetup implements IComponent {
       justify-center items-center backdrop-blur-sm`;
 
     const modalContent = document.createElement("div");
-    modalContent.className = `bg-[var(--color-background)] rounded-xl w-4/5 max-w-[1100px]
+    modalContent.className = `text-white font-nunito rounded-xl w-4/5 max-w-[1100px]
       relative p-[30px_40px] shadow-[0_6px_20px_rgba(0,0,0,0.5)]`;
 
     const header = document.createElement("div");
     header.className = "relative mb-6";
-
-    const h2 = document.createElement("h2");
-    h2.className = "font-['Press_Start_2P',monospace] text-base uppercase text-[var(--color-text-white)] m-0";
-    h2.textContent = t("tournament.addPlayers") as string;
     
     const modalMessageWrapper = document.createElement("div");
     modalMessageWrapper.className = "flex justify-center w-full mb-4"; // To center modalMessageContainer
@@ -228,7 +218,7 @@ export class TournamentSetup implements IComponent {
       cursor-pointer leading-none absolute top-0 right-0 transition-transform hover:scale-110`;
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", () => this.closeModal());
-    header.append(h2, closeBtn);
+    header.append(closeBtn);
     
     // overlay body split: Left to add player; Right to show lineup
     const body = document.createElement("div");
@@ -261,34 +251,29 @@ export class TournamentSetup implements IComponent {
       - updateLineup called regardless of success (harmless if nothing changed)
   */
   private createAddPlayerForm(): HTMLElement {
+
     const form = document.createElement("div");
     form.className = `flex-1 border border-white/30 rounded-xl p-[30px]
       bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)]
       min-h-[480px] max-h-[480px] flex flex-col justify-start box-border`;
 
+    const header = document.createElement("h2");
+    header.className = "text-[24px] font-['VT323'] font-bold flex justify-center m-2 uppercase text-text-primary";
+    header.textContent = t("tournament.addPlayers") as string;
+    form.appendChild(header);
     // Toggle buttons
     const toggleContainer = document.createElement("div");
-    toggleContainer.className = "flex justify-between mb-6 gap-5";
+    toggleContainer.className = "grid grid-cols-2 justify-between mt-6 mb-6 gap-5";
 
     const guestBtn = document.createElement("button");
     guestBtn.textContent = t("tournament.guest") as string;
-    guestBtn.className =
-      "flex-1 flex items-center justify-center text-center rounded-lg cursor-pointer " +
-      "uppercase transition-all font-['VT323'] text-[1.6rem] py-3.5 px-2.5 " +
-      "bg-[#3b5f9c] text-white shadow-[0_6px_0_#1e3263] hover:brightness-110 " +
-      "data-[active=true]:bg-[var(--color-button)] data-[active=true]:border-2 " +
-      "data-[active=true]:border-[#7ab96f] data-[active=true]:shadow-[0_6px_0_#4e7245]";
     guestBtn.dataset.active = "true";
+    guestBtn.className = createButtonStyle("h-fit w-full", 'green');
 
     const userBtn = document.createElement("button");
     userBtn.textContent = t("tournament.registeredUser") as string;
-    userBtn.className =
-      "flex-1 flex items-center justify-center text-center rounded-lg cursor-pointer " +
-      "uppercase transition-all font-['VT323'] text-[1.6rem] py-3.5 px-2.5 " +
-      "bg-[#3b5f9c] text-white shadow-[0_6px_0_#1e3263] hover:brightness-110 " +
-      "data-[active=true]:bg-[var(--color-button)] data-[active=true]:border-2 " +
-      "data-[active=true]:border-[#7ab96f] data-[active=true]:shadow-[0_6px_0_#4e7245]";
     userBtn.dataset.active = "false";
+    userBtn.className = createButtonStyle("h-fit w-full", 'blue');
 
     toggleContainer.append(guestBtn, userBtn);
     form.appendChild(toggleContainer);
@@ -298,9 +283,9 @@ export class TournamentSetup implements IComponent {
     guestForm.className = "";
     guestForm.innerHTML = `
       <p class="text-[var(--color-text-white)]">${t("tournament.guestInstruction") as string}</p>
-      <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("game.guestNameLabel") as string}</label>
+      <label class="text-text-primary font-bold block font-['VT323'] tracking-[2px] font-sans tracking-[2px] mt-2 mb-2">${t("game.guestNameLabel") as string}</label>
       <input id="guest-input" placeholder= "${t("tournament.guestName") as string}"
-      class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-[#0f2b66]"/>
+      class="w-full h-10 rounded-[10px] border-none mb-2 px-2.5 text-base text-text-secondary"/>
     `;
 
     // Registered form 
@@ -309,9 +294,9 @@ export class TournamentSetup implements IComponent {
     userForm.innerHTML = `
       <p class="text-[var(--color-text-white)]">${t("tournament.registeredInstruction") as string}</p>
       <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.username") as string}</label>
-      <input placeholder= "${t("auth.username") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+      <input placeholder= "${t("auth.username") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-text-secondary" />
       <label class="text-[var(--color-text-white)] block font-['VT323'] tracking-[2px] mt-2 mb-1">${t("auth.password") as string}</label>
-      <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-[#0f2b66]" />
+      <input type="password" placeholder="${t("auth.password") as string}" class="w-full h-10 rounded-[10px] border-none mb-2.5 px-2.5 text-base text-text-secondary" />
     `;
 
     const guestNameInput = guestForm.querySelector("input") as HTMLInputElement;
@@ -326,6 +311,9 @@ export class TournamentSetup implements IComponent {
 
       guestBtn.dataset.active = (type === "guest").toString();
       userBtn.dataset.active = (type === "user").toString();
+
+      guestBtn.className = createButtonStyle("h-fit w-full", guestBtn.dataset.active === "true" ? 'green' : 'blue');
+      userBtn.className = createButtonStyle("h-fit w-full", userBtn.dataset.active === "true" ? 'green' : 'blue');
 
       guestForm.classList.toggle("hidden", type !== "guest");
       userForm.classList.toggle("hidden", type !== "user");
@@ -345,9 +333,7 @@ export class TournamentSetup implements IComponent {
     const addBtn = document.createElement("button");
     addBtn.textContent = t("tournament.addPlayerBtn") as string;
     addBtn.id = "add-player-btn";
-    addBtn.className = `w-full bg-[#3b5f9c] text-[var(--color-text-white)] border-none rounded-[10px]
-      py-4 px-0 font-bold tracking-wider font-['VT323'] text-[1.6rem] mt-auto cursor-pointer
-      shadow-[0_6px_0_#1e3263] hover:bg-[#4c73b8]`;
+    addBtn.className = createButtonStyle("h-fit w-full", 'blue');
     addBtn.addEventListener("click", async () => {
       this.clearModalMessage();
       await this.handleAddPlayer(usernameInput, passwordInput, guestNameInput);
@@ -360,7 +346,6 @@ export class TournamentSetup implements IComponent {
     form.append(guestForm, userForm, addBtn);
     return form;
   }
-
   // Handler when add button is clicked
   /*
     - Validate input completeness 
@@ -431,7 +416,7 @@ export class TournamentSetup implements IComponent {
     ul.innerHTML = "";
 
     const creator = document.createElement("li");
-    creator.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+    creator.className = `bg-white text-text-secondary rounded-[10px] py-2.5 px-3.5 mb-3 
       font-['VT323'] text-[1.6rem] flex justify-between items-center`;
     const creatorNameSpan = document.createElement("span");
     creatorNameSpan.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
@@ -440,7 +425,7 @@ export class TournamentSetup implements IComponent {
 
     TournamentDraftStore.players.forEach((p, i) => {
       const li = document.createElement("li");
-      li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
+      li.className = `bg-white text-text-secondary rounded-[10px] py-2.5 px-3.5 mb-3 
         font-['VT323'] text-[1.6rem] flex justify-between items-center`;
       const nameSpan = document.createElement("span");
 
@@ -463,7 +448,7 @@ export class TournamentSetup implements IComponent {
       if (!isCreator) {
         const delBtn = document.createElement("button");
         delBtn.textContent = "×";
-        delBtn.className = `bg-transparent border-none text-[#0f2b66] text-xl font-bold 
+        delBtn.className = `bg-transparent border-none text-text-secondary text-xl font-bold 
           cursor-pointer ml-2 transition-transform hover:text-[#ff5c5c] hover:scale-110`;
         delBtn.addEventListener("click", () => {
           this.clearModalMessage();
@@ -493,19 +478,19 @@ export class TournamentSetup implements IComponent {
       bg-[radial-gradient(circle_at_50%_30%,rgba(255,255,255,0.06)_0%,transparent_70%)] 
       min-h-[480px] max-h-[480px] flex flex-col box-border`;
 
-    const h3 = document.createElement("h3");
-    h3.className = `text-center font-['Press_Start_2P',monospace] text-xs mb-5 
-      text-[var(--color-text-white)] uppercase`;
-    h3.textContent = t("tournament.currentLineup") as string;
-    section.appendChild(h3);
+    const header = document.createElement("h2");
+    header.className = "text-[24px] font-['VT323'] font-bold flex justify-center m-2 uppercase text-text-primary";
+    header.textContent = t("tournament.currentLineup") as string;
+  
+    section.appendChild(header);
 
     const ul = document.createElement("ul");
     ul.id = "lineup-list";
-    ul.className = `list-none p-0 m-0 mb-5 flex-1 overflow-y-auto 
+    ul.className = `list-none p-0 mt-5 mb-5 flex-1 overflow-y-auto 
       [scrollbar-width:thin] [scrollbar-color:#3b5f9c_#1e3263]`;
     const li = document.createElement("li");
-    li.className = `bg-white text-[#0f2b66] rounded-[10px] py-2.5 px-3.5 mb-3 
-      font-['VT323'] text-[1.6rem] flex justify-between items-center`;
+    li.className = `bg-white text-text-secondary rounded-[10px] py-2.5 px-3.5 mb-3 
+      font-['VT323'] text-[20px] flex justify-between items-center`;
     await this.fetchCreatorUsername();
     li.textContent = `1. ${this.creatorUsername} (${t("tournament.tournamentCreator") as string})`;
     ul.appendChild(li);
@@ -513,9 +498,7 @@ export class TournamentSetup implements IComponent {
 
     const confirmBtn = document.createElement("button");
     confirmBtn.id = "confirm-btn";
-    confirmBtn.className = `w-full bg-[#3b5f9c] text-white border-none rounded-[10px] 
-      py-4 px-0 font-['VT323'] text-[1.6rem] font-bold tracking-wider cursor-pointer 
-      shadow-[0_3px_0_#1e3263] uppercase mt-2.5 hover:bg-[#4c73b8] transition-colors`;
+    confirmBtn.className = createButtonStyle("h-fit w-full text-[20px] font-['VT323']", 'blue');
     confirmBtn.textContent = t("tournament.confirmStart") as string;
     confirmBtn.style.display = "none";
     confirmBtn.addEventListener(

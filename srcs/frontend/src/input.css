@@ -14,16 +14,20 @@
     /* Background Colors */
     --color-background-primary: #143367;
     --color-background-secondary: #FFD248;
+    --color-background-tertiary: #21447E;
+    --color-background-quaternary: #7EA2DD;
 
     /* Button Colors */
     --color-button-active: #77AB55;
     --color-button-inactive: #1F4D9A;
     --color-button-text: #FFFFFF;
     --color-button-shadow: #628e45;
+    --color-button-shadow-blue: #0f2a4d;
 
     /* Text Colors */
     --color-text-primary: #FFFFFF;
     --color-text-secondary: #143367;
+    --color-text-yellow: #fdd835;
 
     /* Border Colors */
     --color-border-yellow: #FFD248;
