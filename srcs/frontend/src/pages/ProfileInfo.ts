@@ -58,13 +58,13 @@ export class ProfileInfo implements IComponent {
      // ---- Render the profile card ----
     render(): HTMLElement {
         const profileInfo = document.createElement("div");
-        profileInfo.className = `profile-card rounded-2xl bg-[#21447E] opacity-100 text-color_white
-            p-4 relative flex flex-col items-center`;
+        profileInfo.className = `profile-card rounded-2xl bg-background-tertiary opacity-100 text-text-primary
+            px-4 py-4 relative flex flex-col items-center`;
 
         // Edit button
         const editProfileBtn = document.createElement("div");
         editProfileBtn.textContent = t("profile.editProfile") as string;
-        editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 w-fit h-[32px] font-nunito mt-5", 'green');
+        editProfileBtn.className =  createButtonStyle("absolute top-2 right-2 text-[20px] w-fit h-[32px] font-nunito mt-5", 'green');
 
         // store handler so it can be removed during cleanup
         this.editProfileHandler = () => this.openSettingsPopup();
@@ -75,17 +75,16 @@ export class ProfileInfo implements IComponent {
         const avatar = document.createElement("div");
         avatar.className = `profile-avatar w-[132px] h-[132px]
             rounded-full border-[7px] border-white
-            bg-[#21447E] mt-6`;
+            bg-background-tertiary mt-6`;
         applyAvatar(avatar, this.avatar, this.username);
 
         // Username
         const name = document.createElement("h2");
         name.className = `profile-name text-[20px] leading-[24px] tracking-[-0.01em]
-            font-pixel font-[500]
-            w-[125px] h-[24px]
+            text-text-primary font-[700]
+            w-fit h-fit text-[24px] uppercase font-VT323
             flex justify-center items-center
             rounded-md mt-3`;
-        name.style.color = "white"; // Explicitly set the text color to white
         name.textContent = this.username || "";
 
         profileInfo.appendChild(editProfileBtn);
@@ -152,16 +151,19 @@ export class ProfileInfo implements IComponent {
 
     private openSettingsPopup(): void {
         const overlay = document.createElement("div");
-        overlay.className = `fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50`;
+        overlay.className = `fixed inset-0 bg-opacity-50  bg-black flex items-center justify-center z-50`;
+        // apply backdrop blur so page behind modal appears blurred
+        overlay.style.setProperty('backdrop-filter', 'blur(6px)');
+        overlay.style.setProperty('-webkit-backdrop-filter', 'blur(6px)');
         
         const modal = document.createElement("div");
-        modal.className = `w-[520px] max-w-[95%] rounded-[16px] bg-[#21447E] text-white p-6 relative opacity-100`;
+        modal.className = `w-[520px] max-w-[95%] rounded-[30px] bg-background-tertiary text-text-primary p-6 relative opacity-100`;
         
         const header = document.createElement("div");
         header.className = `flex items-start justify-between w-full mb-4`;
         
         const closeBtn = document.createElement("button");
-        closeBtn.className = `absolute top-3 right-3 w-[48px] h-[48px] flex items-center justify-center text-white bg-transparent hover:brightness-90 font-pixel text-[36px]`;
+        closeBtn.className = `absolute top-3 right-3 w-[48px] h-[48px] flex items-center justify-center text-text-primary bg-transparent hover:brightness-90 font-nunito text-[36px]`;
         closeBtn.innerHTML = "&times;";
         // store close handler for cleanup
         this.closeBtnHandler = () => {
@@ -181,7 +183,7 @@ export class ProfileInfo implements IComponent {
         avatarSection.className = `flex items-center gap-4 mb-4`;
         
         const avatarPlaceholder = document.createElement("div");
-        avatarPlaceholder.className = `avatar-placeholder w-[132px] h-[132px] rounded-full border-[9.95px] border-white bg-[#21447E] flex items-center justify-center text-3xl font-pixel`;
+        avatarPlaceholder.className = `avatar-placeholder w-[132px] h-[132px] rounded-full border-[9.95px] border-white bg-background-tertiary flex items-center justify-center text-3xl `;
         applyAvatar(avatarPlaceholder, this.avatar, this.username);
 
         this.popupAvatarEl = avatarPlaceholder;
@@ -203,7 +205,7 @@ export class ProfileInfo implements IComponent {
         for (let i = 0; i < 4; i++) {
             const small = document.createElement('button');
             small.type = 'button';
-            small.className = `w-[40px] h-[40px] rounded-full border-2 border-white bg-background-yellow flex items-center justify-center text-sm font-pixel text-color_white focus:outline-none focus:ring-2 focus:ring-[#297138]`;
+            small.className = `w-[40px] h-[40px] rounded-full border-2 border-white bg-background-secondary flex items-center justify-center text-sm font-nunito text-text-primary focus:outline-none focus:ring-2`;
             small.title = `Select avatar ${i+1}`;
             applyAvatar(small, avatarPaths[i], "");
             
@@ -226,8 +228,7 @@ export class ProfileInfo implements IComponent {
         const changeBtn = document.createElement('button');
         changeBtn.type = 'button';
         changeBtn.textContent = t("profile.avatarUpload") as string;
-        changeBtn.className =  createButtonStyle("w-[100px] h-[36px] font-pixel",  'green');
-        changeBtn.classList.remove("mt-5");
+        changeBtn.className =  createButtonStyle("w-[100px] h-[36px] font-nunito",  'green');
         // store change handler
         this.changeBtnHandler = () => this.handleAvatarEdit('external', "");
         changeBtn.addEventListener('click', this.changeBtnHandler);
@@ -236,7 +237,7 @@ export class ProfileInfo implements IComponent {
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.textContent = t("profile.avatarRemove") as string;
-        removeBtn.className = createButtonStyle("w-[100px] h-[36px] font-pixel",  'blue');
+        removeBtn.className = createButtonStyle("w-[100px] h-[36px] font-nunito",  'blue');
         // store remove handler
         this.removeBtnHandler = () => this.handleAvatarDelete();
         removeBtn.addEventListener('click', this.removeBtnHandler);
@@ -292,7 +293,7 @@ export class ProfileInfo implements IComponent {
 
         // === 2FA Toggle ===
         const twoFactorGroup = document.createElement("div");
-        twoFactorGroup.className = `mt-6 flex flex-col gap-2 p-4 rounded-[8px] bg-[#183B76]`;
+        twoFactorGroup.className = `mt-6 flex flex-col gap-2 p-4 rounded-[8px] bg-background-primary`;
 
         // Label
         const twoFactorLabel = document.createElement("div");
@@ -303,7 +304,7 @@ export class ProfileInfo implements IComponent {
         twoFactorTitle.textContent = t("profile.twoFactorAuth") as string;
 
         const twoFactorDesc = document.createElement("span");
-        twoFactorDesc.className = "text-xs text-gray-400";
+        twoFactorDesc.className = "text-xs text-text-primary";
         twoFactorDesc.textContent = t("profile.twoFactorAuthDesc") as string;
 
         twoFactorLabel.appendChild(twoFactorTitle);
@@ -311,15 +312,12 @@ export class ProfileInfo implements IComponent {
 
         // Toggle switch
         const toggleSwitch = document.createElement("div");
-        toggleSwitch.className = `w-12 h-5 rounded-full relative bg-[#183B76] border-2 border-[#77AB55]
-            cursor-pointer transition-all duration-200 ease-in-out py-2 enabled bg-[#77AB55]`;
+        toggleSwitch.className = `w-12 h-5 rounded-full relative bg-background-primary border-2 border-border-green
+            cursor-pointer transition-all duration-200 ease-in-out py-2`;
         const toggleCircle = document.createElement("div");
-        toggleCircle.className = `
-         absolute w-4 h-4 bg-[#77AB55] rounded-full
+        toggleCircle.className = `absolute w-4 h-4 bg-button-active rounded-full
             top-1/2 -translate-y-1/2
-            transition-all duration-200 ease-in-out
-        
-        `;
+            transition-all duration-200 ease-in-out`;
         toggleSwitch.appendChild(toggleCircle);
 
         const otpContainer = document.createElement("div");
@@ -328,11 +326,11 @@ export class ProfileInfo implements IComponent {
         const otpInput = document.createElement("input");
         otpInput.type = "text";
         otpInput.placeholder = "Enter OTP";
-        otpInput.className = `w-1/2 rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+        otpInput.className = `w-1/2 rounded-[8px] px-3 py-2 bg-background-primary border border-gray-500 text-text-primary placeholder-gray-400 focus:outline-none`;
 
         const otpButton = document.createElement("button");
         otpButton.textContent = t("common.confirm") as string;
-        otpButton.className = `px-4 py-2 rounded-[8px] bg-[#77AB55] text-white font-semibold hover:bg-green-500 transition-colors`;
+        otpButton.className = `px-4 py-2 rounded-[8px] bg-button-active text-text-primary font-semibold hover:bg-button-active transition-colors`;
 
         this.otpButtonHandler = async () => {
             const code = otpInput.value.trim();
@@ -358,16 +356,16 @@ export class ProfileInfo implements IComponent {
             const res = await apiServices.auth.get2FAStatus();
             if (this._isDestroyed) return;
             if (res.success && res.data?.enabled) {
-                toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+                toggleSwitch.classList.add("enabled", "bg-button-active");
                 toggleCircle.style.transform = "translate(0%, -50%)";
                 toggleCircle.style.left = "32px";
-                toggleCircle.style.backgroundColor = "white";
+                toggleCircle.style.backgroundColor = "var(--color-button-text)";
                 otpContainer.classList.add("hidden"); // OTP only shows when enabling
             } else {
-                toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+                toggleSwitch.classList.remove("enabled", "bg-button-active");
                 toggleCircle.style.transform = "translate(0%, -50%)";
                 toggleCircle.style.left = "4px";
-                toggleCircle.style.backgroundColor = "#77AB55";
+                toggleCircle.style.backgroundColor = "var(--color-button-active)";
                 otpContainer.classList.add("hidden");
             }
         };
@@ -383,10 +381,10 @@ export class ProfileInfo implements IComponent {
                 const res = await apiServices.auth.disable2FA();
                 if (this._isDestroyed) return;
                 if (res.success) {
-                    toggleSwitch.classList.remove("enabled", "bg-[#77AB55]");
+                    toggleSwitch.classList.remove("enabled", "bg-button-active");
                     toggleCircle.style.transform = "translate(0%, -50%)";
                     toggleCircle.style.left = "4px";
-                    toggleCircle.style.backgroundColor = "#77AB55";
+                    toggleCircle.style.backgroundColor = "var(--color-button-active)";
                     showMessage(overlay, this.messageContainer, res.message, 'success');
                 } else {
                     showMessage(overlay, this.messageContainer, translateApiError(res), 'error');
@@ -405,10 +403,10 @@ export class ProfileInfo implements IComponent {
                     if (!this._isDestroyed) showMessage(overlay, this.messageContainer, 'Failed to send OTP', 'error');
                 });
 
-                toggleSwitch.classList.add("enabled", "bg-[#77AB55]");
+                toggleSwitch.classList.add("enabled", "bg-button-active");
                 toggleCircle.style.transform = "translate(0%, -50%)";
                 toggleCircle.style.left = "32px";
-                toggleCircle.style.backgroundColor = "white";
+                toggleCircle.style.backgroundColor = "var(--color-button-text)";
             }
         };
         toggleSwitch.addEventListener("click", this.toggleSwitchHandler);
@@ -525,7 +523,7 @@ export class ProfileInfo implements IComponent {
         usernameLabel.textContent = t("auth.username") as string;
         const usernameInput = document.createElement("input");
         usernameInput.type = "text";
-        usernameInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+        usernameInput.className = `w-full rounded-[8px] px-3 py-2 bg-background-primary border border-gray-500 text-text-primary placeholder-gray-400 focus:outline-none`;
         usernameInput.placeholder = this.username || "";
         usernameGroup.appendChild(usernameLabel);
         usernameGroup.appendChild(usernameInput);
@@ -538,7 +536,7 @@ export class ProfileInfo implements IComponent {
         emailLabel.textContent = t("auth.email") as string;
         const emailInput = document.createElement("input");
         emailInput.type = "email";
-        emailInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+        emailInput.className = `w-full rounded-[8px] px-3 py-2 bg-background-primary border border-gray-500 text-text-primary placeholder-gray-400 focus:outline-none`;
         emailInput.placeholder = this.email || "";
         emailGroup.appendChild(emailLabel);
         emailGroup.appendChild(emailInput);
@@ -552,12 +550,12 @@ export class ProfileInfo implements IComponent {
         const oldPasswordInput = document.createElement("input");
         oldPasswordInput.type = "password";
         oldPasswordInput.placeholder = "Old Password";
-        oldPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+        oldPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-background-primary border border-gray-500 text-text-primary placeholder-gray-400 focus:outline-none`;
         const newPasswordInput = document.createElement("input");
         newPasswordInput.type = "password";
         newPasswordInput.placeholder = "New Password";
         newPasswordInput.id = "newPassword"; // <- added id to be able to call it when google user has a new placeholder
-        newPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-[#183B76] border border-gray-500 text-white placeholder-gray-400 focus:outline-none`;
+        newPasswordInput.className = `w-full rounded-[8px] px-3 py-2 bg-background-primary border border-gray-500 text-text-primary placeholder-gray-400 focus:outline-none`;
         passwordGroup.appendChild(passwordLabel);
         passwordGroup.appendChild(oldPasswordInput);
         passwordGroup.appendChild(newPasswordInput);
@@ -575,12 +573,12 @@ export class ProfileInfo implements IComponent {
         actions.className = `flex items-center justify-end gap-3 mt-4`;
 
         const saveBtn = document.createElement("button");
-        saveBtn.className =  createButtonStyle("w-[100px] h-[36px]  font-pixel",  'green');
+        saveBtn.className =  createButtonStyle("w-[100px] h-[36px]  font-nunito",  'green');
         saveBtn.classList.remove("mt-5");
         saveBtn.textContent = t("common.save") as string;
 
         const cancelBtn = document.createElement("button");
-        cancelBtn.className = createButtonStyle("w-[100px] h-[36px]  font-pixel",  'blue');
+        cancelBtn.className = createButtonStyle("w-[100px] h-[36px]  font-nunito",  'blue');
         cancelBtn.textContent = t("common.cancel") as string;
 
         saveBtn.addEventListener("click", async () => {
