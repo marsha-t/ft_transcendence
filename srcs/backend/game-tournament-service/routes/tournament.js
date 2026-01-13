@@ -283,7 +283,7 @@ async function tournamentRoutes(app) {
     const validTransitions = {
       CREATED: new Set(["STARTED", "ABORTED"]),
       STARTED: new Set(["FINISHED", "ABORTED"]),
-      FINISHED: new Set([]),
+      FINISHED: new Set(["ABORTED"]),
       ABORTED: new Set([]),
     };
     if (!validTransitions[current].has(status)) {

@@ -4,7 +4,7 @@ import { Game } from "./Game.js";
 import { showConfirmation , createButtonStyle} from "../utils/uiUtils.js";
 import { TournamentStore } from "../services/tournament/TournamentStore.js";
 import { t } from "../services/i18n/i18nService.js";
-import { NavigationState } from "../utils/commonUtils";
+import { navigate, NavigationState } from "../utils/commonUtils";
 
 export class TournamentMatch implements IComponent {
   private container!: HTMLElement;
@@ -21,6 +21,7 @@ export class TournamentMatch implements IComponent {
     - Trigger asynchronous loading of next match
   */
   public render(): HTMLElement {
+    
     const page = document.createElement("div");
     page.className = `bg-background-primary justify-center items-center
       flex flex-col w-[calc(100%-46px)] h-[calc(100%-46px)] rounded-[16px] shadow-lg
@@ -43,6 +44,11 @@ export class TournamentMatch implements IComponent {
       - 3) Valid nextMatch, render match UI
   */
   private async loadNextMatch() {
+    if (NavigationState.activeTournamentId === null) {
+      NavigationState.forceNavigate = true;
+      navigate("/tournament/setup");
+      return;
+    }
     this.container.innerHTML = `<div class="text-text-primary font-['VT323'] text-xl font-bold">Loading next match...</div>`;
 
     const response = await apiServices.tournament.getNextMatch(

@@ -114,13 +114,8 @@ export class ProfileDashboard implements IComponent {
     
     this.renderOverview();
     const totalMatches = this.dashboardData.overview?.totalMatches ?? 0;
-    const hasChartData = Boolean(
-      this.dashboardData.dailyStats?.length &&
-      this.dashboardData.scoreDistribution?.length &&
-      this.dashboardData.winsPerOpponent?.length
-    );
 
-    if (totalMatches === 0 || !hasChartData) {
+    if (totalMatches === 0) {
       this.renderNoDataMessages();
       return;
     }
@@ -259,12 +254,20 @@ export class ProfileDashboard implements IComponent {
 
   // Render win rate by opponent (registered user) using bar chart
   private renderOpponentBarChart() {
-    if (this.destroyed || !this.dashboardData?.winsPerOpponent?.length) return;
-    const { winsPerOpponent } = this.dashboardData;
+    if (this.destroyed) return;
 
     const winsPerOpponentDiv = this.container.querySelector("#winsPerOpponent");
     if (!winsPerOpponentDiv) return;
 
+    const { winsPerOpponent } = this.dashboardData!;
+
+    if (!winsPerOpponent.length) {
+      winsPerOpponentDiv.innerHTML = `
+        <h2 class="text-yellow-300 mb-2 font-bold">${t('dashboard.winsPerOpponent') as string}</h2>
+        <p class="no-data">${t('dashboard.noOppDataMessage')}</p>
+      `;
+      return;
+    }
     const trace = {
       x: winsPerOpponent.map((p) => p.opponent),
       y: winsPerOpponent.map((p) => p.winRate),

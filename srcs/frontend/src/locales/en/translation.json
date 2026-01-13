@@ -221,6 +221,7 @@
   "dashboard": {
     "title": "YOUR PERFORMANCE DASHBOARD",
     "noDataMessage": "No game data available. Play some matches to see your statistics here!",
+    "noOppDataMessage": "Play a tournament against other registered users to see your statistics here!",
     "overview": "Overview",
     "totalMatches": "Total Matches",
     "totalWins": "Total Wins",

@@ -221,6 +221,7 @@
   "dashboard": {
     "title": "TU PANEL DE RENDIMIENTO",
     "noDataMessage": "No hay datos de juego disponibles. ¡Juega algunas partidas para ver tus estadísticas aquí!",
+    "noOppDataMessage": "Juega un torneo contra otros usuarios registrados para ver tus estadísticas aquí.",
     "overview": "Resumen General",
     "totalMatches": "Partidas Totales",
     "totalWins": "Victorias Totales",

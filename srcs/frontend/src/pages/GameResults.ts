@@ -123,6 +123,11 @@ export class GameResults implements IComponent {
     - Trigger rendering of summary, chart and player stats
   */
   private async fetchAndRender() {
+    if (this.isTournament && NavigationState.activeTournamentId === null) {
+      NavigationState.forceNavigate = true;
+      navigate("/tournament/setup", { replace: true });
+    }
+    
     const response = await apiServices.dashboard.getGameDashboard(
       Number(this.sessionId)
     );
