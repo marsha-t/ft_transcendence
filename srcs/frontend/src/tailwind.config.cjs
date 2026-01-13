@@ -63,6 +63,14 @@ module.exports = {
           background: 'var(--color-modal-background)',
         },
 
+        heatmap: {
+          container: '#21447E',
+          empty: '#183B76',
+          low: '#1F4D9A',
+          medium: '#99B5E5',
+          high: '#FFFFFF',
+        },
+
         // Quick Access Colors (for convenience)
         blue: '#143367',
         yellow: '#FFD248',

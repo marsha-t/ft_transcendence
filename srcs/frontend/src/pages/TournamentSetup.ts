@@ -91,7 +91,7 @@ export class TournamentSetup implements IComponent {
 
     const input = document.createElement("input");
     input.className = `w-[120px] h-[40px] text-center rounded-[16px]
-      border-2 border-white bg-white text-black text-[18px] font-pixel font-[400] outline-none
+      border-2 border-white bg-white text-black text-[18px] font-nunito font-[400] outline-none
       transition-colors duration-200 focus:border-[var(--color-border-green)] [&::-webkit-inner-spin-button]:opacity-100
       [&::-webkit-outer-spin-button]:opacity-100`;
 

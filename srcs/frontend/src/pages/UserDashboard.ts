@@ -32,7 +32,7 @@ export class ProfileDashboard implements IComponent {
     page.style.backgroundColor = 'var(--color-background-primary)';
 
     this.container = document.createElement("div");
-    this.container.className = "p-8 flex flex-col items-center gap-4 h-full w-full font-pixel text-yellow-300 overflow-y-auto";
+    this.container.className = "p-8 flex flex-col items-center gap-4 h-full w-full font-nunito text-yellow-300 overflow-y-auto";
 
     // Title
     const title = document.createElement("h1");
