@@ -202,10 +202,7 @@ export class Register implements IComponent {
             await showMessage(this.container, this.messageContainer, response.message, 'success');
             if (this.destroyed) return ; // prevent subsequent code from running if page unmounts while showing message
             this.form.reset();
-            setTimeout(() => {
-                if (this.destroyed) return ;
-                navigate('/login');
-            }, 600);
+            navigate('/login');
         } else {
             showMessage(this.container, this.messageContainer, translateApiError(response), 'error'); // Handle non-successful responses
         }

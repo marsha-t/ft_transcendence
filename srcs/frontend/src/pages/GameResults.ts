@@ -125,7 +125,7 @@ export class GameResults implements IComponent {
   private async fetchAndRender() {
     if (this.isTournament && NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
-      navigate("/tournament/setup", { replace: true });
+      navigate("/tournament/setup");
     }
     
     const response = await apiServices.dashboard.getGameDashboard(
@@ -203,7 +203,7 @@ export class GameResults implements IComponent {
       y: timeline.map((p) => p.scoreLeft),
       mode: "lines+markers",
       name: t("game-result.leftPlayer") as string,
-      line: { color: "#82D64B", width: 3 },
+      line: { color: this.cssVar("--color-border-green"), width: 3 },
       marker: { size: 6 },
     };
 
@@ -212,15 +212,18 @@ export class GameResults implements IComponent {
       y: timeline.map((p) => p.scoreRight),
       mode: "lines+markers",
       name: t("game-result.rightPlayer") as string,
-      line: { color: "#E43E64", width: 3 },
+      line: { color: this.cssVar("--color-border-red"), width: 3 },
       marker: { size: 6 },
     };
 
     const layout = {
-      title: { text: t("game-result.scoreProgress") as string, font: { color: "#fff", family: "'Press Start 2P'", size: 22 } },
-      xaxis: { title: { text: t("game-result.elapsedTime") as string, font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f" },
-      yaxis: { title: { text: t("game-result.score") as string, font: { color: "#fff" } }, tickfont: { color: "#fff" }, gridcolor: "#24325f", dtick: 1 },
-      legend: { x: 0.1, y: 1.1, orientation: "h", font: { color: "#fff" } },
+      title: { 
+        text: t("game-result.scoreProgress") as string, 
+        font: { color: this.cssVar("--color-text-yellow"), 
+          family: "Nunito Sans, sans-serif", size: 22 } },
+      xaxis: { title: { text: t("game-result.elapsedTime") as string, font: { color: this.cssVar("--color-text-yellow") } }, tickfont: { color: this.cssVar("--color-text-yellow") }, gridcolor: "rgba(255, 210, 72, 0.25)" },
+      yaxis: { title: { text: t("game-result.score") as string, font: { color: this.cssVar("--color-text-yellow") } }, tickfont: { color: this.cssVar("--color-text-yellow") }, gridcolor: "rgba(255, 210, 72, 0.25)", dtick: 1 },
+      legend: { x: 0.1, y: 1.1, orientation: "h", font: { color: this.cssVar("--color-text-yellow") } },
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
     };
@@ -244,11 +247,11 @@ export class GameResults implements IComponent {
     const playerCards = this.dashboardData.players
       .map(
         (p) => `
-        <div class=" bg-background-tertiary rounded-[16px] p-6 w-full text-center text-text-primary shadow-xl font-pixel text-base tracking-wide hover:-translate-y-1 transition-transform">
+        <div class=" bg-background-tertiary rounded-[16px] p-6 w-full text-center text-text-primary shadow-xl font-sans text-base tracking-wide hover:-translate-y-1 transition-transform">
           <img src="${getAvatarUrl(
             p.avatar
           )}" class="w-[100px] h-[100px] rounded-full object-cover mx-auto mb-3 shadow-md border-2 border-border-yellow" />
-          <h3 class="player-name mb-4 font-bold font-['Press_Start_2P'] text-center break-words leading-tight max-w-full">
+          <h3 class="player-name mb-4 font-bold font-sans text-center break-words leading-tight max-w-full">
             ${p.displayName}
           </h3>
           <ul class="list-none p-0 text-left text-purple_gray leading-relaxed">
@@ -278,6 +281,14 @@ export class GameResults implements IComponent {
 
       el.style.fontSize = `${size}px`;
     });
+  }
+
+  // Plotly does not reliably resolve CSS variables nor understand Tailwind classes
+  // so resolve CSS variables to real colours before passing to Plotly
+  private cssVar(name: string): string {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
   }
 
   // Prompt user for confirmation when navigating away in tournament flow

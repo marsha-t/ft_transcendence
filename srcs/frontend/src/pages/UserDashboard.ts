@@ -32,12 +32,12 @@ export class ProfileDashboard implements IComponent {
     page.style.backgroundColor = 'var(--color-background-primary)';
 
     this.container = document.createElement("div");
-    this.container.className = "p-8 flex flex-col items-center gap-4 h-full w-full font-nunito text-yellow-300 overflow-y-auto";
+    this.container.className = "p-8 flex flex-col items-center gap-4 h-full w-full font-sans text-text-yellow overflow-y-auto";
 
     // Title
     const title = document.createElement("h1");
     title.textContent = t("dashboard.title") as string;
-    title.className = `text-[1.8rem] font-bold text-yellow-300 mb-4 drop-shadow-[2px_2px_0_#000]`;
+    title.className = `text-[1.8rem] font-bold text-text-yellow mb-4 drop-shadow-[2px_2px_0_rgba(0,0,0,0.6)]`;
     this.container.appendChild(title);
 
     // Error message 
@@ -57,17 +57,17 @@ export class ProfileDashboard implements IComponent {
     // Overview container
     const overviewDiv = document.createElement("div");
     overviewDiv.id = "overviewCard";
-    overviewDiv.className = "bg-[#21447E] rounded-[16px] p-8 text-left text-white h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    overviewDiv.className = "bg-background-tertiary  rounded-[16px] p-8 text-left text-white h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     // Win rate over time container
     const winRateChartDiv = document.createElement("div");
     winRateChartDiv.id = "winRateChart";
-    winRateChartDiv.className ="bg-[#21447E] rounded-[16px] p-2  h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winRateChartDiv.className ="bg-background-tertiary  rounded-[16px] p-2  h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
 
     // Score histogram container
     const scoreHistogramDiv = document.createElement("div");
     scoreHistogramDiv.id = "scoreHistogram";
-    scoreHistogramDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    scoreHistogramDiv.className = "bg-background-tertiary  rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     topRow.appendChild(overviewDiv);
     topRow.appendChild(winRateChartDiv);
     topRow.appendChild(scoreHistogramDiv);
@@ -77,12 +77,12 @@ export class ProfileDashboard implements IComponent {
     // Wins per Opponent
     const winsPerOpponentDiv = document.createElement("div");
     winsPerOpponentDiv.id = "winsPerOpponent";
-    winsPerOpponentDiv.className = "bg-[#21447E] rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    winsPerOpponentDiv.className = "bg-background-tertiary  rounded-[16px] p-2 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     
     // Leaderboard
     const leaderboardDiv = document.createElement("div");
     leaderboardDiv.id = "leaderboard";
-    leaderboardDiv.className ="bg-[#21447E] rounded-[16px] p-8 text-left text-yellow-300 h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
+    leaderboardDiv.className ="bg-background-tertiary  rounded-[16px] p-8 text-left text-text-yellow h-full transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_8px_0_#000]";
     bottomRow.appendChild(winsPerOpponentDiv);
     bottomRow.appendChild(leaderboardDiv);
     this.gridContainer.appendChild(topRow);
@@ -151,7 +151,7 @@ export class ProfileDashboard implements IComponent {
       .map(
         (m) => `
         <div class="flex justify-between items-center py-1 border-b border-white">
-          <span class="text-yellow-300 font-semibold">${m.label}</span>
+          <span class="text-text-yellow font-semibold">${m.label}</span>
           <span class="text-white font-medium">${m.value}</span>
         </div>
       `
@@ -159,7 +159,7 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     overviewDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4 text-xl font-bold">${t("dashboard.overview")}</h2>
+      <h2 class="text-text-yellow mb-4 text-xl font-bold">${t("dashboard.overview")}</h2>
       <div class="flex flex-col gap-2">
         ${metricsHTML}
       </div>
@@ -179,13 +179,13 @@ export class ProfileDashboard implements IComponent {
       y: dailyStats.map((p) => p.winRate * 100),
       type: "scatter",
       mode: "lines+markers",
-      line: { color: "#E43E64", width: 3 },
+      line: { color: this.cssVar("--color-border-red"), width: 3 },
     };
     const layout = {
       title: t("dashboard.winRateOverTime"),
       font: {
-        family: "'DM Sans', sans-serif",
-        color: "#FFD400",
+        family: "Nunito Sans, sans-serif",
+        color: this.cssVar("--color-text-yellow"),
         size: 12,
       },
       paper_bgcolor: "transparent",
@@ -193,7 +193,7 @@ export class ProfileDashboard implements IComponent {
       xaxis: {
         type: "date",
         title: t("dashboard.date"),
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
         tickformat: "%b %d",
         tickangle: -30,
@@ -202,7 +202,7 @@ export class ProfileDashboard implements IComponent {
       yaxis: {
         title: "%",
         range: [0, 100],
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
       margin: { t: 70, b: 80, l: 60, r: 40 },
@@ -221,21 +221,21 @@ export class ProfileDashboard implements IComponent {
     const trace = {
       x: scoreDistribution,
       type: "histogram",
-      marker: { color: "#E43E64" },
+      marker: { color: this.cssVar("--color-border-red") },
       xbins: { start: -0.5, end: 5.5, size: 1 },
     };
     const layout = {
       title: t("dashboard.scoreDistribution"),
       font: {
-        family: "'DM Sans', sans-serif",
-        color: "#FFD400",
+        family: "Nunito Sans, sans-serif",
+        color: this.cssVar("--color-text-yellow"),
         size: 12,
       },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       xaxis: {
         title: t("dashboard.score"),
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
         dtick: 1,
         range: [-0.5, 5.5],
@@ -243,7 +243,7 @@ export class ProfileDashboard implements IComponent {
       },
       yaxis: {
         title: t("dashboard.numberOfGames"),
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
       autosize: true,
@@ -263,7 +263,7 @@ export class ProfileDashboard implements IComponent {
 
     if (!winsPerOpponent.length) {
       winsPerOpponentDiv.innerHTML = `
-        <h2 class="text-yellow-300 mb-2 font-bold">${t('dashboard.winsPerOpponent') as string}</h2>
+        <h2 class="text-text-yellow mb-4 text-xl font-bold">${t('dashboard.winsPerOpponent') as string}</h2>
         <p class="no-data">${t('dashboard.noOppDataMessage')}</p>
       `;
       return;
@@ -272,7 +272,7 @@ export class ProfileDashboard implements IComponent {
       x: winsPerOpponent.map((p) => p.opponent),
       y: winsPerOpponent.map((p) => p.winRate),
       type: "bar",
-      marker: { color: "#6B5B95" },
+      marker: { color: this.cssVar("--color-border-red") },
       text: winsPerOpponent.map(p => `${p.winRate}%`),
       textposition: "outside",
       cliponaxis: false
@@ -280,20 +280,20 @@ export class ProfileDashboard implements IComponent {
     const layout = {
       title: t("dashboard.winsPerOpponent"),
       font: {
-        family: "'DM Sans', sans-serif",
-        color: "#FFD400",
+        family: "Nunito Sans, sans-serif",
+        color: this.cssVar("--color-text-yellow"),
         size: 12,
       },
       paper_bgcolor: "transparent",
       plot_bgcolor: "transparent",
       xaxis: {
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
       yaxis: {
         title: "%",
         range: [0, 100],
-        color: "#FFD400",
+        color: this.cssVar("--color-text-yellow"),
         gridcolor: "rgba(255, 212, 0, 0.2)",
       },
       autosize: true,
@@ -318,9 +318,9 @@ export class ProfileDashboard implements IComponent {
       .map((p, index) => {
         // Determine row background based on odd/even 
         const rowColor = p.isCurrentUser
-          ? "bg-yellow-400 text-black"
+          ? "bg-background-secondary text-text-secondary"
           : index % 2 === 0
-          ? "bg-[#7EA2DD]"
+          ? "bg-background-quaternary"
           : "bg-[none]";
   
         return `
@@ -337,10 +337,10 @@ export class ProfileDashboard implements IComponent {
       .join("");
   
     leaderboardDiv.innerHTML = `
-      <h2 class="text-yellow-300 mb-4">${t("dashboard.leaderboard")}</h2>
+      <h2 class="text-text-yellow mb-4 text-xl font-bold">${t("dashboard.leaderboard")}</h2>
       <table class="w-full text-white text-[1rem] border-collapse">
         <thead>
-          <tr class="bg-yellow-300/10 text-yellow-300">
+          <tr class="bg-yellow-300/10 text-text-yellow">
             <th class="py-2 px-3">#</th>
             <th class="py-2 px-3">${t("dashboard.player")}</th>
             <th class="py-2 px-3">${t("dashboard.matches")}</th>
@@ -370,12 +370,22 @@ export class ProfileDashboard implements IComponent {
       const div = this.container.querySelector<HTMLElement>(`#${id}`);
       if (!div) return;
         div.innerHTML = `
-            <h2 class="text-yellow-300 mb-2 font-bold">${title}</h2>
-          <p class="no-data">${t('dashboard.noDataMessage')}</p>
+          <div class="flex flex-col gap-3 pl-4 pt-4">
+            <h2 class="text-text-yellow mb-2 text-xl font-bold">${title}</h2>
+            <p class="no-data">${t('dashboard.noDataMessage')}</p>
+          </div>
         `;
     });
   }
   
+  // Plotly does not reliably resolve CSS variables nor understand Tailwind classes
+  // so resolve CSS variables to real colours before passing to Plotly
+  private cssVar(name: string): string {
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+  }
+
   /*
     - Set destroyed flag to true
     - Destroy each Plotly chart 
