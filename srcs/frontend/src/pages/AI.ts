@@ -56,7 +56,7 @@ export class AI implements IComponent {
   public render(): HTMLElement {
     this.container = document.createElement("div");
     this.container.className =
-      "flex flex-col items-center min-h-[80vh] p-20 bg-background-primary rounded-[30px] ml-6 mr-6";
+      "flex flex-col items-center bg-background-primary rounded-[30px] mx-6 my-6 py-8 px-4 shadow-lg h-auto gap-4";
 
     this.loadUserAndUpdateName().then(() => {
       this.createTitleContainer();
@@ -77,7 +77,7 @@ export class AI implements IComponent {
   private createTitleContainer(): void {
     const titleContainer = document.createElement("div");
     titleContainer.className =
-      "flex flex-row items-center justify-between w-[800px] text-3xl font-bold text-white pointer-events-none mb-6";
+      "flex flex-row items-center justify-between w-[800px] text-3xl font-bold text-white pointer-events-none";
 
     // AI on LEFT
     const aiName = document.createElement("h2");
@@ -171,7 +171,7 @@ export class AI implements IComponent {
   private createControlsContainer(): void {
     const controlsContainer = document.createElement("div");
     controlsContainer.className =
-      "flex flex-row gap-4 items-center justify-between pt-10";
+      "flex flex-row gap-4 items-center justify-between";
 
     const startBtn = makeButton(t("game.startGame") as string, "start-btn", "block", () =>
       this.toggleGame()
@@ -255,7 +255,7 @@ export class AI implements IComponent {
     const indicator = document.createElement("div");
     indicator.id = "custom-indicator";
     indicator.textContent = `${preset} Mode Active`;
-    indicator.className = "text-white bg-yellow-200 px-4 py-2 rounded-lg " +
+    indicator.className = "text-white bg-purple-600 px-4 py-2 rounded-lg " +
       "font-semibold text-sm mt-2";
 
     const controls = this.container.querySelector(".flex.flex-row.gap-4");

@@ -673,7 +673,7 @@ export class PongGame {
         const rightX = t.width / 2 - p.width / 2 - offset;
 
 
-        const tableY = -1; // your table.position.y
+        const tableY = -1; // table.position.y
         const y = tableY + t.height / 2 + p.height / 2;
 
         this.leftPaddle = new Paddle(this.scene, new BABYLON.Vector3(leftX, y, 0), "leftPaddle");

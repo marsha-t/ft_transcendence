@@ -1,11 +1,20 @@
+/* Import fonts from Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
+/* Inject Tailwind’s base styles and CSS reset */
 @tailwind base;
+
+/* Inject Tailwind’s component layer (used for custom components) */
 @tailwind components;
+
+/* Inject Tailwind’s utility classes generated from the config */
 @tailwind utilities;
 
+
+/* Extend Tailwind’s base layer with global styles and variables */
 @layer base {
+  /* Define global CSS variables (design tokens) */
   :root {
     /* Typography */
     --font-primary: 'Nunito Sans', sans-serif;
@@ -38,11 +47,13 @@
     --color-modal-background: #143367;
   }
 
+  /* Set the default font for the entire application */
   body {
     font-family: var(--font-primary);
   }
 }
 
+/* Extend Tailwind’s component layer with semantic UI classes */
 @layer components {
   /* Button Styles */
   .btn-active {
