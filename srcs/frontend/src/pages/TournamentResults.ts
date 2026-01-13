@@ -1,5 +1,5 @@
 import { IComponent } from "../components/IComponent";
-import { navigate } from "../utils/commonUtils.js";
+import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { createButtonStyle } from "../utils/uiUtils.js";
 import { apiServices } from "../services/ApiServices.js";
 import { resetTournamentStore } from "../services/tournament/TournamentStore.js";
@@ -26,7 +26,7 @@ export class TournamentResults implements IComponent {
         startOnLoad: false,
         theme: "base",
         themeVariables: {
-          fontFamily: '"Press Start 2P", monospace',
+          fontFamily: '"Nunito Sans", sans-serif',
           primaryColor: "#0f172a",
           primaryTextColor: "#ffffff",
         },
@@ -73,6 +73,10 @@ export class TournamentResults implements IComponent {
     - Render champion, brackets, stats and actions (buttons)
   */
   private async loadResults() {
+    if (NavigationState.activeTournamentId === null) {
+      NavigationState.forceNavigate = true;
+      navigate("/tournament/setup");
+    }
     const response = await apiServices.tournament.getNextMatch(
       this.tournamentId
     );
@@ -332,5 +336,7 @@ export class TournamentResults implements IComponent {
   // Note: Mermaid does not need to be cleaned up
   public cleanup() {
     this.destroyed = true;
+    NavigationState.activeGameSessionId = null;
+    NavigationState.activeTournamentId = null;
   }
 }

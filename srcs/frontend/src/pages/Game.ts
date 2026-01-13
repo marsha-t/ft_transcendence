@@ -69,7 +69,7 @@ export class Game implements IComponent {
     this.messageContainer = document.createElement("div");
     this.messageContainer.style.display = "none";
     this.container.appendChild(this.messageContainer);
-
+    
     return this.container;
   }
 
@@ -430,6 +430,7 @@ export class Game implements IComponent {
       if (this.currentSession.status === "FINISHED") {
         const timeoutId = window.setTimeout(() => this.endGame(), 500);
         this.timeoutIds.push(timeoutId);
+        NavigationState.activeGameSessionId = null;
       } else if (this.currentSession.status === "ABORTED") {
         this.stopGameLoop();
       }
