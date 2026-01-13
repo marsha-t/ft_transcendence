@@ -175,7 +175,16 @@ export class TournamentSetup implements IComponent {
       font-semibold text-sm
     `;
 
-    indicator.textContent = `${settings.preset} Mode Active`;
+    const presetLabelMap: Record<string, string> = {
+      CLASSIC: t("gameCustomization.classic"),
+      FAST: t("gameCustomization.fastMode"),
+      CHAOS: t("gameCustomization.chaosMode"),
+      CUSTOM: t("gameCustomization.customMode"),
+    };
+
+    indicator.textContent = t("gameCustomization.modeActive", {
+      mode: presetLabelMap[settings.preset] ?? settings.preset
+    }) as string;
     this.customizationSection.appendChild(indicator);
   }
 

@@ -156,6 +156,9 @@
     "paddleSpeed": "Velocidad de la Raqueta",
     "paddleSize": "Tamaño de la Raqueta",
     "units/second": "unidades/segundo",
+    "enabled": "Activado ✓",
+    "noneSelected": "Ninguno seleccionado",
+    "modeActive": "Modo {{mode}} activo",
     "apply&Start": "Aplicar y Empezar"
   },
   "game-result": {
@@ -216,7 +219,9 @@
     "playedMatches": "Partidas Jugadas",
     "startNewTournamentBtn": "Empezar Nuevo Torneo",
     "tournamentInProgress": "Hay un torneo en curso. Salir lo cancelará.",
-    "closeTournamentAlert": "Cerrar esta ventana descartará la configuración actual del torneo. ¿Continuar?"
+    "closeTournamentAlert": "Cerrar esta ventana descartará la configuración actual del torneo. ¿Continuar?",
+    "unavailableTitle": "Torneo no disponible",
+    "unavailableMessage": "Este torneo ya no está activo. Puedes iniciar uno nuevo."
   },
   "dashboard": {
     "title": "TU PANEL DE RENDIMIENTO",
