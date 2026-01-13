@@ -3,7 +3,7 @@ import { navigate, NavigationState } from "../utils/commonUtils.js";
 import { TournamentDraftStore } from "../services/tournament/TournamentDraftStore.js";
 import { resetTournamentStore, TournamentStore } from "../services/tournament/TournamentStore.js";
 import { apiServices } from "../services/ApiServices.js";
-import { t, translateApiError } from "../services/i18n/i18nService.js";
+import { t, translateApiError, getCurrentLanguage } from "../services/i18n/i18nService.js";
 import { openGameCustomization } from "../utils/gameCustom";
 import { gameConfigManager } from "../graphics/GameConfigManager";
 import { CustomGameSettings } from "../graphics/types";
@@ -273,18 +273,7 @@ export class TournamentSetup implements IComponent {
     const userBtn = document.createElement("button");
     userBtn.textContent = t("tournament.registeredUser") as string;
     userBtn.dataset.active = "false";
-    userBtn.className = `
-      inline-flex items-center justify-center
-      w-full h-auto px-8 py-3
-      bg-button-inactive text-white font-bold rounded-lg tracking-widest
-      shadow-[0_5px_0_var(--color-button-shadow-blue)]
-      hover:shadow-[0_2px_0_var(--color-button-shadow-blue)]
-      hover:translate-y-1 active:translate-y-2
-      transition-all duration-150
-      text-center
-      whitespace-normal break-words leading-tight
-    `;
-
+    userBtn.className  = this.tournamentBtnClass(false);
     toggleContainer.append(guestBtn, userBtn);
     form.appendChild(toggleContainer);
 
@@ -322,8 +311,9 @@ export class TournamentSetup implements IComponent {
       guestBtn.dataset.active = (type === "guest").toString();
       userBtn.dataset.active = (type === "user").toString();
 
-      guestBtn.className = createButtonStyle("h-fit w-full", guestBtn.dataset.active === "true" ? 'green' : 'blue');
-      userBtn.className = createButtonStyle("h-fit w-full", userBtn.dataset.active === "true" ? 'green' : 'blue');
+      guestBtn.className = createButtonStyle("h-fit w-full", guestBtn.dataset.active === "true" ? 'green' : 'blue') ;
+      // userBtn.className = createButtonStyle("h-fit w-full", userBtn.dataset.active === "true" ? 'green' : 'blue')  + " " + wrapClass;
+      userBtn.className  = this.tournamentBtnClass(userBtn.dataset.active === "true");
 
       guestForm.classList.toggle("hidden", type !== "guest");
       userForm.classList.toggle("hidden", type !== "user");
@@ -590,6 +580,24 @@ export class TournamentSetup implements IComponent {
     if (!this.modalMessageContainer) return;
     this.modalMessageContainer.style.display = "none";
     this.modalMessageContainer.textContent = "";
+  }
+
+  private tournamentBtnClass(isActive: boolean) {
+    const shouldWrap = getCurrentLanguage() === "ru";
+    const bg = isActive ? "bg-button-active" : "bg-button-inactive";
+    const shadow = isActive
+      ? "shadow-[0_5px_0_var(--color-button-shadow)] hover:shadow-[0_2px_0_var(--color-button-shadow)]"
+      : "shadow-[0_5px_0_var(--color-button-shadow-blue)] hover:shadow-[0_2px_0_var(--color-button-shadow-blue)]";
+
+    return `
+      inline-flex items-center justify-center px-8 py-3 w-full
+      ${bg} text-white font-bold rounded-lg tracking-widest
+      ${shadow}
+      hover:bg-green active:bg-green hover:text-white
+      transition-all duration-150 text-center no-underline
+      hover:translate-y-1 active:translate-y-2
+      ${shouldWrap ? "whitespace-normal break-words leading-tight h-auto" : "whitespace-nowrap h-[48px]"}
+    `;
   }
 
   // Handle closing of modal
