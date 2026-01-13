@@ -125,7 +125,7 @@ export class GameResults implements IComponent {
   private async fetchAndRender() {
     if (this.isTournament && NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
-      navigate("/tournament/setup", { replace: true });
+      navigate("/tournament/setup");
     }
     
     const response = await apiServices.dashboard.getGameDashboard(
