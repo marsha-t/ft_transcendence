@@ -51,7 +51,7 @@ export class Login implements IComponent {
     
         // Heading
         const heading = document.createElement('h2');
-        heading.className ='w-[596px] text-center mb-6 text-[28px] font-press text-white';
+        heading.className ='w-[596px] text-center mb-6 text-[28px] font-sans text-white';
         heading.textContent = t('auth.welcomeBack') as string;
         
         //Login card (form wrapper)
@@ -238,7 +238,7 @@ export class Login implements IComponent {
                 this.is2FAActive = false;
                 this.currentUsername = '';
 
-                setTimeout(() => navigate("/profile"), 2000);
+                navigate("/profile");
 
             } else {
                 showMessage(this.container, this.messageContainer, translateApiError(response), 'error');
