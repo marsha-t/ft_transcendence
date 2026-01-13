@@ -26,7 +26,7 @@ export class TournamentResults implements IComponent {
         startOnLoad: false,
         theme: "base",
         themeVariables: {
-          fontFamily: '"Press Start 2P", monospace',
+          fontFamily: '"Nunito Sans", sans-serif',
           primaryColor: "#0f172a",
           primaryTextColor: "#ffffff",
         },

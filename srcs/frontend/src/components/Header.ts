@@ -73,7 +73,7 @@ export class Header implements IComponent {
         });
 
         const logoText = document.createElement('span');
-        logoText.className = `text-[24px] font-press text-white`;
+        logoText.className = `text-[24px] font-sans text-white`;
         logoText.textContent = 'PONG';
 
         const logoIcon = document.createElement('img');

@@ -46,7 +46,7 @@ export class TournamentMatch implements IComponent {
   private async loadNextMatch() {
     if (NavigationState.activeTournamentId === null) {
       NavigationState.forceNavigate = true;
-      navigate("/tournament/setup");
+      navigate("/tournament/setup", { replace: true });
       return;
     }
     this.container.innerHTML = `<div class="text-text-primary font-['VT323'] text-xl font-bold">Loading next match...</div>`;
