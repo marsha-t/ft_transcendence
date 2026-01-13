@@ -66,7 +66,7 @@ export class Profile implements IComponent {
   // ** Define the layout and rendering order of the profile page **
   public render(): HTMLElement {
     this.container = document.createElement('div');
-    this.container.className = `flex justify-center bg-color-yellow h-full py-[23px]`;
+    this.container.className = `flex justify-center  h-full py-[23px]`;
 
     this.fetchProfileData();
         
@@ -74,13 +74,10 @@ export class Profile implements IComponent {
     subContainer.className = `
       grid gap-4 grid-cols-1 sm:grid-cols-[1fr_1.3fr]
       grid-rows-[250px_1fr] min-h-0
-      rounded-[16px] shadow-lg
+      rounded-[16px] shadow-lg h-full
+      bg-background-primary overflow-hidden
       mx-[23px] w-[calc(100%-46px)]
       py-6 px-10`;
-    subContainer.style.backgroundColor = 'var(--color-background-primary)';
-    subContainer.style.maxHeight = 'calc(100vh - 46px)';
-    subContainer.style.overflow = 'hidden';
-
     // Profile card
     const profileInfo = this.profileInfo.render();
     // Heatmap

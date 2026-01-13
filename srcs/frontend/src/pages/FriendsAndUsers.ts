@@ -92,40 +92,35 @@ export class friendsAndUsers implements IComponent {
   render(): HTMLElement {
     const friends = document.createElement("div");
     friends.className = `
-      rounded-2xl bg-[#21447E] opacity-100 p-4 text-white
+      rounded-2xl bg-background-tertiary opacity-100 p-4 text-text-primary
       min-h-0 overflow-hidden
     `;
     this.container = friends;
 
     const friendsHeader = document.createElement("div");
     friendsHeader.className = `
-      w-full h-[80px] p-2 font-pixel font-[400]
-      text-color_white flex items-center justify-between
-      gap-[58px] text-[16px] font-semibold text-white
-      my-[10px] border-b border-gray-500
+      w-full h-[80px] p-2 font-nunito font-[400] text-[20px]
+      text-text-primary my-[10px] border-b border-gray-500
+      flex items-center
     `;
 
     // --- Tab Titles ---
     const friendsTitle = document.createElement("button");
-    friendsTitle.className = `friends-tab text-[18px] font-semibold cursor-pointer
-      hover:text-[--color-button]`;
+    friendsTitle.className = `friends-tab text-[18px] font-bold cursor-pointer hover:text-[--color-button]`;
     friendsTitle.textContent = t("profile.friends") as string;
 
     const requestTitle = document.createElement("button");
-    requestTitle.className = `
-      requests-tab text-[18px] font-semibold cursor-pointer
-      hover:text-[--color-button]
-    `;
+    requestTitle.className = `requests-tab text-[18px] font-bold cursor-pointer hover:text-[--color-button]`;
     requestTitle.textContent = t("profile.requests") as string;
 
     // --- Set active style ---
     const setActive = (active: "friends" | "requests") => {
       if (active === "friends") {
-        friendsTitle.classList.add("text-[#77AB55]", "font-bold");
-        requestTitle.classList.remove("text-[#77AB55]", "font-bold");
+        friendsTitle.classList.add("text-green", "font-bold");
+        requestTitle.classList.remove("text-green", "font-bold");
       } else {
-        requestTitle.classList.add("text-[#77AB55]", "font-bold");
-        friendsTitle.classList.remove("text-[#77AB55]", "font-bold");
+        requestTitle.classList.add("text-green", "font-bold");
+        friendsTitle.classList.remove("text-green", "font-bold");
       }
     };
 
@@ -142,22 +137,32 @@ export class friendsAndUsers implements IComponent {
 
     // --- Add Friend button ---
     const addFriendBtn = document.createElement("button");
-    addFriendBtn.className = createButtonStyle("w-[200px] h-[40px] font-pixel  whitespace-nowrap", 'green'); //
-    addFriendBtn.classList.add("mb-2");
+    addFriendBtn.className = createButtonStyle("w-fit h-[40px] font-nunito mb-2  whitespace-nowrap", 'green');
     addFriendBtn.textContent = t("profile.addFriends") as string;
     addFriendBtn.addEventListener("click", () => this.openAddFriendPopup());
 
-    // --- Assemble Header ---
-    friendsHeader.appendChild(friendsTitle);
-    friendsHeader.appendChild(requestTitle);
-    friendsHeader.appendChild(addFriendBtn);
+    // --- Assemble Header as 3 columns (left/center/right) ---
+    const colLeft = document.createElement("div");
+    colLeft.className = "flex-1 flex items-center justify-center";
+    const colCenter = document.createElement("div");
+    colCenter.className = "flex-1 flex items-center justify-center";
+    const colRight = document.createElement("div");
+    colRight.className = "flex-1 flex items-center justify-end";
+
+    colLeft.appendChild(friendsTitle);
+    colCenter.appendChild(requestTitle);
+    colRight.appendChild(addFriendBtn);
+
+    friendsHeader.appendChild(colLeft);
+    friendsHeader.appendChild(colCenter);
+    friendsHeader.appendChild(colRight);
 
     // --- List container ---
     const friendsList = document.createElement("div");
     friendsList.className = `
       friends-list flex flex-col gap-3 w-full mt-4
-      max-h-[400px] px-2 scrollbar-thin
-      scrollbar-thumb-[#77AB55] scrollbar-track-[#21447E]`;
+      max-h-[400px] px-2 scrollbar-thin rounded-[10px]
+      scrollbar-thumb-green scrollbar-track-background-tertiary`;
     friendsList.style.overflowY = "auto";
     friendsList.style.maxHeight = "calc(100% - 80px)";
 
@@ -201,11 +206,11 @@ export class friendsAndUsers implements IComponent {
   }
 
   // friends
-  private createFriend(avatarURL: string, name: string, online: boolean): HTMLElement {
+  private createFriend(avatarURL: string, name: string, online: boolean, index: number): HTMLElement {
   const item = document.createElement("div");
    item.className = `w-full h-[65px] flex items-center justify-between
-    rounded-[10px] px-4 py-3 ${online ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"}
-    text-[#183B76] font-pixel hover:opacity-90 transition`;
+    px-4 py-3 ${index % 2 === 0 ? "bg-background-quaternary" : "bg-background-tertiary"}
+    text-text-secondary font-nunito hover:opacity-90 transition`;
 
   const inner = document.createElement("div");
   // layout: left = avatar+name, middle = status, right = remove button
@@ -220,7 +225,7 @@ export class friendsAndUsers implements IComponent {
   applyAvatar(avatar, avatarURL, name);
 
   const friendName = document.createElement("span");
-  friendName.className = `text-[16px] font-semibold text-[#183B76]`;
+  friendName.className = `text-[16px] font-semibold text-text-primary`;
   friendName.textContent = name;
 
   profileText.appendChild(avatar);
@@ -228,12 +233,11 @@ export class friendsAndUsers implements IComponent {
 
   // Status circle
   const status = document.createElement("span");
-  status.className = ` w-[14px] h-[14px] rounded-full ${online ? "bg-[#77AB55]" : "bg-gray-400"}`;
+  status.className = ` w-[14px] h-[14px] rounded-full ${online ? "bg-green" : "bg-white"}`;
 
-  
   const removeBtn = document.createElement("button");
-  removeBtn.className = ` w-[28px] h-[28px] flex items-center justify-center rounded-full border border-[#77AB55]
-    text-[#77AB55] text-[18px] font-bold hover:bg-[#77AB55] hover:text-white transition-all duration-200 cursor-pointer`;
+  removeBtn.className = ` w-[28px] h-[28px] flex items-center justify-center rounded-full border border-red
+    text-red text-[18px] font-bold hover:bg-red hover:text-text-primary transition-all duration-200 cursor-pointer`;
   removeBtn.innerHTML = "&times;";
 
   removeBtn.addEventListener("click", async () => {
@@ -266,8 +270,8 @@ export class friendsAndUsers implements IComponent {
 // requests
   private createRequest(avatarURL: string, name: string, reqId: number): HTMLElement {
     const item = document.createElement("div");
-    item.className = ` w-full h-[65px] flex items-center justify-between rounded-[10px] px-4 py-3 mb-3
-    ${reqId % 2 === 0 ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"} text-[color_white] font-pixel hover:opacity-90 transition`;
+    item.className = ` w-full h-[65px] flex items-center justify-between px-4 py-3 mb-3
+    ${reqId % 2 === 0 ? "bg-background-quaternary" : "bg-background-tertiary"} text-text-primary font-nunito hover:opacity-90 transition`;
 
     const inner = document.createElement("div");
     // make the inner container stretch full width and arrange left/right
@@ -282,7 +286,7 @@ export class friendsAndUsers implements IComponent {
     applyAvatar(avatar, avatarURL, name);
 
     const userName = document.createElement("span");
-    userName.className = `text-[16px] font-semibold text-[#183B76]`
+    userName.className = `text-[16px] font-semibold text-text-primary`
     userName.textContent = name;
 
     profileText.appendChild(avatar);
@@ -315,8 +319,8 @@ export class friendsAndUsers implements IComponent {
     });
 
     const declineBtn = document.createElement("button");
-    declineBtn.className = createButtonStyle("w-fit h-[40px]", 'blue');
-    declineBtn.classList.replace("bg-[#1F4D9A]", "bg-gray-400");
+    declineBtn.className = createButtonStyle("w-fit h-[40px]", 'red');
+    declineBtn.classList.replace("bg-[#1F4D9A]", "bg-purple_gray");
     declineBtn.textContent = t("profile.declineRequest") as string;
     declineBtn.addEventListener("click", async () => {
     const res = await apiServices.friends.respondToRequest(name, "reject");
@@ -377,8 +381,8 @@ export class friendsAndUsers implements IComponent {
             emptyState.className = "text-center text-gray-400 mt-4";
             friendsList.appendChild(emptyState);
         } else {
-            this.friendsListData.forEach(f =>
-                friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online))
+            this.friendsListData.forEach((f, i) =>
+              friendsList.appendChild(this.createFriend(f.avatarURL, f.name, f.online, i))
             );
         }
     } else {
@@ -410,21 +414,24 @@ export class friendsAndUsers implements IComponent {
   private openAddFriendPopup(): void {
     const overlay = document.createElement("div");
     overlay.className = `modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50`;
+    // apply backdrop blur so page behind modal appears blurred
+    overlay.style.setProperty('backdrop-filter', 'blur(6px)');
+    overlay.style.setProperty('-webkit-backdrop-filter', 'blur(6px)');
     
     // Modal popup
     const modal = document.createElement("div");
-    modal.className = `modal w-[570px] h-[740px] rounded-[16px] bg-[#183B76] flex flex-col p-4 relative opacity-100`;
+    modal.className = `modal w-[570px] h-[740px] rounded-[30px] bg-background-tertiary flex flex-col p-4 relative opacity-100`;
     
     const header = document.createElement("div");
-    header.className = `modal-header w-full h-[30px] m-[10px]`;
+    header.className = `modal-header w-full h-[30px] mx-2 my-6`;
 
     const title = document.createElement("h2");
-    title.className = ` font-pixel font-bold text-[16px] w-full h-[18px] text-white`;
+    title.className = ` font-nunito font-bold text-[24px] w-full h-[18px] text-text-primary`;
     title.textContent = t("profile.searchForFriends") as string;
 
     const closeBtn = document.createElement("button");
     closeBtn.className = `absolute top-2 right-2 w-[16px] h-[16px] px-[10px] py-[6px]
-      font-pixel  font-bold m-[10px] mr-[20px] text-color_white cursor-pointer`;
+      font-nunito font-bold m-[10px] mr-[20px] text-text-primary cursor-pointer`;
     closeBtn.innerHTML = "X";
     // close handler added after search input is created so cleanup helper can access it
 
@@ -434,11 +441,11 @@ export class friendsAndUsers implements IComponent {
     const searchInput = document.createElement("input");
     searchInput.type = "text";
     searchInput.placeholder = "Search username...";
-    searchInput.className = ` w-[calc(100%-30px)] h-[50px] rounded-[10px] px-3 bg-[white] text-blue-800 border border-gray-500
+    searchInput.className = ` w-full h-[50px] rounded-[10px] px-3 bg-background-primary text-text-primary border border-gray-500
       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500`;
 
     const resultsContainer = document.createElement("div");
-    resultsContainer.className = `flex flex-col gap-3 w-[calc(100%-50px)] ml-[10px] mt-4 pb-2 max-h-[550px] overflow-y-auto
+    resultsContainer.className = `flex flex-col gap-3 w-full rounded-[10px] mt-4 max-h-[550px] overflow-y-auto
       scrollbar-thin scrollbar-thumb-[#183B76] scrollbar-track-[#7EA2DD]`;
 
     modal.appendChild(header);
@@ -496,9 +503,9 @@ export class friendsAndUsers implements IComponent {
 
       data.forEach((user, index) => {
       const userDiv = document.createElement("div");
-      userDiv.className = ` flex items-center justify-between  h-[55px] rounded-[10px] px-4 py-3
-        ${index % 2 === 0 ? "bg-[#C7D6F0]" : "bg-[#EBF1FA]"}
-        text-[#183B76] font-pixel transition hover:opacity-90`;
+      userDiv.className = ` flex items-center justify-between  h-fit py-2 px-4
+        ${index % 2 === 0 ? "bg-background-quaternary" : "bg-background-tertiary"}
+        text-[#183B76] font-nunito transition hover:opacity-90`;
 
       const avatarNameContainer = document.createElement("div");
       avatarNameContainer.className = "flex items-center";
@@ -508,7 +515,7 @@ export class friendsAndUsers implements IComponent {
       applyAvatar(avatar, user.avatar, user.username);
 
       const name = document.createElement("span");
-      name.className = "ml-2 text-[16px] font-semibold text-[#183B76] text-left ";
+      name.className = "ml-2 text-[16px] font-semibold text-text-primary text-left ";
       name.textContent = user.username;
 
       const action = document.createElement("div");
