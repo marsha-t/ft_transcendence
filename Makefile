@@ -23,7 +23,7 @@ fclean: clean
 	- docker volume rm $(VOLUMES)
 	- yes | docker system prune -a --volumes
 	- rm -rf $(BIND_MOUNTS)
-	- @ find srcs/backend/auth-service/uploads/avatars \
+	- find srcs/backend/auth-service/uploads/avatars \
 	    -maxdepth 1 \
 	    -type f \
 	    ! \( \

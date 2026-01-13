@@ -22,31 +22,31 @@ export class MatchHistory implements IComponent {
   // Renders the MatchHistory component
   render(): HTMLElement {
     const matchHistory = document.createElement("div");
-    matchHistory.className = `match-history-table rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-y-auto`;
+    matchHistory.className = `match-history-table rounded-2xl bg-background-tertiary opacity-100 p-4 text-text-primary min-h-0 overflow-y-auto`;
     this.container = matchHistory;
 
     const matchTitle = document.createElement("h3");
-    matchTitle.className = " h-[30px] text-[24px] font-pixel font-[400] text-color_white mb-[10px]";
+    matchTitle.className = " h-[30px] text-[24px] font-nunito font-[400] text-text-primary mb-[10px]";
     matchTitle.textContent = t("match-history.title") as string;
     matchHistory.appendChild(matchTitle);
 
     const table = document.createElement("table");
-    table.className = "w-full border-collapse rounded-[20px] overflow-hidden font-pixel";
+    table.className = "w-full border-collapse rounded-[20px] overflow-hidden font-nunito";
     table.style.borderSpacing = "0";
     const thead = document.createElement("thead");
-    thead.className = "w-[1014px] h-[47px] font-pixel font-[400] text-color_white";
+    thead.className = "w-[1014px] h-[47px] font-nunito font-[400] text-text-primary";
     const headerRow = document.createElement("tr");
     headerRow.className = ` w-full
-        p-2 font-pixel font-[400]
-        text-color_white
+        p-2 font-nunito font-[400]
+        text-text-primary
         gap-[50px] 
-        text-[16px] font-semibold text-color_white bg-none
+        text-[16px] font-semibold text-text-primary bg-none
         mb-[10px] border-b border-gray-500 rounded-l-lg`;
 
     const columns = [t("match-history.opponent") as string, t("match-history.result") as string, t("match-history.score") as string, t("match-history.date") as string];
     columns.forEach((col) => {
       const th = document.createElement("th");
-      th.className = "text-center text-[16px] leading-[18px] uppercase text-left px-4 py-3 font-pixel font-[400] text-color_white";
+      th.className = "text-center text-[16px] leading-[18px] uppercase text-left px-4 py-3 font-nunito font-[400] text-text-primary";
       th.textContent = col;
       headerRow.appendChild(th);
     });
@@ -83,7 +83,7 @@ export class MatchHistory implements IComponent {
     const localizedResult = result === "WIN" ? t("match-history.win") : t("match-history.loss");
     const row = document.createElement("tr");
     row.className = `w-[full] h-[65px] justify-between  text-center px-4 py-3 m-3
-    ${index % 2 === 0 ? "bg-[#7EA2DD]" : "bg-[none]"} `;
+    ${index % 2 === 0 ? "bg-background-quaternary" : "bg-background-tertiary"} `;
     row.style.overflow = "hidden";  
 
     const opponentCell = document.createElement("td");
@@ -115,7 +115,7 @@ export class MatchHistory implements IComponent {
     dateCell.style.borderBottomRightRadius = "20px";
 
     [opponentCell, resultCell, scoreCell, dateCell].forEach(cell => {
-      cell.classList.add("font-pixel"); 
+      cell.classList.add("font-nunito"); 
       cell.classList.add("px-4", "py-2");
     });
     row.appendChild(opponentCell);
@@ -171,7 +171,7 @@ export class HeatMap implements IComponent {
 
   render(): HTMLElement {
     const heatmap = document.createElement('div');
-    heatmap.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white min-h-0 overflow-hidden`;
+    heatmap.className = `rounded-2xl bg-heatmap-container opacity-100 p-4 text-text-primary min-h-0 overflow-hidden`;
     this.container = heatmap;
     
     // Render last 4 months by default
@@ -190,7 +190,7 @@ export class HeatMap implements IComponent {
   // service method to build the heatmap UI
   private async createHeatmap(container: HTMLElement, monthsToShow: number = 4): Promise<void> {
     container.innerHTML = "";
-    container.className = `rounded-2xl bg-[#21447E] opacity-100 p-4 text-white flex flex-col justify-between `;
+    container.className = `rounded-2xl bg-background-tertiary opacity-100 p-4 text-text-primary flex flex-col justify-between `;
 
     // Grid container
     const monthsGrid = document.createElement("div");
@@ -260,10 +260,10 @@ export class HeatMap implements IComponent {
         const count = (dayCounts && dayCounts[key]) ? dayCounts[key] : 0;
 
         const getColor = (c: number) => {
-          if (c <= 0) return "bg-[#183B76]";
-          if (c === 1) return "bg-[#1F4D9A]";
-          if (c === 2) return "bg-[#99B5E5]";
-          return "bg-white";
+          if (c <= 0) return "bg-heatmap-empty";
+          if (c === 1) return "bg-heatmap-low";
+          if (c === 2) return "bg-heatmap-medium";
+          return "bg-heatmap-high";
         };
 
         cell.className = `w-5 h-5 sm:w-6 sm:h-6 rounded ${getColor(count)} transition hover:scale-110 flex items-center justify-center`;
@@ -282,7 +282,7 @@ export class HeatMap implements IComponent {
     // "Learn More" button — navigate to dashboard page
     const button = document.createElement("button");
     button.textContent = t("profile.dashboardBtn") as string;
-    button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-pixel", 'green');
+    button.className = createButtonStyle("absolute bottom-4 right-4 w-fit h-[32px] whitespace-nowrap font-nunito", 'green');
     // store handler for cleanup
     this.dashboardBtnHandler = () => {
       navigate('/dashboard');

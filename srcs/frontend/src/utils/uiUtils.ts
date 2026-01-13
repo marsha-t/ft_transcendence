@@ -54,7 +54,7 @@ export function makeCircular3DButton(
   return link;
 }
 
-export function createButtonStyle(customization: string = "", color: 'blue' | 'green'): string {
+export function createButtonStyle(customization: string = "", color: 'blue' | 'green' | 'red'): string {
   const mainGreenStyle = ` inline-flex items-center justify-center px-8 py-3 bg-button-active text-white
     font-bold rounded-lg tracking-widest 
     shadow-[0_5px_0_var(--color-button-shadow)]
@@ -71,13 +71,24 @@ export function createButtonStyle(customization: string = "", color: 'blue' | 'g
       transition-all duration-150 text-center no-underline whitespace-nowrap
       hover:translate-y-1 active:translate-y-2
       `;
+  const mainRedStyle = `
+      inline-flex items-center justify-center px-8 py-3
+      bg-red text-white font-bold rounded-lg tracking-widest
+      shadow-[0_5px_0_var(--color-button-shadow-red)]
+      hover:shadow-[0_2px_0_var(--color-button-shadow-red)]
+      active:shadow-none
+      transition-all duration-150 text-center no-underline whitespace-nowrap
+      hover:translate-y-1 active:translate-y-2
+      `;
   
    const greenHoverActive = `hover:bg-green active:bg-green hover:text-white`;
 
   if (color === 'blue') {
     return `${mainBlueStyle} ${greenHoverActive} ${customization}`;
   }
-  
+  if (color === 'red') {
+    return `${mainRedStyle} ${customization}`;
+  }
 
   return `${mainGreenStyle} ${greenHoverActive} ${customization}`;
   
@@ -172,9 +183,7 @@ export async function showConfirmation(message: string, title = t("common.please
     const noBtn = document.createElement("button");
     noBtn.textContent = t("common.no") as string;
 
-    noBtn.className = createButtonStyle("w-fit h-[42px] mt-5", 'blue');
-    noBtn.classList.remove("bg-[#1F4D9A]");
-    noBtn.classList.add("bg-red");
+    noBtn.className = createButtonStyle("w-fit h-[42px] mt-5", 'red');
 
     buttons.appendChild(yesBtn);
     buttons.appendChild(noBtn);

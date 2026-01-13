@@ -99,7 +99,7 @@ export class Header implements IComponent {
 
         // links and buttons containers
         this.linksGroup = document.createElement('div');
-        this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-pixel text-[800] text-[18px]';
+        this.linksGroup.className = 'flex items-center gap-[24px] w-[158px] h-[18px] font-nunito text-[800] text-[18px]';
         this.buttonsGroup = document.createElement('div');
         this.buttonsGroup.className = 'flex items-center gap-[17px] w-[500px] h-[42px] text-[900] text-[18px]';
 
@@ -313,7 +313,7 @@ export class Header implements IComponent {
     private getNavLinkClasses(href: string): string {
         const currentPath = window.location.pathname;
         const baseClass = `
-            text-[14px] font-pixel no-underline whitespace-nowrap
+            text-[14px] font-nunito no-underline whitespace-nowrap
             underline-offset-[3px] transition-all duration-200 decoration-2`;
 
         if (href === currentPath) {
