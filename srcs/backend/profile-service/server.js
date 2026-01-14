@@ -134,12 +134,47 @@ app.register(profileRoutes, { prefix: '/api/profileServ' });
 app.register(userStatsRoutes, { prefix: '/api/profileServ' });
 
 // Error Handler
+function ajvErrorToCode(err) {
+   const keyword =
+    err.keyword === 'errorMessage'
+      ? err.params?.errors?.[0]?.keyword
+      : err.keyword;
+
+  const field =
+    keyword === 'required'
+      ? err.params?.missingProperty
+      : err.instancePath?.replace('/', '');
+
+  const FIELD = field ? field.toUpperCase() : 'BODY';
+
+  switch (keyword) {
+    case 'required':
+      return `${FIELD}_REQUIRED`;
+
+    case 'minLength':
+      return `${FIELD}_TOO_SHORT`;
+
+    case 'maxLength':
+      return `${FIELD}_TOO_LONG`;
+
+    case 'pattern':
+    case 'format':
+      return `${FIELD}_INVALID_FORMAT`;
+
+    case 'additionalProperties':
+      return `EXTRA_FIELDS_NOT_ALLOWED`;
+
+    default:
+      return `VALIDATION_ERROR`;
+  }
+}
+
 app.setErrorHandler((error, request, reply) => {
   request.log.error(error);
 
   if (error.validation?.length) {
     return reply.code(400).send({
-      error: { message: error.validation[0].message, code: 'VALIDATION_ERROR' },
+      error: { message: error.validation[0].message, code: ajvErrorToCode(error.validation[0]) },
     });
   }
 

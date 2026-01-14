@@ -8,7 +8,7 @@ import { makeButton, gameCompletionPopup, showMessage, showConfirmation } from "
 import { gameConfigManager } from "../graphics/GameConfigManager.js";
 import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 
 /**
  * Manages the AI opponent game mode where a player competes against an
@@ -452,7 +452,7 @@ export class AI implements IComponent {
     ? await apiServices.game.pauseGame(this.currentSession.sessionId)
     : await apiServices.game.startGame(this.currentSession.sessionId);
     if (!res.success || !res.data) {
-      showMessage(this.container, this.messageContainer, res.message, "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res), "error");
       return;
     }
     this.currentSession = res.data;
