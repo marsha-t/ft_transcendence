@@ -99,6 +99,46 @@ app.register(aiRoutes, { prefix: '/api/ai' });
 app.register(websocketRoutes, {prefix: '/ws'});
 
 // Error Handler
+function ajvErrorToCode(err) {
+   const keyword =
+    err.keyword === 'errorMessage'
+      ? err.params?.errors?.[0]?.keyword
+      : err.keyword;
+
+  const field =
+    keyword === 'required'
+      ? err.params?.missingProperty
+      : err.instancePath?.replace('/', '');
+
+  const FIELD = field ? field.toUpperCase() : 'BODY';
+
+  switch (keyword) {
+    case 'required':
+      return `${FIELD}_REQUIRED`;
+
+    case 'minLength':
+      return `${FIELD}_TOO_SHORT`;
+
+    case 'maxLength':
+      return `${FIELD}_TOO_LONG`;
+
+    case 'pattern':
+    case 'format':
+    case 'enum':
+      return `${FIELD}_INVALID_FORMAT`;
+
+    case 'additionalProperties':
+      return `EXTRA_FIELDS_NOT_ALLOWED`;
+
+    case 'anyOf':
+      // special case: ambiguous credentials
+      return `INVALID_CREDENTIALS_FORMAT`;
+
+    default:
+      return `VALIDATION_ERROR`;
+  }
+}
+
 app.setErrorHandler((error, request, reply) => {
   request.log.error(error);
 
@@ -107,7 +147,7 @@ app.setErrorHandler((error, request, reply) => {
     return reply.code(400).send({
       error: {
         message: error.validation[0].message,
-        code: 'VALIDATION_ERROR',
+        code: ajvErrorToCode(error.validation[0]),
       },
     });
   }

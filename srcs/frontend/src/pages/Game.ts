@@ -8,7 +8,7 @@ import { gameConfigManager } from "../graphics/GameConfigManager.js";
 import { CustomGameSettings } from "../graphics/types.js";
 import { openGameCustomization } from "../utils/gameCustom.js";
 import { makeButton, showMessage, showConfirmation, gameCompletionPopup } from "../utils/uiUtils.js"
-import { t } from "../services/i18n/i18nService.js";
+import { t, translateApiError } from "../services/i18n/i18nService.js";
 /**
  * - Render and manage the Pong game UI
  * - Control game lifecycle (start, pause, score, end)
@@ -295,7 +295,7 @@ export class Game implements IComponent {
   private async initializeStandalone(): Promise<void> {
     const res = await apiServices.game.createGameSession("RIGHT");
     if (!res.success || !res.data) {
-      showMessage(this.container, this.messageContainer, res.message || "Failed to initialize game", "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to initialize game", "error");
       return;
     }
     this.currentSession = res.data;
@@ -344,7 +344,7 @@ export class Game implements IComponent {
       "LEFT"
     );
     if (!res.success) {
-      showMessage(this.container, this.messageContainer, res.message || "Failed to add guest player", "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to add guest player", "error");
       return;
     }
 
@@ -375,7 +375,7 @@ export class Game implements IComponent {
     if (!this.isGameRunning) {
       const res = await apiServices.game.startGame(this.currentSession.sessionId);
       if (!res.success || !res.data) {
-        showMessage(this.container, this.messageContainer, res.message || "Failed to start game", "error");
+        showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to start game", "error");
         return;
       }
       this.currentSession = res.data;
@@ -392,7 +392,7 @@ export class Game implements IComponent {
     ? await apiServices.game.pauseGame(this.currentSession.sessionId)
     : await apiServices.game.startGame(this.currentSession.sessionId);
     if (!res.success || !res.data) {
-      showMessage(this.container, this.messageContainer, res.message, "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res), "error");
       return;
     }
     this.currentSession = res.data;
@@ -415,7 +415,7 @@ export class Game implements IComponent {
 
     const res = await apiServices.game.abortGame(this.currentSession.sessionId);
     if (!res.success || !res.data) {
-      showMessage(this.container, this.messageContainer, res.message || "Failed to quit game", "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to quit game", "error");
       return ;
     }
     NavigationState.activeGameSessionId = null;
