@@ -118,7 +118,7 @@ export class ProfileServices {
     async updateProfile(data: UpdateProfileData): Promise<ApiResponse<any>> {
       try {
         const response = await fetch(`${this.baseUrl}/profileServ/profile`, {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },

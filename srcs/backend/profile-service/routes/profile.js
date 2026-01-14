@@ -50,7 +50,7 @@ async function profileRoutes(app) {
     - Normal users must provide oldPassword + newPassword
     - Google users may set a password for the first time without oldPassword
   */
-  app.put('/profile', { schema: updateProfileSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+  app.patch('/profile', { schema: updateProfileSchema, preHandler: [app.authenticate] }, async (request, reply) => {
     const userId = request.user.id;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
