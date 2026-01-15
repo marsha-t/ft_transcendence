@@ -24,6 +24,7 @@ export class TournamentResults implements IComponent {
     if (!mermaidInitialized) {
       mermaid.initialize({
         startOnLoad: false,
+        securityLevel: "strict",
         theme: "base",
         themeVariables: {
           fontFamily: '"Nunito Sans", sans-serif',
@@ -336,6 +337,15 @@ export class TournamentResults implements IComponent {
 
     btnContainer.appendChild(newBtn);
     this.container.appendChild(btnContainer);
+  }
+
+  private sanitizeLabel(text: string): string {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   public async canDeactivate() {
