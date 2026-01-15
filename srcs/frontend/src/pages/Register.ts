@@ -199,7 +199,7 @@ export class Register implements IComponent {
         this.setLoadingState(true);
         const response = await apiServices.auth.register(userData);
         if(response.success){
-            await showMessage(this.container, this.messageContainer, response.message, 'success');
+            await showMessage(this.container, this.messageContainer, t("auth.registerSuccess"), 'success');
             if (this.destroyed) return ; // prevent subsequent code from running if page unmounts while showing message
             this.form.reset();
             navigate('/login');

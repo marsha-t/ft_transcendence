@@ -143,7 +143,7 @@ export class GameResults implements IComponent {
     );
     if (this.destroyed) return;
     if (!response.success || !response.data) {
-      showMessage(this.container, this.messageContainer, "Statistics could not be loaded. You can still continue.", "error");
+      showMessage(this.container, this.messageContainer, t("game-result.noStats"), "error");
       this.resultsContainer.style.display = "none";
       return;
     } 

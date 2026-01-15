@@ -330,7 +330,7 @@ export class Game implements IComponent {
     const guestName = guestInput.value.trim();
 
     if (!guestName) {
-      showMessage(this.container, this.messageContainer, "Please enter a guest name", "error");
+      showMessage(this.container, this.messageContainer, t("game.enterGuestName"), "error");
       return;
     }
     if (!this.currentSession) {
@@ -410,7 +410,7 @@ export class Game implements IComponent {
     if (!this.currentSession) 
       return;
 
-    const confirmed = await showConfirmation("Are you sure you want to quit the game?", t("common.pleaseConfirm") as string, true);
+    const confirmed = await showConfirmation(t("game.confirmQuit"), t("common.pleaseConfirm") as string, true);
     if (!confirmed) return;
 
     const res = await apiServices.game.abortGame(this.currentSession.sessionId);
@@ -562,7 +562,7 @@ export class Game implements IComponent {
       this.stopGameLoop();
       return true;
     }
-    const confirmLeave = await showConfirmation("Leaving will stop the current match.", t("common.pleaseConfirm") as string, true);
+    const confirmLeave = await showConfirmation(t("game.confirmLeave"), t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     this.stopGameLoop();
     const sessionId = this.currentSession?.sessionId || this.opts?.sessionId;
