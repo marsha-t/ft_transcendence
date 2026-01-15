@@ -334,12 +334,12 @@ export class ProfileInfo implements IComponent {
 
         this.otpButtonHandler = async () => {
             const code = otpInput.value.trim();
-            if (!code) return showMessage(overlay, this.messageContainer, 'Please enter the OTP code', 'error');
+            if (!code) return showMessage(overlay, this.messageContainer, t("profile.twoFactorAuthEnterOTP"), 'error');
             if (this._isDestroyed) return;
             const verifyRes = await apiServices.auth.verify2FA(code);
             if (this._isDestroyed) return;
             if (verifyRes.success) {
-                showMessage(overlay, this.messageContainer, "2FA enabled successfully!", 'success');
+                showMessage(overlay, this.messageContainer, t("profile.twoFactorAuthEnabled"), 'success');
                 otpContainer.classList.add("hidden");
             } else {
                 showMessage(overlay, this.messageContainer, translateApiError(verifyRes) || 'Failed to verify OTP', 'error');
@@ -385,7 +385,7 @@ export class ProfileInfo implements IComponent {
                     toggleCircle.style.transform = "translate(0%, -50%)";
                     toggleCircle.style.left = "4px";
                     toggleCircle.style.backgroundColor = "var(--color-button-active)";
-                    showMessage(overlay, this.messageContainer, res.message, 'success');
+                    showMessage(overlay, this.messageContainer, t("profile.twoFactorAuthDisabled"), 'success');
                 } else {
                     showMessage(overlay, this.messageContainer, translateApiError(res), 'error');
                 }
@@ -396,11 +396,11 @@ export class ProfileInfo implements IComponent {
                 // Send OTP email asynchronously
                 apiServices.auth.enable2FA().then(res => {
                     if (this._isDestroyed) return;
-                    if (res.success) showMessage(overlay, this.messageContainer, res.message, 'success');
+                    if (res.success) showMessage(overlay, this.messageContainer, t("profile.twoFactorAuthEmailSent"), 'success');
                     else showMessage(overlay, this.messageContainer, translateApiError(res), 'error');
                 }).catch(err => {
                     console.error(err);
-                    if (!this._isDestroyed) showMessage(overlay, this.messageContainer, 'Failed to send OTP', 'error');
+                    if (!this._isDestroyed) showMessage(overlay, this.messageContainer, t("profile.twoFactorAuthFailOTP"), 'error');
                 });
 
                 toggleSwitch.classList.add("enabled", "bg-button-active");
@@ -619,7 +619,7 @@ export class ProfileInfo implements IComponent {
                 if (response.data.username) this.username = response.data.username;
                 if (response.data.email) this.email = response.data.email;
 
-                await showMessage(overlay, this.messageContainer, "Profile updated successfully!", 'success');
+                await showMessage(overlay, this.messageContainer, t("profile.updateProfileSuccess"), 'success');
                 await this.fetchProfileData();
                 if (this.onProfileUpdate) this.onProfileUpdate();
                 overlay.remove();

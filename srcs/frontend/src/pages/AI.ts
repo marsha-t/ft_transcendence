@@ -304,7 +304,7 @@ export class AI implements IComponent {
   private async initializeAIGame(): Promise<void> {
       const res = await apiServices.ai.createAIGame();
       if (!res.success || !res.data) {
-        showMessage(this.container, this.messageContainer, res.message || "Failed to initialize AI game", "error");
+        showMessage(this.container, this.messageContainer, "Failed to initialize AI game", "error");
         return;
       }
       NavigationState.activeGameSessionId = res.data.sessionId;
@@ -435,7 +435,7 @@ export class AI implements IComponent {
     if (!this.isGameRunning) {
       const res = await apiServices.game.startGame(this.currentSession.sessionId);
       if (!res.success || !res.data) {
-        showMessage(this.container, this.messageContainer, res.message || "Failed to start game", "error");
+        showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to start game", "error");
         return;
       }
       this.currentSession = res.data;
@@ -469,12 +469,12 @@ export class AI implements IComponent {
     this.clearMessage();
     if (!this.currentSession) return;
 
-    const confirmed = await showConfirmation("Are you sure you want to quit the AI game?", t("common.pleaseConfirm") as string, true);
+    const confirmed = await showConfirmation(t("game.confirmQuit"), t("common.pleaseConfirm") as string, true);
     if (!confirmed) return;
 
     const res = await apiServices.game.abortGame(this.currentSession.sessionId);
     if (!res.success || !res.data) {
-      showMessage(this.container, this.messageContainer, res.message || "Failed to quit game", "error");
+      showMessage(this.container, this.messageContainer, translateApiError(res) || "Failed to quit game", "error");
       return ;
     }
     NavigationState.activeGameSessionId = null;
@@ -574,7 +574,7 @@ export class AI implements IComponent {
       return true;
     }
 
-    const confirmLeave = await showConfirmation("Leaving will stop the current AI match.", t("common.pleaseConfirm") as string, true);
+    const confirmLeave = await showConfirmation(t("game.confirmLeave"), t("common.pleaseConfirm") as string, true);
     if (!confirmLeave) return false;
     this.stopGameLoop();
     if (this.currentSession?.sessionId) {

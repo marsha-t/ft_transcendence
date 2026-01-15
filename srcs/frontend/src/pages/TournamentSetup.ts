@@ -107,19 +107,19 @@ export class TournamentSetup implements IComponent {
       {
         this.isPlayerCountValid = false;
         this.nextBtn.disabled = true;
-        showMessage(counterContainer, this.pageMessageContainer, "Please enter a value between 2 and 16", 'error'); 
+        showMessage(counterContainer, this.pageMessageContainer, t("tournament.players2And16"), 'error'); 
         return;
       }
       if (newNum < 2) {
         this.isPlayerCountValid = false;
         this.nextBtn.disabled = true;
-        showMessage(counterContainer, this.pageMessageContainer, "Minimum 2 players required", 'error'); 
+        showMessage(counterContainer, this.pageMessageContainer, t("tournament.playersMin2"), 'error'); 
         return;
       }
       if (newNum > 16) {
         this.isPlayerCountValid = false;
         this.nextBtn.disabled = true;
-        showMessage(counterContainer, this.pageMessageContainer, "Maximum 16 players allowed", 'error'); 
+        showMessage(counterContainer, this.pageMessageContainer, t("tournament.playersMax16"), 'error'); 
         return ;
       }
       this.isPlayerCountValid = true;
@@ -373,13 +373,13 @@ export class TournamentSetup implements IComponent {
     if (this.activeMode === "guest")
     {
       if (!guest) {
-        showMessage(this.modal!, this.modalMessageContainer, "Please enter a guest name", 'error');
+        showMessage(this.modal!, this.modalMessageContainer, t("game.enterGuestName"), 'error');
         return ;
       }
     }
     if (this.activeMode === "user") {
       if (!user || !pass) {
-        showMessage(this.modal!, this.modalMessageContainer, "Please enter username and password", 'error');
+        showMessage(this.modal!, this.modalMessageContainer, t("tournament.enterUsernameAndPassword"), 'error');
         return ;
       }
     }

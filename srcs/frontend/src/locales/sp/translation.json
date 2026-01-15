@@ -69,6 +69,12 @@
     "passwordMismatch": "Las contraseñas no coinciden",
     "oldPassword": "Contraseña anterior",
     "newPassword": "Nueva contraseña",
+    "2FANeeded": "Se requiere autenticación de dos factores",
+    "2FAFailed": "La verificación de la autenticación de dos factores falló",
+    "2FANoUser": "No hay ningún usuario para reenviar el código OTP",
+    "2FAOTPResentSuccess": "Código OTP reenviado",
+    "2FAOTPResentFailed": "No se pudo reenviar el código OTP",
+    "GoogleLoginFailed": "Error al iniciar sesión con Google",
     "enter2FA": "Introduce el código 2FA",
     "verify": "Verificar",
     "resendOTP": "Reenviar código",
@@ -87,6 +93,12 @@
     "updateProfile": "Actualizar perfil",
     "twoFactorAuth": "Autenticación de dos factores",
     "twoFactorAuthDesc": "Añade una capa extra de seguridad a tu cuenta",
+    "twoFactorAuthDisabled": "La autenticación de dos factores se ha desactivado correctamente",
+    "twoFactorAuthEmailSent": "El código de verificación se ha enviado al correo electrónico",
+    "twoFactorAuthEnabled": "¡La autenticación de dos factores se ha activado correctamente!",
+    "twoFactorAuthEnterOTP": "Por favor, introduce el código OTP",
+    "twoFactorAuthFailOTP": "No se pudo enviar el código OTP",
+    "updateProfileSuccess": "¡Perfil actualizado correctamente!",
     "friends": "Amigos",
     "requests": "Solicitudes de amistad",
     "addFriends": "Agregar amigos",
@@ -121,7 +133,9 @@
     "waitingForOpponent": "Esperando oponente...",
     "controls": "Controles",
     "useArrows": "Usa las flechas para moverte",
-    "customizeGame": "Personalizar juego"
+    "customizeGame": "Personalizar juego",
+    "confirmQuit": "¿Estás seguro de que quieres salir del juego?",
+    "confirmLeave": "Salir detendrá la partida actual"
   },
   "gameCustomization": {
     "title": "Personalización del Juego",
@@ -180,7 +194,8 @@
     "avgTime": "TIEMPO PROMEDIO",
     "returnHome": "VOLVER AL INICIO",
     "gameOver": "FIN DEL JUEGO",
-    "checkResults": "VER RESULTADOS"
+    "checkResults": "VER RESULTADOS",
+    "noStats": "No se pudieron cargar las estadísticas. Aun así, puedes continuar."
   },
   "match-history": {
     "title": "HISTORIAL DE PARTIDAS",
@@ -221,7 +236,11 @@
     "tournamentInProgress": "Hay un torneo en curso. Salir lo cancelará.",
     "closeTournamentAlert": "Cerrar esta ventana descartará la configuración actual del torneo. ¿Continuar?",
     "unavailableTitle": "Torneo no disponible",
-    "unavailableMessage": "Este torneo ya no está activo. Puedes iniciar uno nuevo."
+    "unavailableMessage": "Este torneo ya no está activo. Puedes iniciar uno nuevo.",
+    "players2And16": "Por favor, introduce un valor entre 2 y 16",
+    "playersMin2": "Se requieren al menos 2 jugadores",
+    "playersMax16": "Se permiten como máximo 16 jugadores",
+    "enterUsernameAndPassword": "Introduce el nombre de usuario y la contraseña"
   },
   "dashboard": {
     "title": "TU PANEL DE RENDIMIENTO",
@@ -243,7 +262,8 @@
     "leaderboard": "Tabla de Clasificación",
     "player": "Jugador",
     "matches": "Partidas",
-    "leaderboardScore": "Puntuación de Clasificación"
+    "leaderboardScore": "Puntuación de Clasificación",
+    "dashboardUnavailable": "No se pudieron cargar los datos del panel. Por favor, inténtalo de nuevo más tarde."
   },
   "errors": {
     "GENERIC": "Algo salió mal. Por favor, inténtalo de nuevo.",

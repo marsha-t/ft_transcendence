@@ -69,6 +69,12 @@
     "passwordMismatch": "Passwords do not match",
     "oldPassword": "Old Password",
     "newPassword": "New Password",
+    "2FANeeded": "Two-Factor authentication required",
+    "2FAFailed": "2FA verification failed", 
+    "2FANoUser": "No user to resend OTP for",
+    "2FAOTPResentSuccess": "OTP resent",
+    "2FAOTPResentFailed": "Resending of OTP failed",
+    "GoogleLoginFailed": "Google login failed",
     "enter2FA": "Enter 2FA Code",
     "verify": "Verify",
     "resendOTP": "Resend OTP",
@@ -85,6 +91,12 @@
     "removeAvatarLabel": "Remove Avatar",
     "twoFactorAuth": "Two-Factor Authentication",
     "twoFactorAuthDesc": "Add an extra layer of security to your account",
+    "twoFactorAuthDisabled": "2FA disabled successfully", 
+    "twoFactorAuthEmailSent": "Verification code sent to email",
+    "twoFactorAuthEnabled": "2FA enabled successfully!",
+    "twoFactorAuthEnterOTP": "Please enter the OTP code",
+    "twoFactorAuthFailOTP": "Failed to send OTP",
+    "updateProfileSuccess": "Profile updated successfully!",
     "saveChanges": "Do you want to save changes?",
     "updateProfile": "Update Profile",
     "friends": "Friends",
@@ -121,7 +133,9 @@
     "waitingForOpponent": "Waiting for opponent...",
     "controls": "Controls",
     "useArrows": "Use arrow keys to move",
-    "customizeGame": "Customize Game"
+    "customizeGame": "Customize Game",
+    "confirmQuit": "Are you sure you want to quit the game?",
+    "confirmLeave": "Leaving will stop the current match"
   },
   "gameCustomization": {
     "title": "Game Customization",
@@ -180,7 +194,8 @@
     "avgTime": "AVG TIME",
     "returnHome": "RETURN HOME",
     "gameOver": "GAME OVER",
-    "checkResults": "CHECK RESULTS"
+    "checkResults": "CHECK RESULTS",
+    "noStats": "Statistics could not be loaded. You can still continue."
   },
   "match-history": {
     "title": "MATCH HISTORY",
@@ -221,7 +236,11 @@
     "tournamentInProgress": "A tournament is in progress. Leaving will abort it.",
     "closeTournamentAlert": "Closing this window will discard your current tournament setup. Continue?",
     "unavailableTitle": "Tournament Unavailable",
-    "unavailableMessage": "This tournament is no longer active. You can start a new one."
+    "unavailableMessage": "This tournament is no longer active. You can start a new one.",
+    "players2And16": "Please enter a value between 2 and 16",
+    "playersMin2": "Minimum 2 players required", 
+    "playersMax16": "Maximum 16 players allowed",
+    "enterUsernameAndPassword": "Enter username and password"
   },
   "dashboard": {
     "title": "YOUR PERFORMANCE DASHBOARD",
@@ -243,7 +262,8 @@
     "leaderboard": "Leaderboard",
     "player": "Player",
     "matches": "Matches",
-    "leaderboardScore": "Leaderboard Score"
+    "leaderboardScore": "Leaderboard Score",
+    "dashboardUnavailable": "Dashboard data could not be loaded. Please try again later."
   },
   "errors": {
     "GENERIC": "Something went wrong. Please try again",

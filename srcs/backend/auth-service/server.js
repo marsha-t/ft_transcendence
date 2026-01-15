@@ -98,7 +98,6 @@ app.register(authRoutes, { prefix: '/api/auth' });
 
 // Error Handler
 function ajvErrorToCode(err) {
-  console.log(err);
    const keyword =
     err.keyword === 'errorMessage'
       ? err.params?.errors?.[0]?.keyword

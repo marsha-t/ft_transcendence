@@ -146,7 +146,6 @@ export class AIWebSocketService {
 
     // Do not reconnect on intentional or authorization-related closes
     if(event.code === 1000 || event.code === 4401 || event.code === 4403 || event.code === 4404 || event.code === 4409) {
-        // console.log('[AIWebSocket] Clean disconnect -  not reconnecting');
         return;
     }
     // Attempt reconnection

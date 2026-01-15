@@ -105,7 +105,7 @@ export class ProfileDashboard implements IComponent {
     const response = await apiServices.dashboard.getUserDashboard();
     if (this.destroyed) return;
     if (!response.success || !response.data) {
-      showMessage(this.container, this.messageContainer, "Dashboard data could not be loaded. Please try again later.", "error");
+      showMessage(this.container, this.messageContainer, t("dashboard.dashboardUnavailable"), "error");
       this.gridContainer.style.display = "none";
       return ;
     }
