@@ -11,7 +11,7 @@ export class AIService{
 	// Create a new game session with AI opponent
 	async createAIGame(): Promise<ApiResponse<GameSession>>{
 		try {
-			const response = await fetch(`${this.baseUrl}/ai/create-game`, {
+			const response = await fetch(`${this.baseUrl}/ai/game`, {
 				method: 'POST',
 				credentials: 'include',
 			});
