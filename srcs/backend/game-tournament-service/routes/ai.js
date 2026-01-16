@@ -9,7 +9,7 @@ async function aiRoutes(app){
 			- requester set automatically to right and AI opponent to left 
 		- AI opponent treated like a guest player but game session is marked with isAI = true
 	*/
-	app.post('/create-game', { schema: createAiGameSchema, preHandler: [app.authenticate] }, async (request, reply) => {
+	app.post('/game', { schema: createAiGameSchema, preHandler: [app.authenticate] }, async (request, reply) => {
 		const userId = request.user.id;
 		
 		const session = await createGameSession(prisma, {
