@@ -147,8 +147,9 @@ export const getCurrentLanguage = () => {
 };
 
 // Translation function
-export const t = (key: string, options?: any) => {
-  return i18next.t(key, options);
+export const t = (key: string, options?: any): string => {
+  const result = i18next.t(key, options);
+  return typeof result === "string"? result : String(result);
 };
 
 // Translation for error messages
