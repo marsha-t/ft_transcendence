@@ -18,6 +18,8 @@ services:
     environment:
       - DATABASE_URL=file:/app/prisma/data/user-social.db
       - PORT=5001
+    dns:
+      - 8.8.8.8
     networks:
       - web
     volumes:

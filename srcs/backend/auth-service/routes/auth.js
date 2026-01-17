@@ -2,7 +2,7 @@
 
 import { registerSchema, loginSchema, googleLoginSchema, login2FASchema, resendOTPSchema, status2FASchema, enable2FASchema, verify2FASchema, disable2FASchema, logoutSchema, loginStatusSchema } from '../schemas/auth.js';
 import { sendEmail } from '../services/emailService.js';
-import { verifyGoogleToken } from '../services/verifyGoogleToken.js';
+import { verifyGoogleToken, saveGoogleAvatar } from '../services/googleService.js';
 import prisma from '../prisma/prismaClient.js';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
@@ -190,11 +190,24 @@ async function authRoutes(app) {
           username,
           email,
           googleId,
-          avatar: picture || "/uploads/avatars/default.png",
+          avatar: "/uploads/avatars/default.png",
           password: null,
           status: 'ONLINE',
         },
       });
+    }
+
+    // Download and store Google avatar locally
+    if (picture) {
+      try {
+        const localAvatar = await saveGoogleAvatar(picture, user.id);
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { avatar: localAvatar },
+        });
+      } catch (e) {
+        console.warn('Failed to save Google avatar, using default');
+      }
     }
 
     // 4) Set user as online and issue session token
