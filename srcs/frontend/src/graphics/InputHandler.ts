@@ -10,11 +10,6 @@ import { ControlMode } from "./types";
  * - Tracking key press state (W/S for left, Arrow Up/Down for right)
  * - Updating paddle velocities based on input
  * - Supporting AI control by simulating key presses
- * 
- * Lifecycle:
- * - Created by PongGame constructor
- * - Updated every physics step (120Hz)
- * - MUST be disposed when PongGame is disposed
  */
 export class InputHandler {
     private leftPaddle: Paddle;

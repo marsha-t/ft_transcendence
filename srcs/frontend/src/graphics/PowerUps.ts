@@ -11,17 +11,6 @@ import { PowerUp, PowerUpTypes } from './types';
  * - Detects ball collision and triggers collection effect
  * - Applies visual feedback on collection (expanding colored ring)
  * - Provides full cleanup for PongGame.dispose()
- *
- * Ownership:
- * - Owns: All power-up meshes, materials, and glow layer
- * - Owns: Temporary collection effect meshes and intervals
- * - Does NOT own: Scene (reference only)
- *
- * Lifecycle:
- * - Created once per PongGame instance (only if powerUps.enabled = true)
- * - updatePowerUp() called every frame from PongGame
- * - checkCollisionPowerUp() called every physics step
- * - cleanPowerUp() called during PongGame.dispose()
  */
 export class PowerUpManager{
     private powerUps: PowerUp[]= [];
