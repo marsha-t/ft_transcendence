@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@types/postcss-load-config": "^3.0.1",
+    "postcss": "^8.5.6"
+  }
+}

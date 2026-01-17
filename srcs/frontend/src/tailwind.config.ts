@@ -1,24 +1,38 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss'
 
 /** 
- * Tailwind CSS configuration file
+ * Tailwind CSS Configuration File
+ * 
  * This file defines:
- *  - Which files Tailwind scans for class usage
- *  - Custom design tokens (fonts, colors, etc.)
- *  - Plugins (if any)
+ *  - Which files Tailwind scans for class usage (content)
+ *  - Custom design tokens: fonts, colors, spacing, etc. (theme)
+ *  - Additional Tailwind plugins (plugins)
+ * 
+ *  1. During build, Tailwind scans files in 'content' array
+ *  2. Finds all utility classes (bg-blue-500, text-primary, etc.)
+ *  3. Generates only the CSS needed for those classes
+ *  4. Applies custom theme values defined below
  */
 
-module.exports = {
-  //Tells Tailwind *where to look* for class names.
-  //Tailwind will scan these files during build.
+const config: Config = {
+  /**
+   * Content Sources
+   * 
+   * Tells Tailwind WHERE to look for class names.
+   * Tailwind scans these files during build and generates CSS only for classes found.
+   */
   content: [
-    //Scan all TypeScript / JavaScript files under src/
-    "./src/**/*.{ts,tsx,js,jsx}",
-    "./public/**/*.html",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  // Controls the design system of current project
+  /**
+   * Theme Configuration
+   * 
+   * Controls the design system of the project.
+   * Using 'extend' keeps Tailwind's default values and adds custom ones.
+   * (Using 'theme' directly would replace all defaults)
+   */
   theme: {
-    // extend allows adding custom values without overriding Tailwind defaults
     extend: {
       // Font Families
       fontFamily: {
@@ -83,5 +97,6 @@ module.exports = {
   },
   // No Tailwind plugins are used in this project
   plugins: [],
+}
 
-};
+export default config
