@@ -178,7 +178,7 @@ export async function showConfirmation(message: string, title = t("common.please
     if (action)
         yesBtn.style.backgroundColor = "#4caf50";
     else
-        yesBtn.style.backgroundColor = "#4caf50";
+        yesBtn.style.backgroundColor = "red";
 
     const noBtn = document.createElement("button");
     noBtn.textContent = t("common.no") as string;

@@ -689,7 +689,7 @@ export class ProfileInfo implements IComponent {
     }
 
     private async handleAvatarDelete(): Promise<void> {
-        const confirmed = await showConfirmation(t("profile.removeAvatarConfirmation") as string, t("profile.removeAvatarLabel") as string, false);
+        const confirmed = await showConfirmation(t("profile.removeAvatarConfirmation") as string, t("profile.removeAvatarLabel") as string, true);
         if (!confirmed) return;
 
         const result = await apiServices.profile.deleteAvatar();
