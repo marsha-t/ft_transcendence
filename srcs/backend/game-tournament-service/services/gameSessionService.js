@@ -1,4 +1,4 @@
-import { getUserInfo } from './authServiceClient.js';
+import { getUserInfo } from './profileServiceClient.js';
 
 // Create a game with any number of players
 /*

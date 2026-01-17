@@ -2,7 +2,7 @@ import prisma from '../prisma/prismaClient.js';
 import { joinSessionSchema, updateScoreSchema } from '../schemas/gameSessionPlayers.js';
 import { checkSessionRequester } from '../services/gameSessionPlayersService.js';
 import { propagateWinner } from "../services/tournamentService.js";
-import { updateUserStats } from '../services/authServiceClient.js';
+import { updateUserStats } from '../services/profileServiceClient.js';
 
 async function gameSessionPlayersRoutes(app) {
   // Add guest to game session

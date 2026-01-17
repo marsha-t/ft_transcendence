@@ -5,7 +5,7 @@ import {
   seedPlayersRandom,
   propagateWinner,
 } from "../services/tournamentService.js";
-import { getUserInfo, validateUserCredentials } from "../services/authServiceClient.js";
+import { getUserInfo, validateUserCredentials } from "../services/profileServiceClient.js";
 
 async function tournamentRoutes(app) {
 

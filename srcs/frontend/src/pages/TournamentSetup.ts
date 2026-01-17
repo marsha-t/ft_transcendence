@@ -203,6 +203,7 @@ export class TournamentSetup implements IComponent {
     if (this.isModalOpen) return;
     this.isModalOpen = true;
     this.clearModalMessage();
+    this.activeMode = "guest";
 
     this.modal = document.createElement("div");
     this.modal.className = `fixed top-0 left-0 w-full h-full bg-black/50 flex
@@ -321,7 +322,6 @@ export class TournamentSetup implements IComponent {
       userBtn.dataset.active = (type === "user").toString();
 
       guestBtn.className = createButtonStyle("h-fit w-full", guestBtn.dataset.active === "true" ? 'green' : 'blue') ;
-      // userBtn.className = createButtonStyle("h-fit w-full", userBtn.dataset.active === "true" ? 'green' : 'blue')  + " " + wrapClass;
       userBtn.className  = this.tournamentBtnClass(userBtn.dataset.active === "true");
 
       guestForm.classList.toggle("hidden", type !== "guest");
