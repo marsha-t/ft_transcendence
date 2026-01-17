@@ -172,7 +172,7 @@
     "units/second": "unidades/segundo",
     "enabled": "Activado ✓",
     "noneSelected": "Ninguno seleccionado",
-    "modeActive": "Modo {{mode}} activo",
+    "modeActive": "{{mode}} activo",
     "apply&Start": "Aplicar y Empezar"
   },
   "game-result": {
