@@ -13,11 +13,6 @@ import { gameConfigManager } from "./GameConfigManager";
  * Ownership:
  * - Mesh is owned by Babylon.js scene
  * - Parent PongGame class handles disposal
- * 
- * Lifecycle:
- * - Created by PongGame constructor
- * - Updated every physics step via move()
- * - Disposed automatically when PongGame.dispose() is called
  */
 export class Paddle {
     public mesh: BABYLON.Mesh;

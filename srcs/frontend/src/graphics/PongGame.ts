@@ -19,14 +19,6 @@ import { PowerUpTypes, AIConfig } from './types';
  * - Owns BabylonJS Engine & Scene
  * - Owns all meshes, materials, textures
  * - Owns render loop lifecycle
- *
- * Lifecycle:
- * new PongGame() -> resume() / pause() -> dispose()
- *
- * IMPORTANT:
- * - This class has NO DOM knowledge
- * - This class does NOT perform navigation
- * - Cleanup MUST be done via dispose()
  */
 export class PongGame {
     private canvas: HTMLCanvasElement;
