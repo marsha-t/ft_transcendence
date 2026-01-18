@@ -84,7 +84,7 @@ export class FriendsServices {
 
 	async removeFriend(username: string): Promise<ApiResponse<null>> {
 		try {
-			const response = await fetch(`${this.baseUrl}/friendsServ/friends/${encodeURIComponent(username)}`, {
+			const response = await fetch(`${this.baseUrl}/friendsServ/friends/${username}`, {
 				method: "DELETE",
 				credentials: 'include',
 			});

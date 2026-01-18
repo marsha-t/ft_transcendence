@@ -10,7 +10,7 @@ import { i18nReady, initializeLanguageFromBackend } from './services/i18n/i18nSe
     - Check that root containers exist
     - Initialise global services: Authentication and i18n
     - Mount header and footer
-    - Create Router instance (once)
+    - Create Router instance (once)x
     - Trigger first render by dispatching popstate event
     - No cleanup needed: listener fires once and browser discards it 
 */

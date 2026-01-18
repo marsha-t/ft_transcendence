@@ -48,7 +48,7 @@ RUN if [ ! -f /etc/nginx/ssl/nginx.crt ] || [ ! -f /etc/nginx/ssl/nginx.key ]; t
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copy built files from Vite (dist folder, not public)
+# Copy built files from Vite (dist folder)
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy styles (temp fix since game and tournament are not in tailwind yet)

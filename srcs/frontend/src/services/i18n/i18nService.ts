@@ -34,7 +34,7 @@ export const i18nReady = i18next.use(LanguageDetector).init({
     supportedLngs: Object.keys(SUPPORTED_LANGUAGES), //Restricts available languages
     debug: false,
     interpolation: {
-      escapeValue: false // React already escapes values
+      escapeValue: false 
     },
     detection: {
       order: ['localStorage', 'navigator'],
