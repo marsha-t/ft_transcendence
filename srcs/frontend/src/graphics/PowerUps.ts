@@ -9,7 +9,6 @@ import { PowerUp, PowerUpTypes } from './types';
  * - Spawns power-ups at regular intervals when enabled
  * - Animates active power-ups (rotation + pulsing scale)
  * - Detects ball collision and triggers collection effect
- * - Applies visual feedback on collection (expanding colored ring)
  * - Provides full cleanup for PongGame.dispose()
  */
 export class PowerUpManager{
@@ -23,7 +22,7 @@ export class PowerUpManager{
         this.scene = scene;
         //Create glow layer for power-ups
         this.glowLayer = new BABYLON.GlowLayer('powerUpGlow', this.scene);
-        this.glowLayer.intensity = 1.5;
+        this.glowLayer.intensity = 1;
     }
 
 

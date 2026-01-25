@@ -112,15 +112,19 @@ export class InputHandler {
     // Called every physics step (120Hz) by PongGame render loop
     public update(dt: number): void {
         let leftVel = 0;
-        if (this.keys.w) leftVel = this.paddleSpeed;
-        else if (this.keys.s) leftVel = -this.paddleSpeed;
+        if (this.keys.w) 
+            leftVel = this.paddleSpeed;
+        else if (this.keys.s) 
+            leftVel = -this.paddleSpeed;
 
         this.leftPaddle.velocity = leftVel;   // used by bounce physics
         this.leftPaddle.move(dt);             // applies velocity * dt
 
         let rightVel = 0;
-        if (this.keys.ArrowUp) rightVel = this.paddleSpeed;
-        else if (this.keys.ArrowDown) rightVel = -this.paddleSpeed;
+        if (this.keys.ArrowUp) 
+            rightVel = this.paddleSpeed;
+        else if (this.keys.ArrowDown) 
+            rightVel = -this.paddleSpeed;
 
         this.rightPaddle.velocity = rightVel;
         this.rightPaddle.move(dt);

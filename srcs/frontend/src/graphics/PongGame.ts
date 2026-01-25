@@ -74,12 +74,15 @@ export class PongGame {
                 return;
             }
 
+            // 1) Time (in seconds) since the last rendered frame
             const rawDt = this.engine.getDeltaTime() / 1000;
-            // Prevent huge dt when tab is inactive
+            // 2) Clamp delta time to avoid large jumps
             const dt = Math.min(rawDt, 1 / 30);
-
-            const subDt = 1 / 120; // 120 Hz physics = no more tunneling
+            // 3) Fixed physics step time. Ensures stable physics, accurate colli.
+            const subDt = 1 / 120; // 120 Hz physics
+            // 4) Store leftover time. 
             let accumulator = 0;
+            // 5) Collects time until enough has passed to run a physics step.
             accumulator += dt;
 
             while (accumulator >= subDt) {
@@ -127,7 +130,7 @@ export class PongGame {
         // Visuals + spawning only (time-based, frame-rate independent)
         this.powerUpManager.updatePowerUp(currentTime);
         
-        // Effects expiration (once/frame ok)
+        // Effects expiration (once/frame)
         this.updateActivePowerUpEffects(currentTime);
     }
 
