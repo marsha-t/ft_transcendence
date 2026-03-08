@@ -1,12 +1,14 @@
-# Prisma
-srcs/backend/prisma/dev.db
-
 # Environment files
-# srcs/.env
+.env
+.env.*
+srcs/.env
+srcs/backend/.env
+
+# SSL keys and certificates
+srcs/frontend/ssl/
 
 # Dependency directories
+node_modules
 srcs/backend/node_modules/
 srcs/frontend/node_modules/
-node_modules
-# srcs/nginx/ssl/
-# Docker
+
