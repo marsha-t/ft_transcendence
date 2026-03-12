@@ -27,7 +27,7 @@ The project showcases a microservices architecture, real-time WebSocket communic
 - Implement user authentication with enterprise-grade security (JWT, 2FA, Google OAuth)
 - Create a social ecosystem: friend requests, player profiles, and match history
 - Support single-player (vs AI), local multiplayer, and bracket-style tournaments
-- Deliver a multilingual, SPA experience without any heavy frontend framework
+- Deliver a multilingual, Single-Page Application (SPA) experience without using a heavy frontend framework
 
 ---
 
@@ -152,10 +152,10 @@ https://localhost:8080
 
 ### 🔐 User Authentication (`auth-service` · port 5001)
 
-- **Registration** — Create a new account with a unique username and email; passwords are hashed with bcrypt (12 rounds)
+- **Registration** — Create a new account with a unique username and email; passwords are hashed using bcrypt with 12 salt rounds
 - **Login** — Credential-based login with normalised username handling
 - **Google OAuth** — Sign in or register via Google; automatically links Google accounts to existing email accounts
-- **Two-Factor Authentication (2FA)** — OTP codes delivered via email with a 5-minute expiry window; can be enabled/disabled per user
+- **Two-Factor Authentication (2FA)** — OTP codes delivered via email with a 5-minute expiry window; can be enabled or disabled per user
 - **Session Management** — Secure `HttpOnly` + `Secure` JWT cookies with 1-hour expiry; automatic online/offline status tracking
 - **Avatar Upload** — Serves user avatars as static files; downloads and caches Google profile pictures locally
 
@@ -271,7 +271,7 @@ Browser (HTTPS :8080)
        │ routes /api/* to backend services
        │
   ┌────┴──────────────────────────────────────────┐
-  │                Docker Network: transcendence   │
+  │               Docker Network: transcendence   │
   │                                               │
   │  auth        :5001   ─┐                       │
   │  profile     :5002   ─┼─ user-social.db       │
@@ -291,8 +291,8 @@ Browser (HTTPS :8080)
 | Member | Role / Responsibilities |
 |---|---|
 | [Sabira](https://github.com/mk-sabira) | 🎨 **Frontend & Game** — SPA architecture and overall website design, Babylon.js 3D game engine integration, Pong gameplay mechanics and 3D scene rendering, game customisation UI, AI opponent implementation, Vite/TypeScript build setup, Tailwind CSS styling |
-| [Marsha](https://github.com/marsha-t) | ⚙️ **Backend & Game Server** — Game server architecture, real-time WebSocket game loop, AI opponent logic, tournament bracket system design and implementation, analytics dashboard service and per-user statistics (win rate, streaks, average score, match history aggregation) |
-| [Rawan](https://github.com/raljaberi) | 🔐 **Authentication & User Management** — Standard user registration and login, JWT session management, Two-Factor Authentication (2FA) with email OTP, Google OAuth (remote authentication), and all user account management functionality |
+| [Marsha](https://github.com/marsha-t) | ⚙️ **Backend Game & Tournament Services** — Game server architecture, real-time WebSocket game loop, AI opponent logic, tournament bracket system design and implementation, analytics dashboard service and per-user statistics (win rate, streaks, average score, match history aggregation) |
+| [Rawan](https://github.com/rawanaljaberi) | 🔐 **Backend User Management & Social Services** — Standard user registration and login, JWT session management, Two-Factor Authentication (2FA) with email OTP, Google OAuth (remote authentication), user account management, and implementation of the friends-service including friend requests, friend list management, and user discovery |
 | [Dina](https://github.com/dinaalamin00) | 🐳🎨 **DevOps, Frontend & i18n** — Docker containerisation, Nginx reverse-proxy and HTTPS configuration, microservices orchestration; frontend development of the profile page and its full integration with the user management backend; application-wide translation using i18next (EN / RU / ES) |
 
 ---
