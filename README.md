@@ -6,11 +6,14 @@ A full-stack, real-time **Pong** web application built as the final project of t
 Play against friends, challenge an AI, or compete in tournaments — all in your browser.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-38B2AC?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
 ![Fastify](https://img.shields.io/badge/Fastify-000000?style=flat-square&logo=fastify&logoColor=white)
 ![Babylon.js](https://img.shields.io/badge/Babylon.js-BB464B?style=flat-square&logo=babylon.js&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat-square&logo=nginx&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)
 
 </div>
 
@@ -162,30 +165,30 @@ https://localhost:8080
 ### 🏓 Pong Game (`game-tournament-service` · port 5005)
 
 - **3D Pong** — Real-time Pong game rendered with Babylon.js in the browser
-- **Real-time Sync** — Game state is synchronised over WebSocket for a responsive multiplayer experience
 - **Game Modes:**
   - **Local Multiplayer** — Two players on the same machine
-  - **vs AI** — Single-player mode with a built-in AI opponent
+  - **vs AI** — Single-player mode with a built-in AI opponent, with gameplay interactions synchronised via WebSockets 
 - **Game Customisation** — Players can customise game settings before starting
 - **Game Events** — Every point, pause, resume, and finish is logged to the database
+- **Game Analytics Dashboard** — Post-game statistics visualizing gameplay trends and match outcomes
 
 ### 🏆 Tournament System (`game-tournament-service`)
 
-- **Bracket Tournaments** — Create multi-player elimination brackets
-- **Player Management** — Supports both registered users and guest players in tournaments
-- **Match Flow** — Automatic bracket progression: tournament setup → match play → results → next round
-- **Tournament History** — Full record of all past tournaments and their outcomes
+- **Dynamic Single-Elimination Brackets** — Automatically generates tournament brackets for any number of participants
+- **Flexible Player Registration** — Supports both registered users and guest players
+- **Automated Match Scheduling** — Determines match order and advances winners through each round
+- **Tournament Match History** — All tournament matches and results are stored for later review
 
 ### 👤 Profiles & Dashboard (`profile-service` · port 5002, `dashboard-service` · port 5004)
 
 - **User Profiles** — View and edit username, avatar, and preferences
 - **Match History** — Browse a chronological log of all past games with scores and outcomes
-- **Statistics Dashboard** — A dedicated analytics view that aggregates data from both databases and surfaces per-user performance metrics:
+- **User Performance Dashboard** — A dedicated analytics view that aggregates data from both databases and surfaces per-user performance metrics:
   - Total matches played, total wins, and overall win rate
   - Average score per game
   - Longest win streak and current win streak
-  - Last played date
   - Visual breakdown of game and tournament history
+  - Global leaderboard of players based on game activity and win rate
 
 ### 👫 Friends & Social (`friends-service` · port 5003)
 
