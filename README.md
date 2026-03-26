@@ -17,6 +17,21 @@ Play against friends, challenge an AI, or compete in tournaments — all in your
 
 </div>
 
+--- 
+
+## 📖 Project Overview
+
+**ft_transcendence** is a modern, containerised web application centred around the classic Pong game.  
+The project showcases a microservices architecture, real-time WebSocket communication, 3D rendering with Babylon.js, a full user management system (registration, login, and account settings), and a comprehensive social layer including friends, profiles, and tournaments.
+
+### Goals
+
+- Build a fully functional Pong game playable in the browser
+- Implement user authentication with enterprise-grade security (JWT, 2FA, Google OAuth)
+- Create a social ecosystem: friend requests, player profiles, and match history
+- Support single-player (vs AI), local multiplayer, and bracket-style tournaments
+- Deliver a multilingual, Single-Page Application (SPA) experience without using a heavy frontend framework
+
 ---
 
 ## 🎥 Demo & Screenshots
@@ -40,21 +55,6 @@ Play against friends, challenge an AI, or compete in tournaments — all in your
   <img src="assets/game_result.png" width="80%" />
 </p>
 <p align="center"><em>Post-game analytics and match results</em></p>
-
----
-
-## 📖 Project Overview
-
-**ft_transcendence** is a modern, containerised web application centred around the classic Pong game.  
-The project showcases a microservices architecture, real-time WebSocket communication, 3D rendering with Babylon.js, a full user management system (registration, login, and account settings), and a comprehensive social layer including friends, profiles, and tournaments.
-
-### Goals
-
-- Build a fully functional Pong game playable in the browser
-- Implement user authentication with enterprise-grade security (JWT, 2FA, Google OAuth)
-- Create a social ecosystem: friend requests, player profiles, and match history
-- Support single-player (vs AI), local multiplayer, and bracket-style tournaments
-- Deliver a multilingual, Single-Page Application (SPA) experience without using a heavy frontend framework
 
 ---
 
