@@ -19,6 +19,22 @@ Play against friends, challenge an AI, or compete in tournaments — all in your
 
 ---
 
+## 🎥 Demo & Screenshots
+
+<div align="center">
+  <img src="assets/auth.png" width="45%" />
+  <img src="assets/profile.png" width="45%" />
+</div>
+<p align="center"><em>User authentication and profile management</em></p>
+
+<div align="center">
+  <img src="assets/tournament.png" width="45%" />
+  <img src="assets/game_result.png" width="45%" />
+</div>
+<p align="center"><em>Tournament system and post-game analytics</em></p>
+
+---
+
 ## 📖 Project Overview
 
 **ft_transcendence** is a modern, containerised web application centred around the classic Pong game.  
