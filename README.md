@@ -21,17 +21,25 @@ Play against friends, challenge an AI, or compete in tournaments — all in your
 
 ## 🎥 Demo & Screenshots
 
-<div align="center">
-  <img src="assets/auth.png" width="45%" />
-  <img src="assets/profile.png" width="45%" />
-</div>
-<p align="center"><em>User authentication and profile management</em></p>
+<p align="center">
+  <img src="assets/auth.png" width="80%" />
+</p>
+<p align="center"><em>User authentication (login, registration, 2FA)</em></p>
 
-<div align="center">
-  <img src="assets/tournament.png" width="45%" />
-  <img src="assets/game_result.png" width="45%" />
-</div>
-<p align="center"><em>Tournament system and post-game analytics</em></p>
+<p align="center">
+  <img src="assets/profile.png" width="80%" />
+</p>
+<p align="center"><em>User profile and account management</em></p>
+
+<p align="center">
+  <img src="assets/tournament.png" width="80%" />
+</p>
+<p align="center"><em>Dynamic tournament bracket system</em></p>
+
+<p align="center">
+  <img src="assets/game_result.png" width="80%" />
+</p>
+<p align="center"><em>Post-game analytics and match results</em></p>
 
 ---
 
